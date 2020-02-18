@@ -15,7 +15,7 @@
 
 action="${1}"
 config="${2}"
-base="`dirname ${0}`"
+base=`dirname "${0}"`
 
 # cache_file may be set by environment variable
 configcache=""
@@ -37,9 +37,9 @@ if [ -z "$pjobs" -a -x /sbin/sysctl ]; then
     fi
 fi
 
-if test -e ${config} ; then
+if test -e "${config}" ; then
 	echo "BUILD: ${config}"
-	. ${config}
+	. "${config}"
 else
 	echo -n "BUILD ERROR: Unable to locate test configuration '${config}' from " && pwd
 	exit 1;
@@ -66,7 +66,7 @@ fi
 # do not build any of the install's ...
 #
 # eval is need to correctly handle quoted arguments
-	eval "$base/../configure ${DISTCHECK_CONFIGURE_FLAGS} ${configcache}" \
+	eval "\"$base/../configure\" ${DISTCHECK_CONFIGURE_FLAGS} ${configcache}" \
 		2>&1 && \
 	${MAKE:-make} ${pjobs} ${MAKETEST} 2>&1
 
