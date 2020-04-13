@@ -49,8 +49,8 @@
 #endif
 
 static char NTGroup[256];
-char * NTAllowedGroup;
-char * NTDisAllowedGroup;
+char *NTAllowedGroup;
+char *NTDisAllowedGroup;
 int UseDisallowedGroup = 0;
 int UseAllowedGroup = 0;
 int debug_enabled = 0;
@@ -65,11 +65,11 @@ static void
 usage(const char *name)
 {
     fprintf(stderr, "Usage:\n%s [-A|D UserGroup][-O DefaultDomain][-d]\n"
-            "-A can specify a Windows Local Group name allowed to authenticate\n"
-            "-D can specify a Windows Local Group name not allowed to authenticate\n"
-            "-O can specify the default Domain against to authenticate\n"
-            "-d enable debugging.\n"
-            "-h this message\n\n",
+                    "-A can specify a Windows Local Group name allowed to authenticate\n"
+                    "-D can specify a Windows Local Group name not allowed to authenticate\n"
+                    "-O can specify the default Domain against to authenticate\n"
+                    "-d enable debugging.\n"
+                    "-h this message\n\n",
             name);
 }
 
@@ -81,12 +81,12 @@ process_options(int argc, char *argv[])
         switch (opt) {
         case 'A':
             safe_free(NTAllowedGroup);
-            NTAllowedGroup=xstrdup(optarg);
+            NTAllowedGroup = xstrdup(optarg);
             UseAllowedGroup = 1;
             break;
         case 'D':
             safe_free(NTDisAllowedGroup);
-            NTDisAllowedGroup=xstrdup(optarg);
+            NTDisAllowedGroup = xstrdup(optarg);
             UseDisallowedGroup = 1;
             break;
         case 'O':
@@ -149,13 +149,13 @@ main(int argc, char **argv)
         }
 
         if ((p = strchr(wstr, '\n')) != NULL)
-            *p = '\0';      /* strip \n */
+            *p = '\0'; /* strip \n */
         if ((p = strchr(wstr, '\r')) != NULL)
-            *p = '\0';      /* strip \r */
+            *p = '\0'; /* strip \r */
         /* Clear any current settings */
         username[0] = '\0';
         password[0] = '\0';
-        sscanf(wstr, "%s %s", username, password);  /* Extract parameters */
+        sscanf(wstr, "%s %s", username, password); /* Extract parameters */
 
         debug("Got %s from Squid\n", wstr);
 
@@ -179,4 +179,3 @@ main(int argc, char **argv)
     }
     return EXIT_SUCCESS;
 }
-

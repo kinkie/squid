@@ -9,9 +9,9 @@
 /* DEBUG: section 24    SBuf */
 
 #include "squid.h"
+#include "parser/Tokenizer.h"
 #include "Debug.h"
 #include "parser/forward.h"
-#include "parser/Tokenizer.h"
 #include "sbuf/Stream.h"
 
 #include <cerrno>
@@ -64,23 +64,22 @@ Parser::Tokenizer::token(SBuf &returnedToken, const CharacterSet &delimiters)
 {
     const Tokenizer saved(*this);
     skipAll(delimiters);
-    const SBuf::size_type tokenLen = buf_.findFirstOf(delimiters); // not found = npos => consume to end
+    const SBuf::size_type tokenLen = buf_.findFirstOf(delimiters);  // not found = npos => consume to end
     if (tokenLen == SBuf::npos) {
         debugs(24, 8, "no token found for delimiters " << delimiters.name);
         *this = saved;
         return false;
     }
-    returnedToken = consume(tokenLen); // cannot be empty
+    returnedToken = consume(tokenLen);  // cannot be empty
     skipAll(delimiters);
-    debugs(24, DBG_DATA, "token found for delimiters " << delimiters.name << ": '" <<
-           returnedToken << '\'');
+    debugs(24, DBG_DATA, "token found for delimiters " << delimiters.name << ": '" << returnedToken << '\'');
     return true;
 }
 
 bool
 Parser::Tokenizer::prefix(SBuf &returnedToken, const CharacterSet &tokenChars, const SBuf::size_type limit)
 {
-    SBuf::size_type prefixLen = buf_.substr(0,limit).findFirstNotOf(tokenChars);
+    SBuf::size_type prefixLen = buf_.substr(0, limit).findFirstNotOf(tokenChars);
     if (prefixLen == 0) {
         debugs(24, 8, "no prefix for set " << tokenChars.name);
         return false;
@@ -94,7 +93,7 @@ Parser::Tokenizer::prefix(SBuf &returnedToken, const CharacterSet &tokenChars, c
         prefixLen = limit;
     }
     debugs(24, 8, "found with length " << prefixLen);
-    returnedToken = consume(prefixLen); // cannot be empty after the npos check
+    returnedToken = consume(prefixLen);  // cannot be empty after the npos check
     return true;
 }
 
@@ -121,7 +120,7 @@ Parser::Tokenizer::suffix(SBuf &returnedToken, const CharacterSet &tokenChars, c
     SBuf span = buf_;
 
     if (limit < buf_.length())
-        span.consume(buf_.length() - limit); // ignore the N prefix characters
+        span.consume(buf_.length() - limit);  // ignore the N prefix characters
 
     auto i = span.rbegin();
     SBuf::size_type found = 0;
@@ -200,7 +199,7 @@ Parser::Tokenizer::skip(const char tokenChar)
 bool
 Parser::Tokenizer::skipOneTrailing(const CharacterSet &skippable)
 {
-    if (!buf_.isEmpty() && skippable[buf_[buf_.length()-1]]) {
+    if (!buf_.isEmpty() && skippable[buf_[buf_.length() - 1]]) {
         debugs(24, 8, "skipping one-of " << skippable.name);
         return successTrailing(1);
     }
@@ -212,8 +211,7 @@ SBuf::size_type
 Parser::Tokenizer::skipAllTrailing(const CharacterSet &skippable)
 {
     const SBuf::size_type prefixEnd = buf_.findLastNotOf(skippable);
-    const SBuf::size_type prefixLen = prefixEnd == SBuf::npos ?
-                                      0 : (prefixEnd + 1);
+    const SBuf::size_type prefixLen = prefixEnd == SBuf::npos ? 0 : (prefixEnd + 1);
     const SBuf::size_type suffixLen = buf_.length() - prefixLen;
     if (suffixLen == 0) {
         debugs(24, 8, "no match when trying to skip " << skippable.name);
@@ -225,12 +223,12 @@ Parser::Tokenizer::skipAllTrailing(const CharacterSet &skippable)
 
 /* reworked from compat/strtoll.c */
 bool
-Parser::Tokenizer::int64(int64_t & result, int base, bool allowSign, const SBuf::size_type limit)
+Parser::Tokenizer::int64(int64_t &result, int base, bool allowSign, const SBuf::size_type limit)
 {
     if (atEnd() || limit == 0)
         return false;
 
-    const SBuf range(buf_.substr(0,limit));
+    const SBuf range(buf_.substr(0, limit));
 
     //fixme: account for buf_.size()
     bool neg = false;
@@ -244,22 +242,23 @@ Parser::Tokenizer::int64(int64_t & result, int base, bool allowSign, const SBuf:
         } else if (*s == '+') {
             ++s;
         }
-        if (s >= end) return false;
+        if (s >= end)
+            return false;
     }
-    if (( base == 0 || base == 16) && *s == '0' && (s+1 < end ) &&
-            tolower(*(s+1)) == 'x') {
+    if ((base == 0 || base == 16) && *s == '0' && (s + 1 < end) && tolower(*(s + 1)) == 'x') {
         s += 2;
         base = 16;
     }
     if (base == 0) {
-        if ( *s == '0') {
+        if (*s == '0') {
             base = 8;
             ++s;
         } else {
             base = 10;
         }
     }
-    if (s >= end) return false;
+    if (s >= end)
+        return false;
 
     uint64_t cutoff;
 
@@ -289,7 +288,7 @@ Parser::Tokenizer::int64(int64_t & result, int base, bool allowSign, const SBuf:
         }
     } while (++s < end);
 
-    if (any == 0) // nothing was parsed
+    if (any == 0)  // nothing was parsed
         return false;
     if (any < 0) {
         acc = neg ? INT64_MIN : INT64_MAX;
@@ -318,8 +317,7 @@ Parser::Tokenizer::udec64(const char *description, const SBuf::size_type limit)
         throw TexcHere(ToSBuf("cannot parse ", description));
 
     if (atEnd())
-        throw InsufficientInput(); // more digits may be coming
+        throw InsufficientInput();  // more digits may be coming
 
     return result;
 }
-

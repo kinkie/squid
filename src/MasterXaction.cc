@@ -10,4 +10,3 @@
 #include "MasterXaction.h"
 
 InstanceIdDefinitions(MasterXaction, "master", uint64_t);
-

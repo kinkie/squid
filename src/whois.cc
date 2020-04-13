@@ -9,16 +9,16 @@
 /* DEBUG: section 75    WHOIS protocol */
 
 #include "squid.h"
-#include "comm.h"
-#include "comm/Read.h"
-#include "comm/Write.h"
-#include "errorpage.h"
 #include "FwdState.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "SquidConfig.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "comm.h"
+#include "comm/Read.h"
+#include "comm/Write.h"
+#include "errorpage.h"
 #include "tools.h"
 
 #include <cerrno>
@@ -33,7 +33,7 @@ public:
     StoreEntry *entry;
     HttpRequest::Pointer request;
     FwdState::Pointer fwd;
-    char buf[BUFSIZ+1];     /* readReply adds terminating NULL */
+    char buf[BUFSIZ + 1]; /* readReply adds terminating NULL */
     bool dataWritten;
 };
 
@@ -52,7 +52,7 @@ whoisWriteComplete(const Comm::ConnectionPointer &, char *buf, size_t, Comm::Fla
 }
 
 void
-whoisStart(FwdState * fwd)
+whoisStart(FwdState *fwd)
 {
     WhoisState *p = new WhoisState;
     p->request = fwd->request;
@@ -69,14 +69,14 @@ whoisStart(FwdState * fwd)
     const SBuf str_print = p->request->url.path().substr(1);
     snprintf(buf, l, SQUIDSBUFPH "\r\n", SQUIDSBUFPRINT(str_print));
 
-    AsyncCall::Pointer writeCall = commCbCall(5,5, "whoisWriteComplete",
-                                   CommIoCbPtrFun(whoisWriteComplete, p));
+    AsyncCall::Pointer writeCall = commCbCall(5, 5, "whoisWriteComplete",
+                                              CommIoCbPtrFun(whoisWriteComplete, p));
     Comm::Write(fwd->serverConnection(), buf, strlen(buf), writeCall, NULL);
-    AsyncCall::Pointer readCall = commCbCall(5,4, "whoisReadReply",
-                                  CommIoCbPtrFun(whoisReadReply, p));
+    AsyncCall::Pointer readCall = commCbCall(5, 4, "whoisReadReply",
+                                             CommIoCbPtrFun(whoisReadReply, p));
     comm_read(fwd->serverConnection(), p->buf, BUFSIZ, readCall);
     AsyncCall::Pointer timeoutCall = commCbCall(5, 4, "whoisTimeout",
-                                     CommTimeoutCbPtrFun(whoisTimeout, p));
+                                                CommTimeoutCbPtrFun(whoisTimeout, p));
     commSetConnTimeout(fwd->serverConnection(), Config.Timeout.read, timeoutCall);
 }
 
@@ -122,7 +122,7 @@ WhoisState::readReply(const Comm::ConnectionPointer &conn, char *aBuffer, size_t
         debugs(50, 2, conn << ": read failure: " << xstrerr(xerrno));
 
         if (ignoreErrno(xerrno)) {
-            AsyncCall::Pointer call = commCbCall(5,4, "whoisReadReply",
+            AsyncCall::Pointer call = commCbCall(5, 4, "whoisReadReply",
                                                  CommIoCbPtrFun(whoisReadReply, this));
             comm_read(conn, aBuffer, BUFSIZ, call);
         } else {
@@ -146,7 +146,7 @@ WhoisState::readReply(const Comm::ConnectionPointer &conn, char *aBuffer, size_t
         entry->append(aBuffer, aBufferLength);
         entry->flush();
 
-        AsyncCall::Pointer call = commCbCall(5,4, "whoisReadReply",
+        AsyncCall::Pointer call = commCbCall(5, 4, "whoisReadReply",
                                              CommIoCbPtrFun(whoisReadReply, this));
         comm_read(conn, aBuffer, BUFSIZ, call);
         return;
@@ -172,4 +172,3 @@ whoisClose(const CommCloseCbParams &params)
     p->entry->unlock("whoisClose");
     delete p;
 }
-

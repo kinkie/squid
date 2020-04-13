@@ -13,8 +13,7 @@
 #include "base/AsyncJob.h"
 #include "base/CbcPointer.h"
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 /*
  * The  Initiate is a common base for  queries or transactions
@@ -27,35 +26,34 @@ namespace Adaptation
  *
  * This class could have been named Initiatee.
  */
-class Initiate: virtual public AsyncJob
+class Initiate : virtual public AsyncJob
 {
 
 public:
     Initiate(const char *aTypeName);
     virtual ~Initiate();
 
-    void initiator(const CbcPointer<Initiator> &i); ///< sets initiator
+    void initiator(const CbcPointer<Initiator> &i);  ///< sets initiator
 
     // communication with the initiator
     virtual void noteInitiatorAborted() = 0;
 
 protected:
-    void sendAnswer(const Answer &answer); // send to the initiator
-    void tellQueryAborted(bool final); // tell initiator
-    void clearInitiator(); // used by noteInitiatorAborted; TODO: make private
+    void sendAnswer(const Answer &answer);  // send to the initiator
+    void tellQueryAborted(bool final);      // tell initiator
+    void clearInitiator();                  // used by noteInitiatorAborted; TODO: make private
 
-    virtual void swanSong(); // internal cleanup
+    virtual void swanSong();  // internal cleanup
 
-    virtual const char *status() const; // for debugging
+    virtual const char *status() const;  // for debugging
 
     CbcPointer<Initiator> theInitiator;
 
 private:
-    Initiate(const Initiate &); // no definition
-    Initiate &operator =(const Initiate &); // no definition
+    Initiate(const Initiate &);             // no definition
+    Initiate &operator=(const Initiate &);  // no definition
 };
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__INITIATE_H */
-

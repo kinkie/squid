@@ -14,8 +14,7 @@
 #include <vector>
 
 /// HTTP Authentication
-namespace Auth
-{
+namespace Auth {
 
 class CredentialsCache;
 
@@ -23,8 +22,7 @@ class Scheme;
 class SchemeConfig;
 typedef std::vector<Auth::SchemeConfig *> ConfigVector;
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* SQUID_SRC_AUTH_FORWARD_H */
-

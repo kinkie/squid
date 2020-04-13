@@ -10,24 +10,27 @@
 
 #include "squid.h"
 #include "adaptation/Service.h"
-#include "adaptation/ServiceFilter.h"
 #include "HttpRequest.h"
+#include "adaptation/ServiceFilter.h"
 
-Adaptation::Service::Service(const ServiceConfigPointer &aConfig): theConfig(aConfig)
+Adaptation::Service::Service(const ServiceConfigPointer &aConfig) :
+    theConfig(aConfig)
 {
     Must(theConfig != NULL);
-    debugs(93,3, HERE << "creating adaptation service " << cfg().key);
+    debugs(93, 3, HERE << "creating adaptation service " << cfg().key);
 }
 
 Adaptation::Service::~Service()
-{}
+{
+}
 
 void
 Adaptation::Service::finalize()
 {
 }
 
-bool Adaptation::Service::broken() const
+bool
+Adaptation::Service::broken() const
 {
     return probed() && !up();
 }
@@ -65,7 +68,7 @@ Adaptation::AllServices()
 }
 
 Adaptation::ServicePointer
-Adaptation::FindService(const Service::Id& key)
+Adaptation::FindService(const Service::Id &key)
 {
     typedef Services::iterator SI;
     for (SI i = AllServices().begin(); i != AllServices().end(); ++i) {
@@ -75,11 +78,11 @@ Adaptation::FindService(const Service::Id& key)
     return NULL;
 }
 
-void Adaptation::DetachServices()
+void
+Adaptation::DetachServices()
 {
     while (!AllServices().empty()) {
         AllServices().back()->detach();
         AllServices().pop_back();
     }
 }
-

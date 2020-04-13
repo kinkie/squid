@@ -20,4 +20,3 @@ Dns::LookupDetails::print(std::ostream &os) const
         os << " lookup_err=" << error;
     return os;
 }
-

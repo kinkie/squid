@@ -9,13 +9,13 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/mem/Segment.h"
+#include "Debug.h"
+#include "SquidConfig.h"
 #include "base/TextException.h"
 #include "compat/shm.h"
-#include "Debug.h"
 #include "fatal.h"
-#include "ipc/mem/Segment.h"
 #include "sbuf/SBuf.h"
-#include "SquidConfig.h"
 #include "tools.h"
 
 #if HAVE_FCNTL_H
@@ -43,7 +43,7 @@ Ipc::Mem::Segment::reserve(size_t chunkSize)
     assert(!chunkSize || static_cast<off_t>(chunkSize) > 0);
     assert(static_cast<off_t>(chunkSize) <= theSize);
     assert(theReserved <= theSize - static_cast<off_t>(chunkSize));
-    void *result = reinterpret_cast<char*>(theMem) + theReserved;
+    void *result = reinterpret_cast<char *>(theMem) + theReserved;
     theReserved += chunkSize;
     return result;
 }
@@ -59,7 +59,7 @@ Ipc::Mem::Segment::Name(const SBuf &prefix, const char *suffix)
 
 #if HAVE_SHM
 
-Ipc::Mem::Segment::Segment(const char *const id):
+Ipc::Mem::Segment::Segment(const char *const id) :
     theFD(-1), theName(GenerateName(id)), theMem(NULL),
     theSize(0), theReserved(0), doUnlink(false)
 {
@@ -172,8 +172,7 @@ Ipc::Mem::Segment::attach()
     // be bigger; assert overflows until we support multiple mmap()s?
     assert(theSize == static_cast<off_t>(static_cast<size_t>(theSize)));
 
-    void *const p =
-        mmap(NULL, theSize, PROT_READ | PROT_WRITE, MAP_SHARED, theFD, 0);
+    void *const p = mmap(NULL, theSize, PROT_READ | PROT_WRITE, MAP_SHARED, theFD, 0);
     if (p == MAP_FAILED) {
         int xerrno = errno;
         debugs(54, 5, "mmap " << theName << ": " << xstrerr(xerrno));
@@ -216,18 +215,18 @@ Ipc::Mem::Segment::lock()
     if (mlock(theMem, theSize) != 0) {
         const int savedError = errno;
         fatalf("shared_memory_locking on but failed to mlock(%s, %" PRId64 "): %s\n",
-               theName.termedBuf(),static_cast<int64_t>(theSize), xstrerr(savedError));
+               theName.termedBuf(), static_cast<int64_t>(theSize), xstrerr(savedError));
     }
     // TODO: Warn if it took too long.
     debugs(54, 7, "mlock(" << theName << ',' << theSize << ") OK");
 #else
     debugs(54, 5, "insufficient mlock(2) support");
-    if (Config.shmLocking.configured()) { // set explicitly
+    if (Config.shmLocking.configured()) {  // set explicitly
         static bool warnedOnce = false;
         if (!warnedOnce) {
-            debugs(54, DBG_IMPORTANT, "ERROR: insufficient mlock(2) support prevents " <<
-                   "honoring `shared_memory_locking on`. " <<
-                   "If you lack RAM, kernel will kill Squid later.");
+            debugs(54, DBG_IMPORTANT, "ERROR: insufficient mlock(2) support prevents "
+                       << "honoring `shared_memory_locking on`. "
+                       << "If you lack RAM, kernel will kill Squid later.");
             warnedOnce = true;
         }
     }
@@ -273,7 +272,7 @@ Ipc::Mem::Segment::GenerateName(const char *id)
     String name;
     if (nameIsPath) {
         name.append(BasePath);
-        if (name[name.size()-1] != '/')
+        if (name[name.size() - 1] != '/')
             name.append('/');
     } else {
         name.append('/');
@@ -291,18 +290,18 @@ Ipc::Mem::Segment::GenerateName(const char *id)
     }
     name.append(id);
 
-    name.append(".shm"); // to distinguish from non-segments when nameIsPath
+    name.append(".shm");  // to distinguish from non-segments when nameIsPath
     return name;
 }
 
-#else // HAVE_SHM
+#else  // HAVE_SHM
 
 #include <map>
 
 typedef std::map<String, Ipc::Mem::Segment *> SegmentMap;
 static SegmentMap Segments;
 
-Ipc::Mem::Segment::Segment(const char *const id):
+Ipc::Mem::Segment::Segment(const char *const id) :
     theName(id), theMem(NULL), theSize(0), theReserved(0), doUnlink(false)
 {
 }
@@ -310,7 +309,7 @@ Ipc::Mem::Segment::Segment(const char *const id):
 Ipc::Mem::Segment::~Segment()
 {
     if (doUnlink) {
-        delete [] static_cast<char *>(theMem);
+        delete[] static_cast<char *>(theMem);
         theMem = NULL;
         Segments.erase(theName);
         debugs(54, 3, HERE << "unlinked " << theName << " fake segment");
@@ -362,15 +361,14 @@ void
 Ipc::Mem::Segment::checkSupport(const char *const context)
 {
     if (!Enabled()) {
-        debugs(54, 5, HERE << context <<
-               ": True shared memory segments are not supported. "
-               "Cannot fake shared segments in SMP config.");
+        debugs(54, 5, HERE << context << ": True shared memory segments are not supported. "
+                                         "Cannot fake shared segments in SMP config.");
         fatalf("Ipc::Mem::Segment: Cannot fake shared segments in SMP config (%s)\n",
                context);
     }
 }
 
-#endif // HAVE_SHM
+#endif  // HAVE_SHM
 
 void
 Ipc::Mem::RegisteredRunner::useConfig()
@@ -391,4 +389,3 @@ Ipc::Mem::RegisteredRunner::useConfig()
     if (!InDaemonMode() || !IamMasterProcess())
         open();
 }
-

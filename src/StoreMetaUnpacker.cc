@@ -9,11 +9,11 @@
 /* DEBUG: section 20    Storage Manager Swapfile Unpacker */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "Debug.h"
-#include "defines.h"
-#include "StoreMeta.h"
 #include "StoreMetaUnpacker.h"
+#include "Debug.h"
+#include "StoreMeta.h"
+#include "base/TextException.h"
+#include "defines.h"
 
 int const StoreMetaUnpacker::MinimumBufferLength = sizeof(char) + sizeof(int);
 
@@ -26,7 +26,7 @@ StoreMetaUnpacker::isBufferZero()
     // it is not a big deal. Empty entries are not isBufferSane anyway.
     const int depth = 10;
     if (buflen < depth)
-        return false; // cannot be sure enough
+        return false;  // cannot be sure enough
 
     for (int i = 0; i < depth; ++i) {
         if (buf[i])
@@ -38,7 +38,7 @@ StoreMetaUnpacker::isBufferZero()
 void
 StoreMetaUnpacker::checkBuffer()
 {
-    assert(buf); // paranoid; already checked in the constructor
+    assert(buf);  // paranoid; already checked in the constructor
     if (buf[0] != static_cast<char>(STORE_META_OK))
         throw TexcHere("store entry metadata is corrupted");
     /*
@@ -99,7 +99,7 @@ StoreMetaUnpacker::doOneEntry()
     StoreMeta *newNode = StoreMeta::Factory(type, length, &buf[position]);
 
     if (newNode)
-        tail = StoreMeta::Add (tail, newNode);
+        tail = StoreMeta::Add(tail, newNode);
 
     position += length;
 
@@ -113,7 +113,7 @@ StoreMetaUnpacker::moreToProcess() const
 }
 
 StoreMeta *
-StoreMetaUnpacker::createStoreMeta ()
+StoreMetaUnpacker::createStoreMeta()
 {
     tlv *TLV = NULL;
     tail = &TLV;
@@ -123,7 +123,7 @@ StoreMetaUnpacker::createStoreMeta ()
 
     getBufferLength();
 
-    assert (position == 1 + sizeof(int));
+    assert(position == 1 + sizeof(int));
 
     while (moreToProcess()) {
         if (!doOneEntry())
@@ -136,4 +136,3 @@ StoreMetaUnpacker::createStoreMeta ()
     assert(TLV);
     return TLV;
 }
-

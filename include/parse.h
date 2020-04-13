@@ -48,28 +48,28 @@ struct enum_list {
  * A tree in the format of the tree structure of the MIB.
  */
 struct snmp_mib_tree {
-    struct snmp_mib_tree *child_list;   /* list of children of this node */
-    struct snmp_mib_tree *next_peer;    /* Next node in list of peers */
+    struct snmp_mib_tree *child_list; /* list of children of this node */
+    struct snmp_mib_tree *next_peer;  /* Next node in list of peers */
     struct snmp_mib_tree *parent;
-    char label[64];     /* This node's textual name */
-    u_int subid;        /* This node's integer subidentifier */
-    int type;           /* This node's object type */
-    struct enum_list *enums;    /* (optional) list of enumerated integers (otherwise NULL) */
-    void (*printer) (char *buf, variable_list *var, void *foo, int quiet);      /* Value printing function */
+    char label[64];                                                       /* This node's textual name */
+    u_int subid;                                                          /* This node's integer subidentifier */
+    int type;                                                             /* This node's object type */
+    struct enum_list *enums;                                              /* (optional) list of enumerated integers (otherwise NULL) */
+    void (*printer)(char *buf, variable_list *var, void *foo, int quiet); /* Value printing function */
 };
 
 /* non-aggregate types for tree end nodes */
-#define TYPE_OTHER      0
-#define TYPE_OBJID      1
-#define TYPE_OCTETSTR       2
-#define TYPE_INTEGER        3
-#define TYPE_NETADDR        4
-#define TYPE_IPADDR     5
-#define TYPE_COUNTER        6
-#define TYPE_GAUGE      7
-#define TYPE_TIMETICKS      8
-#define TYPE_OPAQUE     9
-#define TYPE_NULL       10
+#define TYPE_OTHER 0
+#define TYPE_OBJID 1
+#define TYPE_OCTETSTR 2
+#define TYPE_INTEGER 3
+#define TYPE_NETADDR 4
+#define TYPE_IPADDR 5
+#define TYPE_COUNTER 6
+#define TYPE_GAUGE 7
+#define TYPE_TIMETICKS 8
+#define TYPE_OPAQUE 9
+#define TYPE_NULL 10
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,5 +96,4 @@ struct snmp_mib_tree *read_mib(char *);
 
 #endif
 
-#endif              /* SQUID_PARSE_H */
-
+#endif /* SQUID_PARSE_H */

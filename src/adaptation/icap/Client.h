@@ -11,16 +11,13 @@
 
 // ICAP-related things needed by code unaware of ICAP internals.
 
-namespace Adaptation
-{
-namespace Icap
-{
+namespace Adaptation {
+namespace Icap {
 
-void InitModule();
-void CleanModule();
+    void InitModule();
+    void CleanModule();
 
-} // namespace Icap
-} // namespace Adaptation
+}  // namespace Icap
+}  // namespace Adaptation
 
 #endif /* SQUID_ICAPCLIENT_H */
-

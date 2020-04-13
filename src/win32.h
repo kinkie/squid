@@ -15,10 +15,9 @@
 
 void WIN32_ExceptionHandlerInit(void);
 
-int Win32__WSAFDIsSet(int fd, fd_set* set);
+int Win32__WSAFDIsSet(int fd, fd_set *set);
 DWORD WIN32_IpAddrChangeMonitorInit();
 
 #endif
 
 #endif /* SQUID_WIN32_H_ */
-

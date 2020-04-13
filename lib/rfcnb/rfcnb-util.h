@@ -41,9 +41,9 @@ void RFCNB_AName_To_NBName(char *AName, char *NBName);
 
 void RFCNB_NBName_To_AName(char *NBName, char *AName);
 
-void RFCNB_Print_Hex(FILE * fd, struct RFCNB_Pkt *pkt, int Offset, int Len);
+void RFCNB_Print_Hex(FILE *fd, struct RFCNB_Pkt *pkt, int Offset, int Len);
 
-void RFCNB_Print_Pkt(FILE * fd, char *dirn, struct RFCNB_Pkt *pkt, int len);
+void RFCNB_Print_Pkt(FILE *fd, char *dirn, struct RFCNB_Pkt *pkt, int len);
 
 int RFCNB_Name_To_IP(char *host, struct in_addr *Dest_IP);
 
@@ -54,12 +54,11 @@ int RFCNB_IP_Connect(struct in_addr Dest_IP, int port);
 int RFCNB_Session_Req(struct RFCNB_Con *con,
                       char *Called_Name,
                       char *Calling_Name,
-                      BOOL * redirect,
+                      BOOL *redirect,
                       struct in_addr *Dest_IP,
                       int *port);
 
-typedef void RFCNB_Prot_Print_Routine(FILE * fd, int dir, struct RFCNB_Pkt *pkt, int header, int payload);
+typedef void RFCNB_Prot_Print_Routine(FILE *fd, int dir, struct RFCNB_Pkt *pkt, int header, int payload);
 extern RFCNB_Prot_Print_Routine *Prot_Print_Routine;
 
 #endif /* _RFCNB_RFCNB_UTIL_H */
-

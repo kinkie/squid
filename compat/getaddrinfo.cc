@@ -80,26 +80,27 @@
 #endif
 
 static struct addrinfo *
-dup_addrinfo (struct addrinfo *info, void *addr, size_t addrlen) {
+dup_addrinfo(struct addrinfo *info, void *addr, size_t addrlen)
+{
     struct addrinfo *ret;
 
-    ret = (struct addrinfo *)malloc(sizeof (struct addrinfo));
+    ret = (struct addrinfo *)malloc(sizeof(struct addrinfo));
     if (ret == NULL)
         return NULL;
-    memcpy (ret, info, sizeof (struct addrinfo));
-    ret->ai_addr = (struct sockaddr*)malloc(addrlen);
+    memcpy(ret, info, sizeof(struct addrinfo));
+    ret->ai_addr = (struct sockaddr *)malloc(addrlen);
     if (ret->ai_addr == NULL) {
-        free (ret);
+        free(ret);
         return NULL;
     }
-    memcpy (ret->ai_addr, addr, addrlen);
+    memcpy(ret->ai_addr, addr, addrlen);
     ret->ai_addrlen = addrlen;
     return ret;
 }
 
 int
-xgetaddrinfo (const char *nodename, const char *servname,
-              const struct addrinfo *hints, struct addrinfo **res)
+xgetaddrinfo(const char *nodename, const char *servname,
+             const struct addrinfo *hints, struct addrinfo **res)
 {
     struct hostent *hp;
     struct servent *servent;
@@ -112,11 +113,11 @@ xgetaddrinfo (const char *nodename, const char *servname,
     if (servname == NULL && nodename == NULL)
         return EAI_NONAME;
 
-    memset (&result, 0, sizeof result);
+    memset(&result, 0, sizeof result);
 
     /* default for hints */
     if (hints == NULL) {
-        memset (&hint, 0, sizeof hint);
+        memset(&hint, 0, sizeof hint);
         hint.ai_family = PF_UNSPEC;
         hints = &hint;
     }
@@ -134,10 +135,10 @@ xgetaddrinfo (const char *nodename, const char *servname,
         result.ai_socktype = hints->ai_socktype;
 
         /* Note: maintain port in host byte order to make debugging easier */
-        if (isdigit (*servname))
-            port = strtol (servname, NULL, 10);
-        else if ((servent = getservbyname (servname, socktype)) != NULL)
-            port = ntohs (servent->s_port);
+        if (isdigit(*servname))
+            port = strtol(servname, NULL, 10);
+        else if ((servent = getservbyname(servname, socktype)) != NULL)
+            port = ntohs(servent->s_port);
         else
             return EAI_NONAME;
     }
@@ -155,13 +156,13 @@ xgetaddrinfo (const char *nodename, const char *servname,
             return EAI_FAMILY;
 
         sin.sin_family = result.ai_family;
-        sin.sin_port = htons (port);
+        sin.sin_port = htons(port);
         if (hints->ai_flags & AI_PASSIVE)
-            sin.sin_addr.s_addr = htonl (INADDR_ANY);
+            sin.sin_addr.s_addr = htonl(INADDR_ANY);
         else
-            sin.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
+            sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
         /* Duplicate result and addr and return */
-        *res = dup_addrinfo (&result, &sin, sizeof sin);
+        *res = dup_addrinfo(&result, &sin, sizeof sin);
         return (*res == NULL) ? EAI_MEMORY : 0;
     }
 
@@ -177,12 +178,12 @@ xgetaddrinfo (const char *nodename, const char *servname,
             return EAI_FAMILY;
 
         sin.sin_family = result.ai_family;
-        sin.sin_port = htons (port);
+        sin.sin_port = htons(port);
         if (inet_pton(result.ai_family, nodename, &sin.sin_addr) != 1)
             return EAI_NONAME;
-        sin.sin_addr.s_addr = inet_addr (nodename);
+        sin.sin_addr.s_addr = inet_addr(nodename);
         /* Duplicate result and addr and return */
-        *res = dup_addrinfo (&result, &sin, sizeof sin);
+        *res = dup_addrinfo(&result, &sin, sizeof sin);
         return (*res == NULL) ? EAI_MEMORY : 0;
     }
 
@@ -243,28 +244,28 @@ xgetaddrinfo (const char *nodename, const char *servname,
         sa.sa_family = hp->h_addrtype;
         switch (hp->h_addrtype) {
         case AF_INET:
-            ((struct sockaddr_in *) &sa)->sin_port = htons (port);
-            memcpy (&((struct sockaddr_in *) &sa)->sin_addr,
-                    *addrs, hp->h_length);
-            addrlen = sizeof (struct sockaddr_in);
+            ((struct sockaddr_in *)&sa)->sin_port = htons(port);
+            memcpy(&((struct sockaddr_in *)&sa)->sin_addr,
+                   *addrs, hp->h_length);
+            addrlen = sizeof(struct sockaddr_in);
             break;
         case AF_INET6:
 #if SIN6_LEN
-            ((struct sockaddr_in6 *) &sa)->sin6_len = hp->h_length;
+            ((struct sockaddr_in6 *)&sa)->sin6_len = hp->h_length;
 #endif
-            ((struct sockaddr_in6 *) &sa)->sin6_port = htons (port);
-            memcpy (&((struct sockaddr_in6 *) &sa)->sin6_addr,
-                    *addrs, hp->h_length);
-            addrlen = sizeof (struct sockaddr_in6);
+            ((struct sockaddr_in6 *)&sa)->sin6_port = htons(port);
+            memcpy(&((struct sockaddr_in6 *)&sa)->sin6_addr,
+                   *addrs, hp->h_length);
+            addrlen = sizeof(struct sockaddr_in6);
             break;
         default:
             continue;
         }
 
         result.ai_family = hp->h_addrtype;
-        ai = dup_addrinfo (&result, &sa, addrlen);
+        ai = dup_addrinfo(&result, &sa, addrlen);
         if (ai == NULL) {
-            xfreeaddrinfo (sai);
+            xfreeaddrinfo(sai);
             return EAI_MEMORY;
         }
         if (sai == NULL)
@@ -281,10 +282,10 @@ xgetaddrinfo (const char *nodename, const char *servname,
     if (hints->ai_flags & AI_CANONNAME) {
         sai->ai_canonname = (char *)malloc(strlen(hp->h_name) + 1);
         if (sai->ai_canonname == NULL) {
-            xfreeaddrinfo (sai);
+            xfreeaddrinfo(sai);
             return EAI_MEMORY;
         }
-        strcpy (sai->ai_canonname, hp->h_name);
+        strcpy(sai->ai_canonname, hp->h_name);
     }
 
     *res = sai;
@@ -292,44 +293,43 @@ xgetaddrinfo (const char *nodename, const char *servname,
 }
 
 void
-xfreeaddrinfo (struct addrinfo *ai)
+xfreeaddrinfo(struct addrinfo *ai)
 {
     struct addrinfo *next;
 
     while (ai != NULL) {
         next = ai->ai_next;
         if (ai->ai_canonname != NULL)
-            free (ai->ai_canonname);
+            free(ai->ai_canonname);
         if (ai->ai_addr != NULL)
-            free (ai->ai_addr);
-        free (ai);
+            free(ai->ai_addr);
+        free(ai);
         ai = next;
     }
 }
 
 const char *
-xgai_strerror (int ecode)
+xgai_strerror(int ecode)
 {
     static const char *eai_descr[] = {
         "no error",
         "address family for nodename not supported",    /* EAI_ADDRFAMILY */
-        "temporary failure in name resolution",     /* EAI_AGAIN */
-        "invalid value for ai_flags",           /* EAI_BADFLAGS */
+        "temporary failure in name resolution",         /* EAI_AGAIN */
+        "invalid value for ai_flags",                   /* EAI_BADFLAGS */
         "non-recoverable failure in name resolution",   /* EAI_FAIL */
-        "ai_family not supported",          /* EAI_FAMILY */
-        "memory allocation failure",            /* EAI_MEMORY */
-        "no address associated with nodename",      /* EAI_NODATA */
+        "ai_family not supported",                      /* EAI_FAMILY */
+        "memory allocation failure",                    /* EAI_MEMORY */
+        "no address associated with nodename",          /* EAI_NODATA */
         "nodename nor servname provided, or not known", /* EAI_NONAME */
         "servname not supported for ai_socktype",       /* EAI_SERVICE */
-        "ai_socktype not supported",            /* EAI_SOCKTYPE */
-        "system error returned in errno",           /* EAI_SYSTEM */
-        "argument buffer overflow",         /* EAI_OVERFLOW */
+        "ai_socktype not supported",                    /* EAI_SOCKTYPE */
+        "system error returned in errno",               /* EAI_SYSTEM */
+        "argument buffer overflow",                     /* EAI_OVERFLOW */
     };
 
-    if (ecode < 0 || ecode > (int) (sizeof eai_descr/ sizeof eai_descr[0]))
+    if (ecode < 0 || ecode > (int)(sizeof eai_descr / sizeof eai_descr[0]))
         return "unknown error";
     return eai_descr[ecode];
 }
 
 #endif /* HAVE_DECL_GETADDRINFO */
-

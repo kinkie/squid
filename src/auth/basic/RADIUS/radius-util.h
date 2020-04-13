@@ -12,5 +12,4 @@
 #include "util.h"
 
 /* util.c */
-uint32_t        get_ipaddr (char *);
-
+uint32_t get_ipaddr(char *);

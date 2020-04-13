@@ -9,12 +9,12 @@
 /* DEBUG: section 84    Helper process maintenance */
 
 #include "squid.h"
+#include "helper/Reply.h"
 #include "ConfigParser.h"
 #include "Debug.h"
-#include "helper.h"
-#include "helper/Reply.h"
-#include "rfc1738.h"
 #include "SquidString.h"
+#include "helper.h"
+#include "rfc1738.h"
 
 Helper::Reply::Reply() :
     result(Helper::Unknown)
@@ -25,10 +25,10 @@ bool
 Helper::Reply::accumulate(const char *buf, size_t len)
 {
     if (other_.isNull())
-        other_.init(4*1024, 1*1024*1024);
+        other_.init(4 * 1024, 1 * 1024 * 1024);
 
     if (other_.potentialSpaceSize() < static_cast<mb_size_t>(len))
-        return false; // no space left
+        return false;  // no space left
 
     other_.append(buf, len);
     return true;
@@ -58,37 +58,37 @@ Helper::Reply::finalize()
         debugs(84, 3, "Buff length is larger than 2");
         // some helper formats (digest auth, URL-rewriter) just send a data string
         // we must also check for the ' ' character after the response token (if anything)
-        if (!strncmp(p,"OK",2) && (len == 2 || p[2] == ' ')) {
+        if (!strncmp(p, "OK", 2) && (len == 2 || p[2] == ' ')) {
             debugs(84, 3, "helper Result = OK");
             result = Helper::Okay;
-            p+=2;
-        } else if (!strncmp(p,"ERR",3) && (len == 3 || p[3] == ' ')) {
+            p += 2;
+        } else if (!strncmp(p, "ERR", 3) && (len == 3 || p[3] == ' ')) {
             debugs(84, 3, "helper Result = ERR");
             result = Helper::Error;
-            p+=3;
-        } else if (!strncmp(p,"BH",2) && (len == 2 || p[2] == ' ')) {
+            p += 3;
+        } else if (!strncmp(p, "BH", 2) && (len == 2 || p[2] == ' ')) {
             debugs(84, 3, "helper Result = BH");
             result = Helper::BrokenHelper;
-            p+=2;
-        } else if (!strncmp(p,"TT ",3)) {
+            p += 2;
+        } else if (!strncmp(p, "TT ", 3)) {
             // NTLM challenge token
             result = Helper::TT;
-            p+=3;
+            p += 3;
             // followed by an auth token
             char *w1 = strwordtok(NULL, &p);
             if (w1 != NULL) {
                 const char *authToken = w1;
-                notes.add("token",authToken);
+                notes.add("token", authToken);
             } else {
                 // token field is mandatory on this response code
                 result = Helper::BrokenHelper;
-                notes.add("message","Missing 'token' data");
+                notes.add("message", "Missing 'token' data");
             }
 
-        } else if (!strncmp(p,"AF ",3)) {
+        } else if (!strncmp(p, "AF ", 3)) {
             // NTLM/Negotiate OK response
             result = Helper::Okay;
-            p+=3;
+            p += 3;
             // followed by:
             //  an optional auth token and user field
             // or, an optional username field
@@ -97,24 +97,25 @@ Helper::Reply::finalize()
             if (w2 != NULL) {
                 // Negotiate "token user"
                 const char *authToken = w1;
-                notes.add("token",authToken);
+                notes.add("token", authToken);
 
                 const char *user = w2;
-                notes.add("user",user);
+                notes.add("user", user);
 
             } else if (w1 != NULL) {
                 // NTLM "user"
                 const char *user = w1;
-                notes.add("user",user);
+                notes.add("user", user);
             }
-        } else if (!strncmp(p,"NA ",3)) {
+        } else if (!strncmp(p, "NA ", 3)) {
             // NTLM fail-closed ERR response
             result = Helper::Error;
-            p+=3;
-            sawNA=true;
+            p += 3;
+            sawNA = true;
         }
 
-        for (; xisspace(*p); ++p); // skip whitespace
+        for (; xisspace(*p); ++p)
+            ;  // skip whitespace
     }
 
     other_.consume(p - other_.content());
@@ -158,25 +159,26 @@ Helper::Reply::parseResponseKeys()
     while (other_.hasContent()) {
         char *p = other_.content();
         const char *key = p;
-        while (*p && isKeyNameChar(*p)) ++p;
+        while (*p && isKeyNameChar(*p))
+            ++p;
         if (*p != '=')
-            return; // done. Not a key.
+            return;  // done. Not a key.
 
         // whitespace between key and value is prohibited.
         // workaround strwordtok() which skips whitespace prefix.
-        if (xisspace(*(p+1)))
-            return; // done. Not a key.
+        if (xisspace(*(p + 1)))
+            return;  // done. Not a key.
 
         *p = '\0';
         ++p;
 
         // the value may be a quoted string or a token
-        const bool urlDecode = (*p != '"'); // check before moving p.
+        const bool urlDecode = (*p != '"');  // check before moving p.
         char *v = strwordtok(NULL, &p);
-        if (v != NULL && urlDecode && (p-v) > 2) // 1-octet %-escaped requires 3 bytes
+        if (v != NULL && urlDecode && (p - v) > 2)  // 1-octet %-escaped requires 3 bytes
             rfc1738_unescape(v);
 
-        notes.add(key, v ? v : ""); // value can be empty, but must not be NULL
+        notes.add(key, v ? v : "");  // value can be empty, but must not be NULL
 
         other_.consume(p - other_.content());
         other_.consumeWhitespacePrefix();
@@ -193,7 +195,7 @@ Helper::Reply::emptyBuf() const
 }
 
 std::ostream &
-operator <<(std::ostream &os, const Helper::Reply &r)
+operator<<(std::ostream &os, const Helper::Reply &r)
 {
     os << "{result=";
     switch (r.result) {
@@ -232,4 +234,3 @@ operator <<(std::ostream &os, const Helper::Reply &r)
 
     return os;
 }
-

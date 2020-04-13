@@ -9,15 +9,14 @@
 #ifndef SQUID_HTTP_STATUSLINE_H
 #define SQUID_HTTP_STATUSLINE_H
 
+#include "SquidString.h"
 #include "http/ProtocolVersion.h"
 #include "http/StatusCode.h"
-#include "SquidString.h"
 
 class Packable;
 class String;
 
-namespace Http
-{
+namespace Http {
 
 /**
  * Holds the values parsed from an HTTP reply status line.
@@ -67,7 +66,7 @@ public:
     // XXX: protocol is part of AnyP::ProtocolVersion. We should be able to use version.protocol instead now.
     AnyP::ProtocolType protocol;
 
-    AnyP::ProtocolVersion version;     ///< breakdown of protocol version label: (HTTP/ICY) and (0.9/1.0/1.1)
+    AnyP::ProtocolVersion version;  ///< breakdown of protocol version label: (HTTP/ICY) and (0.9/1.0/1.1)
 
 private:
     /// status code. ie 100 ... 200 ... 404 ... 599
@@ -77,7 +76,6 @@ private:
     const char *reason_;
 };
 
-} // namespace Http
+}  // namespace Http
 
 #endif /* SQUID_HTTP_STATUSLINE_H */
-

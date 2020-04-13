@@ -9,19 +9,19 @@
 /* DEBUG: section 49    SNMP Interface */
 
 #include "squid.h"
+#include "snmp/Inquirer.h"
+#include "CommCalls.h"
 #include "base/TextException.h"
 #include "comm.h"
 #include "comm/Connection.h"
-#include "CommCalls.h"
 #include "ipc/UdsOp.h"
-#include "snmp/Inquirer.h"
 #include "snmp/Request.h"
 #include "snmp/Response.h"
 #include "snmp_core.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Snmp, Inquirer);
 
-Snmp::Inquirer::Inquirer(const Request& aRequest, const Ipc::StrandCoords& coords):
+Snmp::Inquirer::Inquirer(const Request &aRequest, const Ipc::StrandCoords &coords) :
     Ipc::Inquirer(aRequest.clone(), coords, 2),
     aggrPdu(aRequest.pdu)
 {
@@ -35,7 +35,7 @@ Snmp::Inquirer::Inquirer(const Request& aRequest, const Ipc::StrandCoords& coord
     comm_add_close_handler(conn->fd, closer);
 
     // forget client FD to avoid sending it to strands that may forget to close
-    if (Request *snmpRequest = dynamic_cast<Request*>(request.getRaw()))
+    if (Request *snmpRequest = dynamic_cast<Request *>(request.getRaw()))
         snmpRequest->fd = -1;
 }
 
@@ -63,7 +63,7 @@ Snmp::Inquirer::start()
 }
 
 void
-Snmp::Inquirer::handleException(const std::exception& e)
+Snmp::Inquirer::handleException(const std::exception &e)
 {
     aggrPdu.errstat = SNMP_ERR_GENERR;
     Ipc::Inquirer::handleException(e);
@@ -72,7 +72,7 @@ Snmp::Inquirer::handleException(const std::exception& e)
 bool
 Snmp::Inquirer::aggregate(Response::Pointer aResponse)
 {
-    Snmp::Response& response = static_cast<Snmp::Response&>(*aResponse);
+    Snmp::Response &response = static_cast<Snmp::Response &>(*aResponse);
     bool error = response.pdu.errstat != SNMP_ERR_NOERROR;
     if (error) {
         aggrPdu = response.pdu;
@@ -84,7 +84,7 @@ Snmp::Inquirer::aggregate(Response::Pointer aResponse)
 
 /// called when the some external force closed our socket
 void
-Snmp::Inquirer::noteCommClosed(const CommCloseCbParams& params)
+Snmp::Inquirer::noteCommClosed(const CommCloseCbParams &params)
 {
     debugs(49, 5, HERE);
     Must(!Comm::IsConnOpen(conn) || conn->fd == params.conn->fd);
@@ -106,8 +106,7 @@ Snmp::Inquirer::sendResponse()
     aggrPdu.command = SNMP_PDU_RESPONSE;
     u_char buffer[SNMP_REQUEST_SIZE];
     int len = sizeof(buffer);
-    Snmp::Request& req = static_cast<Snmp::Request&>(*request);
+    Snmp::Request &req = static_cast<Snmp::Request &>(*request);
     snmp_build(&req.session, &aggrPdu, buffer, &len);
     comm_udp_sendto(conn->fd, req.address, buffer, len);
 }
-

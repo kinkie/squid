@@ -23,4 +23,3 @@ Helper::ReservationId::print(std::ostream &os) const
 {
     return os << "hlpRes" << id;
 }
-

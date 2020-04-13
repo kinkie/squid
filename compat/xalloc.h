@@ -57,7 +57,12 @@ void free_const(const void *s);
  * Define failure_notify to receive error message.
  * otherwise perror() is used to display it.
  */
-static inline void xfree(const void *p) { if (p) free_const(p); }
+static inline void
+xfree(const void *p)
+{
+    if (p)
+        free_const(p);
+}
 
 /**
  *  safe_free() - same as free(3).  Used for portability.
@@ -70,15 +75,18 @@ static inline void xfree(const void *p) { if (p) free_const(p); }
  * Define failure_notify to receive error message.
  * otherwise perror() is used to display it.
  */
-#define safe_free(x)    while ((x)) { free_const((x)); (x) = NULL; }
+#define safe_free(x)     \
+    while ((x)) {        \
+        free_const((x)); \
+        (x) = NULL;      \
+    }
 
 #ifdef __cplusplus
 }
 #endif
 
 #if XMALLOC_STATISTICS
-extern void malloc_statistics(void (*func) (int, int, int, void *), void *data);
+extern void malloc_statistics(void (*func)(int, int, int, void *), void *data);
 #endif
 
 #endif /* _SQUID_COMPAT_XALLOC_H */
-

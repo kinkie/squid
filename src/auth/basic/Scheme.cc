@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "auth/basic/Config.h"
 #include "auth/basic/Scheme.h"
 #include "Debug.h"
+#include "auth/basic/Config.h"
 #include "helper.h"
 
 Auth::Scheme::Pointer Auth::Basic::Scheme::_instance = NULL;
@@ -44,6 +44,5 @@ Auth::SchemeConfig *
 Auth::Basic::Scheme::createConfig()
 {
     Auth::Basic::Config *newCfg = new Auth::Basic::Config;
-    return dynamic_cast<Auth::SchemeConfig*>(newCfg);
+    return dynamic_cast<Auth::SchemeConfig *>(newCfg);
 }
-

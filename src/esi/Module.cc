@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "esi/Libxml2Parser.h"
 #include "esi/Module.h"
+#include "esi/Libxml2Parser.h"
 /* include for esi/ExpatParser.h must follow esi/Libxml2Parser.h */
 /* do not remove this comment, as it acts as barrier for the autmatic sorting */
 #include "esi/ExpatParser.h"
@@ -20,22 +20,24 @@ static ESIParser::Register *prLibxml = 0;
 static ESIParser::Register *prExpat = 0;
 #endif
 
-void Esi::Init()
+void
+Esi::Init()
 {
     // register in reverse order of preference.
     // The latest registered parser will be used as default.
 #if HAVE_LIBEXPAT
-    assert(!prExpat); // we should be called once
+    assert(!prExpat);  // we should be called once
     prExpat = new ESIParser::Register("expat", &ESIExpatParser::NewParser);
 #endif
 
 #if HAVE_LIBXML2
-    assert(!prLibxml); // we should be called once
+    assert(!prLibxml);  // we should be called once
     prLibxml = new ESIParser::Register("libxml2", &ESILibxml2Parser::NewParser);
 #endif
 }
 
-void Esi::Clean()
+void
+Esi::Clean()
 {
 #if HAVE_LIBEXPAT
     delete prExpat;
@@ -47,4 +49,3 @@ void Esi::Clean()
     prLibxml = NULL;
 #endif
 }
-

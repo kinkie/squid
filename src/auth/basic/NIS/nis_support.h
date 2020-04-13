@@ -6,5 +6,4 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-extern char * get_nis_password(char *user, char *nisdomain, char *nismap);
-
+extern char *get_nis_password(char *user, char *nisdomain, char *nismap);

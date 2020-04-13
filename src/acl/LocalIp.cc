@@ -9,8 +9,8 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/LocalIp.h"
+#include "acl/FilledChecklist.h"
 
 char const *
 ACLLocalIP::typeString() const
@@ -21,7 +21,7 @@ ACLLocalIP::typeString() const
 int
 ACLLocalIP::match(ACLChecklist *checklist)
 {
-    return ACLIP::match (Filled(checklist)->my_addr);
+    return ACLIP::match(Filled(checklist)->my_addr);
 }
 
 ACL *
@@ -29,4 +29,3 @@ ACLLocalIP::clone() const
 {
     return new ACLLocalIP(*this);
 }
-

@@ -9,11 +9,11 @@
 #ifndef SQUID_CLIENTSIDEREPLY_H
 #define SQUID_CLIENTSIDEREPLY_H
 
+#include "RequestFlags.h"
+#include "StoreClient.h"
 #include "acl/forward.h"
 #include "client_side_request.h"
 #include "ip/forward.h"
-#include "RequestFlags.h"
-#include "StoreClient.h"
 
 class ErrorState;
 
@@ -33,7 +33,7 @@ public:
 
     void saveState();
     void restoreState();
-    void purgeRequest ();
+    void purgeRequest();
     void purgeRequestFindObjectToPurge();
     void purgeDoMissPurge();
     void purgeFoundGet(StoreEntry *newEntry);
@@ -50,24 +50,24 @@ public:
     /// replaces current response store entry with the given one
     void setReplyToStoreEntry(StoreEntry *e, const char *reason);
     /// builds error using clientBuildError() and calls setReplyToError() below
-    void setReplyToError(err_type, Http::StatusCode, const HttpRequestMethod&, char const *, Ip::Address &, HttpRequest *, const char *,
+    void setReplyToError(err_type, Http::StatusCode, const HttpRequestMethod &, char const *, Ip::Address &, HttpRequest *, const char *,
 #if USE_AUTH
                          Auth::UserRequest::Pointer);
 #else
-                         void * unused);
+                         void *unused);
 #endif
     /// creates a store entry for the reply and appends err to it
-    void setReplyToError(const HttpRequestMethod& method, ErrorState *err);
+    void setReplyToError(const HttpRequestMethod &method, ErrorState *err);
     /// creates a store entry for the reply and appends error reply to it
     void setReplyToReply(HttpReply *reply);
-    void createStoreEntry(const HttpRequestMethod& m, RequestFlags flags);
-    void removeStoreReference(store_client ** scp, StoreEntry ** ep);
+    void createStoreEntry(const HttpRequestMethod &m, RequestFlags flags);
+    void removeStoreReference(store_client **scp, StoreEntry **ep);
     void removeClientStoreReference(store_client **scp, ClientHttpRequest *http);
-    void startError(ErrorState * err);
+    void startError(ErrorState *err);
     void processExpired();
     clientStream_status_t replyStatus();
     void processMiss();
-    void traceReply(clientStreamNode * node);
+    void traceReply(clientStreamNode *node);
     const char *storeId() const { return (http->store_id.size() > 0 ? http->store_id.termedBuf() : http->uri); }
 
     Http::StatusCode purgeStatus;
@@ -76,7 +76,7 @@ public:
     int lookingforstore;
 
     /* StoreClient API */
-    virtual void created (StoreEntry *newEntry);
+    virtual void created(StoreEntry *newEntry);
     virtual LogTags *loggingTags();
 
     ClientHttpRequest *http;
@@ -84,25 +84,26 @@ public:
     /// Compatible with ClientHttpRequest::Out::offset.
     /// Not to be confused with ClientHttpRequest::Out::headers_sz.
     int headers_sz;
-    store_client *sc;       /* The store_client we're using */
-    StoreIOBuffer tempBuffer;   /* For use in validating requests via IMS */
-    int old_reqsize;        /* ... again, for the buffer */
+    store_client *sc;         /* The store_client we're using */
+    StoreIOBuffer tempBuffer; /* For use in validating requests via IMS */
+    int old_reqsize;          /* ... again, for the buffer */
     size_t reqsize;
     size_t reqofs;
-    char tempbuf[HTTP_REQBUF_SZ];   ///< a temporary buffer if we need working storage
+    char tempbuf[HTTP_REQBUF_SZ];  ///< a temporary buffer if we need working storage
 #if USE_CACHE_DIGESTS
 
-    const char *lookup_type;    /* temporary hack: storeGet() result: HIT/MISS/NONE */
+    const char *lookup_type; /* temporary hack: storeGet() result: HIT/MISS/NONE */
 #endif
 
     struct Flags {
-        Flags() : storelogiccomplete(0), complete(0), headersSent(false) {}
+        Flags() :
+            storelogiccomplete(0), complete(0), headersSent(false) {}
 
-        unsigned storelogiccomplete:1;
-        unsigned complete:1;        ///< we have read all we can from upstream
+        unsigned storelogiccomplete : 1;
+        unsigned complete : 1;  ///< we have read all we can from upstream
         bool headersSent;
     } flags;
-    clientStreamNode *ourNode;  /* This will go away if/when this file gets refactored some more */
+    clientStreamNode *ourNode; /* This will go away if/when this file gets refactored some more */
 
 private:
     /* StoreClient API */
@@ -110,17 +111,17 @@ private:
 
     clientStreamNode *getNextNode() const;
     void makeThisHead();
-    bool errorInStream(StoreIOBuffer const &result, size_t const &sizeToProcess)const ;
+    bool errorInStream(StoreIOBuffer const &result, size_t const &sizeToProcess) const;
     void sendStreamError(StoreIOBuffer const &result);
     void pushStreamData(StoreIOBuffer const &result, char *source);
-    clientStreamNode * next() const;
+    clientStreamNode *next() const;
     StoreIOBuffer holdingBuffer;
     HttpReply *reply;
     void processReplyAccess();
     static ACLCB ProcessReplyAccessResult;
     void processReplyAccessResult(const Acl::Answer &accessAllowed);
     void cloneReply();
-    void buildReplyHeader ();
+    void buildReplyHeader();
     bool alwaysAllowResponse(Http::StatusCode sline) const;
     int checkTransferDone();
     void processOnlyIfCachedMiss();
@@ -148,13 +149,12 @@ private:
     bool deleting;
 
     typedef enum {
-        crNone = 0, ///< collapsed revalidation is not allowed for this context
-        crInitiator, ///< we initiated collapsed revalidation request
-        crSlave ///< we collapsed on the existing revalidation request
+        crNone = 0,   ///< collapsed revalidation is not allowed for this context
+        crInitiator,  ///< we initiated collapsed revalidation request
+        crSlave       ///< we collapsed on the existing revalidation request
     } CollapsedRevalidation;
 
     CollapsedRevalidation collapsedRevalidation;
 };
 
 #endif /* SQUID_CLIENTSIDEREPLY_H */
-

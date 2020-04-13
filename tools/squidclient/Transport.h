@@ -17,8 +17,7 @@
 #include <list>
 #include <string>
 
-namespace Transport
-{
+namespace Transport {
 
 /// parameters controlling outgoing connection
 class TheConfig
@@ -29,13 +28,14 @@ public:
         localHost(NULL),
         port(CACHE_HTTP_PORT),
         tlsEnabled(false),
-        tlsAnonymous(false) {
+        tlsAnonymous(false)
+    {
         params = "NORMAL";
         hostname = "localhost";
     }
 
-// TODO: implicit transport options depending on the protocol-specific options
-//     ie --https enables TLS connection settings
+    // TODO: implicit transport options depending on the protocol-specific options
+    //     ie --https enables TLS connection settings
 
     /// display Transport Options command line help to stderr
     void usage();
@@ -115,7 +115,6 @@ ssize_t Write(const void *buf, size_t len);
 /// \return the number of bytes read, or -1 on errors
 ssize_t Read(void *buf, size_t len);
 
-} // namespace Transport
+}  // namespace Transport
 
 #endif /* SQUID_TOOLS_SQUIDCLIENT_TRANSPORT_H */
-

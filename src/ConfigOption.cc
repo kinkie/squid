@@ -25,7 +25,7 @@ ConfigOptionVector::parse(char const *option, const char *value, int isaReconfig
     std::vector<ConfigOption *>::iterator i = options.begin();
 
     while (i != options.end()) {
-        if ((*i)->parse(option,value, isaReconfig))
+        if ((*i)->parse(option, value, isaReconfig))
             return true;
 
         ++i;
@@ -35,10 +35,9 @@ ConfigOptionVector::parse(char const *option, const char *value, int isaReconfig
 }
 
 void
-ConfigOptionVector::dump(StoreEntry * e) const
+ConfigOptionVector::dump(StoreEntry *e) const
 {
     for (std::vector<ConfigOption *>::const_iterator i = options.begin();
-            i != options.end(); ++i)
+         i != options.end(); ++i)
         (*i)->dump(e);
 }
-

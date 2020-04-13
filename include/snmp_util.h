@@ -14,11 +14,11 @@ extern "C" {
 #endif
 
 /* call a function at regular intervals (in seconds): */
-extern void snmp_alarm(int ival, void (*handler) (void));
+extern void snmp_alarm(int ival, void (*handler)(void));
 
 /* service for filedescriptors: */
 
-extern void fd_add(int fd, void (*func) (int fd));
+extern void fd_add(int fd, void (*func)(int fd));
 extern void fd_service(void);
 
 /* ---------------------------------------------------------------------- */
@@ -56,4 +56,3 @@ int Util_file_write(char *file, int offset, char *data, int dataSz);
 }
 #endif
 #endif /* SQUID_SNMP_UTIL_H */
-

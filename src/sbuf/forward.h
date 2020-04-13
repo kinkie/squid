@@ -26,9 +26,9 @@ class SBufEqual;
 class SBufStartsWith;
 class SBufAddLength;
 namespace std {
-template <> struct hash<SBuf>;
+template <>
+struct hash<SBuf>;
 }
 class CaseInsensitiveSBufHash;
 
 #endif /* SQUID_SRC_SBUF_FORWARD_H */
-

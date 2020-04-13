@@ -9,8 +9,8 @@
 #ifndef SQUID_HTTPREQUESTMETHOD_H
 #define SQUID_HTTPREQUESTMETHOD_H
 
-#include "http/forward.h"
 #include "http/MethodType.h"
+#include "http/forward.h"
 #include "sbuf/SBuf.h"
 
 class SquidConfig;
@@ -26,19 +26,23 @@ class SquidConfig;
 class HttpRequestMethod : public RefCountable
 {
 public:
-    HttpRequestMethod() : theMethod(Http::METHOD_NONE), theImage() {}
-    HttpRequestMethod(Http::MethodType const aMethod) : theMethod(aMethod), theImage() {}
+    HttpRequestMethod() :
+        theMethod(Http::METHOD_NONE), theImage() {}
+    HttpRequestMethod(Http::MethodType const aMethod) :
+        theMethod(aMethod), theImage() {}
     explicit HttpRequestMethod(const SBuf &);
 
-    void HttpRequestMethodXXX(char const *); // deprecated old c-string to SBuf converter.
+    void HttpRequestMethodXXX(char const *);  // deprecated old c-string to SBuf converter.
 
-    HttpRequestMethod & operator = (const HttpRequestMethod& aMethod) {
+    HttpRequestMethod &operator=(const HttpRequestMethod &aMethod)
+    {
         theMethod = aMethod.theMethod;
         theImage = aMethod.theImage;
         return *this;
     }
 
-    HttpRequestMethod & operator = (Http::MethodType const aMethod) {
+    HttpRequestMethod &operator=(Http::MethodType const aMethod)
+    {
         theMethod = aMethod;
         theImage.clear();
         return *this;
@@ -47,19 +51,21 @@ public:
     /// whether the method is set/known
     explicit operator bool() const { return theMethod != Http::METHOD_NONE; }
 
-    bool operator == (Http::MethodType const & aMethod) const { return theMethod == aMethod; }
-    bool operator == (HttpRequestMethod const & aMethod) const {
-        return theMethod == aMethod.theMethod &&
-               (theMethod != Http::METHOD_OTHER || theImage == aMethod.theImage);
+    bool operator==(Http::MethodType const &aMethod) const { return theMethod == aMethod; }
+    bool operator==(HttpRequestMethod const &aMethod) const
+    {
+        return theMethod == aMethod.theMethod && (theMethod != Http::METHOD_OTHER || theImage == aMethod.theImage);
     }
 
-    bool operator != (Http::MethodType const & aMethod) const { return theMethod != aMethod; }
-    bool operator != (HttpRequestMethod const & aMethod) const {
+    bool operator!=(Http::MethodType const &aMethod) const { return theMethod != aMethod; }
+    bool operator!=(HttpRequestMethod const &aMethod) const
+    {
         return !operator==(aMethod);
     }
 
     /** Iterate through all HTTP method IDs. */
-    HttpRequestMethod& operator++() {
+    HttpRequestMethod &operator++()
+    {
         // TODO: when this operator is used in more than one place,
         // replace it with HttpRequestMethods::Iterator API
         // XXX: this interface can create Http::METHOD_OTHER without an image
@@ -114,16 +120,15 @@ public:
     bool purgesOthers() const;
 
 private:
-    Http::MethodType theMethod; ///< Method type
-    SBuf theImage;     ///< Used for storing the Http::METHOD_OTHER only. A copy of the parsed method text.
+    Http::MethodType theMethod;  ///< Method type
+    SBuf theImage;               ///< Used for storing the Http::METHOD_OTHER only. A copy of the parsed method text.
 };
 
 inline std::ostream &
-operator << (std::ostream &os, HttpRequestMethod const &method)
+operator<<(std::ostream &os, HttpRequestMethod const &method)
 {
     os << method.image();
     return os;
 }
 
 #endif /* SQUID_HTTPREQUESTMETHOD_H */
-

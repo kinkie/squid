@@ -11,11 +11,11 @@
 #ifndef SQUID_EXTERNALACLENTRY_H
 #define SQUID_EXTERNALACLENTRY_H
 
+#include "Notes.h"
+#include "SquidString.h"
 #include "acl/Acl.h"
 #include "acl/forward.h"
 #include "hash.h"
-#include "Notes.h"
-#include "SquidString.h"
 
 class external_acl;
 /******************************************************************
@@ -29,7 +29,8 @@ class ExternalACLEntryData
 {
 
 public:
-    ExternalACLEntryData() : result(ACCESS_DUNNO) {}
+    ExternalACLEntryData() :
+        result(ACCESS_DUNNO) {}
 
     Acl::Answer result;
 
@@ -51,7 +52,7 @@ public:
  * Used opaque in the interface
  */
 
-class ExternalACLEntry: public hash_link, public RefCountable
+class ExternalACLEntry : public hash_link, public RefCountable
 {
     MEMPROXY_CLASS(ExternalACLEntry);
 
@@ -78,4 +79,3 @@ public:
 };
 
 #endif
-

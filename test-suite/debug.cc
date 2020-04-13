@@ -21,12 +21,13 @@ public:
     char const *getACString() const;
 };
 
-std::ostream &operator << (std::ostream &aStream, StreamTest &anObject)
+std::ostream &
+operator<<(std::ostream &aStream, StreamTest &anObject)
 {
     return anObject.serialise(aStream);
 }
 
-std::ostream&
+std::ostream &
 StreamTest::serialise(std::ostream &aStream)
 {
     aStream << "stream test";
@@ -49,18 +50,21 @@ int
 main(int, char *[])
 {
     Debug::Levels[1] = 8;
-    debugs (1,1,"test" << "string");
-    debugs (1,9,"do not show this" << "string");
-    debugs (1,1,"test" << "string");
-    debugs (1,1,"test" << "string");
+    debugs(1, 1, "test"
+               << "string");
+    debugs(1, 9, "do not show this"
+               << "string");
+    debugs(1, 1, "test"
+               << "string");
+    debugs(1, 1, "test"
+               << "string");
     if (true)
-        debugs(1,9,"this won't compile if the macro is broken.");
+        debugs(1, 9, "this won't compile if the macro is broken.");
     else
-        debugs(1, DBG_IMPORTANT,"bar");
+        debugs(1, DBG_IMPORTANT, "bar");
     StreamTest aStreamObject;
-    StreamTest *streamPointer (&aStreamObject);
-    debugs(1, DBG_IMPORTANT,aStreamObject);
-    debugs(1, DBG_IMPORTANT,streamPointer->getAnInt() << " " << aStreamObject.getACString());
+    StreamTest *streamPointer(&aStreamObject);
+    debugs(1, DBG_IMPORTANT, aStreamObject);
+    debugs(1, DBG_IMPORTANT, streamPointer->getAnInt() << " " << aStreamObject.getACString());
     return EXIT_SUCCESS;
 }
-

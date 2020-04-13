@@ -27,7 +27,7 @@
 void
 xassert(const char *msg, const char *file, int line)
 {
-    fprintf(stderr,"assertion failed: %s:%d: \"%s\"\n", file, line, msg);
+    fprintf(stderr, "assertion failed: %s:%d: \"%s\"\n", file, line, msg);
 
     abort();
 }
@@ -51,7 +51,7 @@ static char *shmbuf;
 static int DebugLevel = 0;
 
 static int
-do_open(diomsg * r, int, const char *buf)
+do_open(diomsg *r, int, const char *buf)
 {
     int fd;
     file_state *fs;
@@ -61,8 +61,9 @@ do_open(diomsg * r, int, const char *buf)
     fd = open(buf, r->offset, 0600);
 
     if (fd < 0) {
-        DEBUG(1) {
-            fprintf(stderr, "%d %s: ", (int) mypid, buf);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d %s: ", (int)mypid, buf);
             perror("open");
         }
 
@@ -71,12 +72,13 @@ do_open(diomsg * r, int, const char *buf)
 
     fs = (file_state *)xcalloc(1, sizeof(*fs));
     fs->id = r->id;
-    fs->key = &fs->id;          /* gack */
+    fs->key = &fs->id; /* gack */
     fs->fd = fd;
-    hash_join(hash, (hash_link *) fs);
-    DEBUG(2) {
+    hash_join(hash, (hash_link *)fs);
+    DEBUG(2)
+    {
         fprintf(stderr, "%d OPEN  id %d, FD %d, fs %p\n",
-                (int) mypid,
+                (int)mypid,
                 fs->id,
                 fs->fd,
                 fs);
@@ -85,16 +87,17 @@ do_open(diomsg * r, int, const char *buf)
 }
 
 static int
-do_close(diomsg * r, int)
+do_close(diomsg *r, int)
 {
     int fd;
     file_state *fs;
-    fs = (file_state *) hash_lookup(hash, &r->id);
+    fs = (file_state *)hash_lookup(hash, &r->id);
 
     if (NULL == fs) {
         errno = EBADF;
-        DEBUG(1) {
-            fprintf(stderr, "%d CLOSE id %d: ", (int) mypid, r->id);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d CLOSE id %d: ", (int)mypid, r->id);
             perror("do_close");
         }
 
@@ -102,10 +105,11 @@ do_close(diomsg * r, int)
     }
 
     fd = fs->fd;
-    hash_remove_link(hash, (hash_link *) fs);
-    DEBUG(2) {
+    hash_remove_link(hash, (hash_link *)fs);
+    DEBUG(2)
+    {
         fprintf(stderr, "%d CLOSE id %d, FD %d, fs %p\n",
-                (int) mypid,
+                (int)mypid,
                 r->id,
                 fs->fd,
                 fs);
@@ -115,17 +119,18 @@ do_close(diomsg * r, int)
 }
 
 static int
-do_read(diomsg * r, int, char *buf)
+do_read(diomsg *r, int, char *buf)
 {
     int x;
     int readlen = r->size;
     file_state *fs;
-    fs = (file_state *) hash_lookup(hash, &r->id);
+    fs = (file_state *)hash_lookup(hash, &r->id);
 
     if (NULL == fs) {
         errno = EBADF;
-        DEBUG(1) {
-            fprintf(stderr, "%d READ  id %d: ", (int) mypid, r->id);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d READ  id %d: ", (int)mypid, r->id);
             perror("do_read");
         }
 
@@ -133,27 +138,31 @@ do_read(diomsg * r, int, char *buf)
     }
 
     if (r->offset > -1 && r->offset != fs->offset) {
-        DEBUG(2) {
+        DEBUG(2)
+        {
             fprintf(stderr, "seeking to %" PRId64 "\n", (int64_t)r->offset);
         }
 
         if (lseek(fs->fd, r->offset, SEEK_SET) < 0) {
-            DEBUG(1) {
-                fprintf(stderr, "%d FD %d, offset %" PRId64 ": ", (int) mypid, fs->fd, (int64_t)r->offset);
+            DEBUG(1)
+            {
+                fprintf(stderr, "%d FD %d, offset %" PRId64 ": ", (int)mypid, fs->fd, (int64_t)r->offset);
                 perror("lseek");
             }
         }
     }
 
     x = read(fs->fd, buf, readlen);
-    DEBUG(2) {
-        fprintf(stderr, "%d READ %d,%d,%" PRId64 " ret %d\n", (int) mypid,
+    DEBUG(2)
+    {
+        fprintf(stderr, "%d READ %d,%d,%" PRId64 " ret %d\n", (int)mypid,
                 fs->fd, readlen, (int64_t)r->offset, x);
     }
 
     if (x < 0) {
-        DEBUG(1) {
-            fprintf(stderr, "%d FD %d: ", (int) mypid, fs->fd);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d FD %d: ", (int)mypid, fs->fd);
             perror("read");
         }
 
@@ -165,17 +174,18 @@ do_read(diomsg * r, int, char *buf)
 }
 
 static int
-do_write(diomsg * r, int, const char *buf)
+do_write(diomsg *r, int, const char *buf)
 {
     int wrtlen = r->size;
     int x;
     file_state *fs;
-    fs = (file_state *) hash_lookup(hash, &r->id);
+    fs = (file_state *)hash_lookup(hash, &r->id);
 
     if (NULL == fs) {
         errno = EBADF;
-        DEBUG(1) {
-            fprintf(stderr, "%d WRITE id %d: ", (int) mypid, r->id);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d WRITE id %d: ", (int)mypid, r->id);
             perror("do_write");
         }
 
@@ -184,22 +194,25 @@ do_write(diomsg * r, int, const char *buf)
 
     if (r->offset > -1 && r->offset != fs->offset) {
         if (lseek(fs->fd, r->offset, SEEK_SET) < 0) {
-            DEBUG(1) {
-                fprintf(stderr, "%d FD %d, offset %" PRId64 ": ", (int) mypid, fs->fd, (int64_t)r->offset);
+            DEBUG(1)
+            {
+                fprintf(stderr, "%d FD %d, offset %" PRId64 ": ", (int)mypid, fs->fd, (int64_t)r->offset);
                 perror("lseek");
             }
         }
     }
 
-    DEBUG(2) {
-        fprintf(stderr, "%d WRITE %d,%d,%" PRId64 "\n", (int) mypid,
+    DEBUG(2)
+    {
+        fprintf(stderr, "%d WRITE %d,%d,%" PRId64 "\n", (int)mypid,
                 fs->fd, wrtlen, (int64_t)r->offset);
     }
     x = write(fs->fd, buf, wrtlen);
 
     if (x < 0) {
-        DEBUG(1) {
-            fprintf(stderr, "%d FD %d: ", (int) mypid, fs->fd);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d FD %d: ", (int)mypid, fs->fd);
             perror("write");
         }
 
@@ -211,41 +224,43 @@ do_write(diomsg * r, int, const char *buf)
 }
 
 static int
-do_unlink(diomsg * r, int, const char *buf)
+do_unlink(diomsg *r, int, const char *buf)
 {
     if (unlink(buf) < 0) {
-        DEBUG(1) {
-            fprintf(stderr, "%d UNLNK id %d %s: ", (int) mypid, r->id, buf);
+        DEBUG(1)
+        {
+            fprintf(stderr, "%d UNLNK id %d %s: ", (int)mypid, r->id, buf);
             perror("unlink");
         }
 
         return -errno;
     }
 
-    DEBUG(2) {
-        fprintf(stderr, "%d UNLNK %s\n", (int) mypid, buf);
+    DEBUG(2)
+    {
+        fprintf(stderr, "%d UNLNK %s\n", (int)mypid, buf);
     }
     return 0;
 }
 
 static void
-msg_handle(diomsg * r, int rl, diomsg * s)
+msg_handle(diomsg *r, int rl, diomsg *s)
 {
     char *buf = NULL;
     s->mtype = r->mtype;
     s->id = r->id;
-    s->seq_no = r->seq_no;      /* optional, debugging */
+    s->seq_no = r->seq_no; /* optional, debugging */
     s->callback_data = r->callback_data;
     s->requestor = r->requestor;
-    s->size = 0;                /* optional, debugging */
-    s->offset = 0;              /* optional, debugging */
+    s->size = 0;   /* optional, debugging */
+    s->offset = 0; /* optional, debugging */
     s->shm_offset = r->shm_offset;
     s->newstyle = r->newstyle;
 
     if (s->shm_offset > -1)
         buf = shmbuf + s->shm_offset;
     else if (r->mtype != _MQD_CLOSE) {
-        fprintf(stderr, "%d UNLNK id(%u) Error: no filename in shm buffer\n", (int) mypid, s->id);
+        fprintf(stderr, "%d UNLNK id(%u) Error: no filename in shm buffer\n", (int)mypid, s->id);
         return;
     }
 
@@ -296,7 +311,10 @@ fsHash(const void *key, unsigned int n)
 }
 
 extern "C" {
-    static void alarm_handler(int) {}
+static void
+alarm_handler(int)
+{
+}
 };
 
 int
@@ -342,7 +360,7 @@ main(int argc, char *argv[])
 
     shmbuf = (char *)shmat(shmid, NULL, 0);
 
-    if (shmbuf == (void *) -1) {
+    if (shmbuf == (void *)-1) {
         perror("shmat");
         exit(EXIT_FAILURE);
     }
@@ -361,7 +379,8 @@ main(int argc, char *argv[])
     for (;;) {
         alarm(1);
         memset(&rmsg, '\0', sizeof(rmsg));
-        DEBUG(2) {
+        DEBUG(2)
+        {
             std::cerr << "msgrcv: " << rmsgid << ", "
                       << &rmsg << ", " << diomsg::msg_snd_rcv_sz
                       << ", " << 0 << ", " << 0 << std::endl;
@@ -372,9 +391,9 @@ main(int argc, char *argv[])
             if (EINTR == errno) {
                 if (read(0, rbuf, 512) <= 0) {
                     if (EWOULDBLOCK == errno)
-                        (void) 0;
+                        (void)0;
                     else if (EAGAIN == errno)
-                        (void) 0;
+                        (void)0;
                     else
                         break;
                 }
@@ -397,8 +416,9 @@ main(int argc, char *argv[])
         }
     }
 
-    DEBUG(2) {
-        fprintf(stderr, "%d diskd exiting\n", (int) mypid);
+    DEBUG(2)
+    {
+        fprintf(stderr, "%d diskd exiting\n", (int)mypid);
     }
 
     if (msgctl(rmsgid, IPC_RMID, 0) < 0)
@@ -415,4 +435,3 @@ main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
-

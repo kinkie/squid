@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "Debug.h"
 #include "http/StatusCode.h"
+#include "Debug.h"
 
 const char *
 Http::StatusCodeString(const Http::StatusCode status)
@@ -17,7 +17,7 @@ Http::StatusCodeString(const Http::StatusCode status)
 
     // 000
     case Http::scNone:
-        return "Init";      /* we init .status with code 0 */
+        return "Init"; /* we init .status with code 0 */
         break;
 
     // 100-199
@@ -33,7 +33,7 @@ Http::StatusCodeString(const Http::StatusCode status)
         return "Processing";
         break;
 
-    case Http::scEarlyHints: // 103
+    case Http::scEarlyHints:  // 103
         return "Early Hints";
         break;
 
@@ -268,11 +268,10 @@ Http::StatusCodeString(const Http::StatusCode status)
     // 600+
     case Http::scInvalidHeader:
     case Http::scHeaderTooLarge:
-    // fall through to default.
+        // fall through to default.
 
     default:
         debugs(57, 3, "Unassigned HTTP status code: " << status);
     }
     return "Unassigned";
 }
-

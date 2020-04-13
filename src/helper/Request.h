@@ -9,11 +9,10 @@
 #ifndef _SQUID_SRC_HELPER_REQUEST_H
 #define _SQUID_SRC_HELPER_REQUEST_H
 
-#include "helper/forward.h"
 #include "SquidTime.h"
+#include "helper/forward.h"
 
-namespace Helper
-{
+namespace Helper {
 
 class Request
 {
@@ -31,7 +30,8 @@ public:
         memset(&dispatch_time, 0, sizeof(dispatch_time));
     }
 
-    ~Request() {
+    ~Request()
+    {
         cbdataReferenceDone(data);
         xfree(buf);
     }
@@ -40,7 +40,7 @@ public:
     HLPCB *callback;
     void *data;
 
-    int placeholder;            /* if 1, this is a dummy request waiting for a stateful helper to become available */
+    int placeholder; /* if 1, this is a dummy request waiting for a stateful helper to become available */
     struct timeval dispatch_time;
     uint64_t Id;
     /**
@@ -50,10 +50,9 @@ public:
      * This tracks the number of previous failures for the request.
      */
     int retries;
-    bool timedOut(time_t timeout) {return (squid_curtime - dispatch_time.tv_sec) > timeout;}
+    bool timedOut(time_t timeout) { return (squid_curtime - dispatch_time.tv_sec) > timeout; }
 };
 
-} // namespace Helper
+}  // namespace Helper
 
 #endif /* _SQUID_SRC_HELPER_REQUEST_H */
-

@@ -7,22 +7,22 @@
  */
 
 #include "squid.h"
+#include "testRock.h"
 #include "ConfigParser.h"
 #include "DiskIO/DiskIOModule.h"
-#include "fde.h"
-#include "fs/rock/RockSwapDir.h"
-#include "globals.h"
 #include "HttpHeader.h"
 #include "HttpReply.h"
 #include "MemObject.h"
 #include "RequestFlags.h"
 #include "SquidConfig.h"
 #include "Store.h"
-#include "store/Disk.h"
-#include "store/Disks.h"
 #include "StoreFileSystem.h"
 #include "StoreSearch.h"
-#include "testRock.h"
+#include "fde.h"
+#include "fs/rock/RockSwapDir.h"
+#include "globals.h"
+#include "store/Disk.h"
+#include "store/Disks.h"
 #include "testStoreSupport.h"
 #include "unitTestMain.h"
 
@@ -36,7 +36,7 @@
 
 #define TESTDIR "tr"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testRock );
+CPPUNIT_TEST_SUITE_REGISTRATION(testRock);
 
 extern REMOVALPOLICYCREATE createRemovalPolicy_lru;
 
@@ -55,14 +55,14 @@ testRock::setUp()
 {
     CPPUNIT_NS::TestFixture::setUp();
 
-    if (0 > system ("rm -rf " TESTDIR))
+    if (0 > system("rm -rf " TESTDIR))
         throw std::runtime_error("Failed to clean test work directory");
 
     Config.memShared.defaultTo(false);
     Config.shmLocking.defaultTo(false);
 
     // use current directory for shared segments (on path-based OSes)
-    Ipc::Mem::Segment::BasePath = getcwd(cwd,MAXPATHLEN);
+    Ipc::Mem::Segment::BasePath = getcwd(cwd, MAXPATHLEN);
     if (Ipc::Mem::Segment::BasePath == NULL)
         Ipc::Mem::Segment::BasePath = ".";
 
@@ -74,14 +74,14 @@ testRock::setUp()
 
     commonInit();
 
-    char *path=xstrdup(TESTDIR);
+    char *path = xstrdup(TESTDIR);
 
-    char *config_line=xstrdup("10 max-size=16384");
+    char *config_line = xstrdup("10 max-size=16384");
 
     ConfigParser::SetCfgLine(config_line);
 
     store->parse(0, path);
-    store_maxobjsize = 1024*1024*2;
+    store_maxobjsize = 1024 * 1024 * 2;
 
     safe_free(path);
 
@@ -105,14 +105,14 @@ testRock::tearDown()
 
     free_cachedir(&Config.cacheSwap);
 
-    rr->finishShutdown(); // deletes rr
+    rr->finishShutdown();  // deletes rr
     rr = NULL;
 
     // TODO: do this once, or each time.
     // safe_free(Config.replPolicy->type);
     // delete Config.replPolicy;
 
-    if (0 > system ("rm -rf " TESTDIR))
+    if (0 > system("rm -rf " TESTDIR))
         throw std::runtime_error("Failed to clean test work directory");
 }
 
@@ -190,8 +190,7 @@ testRock::createEntry(const int i)
 {
     RequestFlags flags;
     flags.cachable = true;
-    StoreEntry *const pe =
-        storeCreateEntry(storeId(i), "dummy log url", flags, Http::METHOD_GET);
+    StoreEntry *const pe = storeCreateEntry(storeId(i), "dummy log url", flags, Http::METHOD_GET);
     auto &rep = pe->mem().adjustableBaseReply();
     rep.setHeaders(Http::scOkay, "dummy test object", "x-squid-internal/test", 0, -1, squid_curtime + 100000);
 
@@ -327,10 +326,9 @@ testRock::testRockSwapOut()
         StoreEntry *const pe = getEntry(i);
         CPPUNIT_ASSERT(pe != NULL);
 
-        pe->release(); // destroys pe
+        pe->release();  // destroys pe
 
         StoreEntry *const pe2 = getEntry(i);
         CPPUNIT_ASSERT_EQUAL(static_cast<StoreEntry *>(NULL), pe2);
     }
 }
-

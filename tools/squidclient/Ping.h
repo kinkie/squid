@@ -13,14 +13,14 @@
  * API for looping the squidclient request message
  * repeatedly.
  */
-namespace Ping
-{
+namespace Ping {
 
 /// parameters controlling 'ping' mode message looping.
 class TheConfig
 {
 public:
-    TheConfig() : enable(false), count(0), interval(1*1000) {}
+    TheConfig() :
+        enable(false), count(0), interval(1 * 1000) {}
 
     /// display Ping Options command line help to stderr
     void usage();
@@ -42,7 +42,8 @@ extern TheConfig Config;
 uint32_t Init();
 
 /// whether ping loop is completed at the given iteration.
-inline bool LoopDone(int i)
+inline bool
+LoopDone(int i)
 {
     return !Ping::Config.enable || (Ping::Config.count && i >= Ping::Config.count);
 }
@@ -57,7 +58,6 @@ void TimerStop(size_t fsize);
 /// display summary of ping data collected
 void DisplayStats();
 
-} // namespace Ping
+}  // namespace Ping
 
 #endif /* _SQUID_TOOLS_CLIENT_PING_H */
-

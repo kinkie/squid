@@ -54,4 +54,3 @@ Adaptation::vectPointStr(Adaptation::VectPoint point)
 
     return "NONE";
 }
-

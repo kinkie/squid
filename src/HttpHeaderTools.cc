@@ -9,6 +9,16 @@
 /* DEBUG: section 66    HTTP Header Tools */
 
 #include "squid.h"
+#include "HttpHeaderTools.h"
+#include "ConfigParser.h"
+#include "HttpHdrContRange.h"
+#include "HttpHeader.h"
+#include "HttpHeaderFieldInfo.h"
+#include "HttpRequest.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "Store.h"
+#include "StrList.h"
 #include "acl/FilledChecklist.h"
 #include "acl/Gadgets.h"
 #include "base/EnumIterator.h"
@@ -16,20 +26,10 @@
 #include "client_side_request.h"
 #include "comm/Connection.h"
 #include "compat/strtoll.h"
-#include "ConfigParser.h"
 #include "fde.h"
 #include "globals.h"
 #include "http/RegisteredHeaders.h"
 #include "http/Stream.h"
-#include "HttpHdrContRange.h"
-#include "HttpHeader.h"
-#include "HttpHeaderFieldInfo.h"
-#include "HttpHeaderTools.h"
-#include "HttpRequest.h"
-#include "MemBuf.h"
-#include "SquidConfig.h"
-#include "Store.h"
-#include "StrList.h"
 
 #if USE_OPENSSL
 #include "ssl/support.h"
@@ -39,18 +39,18 @@
 #include <cerrno>
 #include <string>
 
-static void httpHeaderPutStrvf(HttpHeader * hdr, Http::HdrType id, const char *fmt, va_list vargs);
+static void httpHeaderPutStrvf(HttpHeader *hdr, Http::HdrType id, const char *fmt, va_list vargs);
 static void httpHdrAdd(HttpHeader *heads, HttpRequest *request, const AccessLogEntryPointer &al, HeaderWithAclList &headersAdd);
 
 void
-httpHeaderMaskInit(HttpHeaderMask * mask, int value)
+httpHeaderMaskInit(HttpHeaderMask *mask, int value)
 {
     memset(mask, value, sizeof(*mask));
 }
 
 /* same as httpHeaderPutStr, but formats the string using snprintf first */
 void
-httpHeaderPutStrf(HttpHeader * hdr, Http::HdrType id, const char *fmt,...)
+httpHeaderPutStrf(HttpHeader *hdr, Http::HdrType id, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -61,7 +61,7 @@ httpHeaderPutStrf(HttpHeader * hdr, Http::HdrType id, const char *fmt,...)
 
 /* used by httpHeaderPutStrf */
 static void
-httpHeaderPutStrvf(HttpHeader * hdr, Http::HdrType id, const char *fmt, va_list vargs)
+httpHeaderPutStrvf(HttpHeader *hdr, Http::HdrType id, const char *fmt, va_list vargs)
 {
     MemBuf mb;
     mb.init();
@@ -72,7 +72,7 @@ httpHeaderPutStrvf(HttpHeader * hdr, Http::HdrType id, const char *fmt, va_list 
 
 /** wrapper arrounf PutContRange */
 void
-httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, int64_t ent_len)
+httpHeaderAddContRange(HttpHeader *hdr, HttpHdrRangeSpec spec, int64_t ent_len)
 {
     HttpHdrContRange *cr = httpHdrContRangeCreate();
     assert(hdr && ent_len >= 0);
@@ -87,7 +87,7 @@ httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, int64_t ent_len)
  * \note if no Connection header exists we may check the Proxy-Connection header
  */
 bool
-httpHeaderHasConnDir(const HttpHeader * hdr, const SBuf &directive)
+httpHeaderHasConnDir(const HttpHeader *hdr, const SBuf &directive)
 {
     String list;
 
@@ -110,7 +110,7 @@ getStringPrefix(const char *str, size_t sz)
 {
 #define SHORT_PREFIX_SIZE 512
     LOCAL_ARRAY(char, buf, SHORT_PREFIX_SIZE);
-    xstrncpy(buf, str, (sz+1 > SHORT_PREFIX_SIZE) ? SHORT_PREFIX_SIZE : sz);
+    xstrncpy(buf, str, (sz + 1 > SHORT_PREFIX_SIZE) ? SHORT_PREFIX_SIZE : sz);
     return buf;
 }
 
@@ -142,7 +142,7 @@ httpHeaderParseOffset(const char *start, int64_t *value, char **endPtr)
         debugs(66, 7, "failed to parse malformed offset in " << start);
         return false;
     }
-    if (errno == ERANGE && (res == LLONG_MIN || res == LLONG_MAX)) { // no overflow
+    if (errno == ERANGE && (res == LLONG_MIN || res == LLONG_MAX)) {  // no overflow
         debugs(66, 7, "failed to parse huge offset in " << start);
         return false;
     }
@@ -174,13 +174,12 @@ httpHeaderParseQuotedString(const char *start, const int len, String *val)
     }
     pos = start + 1;
 
-    while (*pos != '"' && len > (pos-start)) {
+    while (*pos != '"' && len > (pos - start)) {
 
-        if (*pos =='\r') {
+        if (*pos == '\r') {
             ++pos;
-            if ((pos-start) > len || *pos != '\n') {
-                debugs(66, 2, HERE << "failed to parse a quoted-string header field with '\\r' octet " << (start-pos)
-                       << " bytes into '" << start << "'");
+            if ((pos - start) > len || *pos != '\n') {
+                debugs(66, 2, HERE << "failed to parse a quoted-string header field with '\\r' octet " << (start - pos) << " bytes into '" << start << "'");
                 val->clean();
                 return 0;
             }
@@ -188,7 +187,7 @@ httpHeaderParseQuotedString(const char *start, const int len, String *val)
 
         if (*pos == '\n') {
             ++pos;
-            if ( (pos-start) > len || (*pos != ' ' && *pos != '\t')) {
+            if ((pos - start) > len || (*pos != ' ' && *pos != '\t')) {
                 debugs(66, 2, HERE << "failed to parse multiline quoted-string header field '" << start << "'");
                 val->clean();
                 return 0;
@@ -196,29 +195,28 @@ httpHeaderParseQuotedString(const char *start, const int len, String *val)
             // TODO: replace the entire LWS with a space
             val->append(" ");
             ++pos;
-            debugs(66, 2, HERE << "len < pos-start => " << len << " < " << (pos-start));
+            debugs(66, 2, HERE << "len < pos-start => " << len << " < " << (pos - start));
             continue;
         }
 
         bool quoted = (*pos == '\\');
         if (quoted) {
             ++pos;
-            if (!*pos || (pos-start) > len) {
+            if (!*pos || (pos - start) > len) {
                 debugs(66, 2, HERE << "failed to parse a quoted-string header field near '" << start << "'");
                 val->clean();
                 return 0;
             }
         }
         end = pos;
-        while (end < (start+len) && *end != '\\' && *end != '\"' && (unsigned char)*end > 0x1F && *end != 0x7F)
+        while (end < (start + len) && *end != '\\' && *end != '\"' && (unsigned char)*end > 0x1F && *end != 0x7F)
             ++end;
         if (((unsigned char)*end <= 0x1F && *end != '\r' && *end != '\n') || *end == 0x7F) {
-            debugs(66, 2, HERE << "failed to parse a quoted-string header field with CTL octet " << (start-pos)
-                   << " bytes into '" << start << "'");
+            debugs(66, 2, HERE << "failed to parse a quoted-string header field with CTL octet " << (start - pos) << " bytes into '" << start << "'");
             val->clean();
             return 0;
         }
-        val->append(pos, end-pos);
+        val->append(pos, end - pos);
         pos = end;
     }
 
@@ -244,7 +242,7 @@ httpHeaderQuoteString(const char *raw)
     // RFC 7230 says a "sender SHOULD NOT generate a quoted-pair in a
     // quoted-string except where necessary" (i.e., DQUOTE and backslash)
     bool needInnerQuote = false;
-    for (const char *s = raw; !needInnerQuote &&  *s; ++s)
+    for (const char *s = raw; !needInnerQuote && *s; ++s)
         needInnerQuote = *s == '"' || *s == '\\';
 
     SBuf quotedStr;
@@ -273,7 +271,7 @@ httpHeaderQuoteString(const char *raw)
  * \retval 1    Header has no access controls to test
  */
 static int
-httpHdrMangle(HttpHeaderEntry * e, HttpRequest * request, HeaderManglers *hms, const AccessLogEntryPointer &al)
+httpHdrMangle(HttpHeaderEntry *e, HttpRequest *request, HeaderManglers *hms, const AccessLogEntryPointer &al)
 {
     int retval;
 
@@ -354,16 +352,16 @@ httpHdrMangleList(HttpHeader *l, HttpRequest *request, const AccessLogEntryPoint
     }
 }
 
-static
-void header_mangler_clean(headerMangler &m)
+static void
+header_mangler_clean(headerMangler &m)
 {
     aclDestroyAccessList(&m.access_list);
     safe_free(m.replacement);
 }
 
-static
-void header_mangler_dump_access(StoreEntry * entry, const char *option,
-                                const headerMangler &m, const char *name)
+static void
+header_mangler_dump_access(StoreEntry *entry, const char *option,
+                           const headerMangler &m, const char *name)
 {
     if (m.access_list != NULL) {
         storeAppendPrintf(entry, "%s ", option);
@@ -371,9 +369,9 @@ void header_mangler_dump_access(StoreEntry * entry, const char *option,
     }
 }
 
-static
-void header_mangler_dump_replacement(StoreEntry * entry, const char *option,
-                                     const headerMangler &m, const char *name)
+static void
+header_mangler_dump_replacement(StoreEntry *entry, const char *option,
+                                const headerMangler &m, const char *name)
 {
     if (m.replacement)
         storeAppendPrintf(entry, "%s %s %s\n", option, name, m.replacement);
@@ -397,7 +395,7 @@ HeaderManglers::~HeaderManglers()
 }
 
 void
-HeaderManglers::dumpAccess(StoreEntry * entry, const char *name) const
+HeaderManglers::dumpAccess(StoreEntry *entry, const char *name) const
 {
     for (auto id : WholeEnum<Http::HdrType>())
         header_mangler_dump_access(entry, name, known[id], Http::HeaderLookupTable.lookup(id).name);
@@ -409,13 +407,13 @@ HeaderManglers::dumpAccess(StoreEntry * entry, const char *name) const
 }
 
 void
-HeaderManglers::dumpReplacement(StoreEntry * entry, const char *name) const
+HeaderManglers::dumpReplacement(StoreEntry *entry, const char *name) const
 {
     for (auto id : WholeEnum<Http::HdrType>()) {
         header_mangler_dump_replacement(entry, name, known[id], Http::HeaderLookupTable.lookup(id).name);
     }
 
-    for (auto i: custom) {
+    for (auto i : custom) {
         header_mangler_dump_replacement(entry, name, i.second, i.first.c_str());
     }
 
@@ -446,7 +444,7 @@ HeaderManglers::setReplacement(const char *name, const char *value)
     // for headers w/o access rules, but such replacements are ignored
     headerMangler *m = track(name);
 
-    safe_free(m->replacement); // overwrite old value if any
+    safe_free(m->replacement);  // overwrite old value if any
     m->replacement = xstrdup(value);
 }
 
@@ -454,15 +452,14 @@ const headerMangler *
 HeaderManglers::find(const HttpHeaderEntry &e) const
 {
     // a known header with a configured ACL list
-    if (e.id != Http::HdrType::OTHER && Http::any_HdrType_enum_value(e.id) &&
-            known[e.id].access_list)
+    if (e.id != Http::HdrType::OTHER && Http::any_HdrType_enum_value(e.id) && known[e.id].access_list)
         return &known[e.id];
 
     // a custom header
     if (e.id == Http::HdrType::OTHER) {
         // does it have an ACL list configured?
         // Optimize: use a name type that we do not need to convert to here
-        SBuf tmp(e.name); // XXX: performance regression. c_str() reallocates
+        SBuf tmp(e.name);  // XXX: performance regression. c_str() reallocates
         const ManglersByName::const_iterator i = custom.find(tmp.c_str());
         if (i != custom.end())
             return &i->second;
@@ -512,4 +509,3 @@ httpHdrAdd(HttpHeader *heads, HttpRequest *request, const AccessLogEntryPointer 
         }
     }
 }
-

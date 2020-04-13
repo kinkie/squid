@@ -11,16 +11,17 @@
 #ifndef SQUID_AUTHREG_H_
 #define SQUID_AUTHREG_H_
 
-namespace Auth
-{
+namespace Auth {
 
 #if USE_AUTH
 /// Initialize Auth subsystem
 void Init(void);
-#else /* USE_AUTH */
-inline void Init(void) {} /* NOP if not USE_AUTH */
+#else  /* USE_AUTH */
+inline void
+Init(void)
+{
+} /* NOP if not USE_AUTH */
 #endif /* USE_AUTH */
 
-} // namespace Auth
+}  // namespace Auth
 #endif /* SQUID_AUTHREG_H_ */
-

@@ -47,4 +47,3 @@ int snmp_coexist_V1toV2(struct snmp_pdu *);
 #endif
 
 #endif /* SQUID_SNMP_COEXISTANCE_H */
-

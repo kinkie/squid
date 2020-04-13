@@ -16,14 +16,15 @@
 
 /* esiVar */
 
-class ESIVar:public esiSequence
+class ESIVar : public esiSequence
 {
 
 public:
-    ESIVar(esiTreeParentPtr aParent) : esiSequence (aParent) {
+    ESIVar(esiTreeParentPtr aParent) :
+        esiSequence(aParent)
+    {
         flags.dovars = 1;
     }
 };
 
 #endif /* SQUID_ESIVAR_H */
-

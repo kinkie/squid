@@ -18,11 +18,9 @@
 
 class DiskIOModule;
 
-namespace Fs
-{
-namespace Ufs
-{
-/**
+namespace Fs {
+namespace Ufs {
+    /**
  \ingroup UFS, FileSystems
  *
  * Core UFS class. This template provides compile time aliases for
@@ -30,66 +28,66 @@ namespace Ufs
  * StoreFS module whose createSwapDir method parameterises the common
  * UFSSwapDir with an IO module instance.
  */
-template <class TheSwapDir>
-class StoreFSufs : public StoreFileSystem
-{
-public:
-    static StoreFileSystem &GetInstance();
-    StoreFSufs(char const *DefaultModuleType, char const *label);
-    virtual ~StoreFSufs() {}
+    template <class TheSwapDir>
+    class StoreFSufs : public StoreFileSystem
+    {
+    public:
+        static StoreFileSystem &GetInstance();
+        StoreFSufs(char const *DefaultModuleType, char const *label);
+        virtual ~StoreFSufs() {}
 
-    virtual char const *type() const;
-    virtual SwapDir *createSwapDir();
-    virtual void done();
-    virtual void setup();
-    /** Not implemented */
-    StoreFSufs (StoreFSufs const &);
-    StoreFSufs &operator=(StoreFSufs const &);
+        virtual char const *type() const;
+        virtual SwapDir *createSwapDir();
+        virtual void done();
+        virtual void setup();
+        /** Not implemented */
+        StoreFSufs(StoreFSufs const &);
+        StoreFSufs &operator=(StoreFSufs const &);
 
-protected:
-    DiskIOModule *IO;
-    char const *moduleName;
-    char const *label;
-};
+    protected:
+        DiskIOModule *IO;
+        char const *moduleName;
+        char const *label;
+    };
 
-template <class C>
-StoreFSufs<C>::StoreFSufs(char const *defaultModuleName, char const *aLabel) : IO(NULL), moduleName(defaultModuleName), label(aLabel)
-{
-    FsAdd(*this);
-}
+    template <class C>
+    StoreFSufs<C>::StoreFSufs(char const *defaultModuleName, char const *aLabel) :
+        IO(NULL), moduleName(defaultModuleName), label(aLabel)
+    {
+        FsAdd(*this);
+    }
 
-template <class C>
-char const *
-StoreFSufs<C>::type() const
-{
-    return label;
-}
+    template <class C>
+    char const *
+    StoreFSufs<C>::type() const
+    {
+        return label;
+    }
 
-template <class C>
-SwapDir *
-StoreFSufs<C>::createSwapDir()
-{
-    C *result = new C(type(), moduleName);
-    return result;
-}
+    template <class C>
+    SwapDir *
+    StoreFSufs<C>::createSwapDir()
+    {
+        C *result = new C(type(), moduleName);
+        return result;
+    }
 
-template <class C>
-void
-StoreFSufs<C>::done()
-{
-    initialised = false;
-}
+    template <class C>
+    void
+    StoreFSufs<C>::done()
+    {
+        initialised = false;
+    }
 
-template <class C>
-void
-StoreFSufs<C>::setup()
-{
-    assert(!initialised);
-    initialised = true;
-}
+    template <class C>
+    void
+    StoreFSufs<C>::setup()
+    {
+        assert(!initialised);
+        initialised = true;
+    }
 
 } /* namespace Ufs */
 } /* namespace Fs */
 
 #endif /* SQUID_STOREFSUFS_H */
-

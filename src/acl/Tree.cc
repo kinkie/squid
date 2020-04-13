@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/Tree.h"
+#include "acl/Checklist.h"
 #include "wordlist.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Acl, Tree);
@@ -67,4 +67,3 @@ Acl::Tree::bannedAction(ACLChecklist *checklist, Nodes::const_iterator node) con
     }
     return false;
 }
-

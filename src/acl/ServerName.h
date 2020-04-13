@@ -13,10 +13,13 @@
 #include "acl/DomainData.h"
 #include "acl/Strategy.h"
 
-class ACLServerNameData : public ACLDomainData {
+class ACLServerNameData : public ACLDomainData
+{
     MEMPROXY_CLASS(ACLServerNameData);
+
 public:
-    ACLServerNameData() : ACLDomainData() {}
+    ACLServerNameData() :
+        ACLDomainData() {}
     virtual bool match(const char *);
     virtual ACLData<char const *> *clone() const;
 };
@@ -26,16 +29,15 @@ class ACLServerNameStrategy : public ACLStrategy<char const *>
 
 public:
     /* ACLStrategy API */
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *);
-    virtual bool requiresRequest() const {return true;}
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
+    virtual bool requiresRequest() const { return true; }
     virtual const Acl::Options &options();
     virtual bool valid() const;
 
 private:
-    Acl::BooleanOptionValue useClientRequested; ///< Ignore server-supplied names
-    Acl::BooleanOptionValue useServerProvided; ///< Ignore client-supplied names
-    Acl::BooleanOptionValue useConsensus; ///< Ignore mismatching names
+    Acl::BooleanOptionValue useClientRequested;  ///< Ignore server-supplied names
+    Acl::BooleanOptionValue useServerProvided;   ///< Ignore client-supplied names
+    Acl::BooleanOptionValue useConsensus;        ///< Ignore mismatching names
 };
 
 #endif /* SQUID_ACLSERVERNAME_H */
-

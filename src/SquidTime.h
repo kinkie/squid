@@ -8,8 +8,8 @@
 
 /* DEBUG: section 21    Time Functions */
 
-#ifndef   SQUID_TIME_H
-#define   SQUID_TIME_H
+#ifndef SQUID_TIME_H
+#define SQUID_TIME_H
 
 #include "rfc1123.h"
 
@@ -40,7 +40,8 @@ void tvAdd(struct timeval &res, struct timeval const &t1, struct timeval const &
 void tvAssignAdd(struct timeval &t, struct timeval const &add);
 
 /// Convert timeval to milliseconds
-inline long int tvToMsec(struct timeval &t)
+inline long int
+tvToMsec(struct timeval &t)
 {
     return t.tv_sec * 1000 + t.tv_usec / 1000;
 }
@@ -56,8 +57,7 @@ public:
     virtual void tick();
 };
 
-namespace Time
-{
+namespace Time {
 
 /** Display time as a formatted human-readable string.
  * Time syntax is
@@ -75,7 +75,6 @@ const char *FormatStrf(time_t t);
  */
 const char *FormatHttpd(time_t t);
 
-} // namespace Time
+}  // namespace Time
 
 #endif /* SQUID_TIME_H */
-

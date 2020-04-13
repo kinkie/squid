@@ -9,11 +9,11 @@
 /* DEBUG: section 68    HTTP Content-Range Header */
 
 #include "squid.h"
-#include "base/Packable.h"
-#include "Debug.h"
-#include "enums.h"
 #include "HttpHdrContRange.h"
+#include "Debug.h"
 #include "HttpHeaderTools.h"
+#include "base/Packable.h"
+#include "enums.h"
 
 /*
  *    Currently only byte ranges are supported
@@ -32,14 +32,14 @@
 
 /* local routines */
 #define known_spec(s) ((s) != range_spec_unknown)
-#define size_min(a,b) ((a) <= (b) ? (a) : (b))
-#define size_diff(a,b) ((a) >= (b) ? ((a)-(b)) : 0)
+#define size_min(a, b) ((a) <= (b) ? (a) : (b))
+#define size_diff(a, b) ((a) >= (b) ? ((a) - (b)) : 0)
 
 /* globals */
 
 /* parses range-resp-spec and inits spec, returns true on success */
 static int
-httpHdrRangeRespSpecParseInit(HttpHdrRangeSpec * spec, const char *field, int flen)
+httpHdrRangeRespSpecParseInit(HttpHdrRangeSpec *spec, const char *field, int flen)
 {
     const char *p;
     assert(spec);
@@ -90,8 +90,7 @@ httpHdrRangeRespSpecParseInit(HttpHdrRangeSpec * spec, const char *field, int fl
 
     /* we managed to parse, check if the result makes sence */
     if (spec->length <= 0) {
-        debugs(68, 2, "invalid range (" << spec->offset << " += " <<
-               (long int) spec->length << ") in resp-range-spec near: '" << field << "'");
+        debugs(68, 2, "invalid range (" << spec->offset << " += " << (long int)spec->length << ") in resp-range-spec near: '" << field << "'");
         return 0;
     }
 
@@ -99,10 +98,10 @@ httpHdrRangeRespSpecParseInit(HttpHdrRangeSpec * spec, const char *field, int fl
 }
 
 static void
-httpHdrRangeRespSpecPackInto(const HttpHdrRangeSpec * spec, Packable * p)
+httpHdrRangeRespSpecPackInto(const HttpHdrRangeSpec *spec, Packable *p)
 {
     /* Ensure typecast is safe */
-    assert (spec->length >= 0);
+    assert(spec->length >= 0);
 
     if (!known_spec(spec->offset) || !known_spec(spec->length))
         p->append("*", 1);
@@ -138,7 +137,7 @@ httpHdrContRangeParseCreate(const char *str)
 
 /* returns true if ranges are valid; inits HttpHdrContRange */
 int
-httpHdrContRangeParseInit(HttpHdrContRange * range, const char *str)
+httpHdrContRangeParseInit(HttpHdrContRange *range, const char *str)
 {
     const char *p;
     assert(range && str);
@@ -174,16 +173,13 @@ httpHdrContRangeParseInit(HttpHdrContRange * range, const char *str)
         return 0;
     }
 
-    debugs(68, 8, "parsed content-range field: " <<
-           (long int) range->spec.offset << "-" <<
-           (long int) range->spec.offset + range->spec.length - 1 << " / " <<
-           (long int) range->elength);
+    debugs(68, 8, "parsed content-range field: " << (long int)range->spec.offset << "-" << (long int)range->spec.offset + range->spec.length - 1 << " / " << (long int)range->elength);
 
     return 1;
 }
 
 HttpHdrContRange *
-httpHdrContRangeDup(const HttpHdrContRange * range)
+httpHdrContRangeDup(const HttpHdrContRange *range)
 {
     HttpHdrContRange *dup;
     assert(range);
@@ -193,12 +189,12 @@ httpHdrContRangeDup(const HttpHdrContRange * range)
 }
 
 void
-httpHdrContRangePackInto(const HttpHdrContRange * range, Packable * p)
+httpHdrContRangePackInto(const HttpHdrContRange *range, Packable *p)
 {
     assert(range && p);
     httpHdrRangeRespSpecPackInto(&range->spec, p);
     /* Ensure typecast is safe */
-    assert (range->elength >= 0);
+    assert(range->elength >= 0);
 
     if (!known_spec(range->elength))
         p->append("/*", 2);
@@ -207,10 +203,9 @@ httpHdrContRangePackInto(const HttpHdrContRange * range, Packable * p)
 }
 
 void
-httpHdrContRangeSet(HttpHdrContRange * cr, HttpHdrRangeSpec spec, int64_t ent_len)
+httpHdrContRangeSet(HttpHdrContRange *cr, HttpHdrRangeSpec spec, int64_t ent_len)
 {
     assert(cr && ent_len >= 0);
     cr->spec = spec;
     cr->elength = ent_len;
 }
-

@@ -9,10 +9,10 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/TextException.h"
 #include "CpuAffinityMap.h"
 #include "CpuAffinitySet.h"
 #include "Debug.h"
+#include "base/TextException.h"
 
 bool
 CpuAffinityMap::add(const std::vector<int> &aProcesses, const std::vector<int> &aCores)
@@ -42,8 +42,8 @@ CpuAffinityMap::calculateSet(const int targetProcess) const
         if (process == targetProcess) {
             if (core > 0) {
                 debugs(54, DBG_CRITICAL, "WARNING: conflicting "
-                       "'cpu_affinity_map' for process number " << process <<
-                       ", using the last core seen: " << theCores[i]);
+                                         "'cpu_affinity_map' for process number "
+                           << process << ", using the last core seen: " << theCores[i]);
             }
             core = theCores[i];
         }
@@ -58,4 +58,3 @@ CpuAffinityMap::calculateSet(const int targetProcess) const
     }
     return cpuAffinitySet;
 }
-

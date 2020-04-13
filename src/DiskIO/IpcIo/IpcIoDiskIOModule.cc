@@ -23,13 +23,15 @@ IpcIoDiskIOModule::GetInstance()
 
 void
 IpcIoDiskIOModule::init()
-{}
+{
+}
 
 void
 IpcIoDiskIOModule::gracefulShutdown()
-{}
+{
+}
 
-DiskIOStrategy*
+DiskIOStrategy *
 IpcIoDiskIOModule::createStrategy()
 {
     return new IpcIoIOStrategy();
@@ -38,8 +40,7 @@ IpcIoDiskIOModule::createStrategy()
 IpcIoDiskIOModule IpcIoDiskIOModule::Instance;
 
 char const *
-IpcIoDiskIOModule::type () const
+IpcIoDiskIOModule::type() const
 {
     return "IpcIo";
 }
-

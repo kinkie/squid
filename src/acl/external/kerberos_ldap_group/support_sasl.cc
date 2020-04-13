@@ -43,26 +43,26 @@
 #include <sasl/sasl.h>
 #elif HAVE_SASL_DARWIN
 typedef struct sasl_interact {
-    unsigned long id;       /* same as client/user callback ID */
-    const char *challenge;  /* presented to user (e.g. OTP challenge) */
-    const char *prompt;     /* presented to user (e.g. "Username: ") */
-    const char *defresult;  /* default result string */
-    const void *result;     /* set to point to result */
-    unsigned len;       /* set to length of result */
+    unsigned long id;      /* same as client/user callback ID */
+    const char *challenge; /* presented to user (e.g. OTP challenge) */
+    const char *prompt;    /* presented to user (e.g. "Username: ") */
+    const char *defresult; /* default result string */
+    const void *result;    /* set to point to result */
+    unsigned len;          /* set to length of result */
 } sasl_interact_t;
 
-#define SASL_CB_USER         0x4001 /* client user identity to login as */
-#define SASL_CB_AUTHNAME     0x4002 /* client authentication name */
-#define SASL_CB_PASS         0x4004 /* client passphrase-based secret */
-#define SASL_CB_ECHOPROMPT   0x4005 /* challenge and client enterred result */
+#define SASL_CB_USER 0x4001         /* client user identity to login as */
+#define SASL_CB_AUTHNAME 0x4002     /* client authentication name */
+#define SASL_CB_PASS 0x4004         /* client passphrase-based secret */
+#define SASL_CB_ECHOPROMPT 0x4005   /* challenge and client enterred result */
 #define SASL_CB_NOECHOPROMPT 0x4006 /* challenge and client enterred result */
-#define SASL_CB_GETREALM     0x4008 /* realm to attempt authentication in */
-#define SASL_CB_LIST_END   0    /* end of list */
+#define SASL_CB_GETREALM 0x4008     /* realm to attempt authentication in */
+#define SASL_CB_LIST_END 0          /* end of list */
 #endif
 
 #if HAVE_SASL_H || HAVE_SASL_SASL_H || HAVE_SASL_DARWIN
 void *lutil_sasl_defaults(
-    LDAP * ld,
+    LDAP *ld,
     char *mech,
     char *realm,
     char *authcid,
@@ -72,7 +72,7 @@ void *lutil_sasl_defaults(
 LDAP_SASL_INTERACT_PROC lutil_sasl_interact;
 
 int lutil_sasl_interact(
-    LDAP * ld,
+    LDAP *ld,
     unsigned flags,
     void *defaults,
     void *in);
@@ -96,7 +96,7 @@ typedef struct lutil_sasl_defaults_s {
 
 void *
 lutil_sasl_defaults(
-    LDAP * ld,
+    LDAP *ld,
     char *mech,
     char *realm,
     char *authcid,
@@ -105,7 +105,7 @@ lutil_sasl_defaults(
 {
     lutilSASLdefaults *defaults;
 
-    defaults = (lutilSASLdefaults *) xmalloc(sizeof(lutilSASLdefaults));
+    defaults = (lutilSASLdefaults *)xmalloc(sizeof(lutilSASLdefaults));
 
     if (defaults == NULL)
         return NULL;
@@ -137,8 +137,8 @@ lutil_sasl_defaults(
 static int
 interaction(
     unsigned,
-    sasl_interact_t * interact,
-    lutilSASLdefaults * defaults)
+    sasl_interact_t *interact,
+    lutilSASLdefaults *defaults)
 {
     const char *dflt = interact->defresult;
 
@@ -170,25 +170,25 @@ interaction(
 
     /* input must be empty */
     interact->result = (dflt && *dflt) ? dflt : "";
-    interact->len = (unsigned) strlen((const char *) interact->result);
+    interact->len = (unsigned)strlen((const char *)interact->result);
 
     return LDAP_SUCCESS;
 }
 
 int
 lutil_sasl_interact(
-    LDAP * ld,
+    LDAP *ld,
     unsigned flags,
     void *defaults,
     void *in)
 {
-    sasl_interact_t *interact = (sasl_interact_t *) in;
+    sasl_interact_t *interact = (sasl_interact_t *)in;
 
     if (ld == NULL)
         return LDAP_PARAM_ERROR;
 
     while (interact->id != SASL_CB_LIST_END) {
-        int rc = interaction(flags, interact, (lutilSASLdefaults *) defaults);
+        int rc = interaction(flags, interact, (lutilSASLdefaults *)defaults);
 
         if (rc)
             return rc;
@@ -202,7 +202,7 @@ void
 lutil_sasl_freedefs(
     void *defaults)
 {
-    lutilSASLdefaults *defs = (lutilSASLdefaults *) defaults;
+    lutilSASLdefaults *defs = (lutilSASLdefaults *)defaults;
 
     xfree(defs->mech);
     xfree(defs->realm);
@@ -215,7 +215,7 @@ lutil_sasl_freedefs(
 }
 
 int
-tool_sasl_bind(LDAP * ld, char *binddn, char *ssl)
+tool_sasl_bind(LDAP *ld, char *binddn, char *ssl)
 {
     /*
      * unsigned sasl_flags = LDAP_SASL_AUTOMATIC;
@@ -232,7 +232,7 @@ tool_sasl_bind(LDAP * ld, char *binddn, char *ssl)
     char *sasl_realm = NULL;
     char *sasl_authc_id = NULL;
     char *sasl_authz_id = NULL;
-    char *sasl_mech = (char *) "GSSAPI";
+    char *sasl_mech = (char *)"GSSAPI";
     /*
      * Force encryption
      */
@@ -246,17 +246,17 @@ tool_sasl_bind(LDAP * ld, char *binddn, char *ssl)
     int rc = LDAP_SUCCESS;
 
     if (ssl)
-        sasl_secprops = (char *) "maxssf=0";
+        sasl_secprops = (char *)"maxssf=0";
     else
-        sasl_secprops = (char *) "maxssf=56";
+        sasl_secprops = (char *)"maxssf=56";
     /*      sasl_secprops = (char *)"maxssf=0"; */
     /*      sasl_secprops = (char *)"maxssf=56"; */
 
     if (sasl_secprops != NULL) {
         rc = ldap_set_option(ld, LDAP_OPT_X_SASL_SECPROPS,
-                             (void *) sasl_secprops);
+                             (void *)sasl_secprops);
         if (rc != LDAP_SUCCESS) {
-            error((char *) "%s| %s: ERROR: Could not set LDAP_OPT_X_SASL_SECPROPS: %s: %s\n", LogTime(), PROGRAM, sasl_secprops, ldap_err2string(rc));
+            error((char *)"%s| %s: ERROR: Could not set LDAP_OPT_X_SASL_SECPROPS: %s: %s\n", LogTime(), PROGRAM, sasl_secprops, ldap_err2string(rc));
             return rc;
         }
     }
@@ -273,7 +273,7 @@ tool_sasl_bind(LDAP * ld, char *binddn, char *ssl)
 
     lutil_sasl_freedefs(defaults);
     if (rc != LDAP_SUCCESS) {
-        error((char *) "%s| %s: ERROR: ldap_sasl_interactive_bind_s error: %s\n", LogTime(), PROGRAM, ldap_err2string(rc));
+        error((char *)"%s| %s: ERROR: ldap_sasl_interactive_bind_s error: %s\n", LogTime(), PROGRAM, ldap_err2string(rc));
     }
     return rc;
 }
@@ -287,4 +287,3 @@ dummy(void)
 
 #endif
 #endif
-

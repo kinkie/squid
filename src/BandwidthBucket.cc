@@ -12,12 +12,12 @@
 
 #include "BandwidthBucket.h"
 #include "ClientInfo.h"
-#include "comm/Connection.h"
 #include "Debug.h"
+#include "comm/Connection.h"
 #include "fde.h"
 
 BandwidthBucket::BandwidthBucket(const int speed, const int initialLevelPercent, const double sizeLimit) :
-    bucketLevel( sizeLimit * (initialLevelPercent / 100.0)),
+    bucketLevel(sizeLimit * (initialLevelPercent / 100.0)),
     selectWaiting(false),
     writeSpeedLimit(speed),
     bucketSizeLimit(sizeLimit)
@@ -72,8 +72,7 @@ BandwidthBucket::applyQuota(int &nleft, Comm::IoCallback *state)
         return true;
     const int nleft_corrected = min(nleft, q);
     if (nleft != nleft_corrected) {
-        debugs(77, 5, state->conn << " writes only " <<
-               nleft_corrected << " out of " << nleft);
+        debugs(77, 5, state->conn << " writes only " << nleft_corrected << " out of " << nleft);
         nleft = nleft_corrected;
     }
     return true;
@@ -86,7 +85,7 @@ BandwidthBucket::reduceBucket(const int len)
         return;
     bucketLevel -= len;
     if (bucketLevel < 0.0) {
-        debugs(77, DBG_IMPORTANT, "drained too much"); // should not happen
+        debugs(77, DBG_IMPORTANT, "drained too much");  // should not happen
         bucketLevel = 0;
     }
 }
@@ -104,4 +103,3 @@ BandwidthBucket::SelectBucket(fde *f)
 }
 
 #endif /* USE_DELAY_POOLS */
-

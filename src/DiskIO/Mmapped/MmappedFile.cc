@@ -9,9 +9,9 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
+#include "DiskIO/Mmapped/MmappedFile.h"
 #include "Debug.h"
 #include "DiskIO/IORequestor.h"
-#include "DiskIO/Mmapped/MmappedFile.h"
 #include "DiskIO/ReadRequest.h"
 #include "DiskIO/WriteRequest.h"
 #include "fs_io.h"
@@ -39,26 +39,27 @@ public:
     Mmapping(int fd, size_t length, int prot, int flags, off_t offset);
     ~Mmapping();
 
-    void *map(); ///< calls mmap(2); returns usable buffer or nil on failure
-    bool unmap(); ///< unmaps previously mapped buffer, if any
+    void *map();   ///< calls mmap(2); returns usable buffer or nil on failure
+    bool unmap();  ///< unmaps previously mapped buffer, if any
 
 private:
-    const int fd; ///< descriptor of the mmapped file
-    const size_t length; ///< user-requested data length, needed for munmap
-    const int prot; ///< mmap(2) "protection" flags
-    const int flags; ///< other mmap(2) flags
-    const off_t offset; ///< user-requested data offset
+    const int fd;         ///< descriptor of the mmapped file
+    const size_t length;  ///< user-requested data length, needed for munmap
+    const int prot;       ///< mmap(2) "protection" flags
+    const int flags;      ///< other mmap(2) flags
+    const off_t offset;   ///< user-requested data offset
 
-    off_t delta; ///< mapped buffer increment to hit user offset
-    void *buf; ///< buffer returned by mmap, needed for munmap
+    off_t delta;  ///< mapped buffer increment to hit user offset
+    void *buf;    ///< buffer returned by mmap, needed for munmap
 };
 
-MmappedFile::MmappedFile(char const *aPath): fd(-1),
+MmappedFile::MmappedFile(char const *aPath) :
+    fd(-1),
     minOffset(0), maxOffset(-1), error_(false)
 {
     assert(aPath);
     path_ = xstrdup(aPath);
-    debugs(79,5, HERE << this << ' ' << path_);
+    debugs(79, 5, HERE << this << ' ' << path_);
 }
 
 MmappedFile::~MmappedFile()
@@ -79,16 +80,16 @@ MmappedFile::open(int flags, mode_t, RefCount<IORequestor> callback)
 
     if (fd < 0) {
         int xerrno = errno;
-        debugs(79,3, "open error: " << xstrerr(xerrno));
+        debugs(79, 3, "open error: " << xstrerr(xerrno));
         error_ = true;
     } else {
         ++store_open_disk_fd;
-        debugs(79,3, "FD " << fd);
+        debugs(79, 3, "FD " << fd);
 
         // setup mapping boundaries
         struct stat sb;
         if (fstat(fd, &sb) == 0)
-            maxOffset = sb.st_size; // we do not expect it to change
+            maxOffset = sb.st_size;  // we do not expect it to change
     }
 
     callback->ioCompletedNotification();
@@ -105,7 +106,8 @@ MmappedFile::create(int flags, mode_t mode, RefCount<IORequestor> callback)
     open(flags, mode, callback);
 }
 
-void MmappedFile::doClose()
+void
+MmappedFile::doClose()
 {
     if (fd >= 0) {
         file_close(fd);
@@ -144,14 +146,13 @@ MmappedFile::error() const
 void
 MmappedFile::read(ReadRequest *aRequest)
 {
-    debugs(79,3, HERE << "(FD " << fd << ", " << aRequest->len << ", " <<
-           aRequest->offset << ")");
+    debugs(79, 3, HERE << "(FD " << fd << ", " << aRequest->len << ", " << aRequest->offset << ")");
 
     assert(fd >= 0);
     assert(ioRequestor != NULL);
-    assert(aRequest->len > 0); // TODO: work around mmap failures on zero-len?
+    assert(aRequest->len > 0);  // TODO: work around mmap failures on zero-len?
     assert(aRequest->offset >= 0);
-    assert(!error_); // TODO: propagate instead?
+    assert(!error_);  // TODO: propagate instead?
 
     assert(minOffset < 0 || minOffset <= aRequest->offset);
     assert(maxOffset < 0 || static_cast<uint64_t>(aRequest->offset + aRequest->len) <= static_cast<uint64_t>(maxOffset));
@@ -167,27 +168,25 @@ MmappedFile::read(ReadRequest *aRequest)
     error_ = !done;
 
     const ssize_t rlen = error_ ? -1 : (ssize_t)aRequest->len;
-    const int errflag = error_ ? DISK_ERROR :DISK_OK;
+    const int errflag = error_ ? DISK_ERROR : DISK_OK;
     ioRequestor->readCompleted(aRequest->buf, rlen, errflag, aRequest);
 }
 
 void
 MmappedFile::write(WriteRequest *aRequest)
 {
-    debugs(79,3, HERE << "(FD " << fd << ", " << aRequest->len << ", " <<
-           aRequest->offset << ")");
+    debugs(79, 3, HERE << "(FD " << fd << ", " << aRequest->len << ", " << aRequest->offset << ")");
 
     assert(fd >= 0);
     assert(ioRequestor != NULL);
-    assert(aRequest->len > 0); // TODO: work around mmap failures on zero-len?
+    assert(aRequest->len > 0);  // TODO: work around mmap failures on zero-len?
     assert(aRequest->offset >= 0);
-    assert(!error_); // TODO: propagate instead?
+    assert(!error_);  // TODO: propagate instead?
 
     assert(minOffset < 0 || minOffset <= aRequest->offset);
     assert(maxOffset < 0 || static_cast<uint64_t>(aRequest->offset + aRequest->len) <= static_cast<uint64_t>(maxOffset));
 
-    const ssize_t written =
-        pwrite(fd, aRequest->buf, aRequest->len, aRequest->offset);
+    const ssize_t written = pwrite(fd, aRequest->buf, aRequest->len, aRequest->offset);
     if (written < 0) {
         debugs(79, DBG_IMPORTANT, HERE << "error: " << xstrerr(errno));
         error_ = true;
@@ -197,16 +196,16 @@ MmappedFile::write(WriteRequest *aRequest)
     }
 
     if (aRequest->free_func)
-        (aRequest->free_func)(const_cast<char*>(aRequest->buf)); // broken API?
+        (aRequest->free_func)(const_cast<char *>(aRequest->buf));  // broken API?
 
     if (!error_) {
-        debugs(79,5, HERE << "wrote " << aRequest->len << " to FD " << fd << " at " << aRequest->offset);
+        debugs(79, 5, HERE << "wrote " << aRequest->len << " to FD " << fd << " at " << aRequest->offset);
     } else {
         doClose();
     }
 
     const ssize_t rlen = error_ ? 0 : (ssize_t)aRequest->len;
-    const int errflag = error_ ? DISK_ERROR :DISK_OK;
+    const int errflag = error_ ? DISK_ERROR : DISK_OK;
     ioRequestor->writeCompleted(errflag, rlen, aRequest);
 }
 
@@ -217,7 +216,7 @@ MmappedFile::ioInProgress() const
     return false;
 }
 
-Mmapping::Mmapping(int aFd, size_t aLength, int aProt, int aFlags, off_t anOffset):
+Mmapping::Mmapping(int aFd, size_t aLength, int aProt, int aFlags, off_t anOffset) :
     fd(aFd), length(aLength), prot(aProt), flags(aFlags), offset(anOffset),
     delta(-1), buf(NULL)
 {
@@ -240,34 +239,30 @@ Mmapping::map()
 
     if (buf == MAP_FAILED) {
         const int errNo = errno;
-        debugs(79,3, HERE << "error FD " << fd << "mmap(" << length << '+' <<
-               delta << ", " << offset << '-' << delta << "): " << xstrerr(errNo));
+        debugs(79, 3, HERE << "error FD " << fd << "mmap(" << length << '+' << delta << ", " << offset << '-' << delta << "): " << xstrerr(errNo));
         buf = NULL;
         return NULL;
     }
 
-    return static_cast<char*>(buf) + delta;
+    return static_cast<char *>(buf) + delta;
 }
 
 bool
 Mmapping::unmap()
 {
-    debugs(79,9, HERE << "FD " << fd <<
-           " munmap(" << buf << ", " << length << '+' << delta << ')');
+    debugs(79, 9, HERE << "FD " << fd << " munmap(" << buf << ", " << length << '+' << delta << ')');
 
-    if (!buf) // forgot or failed to map
+    if (!buf)  // forgot or failed to map
         return false;
 
     const bool error = munmap(buf, length + delta) != 0;
     if (error) {
         const int errNo = errno;
-        debugs(79,3, HERE << "error FD " << fd <<
-               " munmap(" << buf << ", " << length << '+' << delta << "): " <<
-               "): " << xstrerr(errNo));
+        debugs(79, 3, HERE << "error FD " << fd << " munmap(" << buf << ", " << length << '+' << delta << "): "
+                           << "): " << xstrerr(errNo));
     }
     buf = NULL;
     return !error;
 }
 
 // TODO: check MAP_NORESERVE, consider MAP_POPULATE and MAP_FIXED
-

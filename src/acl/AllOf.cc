@@ -8,10 +8,10 @@
 
 #include "squid.h"
 #include "acl/AllOf.h"
+#include "MemBuf.h"
 #include "acl/BoolOps.h"
 #include "acl/Checklist.h"
 #include "globals.h"
-#include "MemBuf.h"
 
 char const *
 Acl::AllOf::typeString() const
@@ -34,14 +34,14 @@ Acl::AllOf::dump() const
 int
 Acl::AllOf::doMatch(ACLChecklist *checklist, Nodes::const_iterator start) const
 {
-    assert(start == nodes.begin()); // we only have one node
+    assert(start == nodes.begin());  // we only have one node
 
     // avoid dereferencing invalid start
     if (empty())
-        return 1; // not 0 because in math empty product equals identity
+        return 1;  // not 0 because in math empty product equals identity
 
     if (checklist->matchChild(this, start, *start))
-        return 1; // match
+        return 1;  // match
 
     return checklist->keepMatching() ? 0 : -1;
 }
@@ -54,7 +54,7 @@ Acl::AllOf::parse()
     ACL *oldNode = empty() ? NULL : nodes.front();
 
     // optimization: this logic reduces subtree hight (number of tree levels)
-    if (Acl::OrNode *oldWhole = dynamic_cast<Acl::OrNode*>(oldNode)) {
+    if (Acl::OrNode *oldWhole = dynamic_cast<Acl::OrNode *>(oldNode)) {
         // this acl saw multiple lines before; add another one to the old node
         whole = oldWhole;
     } else if (oldNode) {
@@ -67,7 +67,7 @@ Acl::AllOf::parse()
 
         Acl::OrNode *newWhole = new Acl::OrNode;
         newWhole->context(wholeCtx.content(), oldNode->cfgline);
-        newWhole->add(oldNode); // old (i.e. first) line
+        newWhole->add(oldNode);  // old (i.e. first) line
         nodes.front() = whole = newWhole;
     } else {
         // this is the first line for this acl; just use it as is
@@ -88,4 +88,3 @@ Acl::AllOf::parse()
 
     whole->add(line);
 }
-

@@ -14,8 +14,7 @@
 #include "auth/UserRequest.h"
 #include "cbdata.h"
 
-namespace Auth
-{
+namespace Auth {
 
 /**
  * CBDATA state for NTLM, Negotiate, and Digest stateful authentication.
@@ -30,7 +29,8 @@ public:
         auth_user_request(r),
         handler(h) {}
 
-    ~StateData() {
+    ~StateData()
+    {
         auth_user_request = NULL;
         cbdataReferenceDone(data);
     }
@@ -40,8 +40,7 @@ public:
     AUTHCB *handler;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* __AUTH_AUTHENTICATE_STATE_T__ */
-

@@ -9,13 +9,13 @@
 /* DEBUG: section 79    Squid-side DISKD I/O functions. */
 
 #include "squid.h"
-#include "base/TextException.h"
 #include "DiskIO/DiskDaemon/DiskdAction.h"
 #include "DiskIO/DiskDaemon/DiskdIOStrategy.h"
+#include "Store.h"
+#include "base/TextException.h"
 #include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
 #include "mgr/ActionWriter.h"
-#include "Store.h"
 #include "tools.h"
 
 DiskdActionData::DiskdActionData()
@@ -23,8 +23,8 @@ DiskdActionData::DiskdActionData()
     memset(this, 0, sizeof(*this));
 }
 
-DiskdActionData&
-DiskdActionData::operator += (const DiskdActionData& stats)
+DiskdActionData &
+DiskdActionData::operator+=(const DiskdActionData &stats)
 {
     sent_count += stats.sent_count;
     recv_count += stats.recv_count;
@@ -62,17 +62,17 @@ DiskdAction::Create(const Mgr::CommandPointer &aCmd)
     return new DiskdAction(aCmd);
 }
 
-DiskdAction::DiskdAction(const Mgr::CommandPointer &aCmd):
+DiskdAction::DiskdAction(const Mgr::CommandPointer &aCmd) :
     Action(aCmd), data()
 {
     debugs(79, 5, HERE);
 }
 
 void
-DiskdAction::add(const Action& action)
+DiskdAction::add(const Action &action)
 {
     debugs(79, 5, HERE);
-    data += dynamic_cast<const DiskdAction&>(action).data;
+    data += dynamic_cast<const DiskdAction &>(action).data;
 }
 
 void
@@ -112,7 +112,7 @@ DiskdAction::collect()
 }
 
 void
-DiskdAction::dump(StoreEntry* entry)
+DiskdAction::dump(StoreEntry *entry)
 {
     debugs(79, 5, HERE);
     Must(entry != NULL);
@@ -138,16 +138,15 @@ DiskdAction::dump(StoreEntry* entry)
 }
 
 void
-DiskdAction::pack(Ipc::TypedMsgHdr& hdrMsg) const
+DiskdAction::pack(Ipc::TypedMsgHdr &hdrMsg) const
 {
     hdrMsg.setType(Ipc::mtCacheMgrResponse);
     hdrMsg.putPod(data);
 }
 
 void
-DiskdAction::unpack(const Ipc::TypedMsgHdr& hdrMsg)
+DiskdAction::unpack(const Ipc::TypedMsgHdr &hdrMsg)
 {
     hdrMsg.checkType(Ipc::mtCacheMgrResponse);
     hdrMsg.getPod(data);
 }
-

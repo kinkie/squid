@@ -9,13 +9,12 @@
 #ifndef _SQUID_COMM_READ_H
 #define _SQUID_COMM_READ_H
 
+#include "CommCalls.h"
 #include "base/AsyncCall.h"
 #include "comm/forward.h"
-#include "CommCalls.h"
 #include "sbuf/forward.h"
 
-namespace Comm
-{
+namespace Comm {
 
 /**
  * Start monitoring for read.
@@ -52,11 +51,12 @@ extern PF HandleRead;
 
 /// maximum read delay for readers with limited lifetime
 time_t MortalReadTimeout(const time_t startTime, const time_t lifetimeLimit);
-} // namespace Comm
+}  // namespace Comm
 
 // Legacy API to be removed
 void comm_read_base(const Comm::ConnectionPointer &conn, char *buf, int len, AsyncCall::Pointer &callback);
-inline void comm_read(const Comm::ConnectionPointer &conn, char *buf, int len, AsyncCall::Pointer &callback)
+inline void
+comm_read(const Comm::ConnectionPointer &conn, char *buf, int len, AsyncCall::Pointer &callback)
 {
     assert(buf != NULL);
     comm_read_base(conn, buf, len, callback);
@@ -64,4 +64,3 @@ inline void comm_read(const Comm::ConnectionPointer &conn, char *buf, int len, A
 void comm_read_cancel(int fd, IOCB *callback, void *data);
 
 #endif /* _SQUID_COMM_READ_H */
-

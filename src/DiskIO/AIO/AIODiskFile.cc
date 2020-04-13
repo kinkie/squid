@@ -21,8 +21,8 @@
  */
 
 #include "squid.h"
-#include "Debug.h"
 #include "DiskIO/AIO/AIODiskFile.h"
+#include "Debug.h"
 #include "DiskIO/AIO/AIODiskIOStrategy.h"
 #include "DiskIO/IORequestor.h"
 #include "DiskIO/ReadRequest.h"
@@ -34,16 +34,18 @@
 
 CBDATA_CLASS_INIT(AIODiskFile);
 
-AIODiskFile::AIODiskFile(char const *aPath, AIODiskIOStrategy *aStrategy) : fd(-1), closed(true), error_(false)
+AIODiskFile::AIODiskFile(char const *aPath, AIODiskIOStrategy *aStrategy) :
+    fd(-1), closed(true), error_(false)
 {
-    assert (aPath);
+    assert(aPath);
     path = aPath;
     strategy = aStrategy;
     debugs(79, 3, "AIODiskFile::AIODiskFile: " << aPath);
 }
 
 AIODiskFile::~AIODiskFile()
-{}
+{
+}
 
 void
 AIODiskFile::error(bool const &aBool)
@@ -115,7 +117,7 @@ AIODiskFile::read(ReadRequest *request)
 
     qe->aq_e_free = NULL;
 
-    qe->aq_e_buf =  request->buf;
+    qe->aq_e_buf = request->buf;
 
     qe->aq_e_fd = getFD();
 
@@ -123,12 +125,12 @@ AIODiskFile::read(ReadRequest *request)
 
     qe->aq_e_aiocb.aio_nbytes = request->len;
 
-    qe->aq_e_aiocb.aio_offset =  request->offset;
+    qe->aq_e_aiocb.aio_offset = request->offset;
 
-    qe->aq_e_aiocb.aio_buf =  request->buf;
+    qe->aq_e_aiocb.aio_buf = request->buf;
 
     /* Account */
-    ++ strategy->aq.aq_numpending;
+    ++strategy->aq.aq_numpending;
 
     /* Initiate aio */
     if (aio_read(&qe->aq_e_aiocb) < 0) {
@@ -138,7 +140,6 @@ AIODiskFile::read(ReadRequest *request)
         /* fall back to blocking method */
         //        file_read(fd, request->buf, request->len, request->offset, callback, data);
     }
-
 }
 
 void
@@ -200,9 +201,9 @@ AIODiskFile::write(WriteRequest *request)
 }
 
 void
-AIODiskFile::close ()
+AIODiskFile::close()
 {
-    assert (!closed);
+    assert(!closed);
 #if _SQUID_WINDOWS_
     aio_close(fd);
 #else
@@ -211,7 +212,7 @@ AIODiskFile::close ()
 
     fd = -1;
     closed = true;
-    assert (ioRequestor != NULL);
+    assert(ioRequestor != NULL);
     ioRequestor->closeCompleted();
 }
 
@@ -244,4 +245,3 @@ AIODiskFile::ioInProgress() const
 {
     return false;
 }
-

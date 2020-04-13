@@ -19,8 +19,7 @@ class ACLLocalIP : public ACLIP
 public:
     virtual char const *typeString() const;
     virtual int match(ACLChecklist *checklist);
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
 };
 
 #endif /* SQUID_ACLLOCALIP_H */
-

@@ -7,14 +7,15 @@
  */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "Debug.h"
 #include "FadingCounter.h"
+#include "Debug.h"
 #include "SquidTime.h"
+#include "base/TextException.h"
 
 #include <cmath>
 
-FadingCounter::FadingCounter(): horizon(-1), precision(10), delta(-1),
+FadingCounter::FadingCounter() :
+    horizon(-1), precision(10), delta(-1),
     lastTime(0), total(0)
 {
     counters.reserve(precision);
@@ -22,7 +23,8 @@ FadingCounter::FadingCounter(): horizon(-1), precision(10), delta(-1),
         counters.push_back(0);
 }
 
-void FadingCounter::clear()
+void
+FadingCounter::clear()
 {
     for (int i = 0; i < precision; ++i)
         counters[i] = 0;
@@ -30,28 +32,30 @@ void FadingCounter::clear()
     total = 0;
 }
 
-void FadingCounter::configure(double newHorizon)
+void
+FadingCounter::configure(double newHorizon)
 {
-    if (fabs(newHorizon - horizon) >= 1e-3) { // diff exceeds one millisecond
-        clear(); // for simplicity
+    if (fabs(newHorizon - horizon) >= 1e-3) {  // diff exceeds one millisecond
+        clear();                               // for simplicity
         horizon = newHorizon;
-        delta = horizon / precision; // may become negative or zero
+        delta = horizon / precision;  // may become negative or zero
     }
 }
 
-int FadingCounter::count(int howMany)
+int
+FadingCounter::count(int howMany)
 {
     Must(howMany >= 0);
 
     if (delta < 0)
-        return total += howMany; // forget nothing
+        return total += howMany;  // forget nothing
 
-    if (horizon < 1e-3) // (e.g., zero)
-        return howMany; // remember nothing
+    if (horizon < 1e-3)  // (e.g., zero)
+        return howMany;  // remember nothing
 
     const double deltas = (current_dtime - lastTime) / delta;
     if (deltas >= precision || current_dtime < lastTime) {
-        clear(); // forget all values
+        clear();  // forget all values
     } else {
         // forget stale values, if any
         // fmod() or "current_dtime/delta" will overflow int for small deltas
@@ -74,4 +78,3 @@ int FadingCounter::count(int howMany)
 
     return total;
 }
-

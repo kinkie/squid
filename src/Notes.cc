@@ -8,20 +8,20 @@
 
 #include "squid.h"
 #include "AccessLogEntry.h"
-#include "acl/FilledChecklist.h"
-#include "acl/Gadgets.h"
-#include "client_side.h"
 #include "ConfigParser.h"
-#include "globals.h"
-#include "http/Stream.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
-#include "parser/Tokenizer.h"
-#include "sbuf/Stream.h"
-#include "sbuf/StringConvert.h"
 #include "SquidConfig.h"
 #include "Store.h"
 #include "StrList.h"
+#include "acl/FilledChecklist.h"
+#include "acl/Gadgets.h"
+#include "client_side.h"
+#include "globals.h"
+#include "http/Stream.h"
+#include "parser/Tokenizer.h"
+#include "sbuf/Stream.h"
+#include "sbuf/StringConvert.h"
 
 #include <algorithm>
 #include <string>
@@ -32,8 +32,8 @@ Note::Value::~Value()
     delete valueFormat;
 }
 
-Note::Value::Value(const char *aVal, const bool quoted, const char *descr, const Method m)
-    : aclList(nullptr), valueFormat(nullptr), theValue(aVal), theMethod(m)
+Note::Value::Value(const char *aVal, const bool quoted, const char *descr, const Method m) :
+    aclList(nullptr), valueFormat(nullptr), theValue(aVal), theMethod(m)
 {
     if (quoted) {
         valueFormat = new Format::Format(descr ? descr : "Notes");
@@ -76,11 +76,10 @@ Note::match(HttpRequest *request, HttpReply *reply, const AccessLogEntry::Pointe
     if (reply)
         HTTPMSGLOCK(ch.reply);
 
-    for (auto v: values) {
+    for (auto v : values) {
         assert(v->aclList);
         const auto ret = ch.fastCheck(v->aclList);
-        debugs(93, 5, "Check for header name: " << theKey << ": " << v->value() <<
-               ", HttpRequest: " << request << " HttpReply: " << reply << " matched: " << ret);
+        debugs(93, 5, "Check for header name: " << theKey << ": " << v->value() << ", HttpRequest: " << request << " HttpReply: " << reply << " matched: " << ret);
         if (ret.allowed()) {
             matched = v->format(al);
             return true;
@@ -93,7 +92,7 @@ Note::match(HttpRequest *request, HttpReply *reply, const AccessLogEntry::Pointe
 void
 Note::updateNotePairs(NotePairs::Pointer pairs, const CharacterSet *delimiters, const AccessLogEntryPointer &al)
 {
-    for (auto v: values) {
+    for (auto v : values) {
         const SBuf &formatted = v->format(al);
         if (!pairs->empty() && v->method() == Value::mhReplace)
             pairs->remove(theKey);
@@ -107,7 +106,7 @@ Note::updateNotePairs(NotePairs::Pointer pairs, const CharacterSet *delimiters, 
 void
 Note::dump(StoreEntry *entry, const char *k)
 {
-    for (auto v: values) {
+    for (auto v : values) {
         storeAppendPrintf(entry, "%s %.*s %s",
                           k, key().length(), key().rawContent(), ConfigParser::QuoteString(SBufToString(v->value())));
         dump_acl_list(entry, v->aclList);
@@ -119,7 +118,7 @@ SBuf
 Note::toString(const char *sep) const
 {
     SBuf result;
-    for (auto val: values)
+    for (auto val : values)
         result.appendf("%.*s: %.*s%s", key().length(), key().rawContent(),
                        val->value().length(), val->value().rawContent(), sep);
     return result;
@@ -140,14 +139,13 @@ Notes::BlackList()
         "tag",
         "ttl",
         "url",
-        "user"
-    };
+        "user"};
 
     static Keys keys(std::begin(names), std::end(names));
     return keys;
 }
 
-Notes::Notes(const char *aDescr, const Keys *extraBlacklist, bool allowFormatted):
+Notes::Notes(const char *aDescr, const Keys *extraBlacklist, bool allowFormatted) :
     descr(aDescr),
     formattedValues(allowFormatted)
 {
@@ -167,7 +165,7 @@ Notes::add(const SBuf &noteKey)
 Note::Pointer
 Notes::find(const SBuf &noteKey)
 {
-    for (auto n: notes)
+    for (auto n : notes)
         if (n->key() == noteKey)
             return n;
     return nullptr;
@@ -188,13 +186,11 @@ Notes::validateKey(const SBuf &key) const
 
     // TODO: fix code duplication: the same set of specials is produced
     // by isKeyNameChar().
-    static const CharacterSet allowedSpecials = CharacterSet::ALPHA +
-            CharacterSet::DIGIT + CharacterSet("specials", "-_");
+    static const CharacterSet allowedSpecials = CharacterSet::ALPHA + CharacterSet::DIGIT + CharacterSet("specials", "-_");
     const auto specialIndex = key.findFirstNotOf(allowedSpecials);
     if (specialIndex != SBuf::npos) {
-        debugs(28, DBG_CRITICAL, "Warning: used special character '" <<
-               key[specialIndex] << "' within annotation name. " <<
-               "Future Squid versions will not support this.");
+        debugs(28, DBG_CRITICAL, "Warning: used special character '" << key[specialIndex] << "' within annotation name. "
+                                                                     << "Future Squid versions will not support this.");
     }
 }
 
@@ -220,7 +216,8 @@ Notes::parse(ConfigParser &parser)
 }
 
 void
-Notes::parseKvPair() {
+Notes::parseKvPair()
+{
     char *k, *v;
     int parsedPairs = 0;
     while (ConfigParser::NextKvPair(k, v)) {
@@ -231,8 +228,7 @@ Notes::parseKvPair() {
         else {
             assert(method == Note::Value::mhReplace);
             if (Note::Pointer oldNote = find(SBuf(k, keyLen)))
-                debugs(28, DBG_CRITICAL, "Warning: annotation configuration with key " << k <<
-                       " already exists and will be overwritten");
+                debugs(28, DBG_CRITICAL, "Warning: annotation configuration with key " << k << " already exists and will be overwritten");
         }
         SBuf key(k, keyLen);
         validateKey(key);
@@ -247,14 +243,14 @@ Notes::parseKvPair() {
 void
 Notes::updateNotePairs(NotePairs::Pointer pairs, const CharacterSet *delimiters, const AccessLogEntry::Pointer &al)
 {
-    for (auto n: notes)
+    for (auto n : notes)
         n->updateNotePairs(pairs, delimiters, al);
 }
 
 void
 Notes::dump(StoreEntry *entry, const char *key)
 {
-    for (auto n: notes)
+    for (auto n : notes)
         n->dump(entry, key);
 }
 
@@ -263,7 +259,7 @@ Notes::toString(const char *sep) const
 {
     static SBuf result;
     result.clear();
-    for (auto note: notes)
+    for (auto note : notes)
         result.append(note->toString(sep));
     return result.isEmpty() ? nullptr : result.c_str();
 }
@@ -272,7 +268,7 @@ bool
 NotePairs::find(SBuf &resultNote, const char *noteKey, const char *sep) const
 {
     resultNote.clear();
-    for (auto e: entries) {
+    for (auto e : entries) {
         if (!e->name().cmp(noteKey)) {
             if (!resultNote.isEmpty())
                 resultNote.append(sep);
@@ -287,7 +283,7 @@ NotePairs::toString(const char *sep) const
 {
     static SBuf result;
     result.clear();
-    for (auto e: entries)
+    for (auto e : entries)
         result.appendf("%.*s: %.*s%s", e->name().length(), e->name().rawContent(),
                        e->value().length(), e->value().rawContent(), sep);
     return result.isEmpty() ? nullptr : result.c_str();
@@ -296,7 +292,7 @@ NotePairs::toString(const char *sep) const
 const char *
 NotePairs::findFirst(const char *noteKey) const
 {
-    for (auto e: entries)
+    for (auto e : entries)
         if (!e->name().cmp(noteKey))
             return const_cast<SBuf &>(e->value()).c_str();
     return nullptr;
@@ -319,7 +315,7 @@ NotePairs::remove(const char *key)
 {
     Entries::iterator i = entries.begin();
     while (i != entries.end())
-        i = (*i)->name().cmp(key) ? i+1 : entries.erase(i);
+        i = (*i)->name().cmp(key) ? i + 1 : entries.erase(i);
 }
 
 void
@@ -327,7 +323,7 @@ NotePairs::remove(const SBuf &key)
 {
     Entries::iterator i = entries.begin();
     while (i != entries.end())
-        i = (*i)->name() == key ? entries.erase(i) : i+1;
+        i = (*i)->name() == key ? entries.erase(i) : i + 1;
 }
 
 static void
@@ -348,7 +344,7 @@ NotePairs::expandListEntries(const CharacterSet *delimiters) const
     if (delimiters) {
         static NotePairs::Entries expandedEntries;
         expandedEntries.clear();
-        for(auto entry: entries)
+        for (auto entry : entries)
             AppendTokens(expandedEntries, entry->name(), entry->value(), *delimiters);
         return expandedEntries;
     }
@@ -364,7 +360,7 @@ NotePairs::addStrList(const SBuf &key, const SBuf &values, const CharacterSet &d
 bool
 NotePairs::hasPair(const SBuf &key, const SBuf &value) const
 {
-    for (auto e: entries)
+    for (auto e : entries)
         if (e->name() == key && e->value() == value)
             return true;
     return false;
@@ -373,14 +369,14 @@ NotePairs::hasPair(const SBuf &key, const SBuf &value) const
 void
 NotePairs::append(const NotePairs *src)
 {
-    for (auto e: src->entries)
+    for (auto e : src->entries)
         entries.push_back(new NotePairs::Entry(e->name(), e->value()));
 }
 
 void
 NotePairs::appendNewOnly(const NotePairs *src)
 {
-    for (auto e: src->entries) {
+    for (auto e : src->entries) {
         if (!hasPair(e->name(), e->value()))
             entries.push_back(new NotePairs::Entry(e->name(), e->value()));
     }
@@ -389,7 +385,7 @@ NotePairs::appendNewOnly(const NotePairs *src)
 void
 NotePairs::replaceOrAddOrAppend(const NotePairs *src, const NotePairs::Names &appendables)
 {
-    for (const auto e: src->entries) {
+    for (const auto e : src->entries) {
         if (std::find(appendables.begin(), appendables.end(), e->name()) == appendables.end())
             remove(e->name());
     }
@@ -399,8 +395,7 @@ NotePairs::replaceOrAddOrAppend(const NotePairs *src, const NotePairs::Names &ap
 void
 NotePairs::replaceOrAdd(const NotePairs *src)
 {
-    for (auto e: src->entries)
+    for (auto e : src->entries)
         remove(e->name());
     append(src);
 }
-

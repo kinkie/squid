@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "compat/xalloc.h"
 #include "compat/xstring.h"
+#include "compat/xalloc.h"
 
 #include <cerrno>
 
@@ -17,7 +17,7 @@ xstrdup(const char *s)
 {
     if (!s) {
         if (failure_notify) {
-            (*failure_notify) ("xstrdup: tried to dup a NULL pointer!\n");
+            (*failure_notify)("xstrdup: tried to dup a NULL pointer!\n");
         } else {
             errno = EINVAL;
             perror("xstrdup: tried to dup a NULL pointer!");
@@ -58,7 +58,7 @@ xstrndup(const char *s, size_t n)
     if (!s) {
         errno = EINVAL;
         if (failure_notify) {
-            (*failure_notify) ("xstrndup: tried to dup a NULL pointer!\n");
+            (*failure_notify)("xstrndup: tried to dup a NULL pointer!\n");
         } else {
             perror("xstrndup: tried to dup a NULL pointer!");
         }
@@ -73,4 +73,3 @@ xstrndup(const char *s, size_t n)
     char *p = xstrncpy(static_cast<char *>(xmalloc(sz)), s, sz);
     return p;
 }
-

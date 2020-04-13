@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
+#include "acl/Note.h"
+#include "HttpRequest.h"
 #include "acl/FilledChecklist.h"
 #include "acl/HttpHeaderData.h"
-#include "acl/Note.h"
 #include "acl/NoteData.h"
-#include "HttpRequest.h"
 
 /* Acl::AnnotationStrategy */
 
@@ -20,8 +20,7 @@ Acl::AnnotationStrategy::options()
 {
     static const Acl::CharacterSetOption Delimiters;
     static const Acl::Options MyOptions = {
-        { "-m", &Delimiters }
-    };
+        {"-m", &Delimiters}};
     Delimiters.linkWith(&delimiters);
     return MyOptions;
 }
@@ -29,7 +28,7 @@ Acl::AnnotationStrategy::options()
 /* ACLNoteStrategy */
 
 int
-ACLNoteStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLNoteStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     if (const auto request = checklist->request) {
         if (request->hasNotes() && matchNotes(data, request->notes().getRaw()))
@@ -47,9 +46,8 @@ bool
 ACLNoteStrategy::matchNotes(ACLData<MatchType> *noteData, const NotePairs *note) const
 {
     const NotePairs::Entries &entries = note->expandListEntries(&delimiters.value);
-    for (auto e: entries)
+    for (auto e : entries)
         if (noteData->match(e.getRaw()))
             return true;
     return false;
 }
-

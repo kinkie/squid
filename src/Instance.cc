@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
+#include "Instance.h"
+#include "SquidConfig.h"
 #include "base/File.h"
 #include "fs_io.h"
-#include "Instance.h"
 #include "parser/Tokenizer.h"
 #include "sbuf/Stream.h"
-#include "SquidConfig.h"
 #include "tools.h"
 
 #include <cerrno>
@@ -35,7 +35,7 @@ PidFilenameCalc()
     // chroot() and then create/update it inside a chrooted environment.
     // TODO: Consider removing half-baked chroot support from Squid.
     extern bool Chrooted;
-    if (!Config.chroot_dir || Chrooted) // no need to compensate
+    if (!Config.chroot_dir || Chrooted)  // no need to compensate
         return SBuf(Config.pidFilename);
 
     SBuf filename;
@@ -71,10 +71,10 @@ GetOtherPid(File &pidFile)
     int64_t rawPid = -1;
 
     Parser::Tokenizer tok(input);
-    if (!(tok.int64(rawPid, 10, false) && // PID digits
-            (tok.skipOne(CharacterSet::CR)||true) && // optional CR (Windows/etc.)
-            tok.skipOne(CharacterSet::LF) && // required end of line
-            tok.atEnd())) { // no trailing garbage
+    if (!(tok.int64(rawPid, 10, false) &&             // PID digits
+          (tok.skipOne(CharacterSet::CR) || true) &&  // optional CR (Windows/etc.)
+          tok.skipOne(CharacterSet::LF) &&            // required end of line
+          tok.atEnd())) {                             // no trailing garbage
         throw TexcHere(ToSBuf("Malformed ", TheFile));
     }
 
@@ -111,8 +111,7 @@ ThrowIfAlreadyRunningWith(File &pidFile)
         const auto pid = GetOtherPid(pidFile);
         description = ToSBuf(TheFile, " with PID ", pid);
         running = ProcessIsRunning(pid);
-    }
-    catch (const std::exception &ex) {
+    } catch (const std::exception &ex) {
         debugs(50, 5, "assuming no other Squid instance: " << ex.what());
         return;
     }
@@ -139,7 +138,7 @@ Instance::ThrowIfAlreadyRunning()
 {
     const auto filename = PidFilename();
     if (filename.isEmpty())
-        return; // the check is impossible
+        return;  // the check is impossible
 
     if (const auto filePtr = File::Optional(filename, File::Be::ReadOnly().locked())) {
         const std::unique_ptr<File> pidFile(filePtr);
@@ -160,11 +159,11 @@ static SBuf ThePidFileToRemove;
 static void
 RemoveInstance()
 {
-    if (ThePidFileToRemove.isEmpty()) // not the PidFilename()!
-        return; // nothing to do
+    if (ThePidFileToRemove.isEmpty())  // not the PidFilename()!
+        return;                        // nothing to do
 
     debugs(50, DBG_IMPORTANT, "Removing " << PidFileDescription(ThePidFileToRemove));
-    const char *filename = ThePidFileToRemove.c_str(); // avoid complex operations inside enter_suid()
+    const char *filename = ThePidFileToRemove.c_str();  // avoid complex operations inside enter_suid()
     enter_suid();
     safeunlink(filename, 0);
     leave_suid();
@@ -183,7 +182,7 @@ Instance::WriteOurPid()
 
     const auto filename = PidFilename();
     if (filename.isEmpty())
-        return; // nothing to do
+        return;  // nothing to do
 
     File pidFile(filename, File::Be::ReadWrite().locked().createdIfMissing().openedByRoot());
 
@@ -197,7 +196,7 @@ Instance::WriteOurPid()
     // - enter_suid() existence and proper logging support during cleanup.
     // Even without PID filename reconfiguration support, we have to remember
     // the file name we have used because Config.pidFilename may change!
-    (void)std::atexit(&RemoveInstance); // failures leave the PID file on disk
+    (void)std::atexit(&RemoveInstance);  // failures leave the PID file on disk
     ThePidFileToRemove = filename;
 
     /* write our PID to the locked file */
@@ -212,4 +211,3 @@ Instance::WriteOurPid()
 
     debugs(50, DBG_IMPORTANT, "Created " << TheFile);
 }
-

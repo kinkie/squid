@@ -18,9 +18,9 @@ struct acl_httpstatus_data {
     int status1, status2;
     acl_httpstatus_data(int);
     acl_httpstatus_data(int, int);
-    SBuf toStr() const; // was toStr
+    SBuf toStr() const;  // was toStr
 
-    static int compare(acl_httpstatus_data* const& a, acl_httpstatus_data* const& b);
+    static int compare(acl_httpstatus_data *const &a, acl_httpstatus_data *const &b);
 };
 
 /// \ingroup ACLAPI
@@ -32,20 +32,19 @@ public:
     ACLHTTPStatus(char const *);
     ACLHTTPStatus(ACLHTTPStatus const &);
     ~ACLHTTPStatus();
-    ACLHTTPStatus&operator=(ACLHTTPStatus const &);
+    ACLHTTPStatus &operator=(ACLHTTPStatus const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
+    virtual bool empty() const;
     virtual bool requiresReply() const { return true; }
 
 protected:
-    Splay<acl_httpstatus_data*> *data;
+    Splay<acl_httpstatus_data *> *data;
     char const *class_;
 };
 
 #endif /* SQUID_ACLHTTPSTATUS_H */
-

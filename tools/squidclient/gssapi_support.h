@@ -50,4 +50,3 @@ char *GSSAPI_token(const char *server);
 
 #endif /* HAVE_GSSAPI */
 #endif /* _SQUID_TOOLS_SQUIDCLIENT_GSSAPI_H */
-

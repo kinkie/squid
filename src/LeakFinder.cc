@@ -64,7 +64,7 @@ void *
 LeakFinder::touch(void *p, const char *file, int line)
 {
     assert(p);
-    LeakFinderPtr *c = (LeakFinderPtr *) hash_lookup(table, p);
+    LeakFinderPtr *c = (LeakFinderPtr *)hash_lookup(table, p);
     assert(c);
     c->file = file;
     c->line = line;
@@ -76,7 +76,7 @@ void *
 LeakFinder::freeSome(void *p, const char *file, int line)
 {
     assert(p);
-    LeakFinderPtr *c = (LeakFinderPtr *) hash_lookup(table, p);
+    LeakFinderPtr *c = (LeakFinderPtr *)hash_lookup(table, p);
     assert(c);
     hash_remove_link(table, c);
     --count;
@@ -90,13 +90,13 @@ LeakFinder::freeSome(void *p, const char *file, int line)
 int
 LeakFinder::cmp(const void *p1, const void *p2)
 {
-    return (char *) p1 - (char *) p2;
+    return (char *)p1 - (char *)p2;
 }
 
 unsigned int
 LeakFinder::hash(const void *p, unsigned int mod)
 {
-    return ((unsigned long) p >> 8) % mod;
+    return ((unsigned long)p >> 8) % mod;
 }
 
 void
@@ -117,10 +117,8 @@ LeakFinder::dump()
     LeakFinderPtr *c;
 
     while ((c = (LeakFinderPtr *)hash_next(table))) {
-        debugs(45, DBG_IMPORTANT, std::setw(20) << c->key << " last used " << std::setw(9) << (squid_curtime - c->when) <<
-               " seconds ago by " << c->file << ":" << c->line);
+        debugs(45, DBG_IMPORTANT, std::setw(20) << c->key << " last used " << std::setw(9) << (squid_curtime - c->when) << " seconds ago by " << c->file << ":" << c->line);
     }
 }
 
 #endif /* USE_LEAKFINDER */
-

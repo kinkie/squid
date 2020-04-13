@@ -15,12 +15,11 @@
 #include <cstring>
 
 StoreInfoStats &
-StoreInfoStats::operator +=(const StoreInfoStats &stats) STUB_RETVAL(*this)
+StoreInfoStats::operator+=(const StoreInfoStats &stats) STUB_RETVAL(*this)
 
-StoreIoStats::StoreIoStats()
+    StoreIoStats::StoreIoStats()
 {
     // we have to implement this one because tests/stub_store.cc
     // has a StoreIoStats global
     memset(this, 0, sizeof(*this));
 }
-

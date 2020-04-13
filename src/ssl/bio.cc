@@ -14,13 +14,13 @@
 /* support.cc says this is needed */
 #if USE_OPENSSL
 
+#include "SquidTime.h"
 #include "comm.h"
 #include "fd.h"
 #include "fde.h"
 #include "globals.h"
 #include "ip/Address.h"
 #include "parser/BinaryTokenizer.h"
-#include "SquidTime.h"
 #include "ssl/bio.h"
 
 #if _SQUID_WINDOWS_
@@ -50,11 +50,11 @@ static BIO_METHOD SquidMethods = {
     squid_bio_write,
     squid_bio_read,
     squid_bio_puts,
-    NULL, // squid_bio_gets not supported
+    NULL,  // squid_bio_gets not supported
     squid_bio_ctrl,
     squid_bio_create,
     squid_bio_destroy,
-    NULL // squid_callback_ctrl not supported
+    NULL  // squid_callback_ctrl not supported
 };
 #endif
 
@@ -87,11 +87,12 @@ Ssl::Bio::Create(const int fd, Security::Io::Type type)
 void
 Ssl::Bio::Link(SSL *ssl, BIO *bio)
 {
-    SSL_set_bio(ssl, bio, bio); // cannot fail
-    SSL_set_info_callback(ssl, &squid_ssl_info); // does not provide diagnostic
+    SSL_set_bio(ssl, bio, bio);                   // cannot fail
+    SSL_set_info_callback(ssl, &squid_ssl_info);  // does not provide diagnostic
 }
 
-Ssl::Bio::Bio(const int anFd): fd_(anFd)
+Ssl::Bio::Bio(const int anFd) :
+    fd_(anFd)
 {
     debugs(83, 7, "Bio constructed, this=" << this << " FD " << fd_);
 }
@@ -101,7 +102,8 @@ Ssl::Bio::~Bio()
     debugs(83, 7, "Bio destructing, this=" << this << " FD " << fd_);
 }
 
-int Ssl::Bio::write(const char *buf, int size, BIO *table)
+int
+Ssl::Bio::write(const char *buf, int size, BIO *table)
 {
     errno = 0;
 #if _SQUID_WINDOWS_
@@ -160,18 +162,17 @@ Ssl::Bio::stateChanged(const SSL *ssl, int where, int ret)
     // else if (where & SSL_CB_HANDSHAKE_DONE)
     //    debugs(83, 9, "SSL connection established");
 
-    debugs(83, 7, "FD " << fd_ << " now: 0x" << std::hex << where << std::dec << ' ' <<
-           SSL_state_string(ssl) << " (" << SSL_state_string_long(ssl) << ")");
+    debugs(83, 7, "FD " << fd_ << " now: 0x" << std::hex << where << std::dec << ' ' << SSL_state_string(ssl) << " (" << SSL_state_string_long(ssl) << ")");
 }
 
-Ssl::ClientBio::ClientBio(const int anFd):
+Ssl::ClientBio::ClientBio(const int anFd) :
     Bio(anFd),
     holdRead_(false),
     holdWrite_(false),
     helloSize(0),
     abortReason(nullptr)
 {
-    renegotiations.configure(10*1000);
+    renegotiations.configure(10 * 1000);
 }
 
 void
@@ -183,14 +184,11 @@ Ssl::ClientBio::stateChanged(const SSL *ssl, int where, int ret)
         const int reneg = renegotiations.count(1);
 
         if (abortReason)
-            return; // already decided and informed the admin
+            return;  // already decided and informed the admin
 
         if (reneg > RenegotiationsLimit) {
             abortReason = "renegotiate requests flood";
-            debugs(83, DBG_IMPORTANT, "Terminating TLS connection [from " << fd_table[fd_].ipaddr << "] due to " << abortReason << ". This connection received " <<
-                   reneg << " renegotiate requests in the last " <<
-                   RenegotiationsWindow << " seconds (and " <<
-                   renegotiations.remembered() << " requests total).");
+            debugs(83, DBG_IMPORTANT, "Terminating TLS connection [from " << fd_table[fd_].ipaddr << "] due to " << abortReason << ". This connection received " << reneg << " renegotiate requests in the last " << RenegotiationsWindow << " seconds (and " << renegotiations.remembered() << " requests total).");
         }
     }
 }
@@ -238,7 +236,7 @@ Ssl::ClientBio::read(char *buf, int size, BIO *table)
     return -1;
 }
 
-Ssl::ServerBio::ServerBio(const int anFd):
+Ssl::ServerBio::ServerBio(const int anFd) :
     Bio(anFd),
     helloMsgSize(0),
     helloBuild(false),
@@ -270,7 +268,7 @@ Ssl::ServerBio::setClientFeatures(Security::TlsDetails::Pointer const &details, 
 int
 Ssl::ServerBio::read(char *buf, int size, BIO *table)
 {
-    if (parsedHandshake) // done parsing TLS Hello
+    if (parsedHandshake)  // done parsing TLS Hello
         return readAndGive(buf, size, table);
     else
         return readAndParse(buf, size, table);
@@ -310,11 +308,10 @@ Ssl::ServerBio::readAndParse(char *buf, const int size, BIO *table)
             BIO_set_retry_read(table);
             return -1;
         }
-        parsedHandshake = true; // done parsing (successfully)
-    }
-    catch (const std::exception &ex) {
+        parsedHandshake = true;  // done parsing (successfully)
+    } catch (const std::exception &ex) {
         debugs(83, 2, "parsing error on FD " << fd_ << ": " << ex.what());
-        parsedHandshake = true; // done parsing (due to an error)
+        parsedHandshake = true;  // done parsing (due to an error)
         parseError = true;
     }
 
@@ -347,7 +344,7 @@ int
 Ssl::ServerBio::giveBuffered(char *buf, const int size)
 {
     if (rbuf.length() <= rbufConsumePos)
-        return -1; // buffered nothing yet
+        return -1;  // buffered nothing yet
 
     const int unsent = rbuf.length() - rbufConsumePos;
     const int bytes = (size <= unsent ? size : unsent);
@@ -400,7 +397,7 @@ adjustSSL(SSL *ssl, Security::TlsDetails::Pointer const &details, SBuf &helloMes
         return false;
     }
 
-    SSL3_BUFFER *wb=&(ssl->s3->wbuf);
+    SSL3_BUFFER *wb = &(ssl->s3->wbuf);
     if (wb->len < (size_t)helloMessage.length()) {
         debugs(83, 5, "Client Hello exceeds OpenSSL buffer: " << helloMessage.length() << " >= " << wb->len);
         return false;
@@ -453,7 +450,7 @@ adjustSSL(SSL *ssl, Security::TlsDetails::Pointer const &details, SBuf &helloMes
     const char *mainHello = helloMessage.rawContent() + 5;
     assert((size_t)ssl->init_buf->max > mainHelloSize);
     memcpy(ssl->init_buf->data, mainHello, mainHelloSize);
-    debugs(83, 5, "Hello Data init and adjustd sizes :" << ssl->init_num << " = "<< mainHelloSize);
+    debugs(83, 5, "Hello Data init and adjustd sizes :" << ssl->init_num << " = " << mainHelloSize);
     ssl->init_num = mainHelloSize;
     ssl->s3->wpend_ret = mainHelloSize;
     ssl->s3->wpend_tot = mainHelloSize;
@@ -478,9 +475,9 @@ Ssl::ServerBio::write(const char *buf, int size, BIO *table)
         // complete ClientHello and nothing else, but cannot fully verify
         // that quickly. We only verify that buf starts with a v3+ record
         // containing ClientHello.
-        Must(size >= 2); // enough for version and content_type checks below
-        Must(buf[1] >= 3); // record's version.major; determines buf[0] meaning
-        Must(buf[0] == 22); // TLSPlaintext.content_type == handshake in v3+
+        Must(size >= 2);     // enough for version and content_type checks below
+        Must(buf[1] >= 3);   // record's version.major; determines buf[0] meaning
+        Must(buf[0] == 22);  // TLSPlaintext.content_type == handshake in v3+
 
         //Hello message is the first message we write to server
         assert(helloMsg.isEmpty());
@@ -494,13 +491,13 @@ Ssl::ServerBio::write(const char *buf, int size, BIO *table)
                 allowSplice = true;
                 // Replace OpenSSL-generated ClientHello with client-sent one.
                 helloMsg.append(clientSentHello);
-                debugs(83, 7,  "FD " << fd_ << ": Using client-sent ClientHello for peek mode");
+                debugs(83, 7, "FD " << fd_ << ": Using client-sent ClientHello for peek mode");
             } else { /*Ssl::bumpStare*/
                 allowBump = true;
                 if (!clientSentHello.isEmpty() && adjustSSL(ssl, clientTlsDetails, clientSentHello)) {
                     allowSplice = true;
                     helloMsg.append(clientSentHello);
-                    debugs(83, 7,  "FD " << fd_ << ": Using client-sent ClientHello for stare mode");
+                    debugs(83, 7, "FD " << fd_ << ": Using client-sent ClientHello for stare mode");
                 }
             }
         }
@@ -520,7 +517,7 @@ Ssl::ServerBio::write(const char *buf, int size, BIO *table)
     }
 
     if (!helloMsg.isEmpty()) {
-        debugs(83, 7,  "buffered write for FD " << fd_);
+        debugs(83, 7, "buffered write for FD " << fd_);
         int ret = Ssl::Bio::write(helloMsg.rawContent(), helloMsg.length(), table);
         helloMsg.consume(ret);
         if (!helloMsg.isEmpty()) {
@@ -559,7 +556,7 @@ static int
 squid_bio_create(BIO *bi)
 {
 #if !HAVE_LIBCRYPTO_BIO_GET_INIT
-    bi->init = 0; // set when we store Bio object and socket fd (BIO_C_SET_FD)
+    bi->init = 0;  // set when we store Bio object and socket fd (BIO_C_SET_FD)
     bi->num = 0;
     bi->flags = 0;
 #else
@@ -574,7 +571,7 @@ squid_bio_create(BIO *bi)
 static int
 squid_bio_destroy(BIO *table)
 {
-    delete static_cast<Ssl::Bio*>(BIO_get_data(table));
+    delete static_cast<Ssl::Bio *>(BIO_get_data(table));
     BIO_set_data(table, NULL);
     return 1;
 }
@@ -583,7 +580,7 @@ squid_bio_destroy(BIO *table)
 static int
 squid_bio_write(BIO *table, const char *buf, int size)
 {
-    Ssl::Bio *bio = static_cast<Ssl::Bio*>(BIO_get_data(table));
+    Ssl::Bio *bio = static_cast<Ssl::Bio *>(BIO_get_data(table));
     assert(bio);
     return bio->write(buf, size, table);
 }
@@ -592,7 +589,7 @@ squid_bio_write(BIO *table, const char *buf, int size)
 static int
 squid_bio_read(BIO *table, char *buf, int size)
 {
-    Ssl::Bio *bio = static_cast<Ssl::Bio*>(BIO_get_data(table));
+    Ssl::Bio *bio = static_cast<Ssl::Bio *>(BIO_get_data(table));
     assert(bio);
     return bio->read(buf, size, table);
 }
@@ -614,7 +611,7 @@ squid_bio_ctrl(BIO *table, int cmd, long arg1, void *arg2)
     switch (cmd) {
     case BIO_C_SET_FD: {
         assert(arg2);
-        const int fd = *static_cast<int*>(arg2);
+        const int fd = *static_cast<int *>(arg2);
         Ssl::Bio *bio;
         if (arg1 == Security::Io::BIO_TO_SERVER)
             bio = new Ssl::ServerBio(fd);
@@ -628,10 +625,10 @@ squid_bio_ctrl(BIO *table, int cmd, long arg1, void *arg2)
 
     case BIO_C_GET_FD:
         if (BIO_get_init(table)) {
-            Ssl::Bio *bio = static_cast<Ssl::Bio*>(BIO_get_data(table));
+            Ssl::Bio *bio = static_cast<Ssl::Bio *>(BIO_get_data(table));
             assert(bio);
             if (arg2)
-                *static_cast<int*>(arg2) = bio->fd();
+                *static_cast<int *>(arg2) = bio->fd();
             return bio->fd();
         }
         return -1;
@@ -643,7 +640,7 @@ squid_bio_ctrl(BIO *table, int cmd, long arg1, void *arg2)
 
     case BIO_CTRL_FLUSH:
         if (BIO_get_init(table)) {
-            Ssl::Bio *bio = static_cast<Ssl::Bio*>(BIO_get_data(table));
+            Ssl::Bio *bio = static_cast<Ssl::Bio *>(BIO_get_data(table));
             assert(bio);
             bio->flush(table);
             return 1;
@@ -662,7 +659,6 @@ squid_bio_ctrl(BIO *table, int cmd, long arg1, void *arg2)
     */
     default:
         return 0;
-
     }
 
     return 0; /* NOTREACHED */
@@ -673,7 +669,7 @@ static void
 squid_ssl_info(const SSL *ssl, int where, int ret)
 {
     if (BIO *table = SSL_get_rbio(ssl)) {
-        if (Ssl::Bio *bio = static_cast<Ssl::Bio*>(BIO_get_data(table)))
+        if (Ssl::Bio *bio = static_cast<Ssl::Bio *>(BIO_get_data(table)))
             bio->stateChanged(ssl, where, ret);
     }
 }
@@ -697,7 +693,7 @@ applyTlsDetailsToSSL(SSL *ssl, Security::TlsDetails::Pointer const &details, Ssl
 
     if (!details->ciphers.empty()) {
         SBuf strCiphers;
-        for (auto cipherId: details->ciphers) {
+        for (auto cipherId : details->ciphers) {
             unsigned char cbytes[3];
             cbytes[0] = (cipherId >> 8) & 0xFF;
             cbytes[1] = cipherId & 0xFF;
@@ -725,14 +721,13 @@ applyTlsDetailsToSSL(SSL *ssl, Security::TlsDetails::Pointer const &details, Ssl
 #if defined(TLSEXT_TYPE_application_layer_protocol_negotiation)
     if (!details->tlsAppLayerProtoNeg.isEmpty()) {
         if (bumpMode == Ssl::bumpPeek)
-            SSL_set_alpn_protos(ssl, (const unsigned char*)details->tlsAppLayerProtoNeg.rawContent(), details->tlsAppLayerProtoNeg.length());
+            SSL_set_alpn_protos(ssl, (const unsigned char *)details->tlsAppLayerProtoNeg.rawContent(), details->tlsAppLayerProtoNeg.length());
         else {
-            static const unsigned char supported_protos[] = {8, 'h','t','t', 'p', '/', '1', '.', '1'};
+            static const unsigned char supported_protos[] = {8, 'h', 't', 't', 'p', '/', '1', '.', '1'};
             SSL_set_alpn_protos(ssl, supported_protos, sizeof(supported_protos));
         }
     }
 #endif
 }
 
-#endif // USE_OPENSSL
-
+#endif  // USE_OPENSSL

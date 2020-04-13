@@ -15,8 +15,7 @@
 class BodyPipe;
 typedef RefCount<BodyPipe> BodyPipePointer;
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 // Manages the header and the body of an HTTP message being worked on.
 // Adaptation transactions use this class for virgin and adapted HTTP messages.
@@ -39,20 +38,19 @@ public:
 
 public:
     // virgin or adapted message being worked on
-    Header *header;   // parsed HTTP status/request line and headers
+    Header *header;  // parsed HTTP status/request line and headers
 
     /// Copy of header->body_pipe, in case somebody moves the original.
     /// \todo Find and fix the code that moves (if any) and remove this.
     BodyPipePointer body_pipe;
 
 private:
-    Message(const Message &); // not implemented
-    Message &operator =(const Message &); // not implemented
+    Message(const Message &);             // not implemented
+    Message &operator=(const Message &);  // not implemented
 };
 
-} // namespace Adaptation;
+}  // namespace Adaptation;
 
 // TODO: replace ICAPInOut with Adaptation::Message (adding one for "cause")
 
 #endif /* SQUID__ADAPTATION__MESSAGE_H */
-

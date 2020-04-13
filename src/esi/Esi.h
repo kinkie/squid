@@ -21,16 +21,18 @@ extern CSR esiStreamRead;
 extern CSCB esiProcessStream;
 extern CSD esiStreamDetach;
 extern CSS esiStreamStatus;
-int esiEnableProcessing (HttpReply *);
+int esiEnableProcessing(HttpReply *);
 
-namespace Esi
-{
+namespace Esi {
 
 typedef SBuf ErrorDetail;
 /// prepare an Esi::ErrorDetail for throw on ESI parser internal errors
-inline Esi::ErrorDetail Error(const char *msg) { return ErrorDetail(msg); }
+inline Esi::ErrorDetail
+Error(const char *msg)
+{
+    return ErrorDetail(msg);
+}
 
-} // namespace Esi
+}  // namespace Esi
 
 #endif /* SQUID_ESI_H */
-

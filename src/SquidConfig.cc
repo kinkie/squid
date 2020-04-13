@@ -12,4 +12,3 @@
 class SquidConfig Config;
 
 class SquidConfig2 Config2;
-

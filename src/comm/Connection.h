@@ -19,37 +19,35 @@
 #include "eui/Eui48.h"
 #include "eui/Eui64.h"
 #endif
+#include "SquidTime.h"
 #include "hier_code.h"
 #include "ip/Address.h"
 #include "ip/forward.h"
 #include "mem/forward.h"
-#include "SquidTime.h"
 
 #include <iosfwd>
 #include <ostream>
 
 class CachePeer;
 
-namespace Security
-{
+namespace Security {
 class NegotiationHistory;
 };
 
-namespace Comm
-{
+namespace Comm {
 
 /* TODO: make these a struct of boolean flags members in the connection instead of a bitmap.
  * we can't do that until all non-comm code uses Commm::Connection objects to create FD
  * currently there is code still using comm_open() and comm_openex() synchronously!!
  */
-#define COMM_UNSET              0x00
-#define COMM_NONBLOCKING        0x01  // default flag.
-#define COMM_NOCLOEXEC          0x02
-#define COMM_REUSEADDR          0x04  // shared FD may be both accept()ing and read()ing
-#define COMM_DOBIND             0x08  // requires a bind()
-#define COMM_TRANSPARENT        0x10  // arrived via TPROXY
-#define COMM_INTERCEPTION       0x20  // arrived via NAT
-#define COMM_REUSEPORT          0x40 //< needs SO_REUSEPORT
+#define COMM_UNSET 0x00
+#define COMM_NONBLOCKING 0x01  // default flag.
+#define COMM_NOCLOEXEC 0x02
+#define COMM_REUSEADDR 0x04     // shared FD may be both accept()ing and read()ing
+#define COMM_DOBIND 0x08        // requires a bind()
+#define COMM_TRANSPARENT 0x10   // arrived via TPROXY
+#define COMM_INTERCEPTION 0x20  // arrived via NAT
+#define COMM_REUSEPORT 0x40     //< needs SO_REUSEPORT
 
 /**
  * Store data about the physical and logical attributes of a connection.
@@ -65,7 +63,7 @@ namespace Comm
  * These objects should not be passed around directly,
  * but a Comm::ConnectionPointer should be passed instead.
  */
-class Connection: public CodeContext
+class Connection : public CodeContext
 {
     MEMPROXY_CLASS(Comm::Connection);
 
@@ -92,24 +90,28 @@ public:
     /** Alter the stored IP address pair.
      * WARNING: Does not ensure matching IPv4/IPv6 are supplied.
      */
-    void setAddrs(const Ip::Address &aLocal, const Ip::Address &aRemote) {local = aLocal; remote = aRemote;}
+    void setAddrs(const Ip::Address &aLocal, const Ip::Address &aRemote)
+    {
+        local = aLocal;
+        remote = aRemote;
+    }
 
     /** retrieve the CachePeer pointer for use.
      * The caller is responsible for all CBDATA operations regarding the
      * used of the pointer returned.
      */
-    CachePeer * getPeer() const;
+    CachePeer *getPeer() const;
 
     /** alter the stored CachePeer pointer.
      * Perform appropriate CBDATA operations for locking the CachePeer pointer
      */
-    void setPeer(CachePeer * p);
+    void setPeer(CachePeer *p);
 
     /** The time the connection started */
-    time_t startTime() const {return startTime_;}
+    time_t startTime() const { return startTime_; }
 
     /** The connection lifetime */
-    time_t lifeTime() const {return squid_curtime - startTime_;}
+    time_t lifeTime() const { return squid_curtime - startTime_; }
 
     /** The time left for this connection*/
     time_t timeLeft(const time_t idleTimeout) const;
@@ -121,10 +123,10 @@ public:
     /// \param fwdStart The start time of the peer selection/connection process.
     time_t connectTimeout(const time_t fwdStart) const;
 
-    void noteStart() {startTime_ = squid_curtime;}
+    void noteStart() { startTime_ = squid_curtime; }
 
     Security::NegotiationHistory *tlsNegotiations();
-    const Security::NegotiationHistory *hasTlsNegotiations() const {return tlsHistory;}
+    const Security::NegotiationHistory *hasTlsNegotiations() const { return tlsHistory; }
 
     /* CodeContext API */
     virtual ScopedId codeContextGist() const override;
@@ -135,7 +137,7 @@ private:
     Connection(const Connection &c);
 
     /** These objects may not be exactly duplicated. Use copyDetails() instead. */
-    Connection & operator =(const Connection &c);
+    Connection &operator=(const Connection &c);
 
 public:
     /** Address/Port for the Squid end of a TCP link. */
@@ -189,12 +191,12 @@ private:
     Security::NegotiationHistory *tlsHistory;
 };
 
-}; // namespace Comm
+};  // namespace Comm
 
-std::ostream &operator << (std::ostream &os, const Comm::Connection &conn);
+std::ostream &operator<<(std::ostream &os, const Comm::Connection &conn);
 
 inline std::ostream &
-operator << (std::ostream &os, const Comm::ConnectionPointer &conn)
+operator<<(std::ostream &os, const Comm::ConnectionPointer &conn)
 {
     if (conn != NULL)
         os << *conn;
@@ -202,4 +204,3 @@ operator << (std::ostream &os, const Comm::ConnectionPointer &conn)
 }
 
 #endif
-

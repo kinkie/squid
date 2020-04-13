@@ -9,20 +9,22 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/HttpStatus.h"
 #include "Debug.h"
 #include "HttpReply.h"
+#include "acl/FilledChecklist.h"
 
 #include <climits>
 
 static void aclParseHTTPStatusList(Splay<acl_httpstatus_data *> **curlist);
-static int aclHTTPStatusCompare(acl_httpstatus_data * const &a, acl_httpstatus_data * const &b);
-static int aclMatchHTTPStatus(Splay<acl_httpstatus_data*> **dataptr, Http::StatusCode status);
+static int aclHTTPStatusCompare(acl_httpstatus_data *const &a, acl_httpstatus_data *const &b);
+static int aclMatchHTTPStatus(Splay<acl_httpstatus_data *> **dataptr, Http::StatusCode status);
 
-acl_httpstatus_data::acl_httpstatus_data(int x) : status1(x), status2(x) { ; }
+acl_httpstatus_data::acl_httpstatus_data(int x) :
+    status1(x), status2(x) { ; }
 
-acl_httpstatus_data::acl_httpstatus_data(int x, int y) : status1(x), status2(y) { ; }
+acl_httpstatus_data::acl_httpstatus_data(int x, int y) :
+    status1(x), status2(y) { ; }
 
 SBuf
 acl_httpstatus_data::toStr() const
@@ -37,7 +39,8 @@ acl_httpstatus_data::toStr() const
     return rv;
 }
 
-int acl_httpstatus_data::compare(acl_httpstatus_data* const& a, acl_httpstatus_data* const& b)
+int
+acl_httpstatus_data::compare(acl_httpstatus_data *const &a, acl_httpstatus_data *const &b)
 {
     int ret;
     ret = aclHTTPStatusCompare(b, a);
@@ -62,10 +65,13 @@ ACLHTTPStatus::clone() const
     return new ACLHTTPStatus(*this);
 }
 
-ACLHTTPStatus::ACLHTTPStatus (char const *theClass) : data(NULL), class_ (theClass)
-{}
+ACLHTTPStatus::ACLHTTPStatus(char const *theClass) :
+    data(NULL), class_(theClass)
+{
+}
 
-ACLHTTPStatus::ACLHTTPStatus (ACLHTTPStatus const & old) : data(NULL), class_ (old.class_)
+ACLHTTPStatus::ACLHTTPStatus(ACLHTTPStatus const &old) :
+    data(NULL), class_(old.class_)
 {
     /* we don't have copy constructors for the data yet */
     assert(!old.data);
@@ -86,12 +92,12 @@ ACLHTTPStatus::typeString() const
 }
 
 bool
-ACLHTTPStatus::empty () const
+ACLHTTPStatus::empty() const
 {
     return data->empty();
 }
 
-acl_httpstatus_data*
+acl_httpstatus_data *
 aclParseHTTPStatusData(const char *t)
 {
     int status;
@@ -111,9 +117,9 @@ void
 ACLHTTPStatus::parse()
 {
     if (!data)
-        data = new Splay<acl_httpstatus_data*>();
+        data = new Splay<acl_httpstatus_data *>();
 
-    aclParseHTTPStatusList (&data);
+    aclParseHTTPStatusList(&data);
 }
 
 void
@@ -132,17 +138,17 @@ ACLHTTPStatus::match(ACLChecklist *checklist)
 }
 
 int
-aclMatchHTTPStatus(Splay<acl_httpstatus_data*> **dataptr, const Http::StatusCode status)
+aclMatchHTTPStatus(Splay<acl_httpstatus_data *> **dataptr, const Http::StatusCode status)
 {
     acl_httpstatus_data X(status);
-    const acl_httpstatus_data * const * result = (*dataptr)->find(&X, aclHTTPStatusCompare);
+    const acl_httpstatus_data *const *result = (*dataptr)->find(&X, aclHTTPStatusCompare);
 
     debugs(28, 3, "aclMatchHTTPStatus: '" << status << "' " << (result ? "found" : "NOT found"));
     return (result != NULL);
 }
 
 static int
-aclHTTPStatusCompare(acl_httpstatus_data * const &a, acl_httpstatus_data * const &b)
+aclHTTPStatusCompare(acl_httpstatus_data *const &a, acl_httpstatus_data *const &b)
 {
     if (a->status1 < b->status1)
         return 1;
@@ -155,7 +161,8 @@ aclHTTPStatusCompare(acl_httpstatus_data * const &a, acl_httpstatus_data * const
 
 struct HttpStatusAclDumpVisitor {
     SBufList contents;
-    void operator() (const acl_httpstatus_data * node) {
+    void operator()(const acl_httpstatus_data *node)
+    {
         contents.push_back(node->toStr());
     }
 };
@@ -167,4 +174,3 @@ ACLHTTPStatus::dump() const
     data->visit(visitor);
     return visitor.contents;
 }
-

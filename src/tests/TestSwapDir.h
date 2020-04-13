@@ -15,7 +15,8 @@ class TestSwapDir : public SwapDir
 {
 
 public:
-    TestSwapDir() : SwapDir("test"), statsCalled (false) {}
+    TestSwapDir() :
+        SwapDir("test"), statsCalled(false) {}
 
     bool statsCalled;
 
@@ -32,7 +33,7 @@ public:
     virtual bool canStore(const StoreEntry &e, int64_t diskSpaceNeeded, int &load) const override;
     virtual StoreIOState::Pointer createStoreIO(StoreEntry &, StoreIOState::STFNCB *, StoreIOState::STIOCB *, void *) override;
     virtual StoreIOState::Pointer openStoreIO(StoreEntry &, StoreIOState::STFNCB *, StoreIOState::STIOCB *, void *) override;
-    virtual void parse(int, char*) override;
+    virtual void parse(int, char *) override;
     virtual void evictCached(StoreEntry &) override {}
     virtual void evictIfFound(const cache_key *) override {}
     virtual bool hasReadableEntry(const StoreEntry &) const override { return false; }
@@ -41,5 +42,4 @@ public:
 
 typedef RefCount<TestSwapDir> TestSwapDirPointer;
 
-#endif  /* TEST_TESTSWAPDIR */
-
+#endif /* TEST_TESTSWAPDIR */

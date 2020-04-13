@@ -12,12 +12,11 @@
 #include "acl/BoolOps.h"
 #include "sbuf/List.h"
 
-namespace Acl
-{
+namespace Acl {
 
 /// An ORed set of rules at the top of the ACL expression tree, providing two
 /// unique properties: cbdata protection and optional rule actions.
-class Tree: public OrNode
+class Tree : public OrNode
 {
     // XXX: We should use refcounting instead, but it requires making ACLs
     // refcounted as well. Otherwise, async lookups will reach deleted ACLs.
@@ -37,7 +36,7 @@ public:
 
     /// appends and takes control over the rule with a given action
     void add(ACL *rule, const Answer &action);
-    void add(ACL *rule); ///< same as InnerNode::add()
+    void add(ACL *rule);  ///< same as InnerNode::add()
 
 protected:
     /// Acl::OrNode API
@@ -79,7 +78,6 @@ Tree::treeDump(const char *prefix, ActionToStringConverter converter) const
     return text;
 }
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACL_TREE_H */
-

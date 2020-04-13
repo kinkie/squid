@@ -31,14 +31,15 @@ static const LookupTable<http_hdr_sc_type>::Record ScAttrs[] {
     {"no-store-remote", SC_NO_STORE_REMOTE},
     {"max-age", SC_MAX_AGE},
     {"content", SC_CONTENT},
-    {"Other,", SC_OTHER}, /* ',' will protect from matches */
+    {"Other,", SC_OTHER},  /* ',' will protect from matches */
     {nullptr, SC_ENUM_END} /* SC_ENUM_END taken as invalid value */
 };
 LookupTable<http_hdr_sc_type> scLookupTable(SC_ENUM_END, ScAttrs);
 std::vector<HttpHeaderFieldStat> scHeaderStats(SC_ENUM_END);
 
 // used when iterating over flags
-http_hdr_sc_type &operator++ (http_hdr_sc_type &aHeader)
+http_hdr_sc_type &
+operator++(http_hdr_sc_type &aHeader)
 {
     int tmp = static_cast<int>(aHeader);
     aHeader = static_cast<http_hdr_sc_type>(++tmp);
@@ -57,7 +58,7 @@ httpHdrScInitModule(void)
 
 /* creates an sc object from a 0-terminating string */
 HttpHdrSc *
-httpHdrScParseCreate(const String & str)
+httpHdrScParseCreate(const String &str)
 {
     HttpHdrSc *sc = new HttpHdrSc();
 
@@ -71,14 +72,14 @@ httpHdrScParseCreate(const String & str)
 
 /* parses a 0-terminating string and inits sc */
 bool
-HttpHdrSc::parse(const String * str)
+HttpHdrSc::parse(const String *str)
 {
-    HttpHdrSc * sc=this;
+    HttpHdrSc *sc = this;
     const char *item;
-    const char *p;      /* '=' parameter */
+    const char *p; /* '=' parameter */
     const char *pos = NULL;
     const char *target = NULL; /* ;foo */
-    const char *temp = NULL; /* temp buffer */
+    const char *temp = NULL;   /* temp buffer */
     http_hdr_sc_type type;
     int ilen, vlen;
     int initiallen;
@@ -105,7 +106,7 @@ HttpHdrSc::parse(const String * str)
         }
 
         /* find type */
-        type = scLookupTable.lookup(SBuf(item,ilen));
+        type = scLookupTable.lookup(SBuf(item, ilen));
 
         if (type == SC_ENUM_END) {
             debugs(90, 2, "hdr sc: unknown control-directive: near '" << item << "' in '" << str << "'");
@@ -114,9 +115,9 @@ HttpHdrSc::parse(const String * str)
 
         /* Is this a targeted directive? */
         /* TODO: remove the temporary usage and use memrchr and the information we have instead */
-        temp = xstrndup (item, initiallen + 1);
+        temp = xstrndup(item, initiallen + 1);
 
-        if (!((target = strrchr (temp, ';')) && !strchr (target, '"') && *(target + 1) != '\0'))
+        if (!((target = strrchr(temp, ';')) && !strchr(target, '"') && *(target + 1) != '\0'))
             target = NULL;
         else
             ++target;
@@ -128,13 +129,13 @@ HttpHdrSc::parse(const String * str)
             addTarget(sct);
         }
 
-        safe_free (temp);
+        safe_free(temp);
 
         if (sct->isSet(type)) {
             if (type != SC_OTHER)
                 debugs(90, 2, "hdr sc: ignoring duplicate control-directive: near '" << item << "' in '" << str << "'");
 
-            ++ scHeaderStats[type].repCount;
+            ++scHeaderStats[type].repCount;
 
             continue;
         }
@@ -154,9 +155,9 @@ HttpHdrSc::parse(const String * str)
             if (p && httpHeaderParseInt(p, &ma)) {
                 sct->maxAge(ma);
 
-                if ((p = strchr (p, '+'))) {
+                if ((p = strchr(p, '+'))) {
                     int ms;
-                    ++p; //skip the + char
+                    ++p;  //skip the + char
                     if (httpHeaderParseInt(p, &ms)) {
                         sct->maxStale(ms);
                     } else {
@@ -175,8 +176,8 @@ HttpHdrSc::parse(const String * str)
 
         case SC_CONTENT:
 
-            if ( p && httpHeaderParseQuotedString(p, vlen, &sct->content_)) {
-                sct->setMask(SC_CONTENT,true); // ugly but saves a copy
+            if (p && httpHeaderParseQuotedString(p, vlen, &sct->content_)) {
+                sct->setMask(SC_CONTENT, true);  // ugly but saves a copy
             } else {
                 debugs(90, 2, "sc: invalid content= quoted string near '" << item << "'");
                 sct->clearContent();
@@ -200,7 +201,7 @@ HttpHdrSc::~HttpHdrSc()
         while (sct) {
             HttpHdrScTarget *t = static_cast<HttpHdrScTarget *>(sct->data);
             sct = sct->next;
-            dlinkDelete (&t->node, &targets);
+            dlinkDelete(&t->node, &targets);
             delete t;
         }
     }
@@ -218,11 +219,11 @@ HttpHdrSc::HttpHdrSc(const HttpHdrSc &sc)
 }
 
 void
-HttpHdrScTarget::packInto(Packable * p) const
+HttpHdrScTarget::packInto(Packable *p) const
 {
     http_hdr_sc_type flag;
     int pcount = 0;
-    assert (p);
+    assert(p);
 
     for (flag = SC_NO_STORE; flag < SC_ENUM_END; ++flag) {
         if (isSet(flag) && flag != SC_OTHER) {
@@ -233,7 +234,7 @@ HttpHdrScTarget::packInto(Packable * p) const
             /* handle options with values */
 
             if (flag == SC_MAX_AGE)
-                p->appendf("=%d", (int) max_age);
+                p->appendf("=%d", (int)max_age);
 
             if (flag == SC_CONTENT)
                 p->appendf("=\"" SQUIDSTRINGPH "\"", SQUIDSTRINGPRINT(content_));
@@ -247,7 +248,7 @@ HttpHdrScTarget::packInto(Packable * p) const
 }
 
 void
-HttpHdrSc::packInto(Packable * p) const
+HttpHdrSc::packInto(Packable *p) const
 {
     dlink_node *node;
     assert(p);
@@ -267,14 +268,14 @@ HttpHdrSc::setMaxAge(char const *target, int max_age)
 
     if (!sct) {
         sct = new HttpHdrScTarget(target);
-        dlinkAddTail (sct, &sct->node, &targets);
+        dlinkAddTail(sct, &sct->node, &targets);
     }
 
     sct->maxAge(max_age);
 }
 
 void
-HttpHdrSc::updateStats(StatHist * hist) const
+HttpHdrSc::updateStats(StatHist *hist) const
 {
     dlink_node *sct = targets.head;
 
@@ -285,10 +286,10 @@ HttpHdrSc::updateStats(StatHist * hist) const
 }
 
 void
-httpHdrScTargetStatDumper(StoreEntry * sentry, int, double val, double, int count)
+httpHdrScTargetStatDumper(StoreEntry *sentry, int, double val, double, int count)
 {
-    extern const HttpHeaderStat *dump_stat;     /* argh! */
-    const int id = (int) val;
+    extern const HttpHeaderStat *dump_stat; /* argh! */
+    const int id = (int)val;
     const bool valid_id = id >= 0 && id < SC_ENUM_END;
     const char *name = valid_id ? ScAttrs[id].name : "INVALID";
 
@@ -298,10 +299,10 @@ httpHdrScTargetStatDumper(StoreEntry * sentry, int, double val, double, int coun
 }
 
 void
-httpHdrScStatDumper(StoreEntry * sentry, int, double val, double, int count)
+httpHdrScStatDumper(StoreEntry *sentry, int, double val, double, int count)
 {
     extern const HttpHeaderStat *dump_stat; /* argh! */
-    const int id = (int) val;
+    const int id = (int)val;
     const bool valid_id = id >= 0 && id < SC_ENUM_END;
     const char *name = valid_id ? ScAttrs[id].name : "INVALID";
 
@@ -352,12 +353,13 @@ HttpHdrSc::getMergedTarget(const char *ourtarget)
 }
 
 void
-HttpHdrSc::addTarget(HttpHdrScTarget *t) {
+HttpHdrSc::addTarget(HttpHdrScTarget *t)
+{
     dlinkAdd(t, &t->node, &targets);
 }
 
 void
-HttpHdrSc::addTargetAtTail(HttpHdrScTarget *t) {
-    dlinkAddTail (t, &t->node, &targets);
+HttpHdrSc::addTargetAtTail(HttpHdrScTarget *t)
+{
+    dlinkAddTail(t, &t->node, &targets);
 }
-

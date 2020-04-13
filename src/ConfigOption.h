@@ -22,7 +22,7 @@ public:
     virtual ~ConfigOption() {}
 
     virtual bool parse(char const *option, const char *value, int reconfiguring) = 0;
-    virtual void dump(StoreEntry * e) const = 0;
+    virtual void dump(StoreEntry *e) const = 0;
 };
 
 class ConfigOptionVector : public ConfigOption
@@ -31,8 +31,8 @@ class ConfigOptionVector : public ConfigOption
 public:
     virtual ~ConfigOptionVector();
     virtual bool parse(char const *option, const char *value, int reconfiguring);
-    virtual void dump(StoreEntry * e) const;
-    std::vector<ConfigOption *>options;
+    virtual void dump(StoreEntry *e) const;
+    std::vector<ConfigOption *> options;
 };
 
 template <class C>
@@ -40,25 +40,27 @@ class ConfigOptionAdapter : public ConfigOption
 {
 
 public:
-    ConfigOptionAdapter(C& theObject, bool (C::*parseFP)(char const *option, const char *value, int reconfiguring), void (C::*dumpFP)(StoreEntry * e) const) : object(theObject), parser(parseFP), dumper(dumpFP) {}
+    ConfigOptionAdapter(C &theObject, bool (C::*parseFP)(char const *option, const char *value, int reconfiguring), void (C::*dumpFP)(StoreEntry *e) const) :
+        object(theObject), parser(parseFP), dumper(dumpFP) {}
 
-    bool parse(char const *option, const char *value, int isaReconf) {
+    bool parse(char const *option, const char *value, int isaReconf)
+    {
         if (parser)
             return (object.*parser)(option, value, isaReconf);
 
         return false;
     }
 
-    void dump(StoreEntry * e) const {
+    void dump(StoreEntry *e) const
+    {
         if (dumper)
             (object.*dumper)(e);
     }
 
 private:
     C &object;
-    bool (C::*parser)(char const *option, const char *value, int reconfiguring) ;
-    void (C::*dumper)(StoreEntry * e) const;
+    bool (C::*parser)(char const *option, const char *value, int reconfiguring);
+    void (C::*dumper)(StoreEntry *e) const;
 };
 
 #endif /* SQUID_CONFIGOPTION_H */
-

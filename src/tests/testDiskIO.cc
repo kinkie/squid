@@ -7,19 +7,19 @@
  */
 
 #include "squid.h"
+#include "testDiskIO.h"
 #include "DiskIO/DiskIOModule.h"
 #include "HttpHeader.h"
 #include "HttpReply.h"
 #include "MemObject.h"
 #include "Store.h"
 #include "StoreFileSystem.h"
-#include "testDiskIO.h"
 #include "testStoreSupport.h"
 #include "unitTestMain.h"
 
 #include <stdexcept>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testDiskIO );
+CPPUNIT_TEST_SUITE_REGISTRATION(testDiskIO);
 
 void
 testDiskIO::setUp()
@@ -31,7 +31,7 @@ testDiskIO::setUp()
 void
 testDiskIO::testFindDefault()
 {
-    DiskIOModule * module = DiskIOModule::FindDefault();
+    DiskIOModule *module = DiskIOModule::FindDefault();
 #if USE_DISKIO
     /* enabled. we expect at least ONE */
     CPPUNIT_ASSERT(module != NULL);
@@ -40,4 +40,3 @@ testDiskIO::testFindDefault()
     CPPUNIT_ASSERT(module == NULL);
 #endif
 }
-

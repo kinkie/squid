@@ -9,12 +9,11 @@
 #ifndef __COMM_H__
 #define __COMM_H__
 
-#include "comm/IoCallback.h"
 #include "CommCalls.h"
 #include "StoreIOBuffer.h"
+#include "comm/IoCallback.h"
 
-namespace Ip
-{
+namespace Ip {
 class Address;
 }
 
@@ -37,7 +36,7 @@ void comm_init(void);
 void comm_exit(void);
 
 int comm_open(int, int, Ip::Address &, int, const char *note);
-int comm_open_uds(int sock_type, int proto, struct sockaddr_un* addr, int flags);
+int comm_open_uds(int sock_type, int proto, struct sockaddr_un *addr, int flags);
 /// update Comm state after getting a comm_open() FD from another process
 void comm_import_opened(const Comm::ConnectionPointer &, const char *note, struct addrinfo *AI);
 
@@ -97,8 +96,16 @@ bool comm_has_incomplete_write(int);
 void commStartHalfClosedMonitor(int fd);
 bool commHasHalfClosedMonitor(int fd);
 // XXX: remove these wrappers which minimize client_side.cc changes in a commit
-inline void commMarkHalfClosed(int fd) { commStartHalfClosedMonitor(fd); }
-inline bool commIsHalfClosed(int fd) { return commHasHalfClosedMonitor(fd); }
+inline void
+commMarkHalfClosed(int fd)
+{
+    commStartHalfClosedMonitor(fd);
+}
+inline bool
+commIsHalfClosed(int fd)
+{
+    return commHasHalfClosedMonitor(fd);
+}
 
 /* A comm engine that calls comm_select */
 
@@ -110,4 +117,3 @@ public:
 };
 
 #endif
-

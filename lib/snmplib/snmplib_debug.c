@@ -15,10 +15,10 @@
 
 #include "snmp_debug.h"
 
-void (*snmplib_debug_hook) (int, char *,...) = NULL;
+void (*snmplib_debug_hook)(int, char *, ...) = NULL;
 
 extern void
-snmplib_debug(int lvl, const char *fmt,...)
+snmplib_debug(int lvl, const char *fmt, ...)
 {
     char buf[BUFSIZ];
     va_list args;
@@ -32,4 +32,3 @@ snmplib_debug(int lvl, const char *fmt,...)
     }
     va_end(args);
 }
-

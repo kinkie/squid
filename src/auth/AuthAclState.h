@@ -20,4 +20,3 @@ typedef enum {
 
 #endif /* USE_AUTH */
 #endif /* _SQUID__SRC_AUTH_AUTHACLSTATE_H */
-

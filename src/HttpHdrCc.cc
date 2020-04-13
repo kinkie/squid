@@ -9,21 +9,21 @@
 /* DEBUG: section 65    HTTP Cache Control Header */
 
 #include "squid.h"
-#include "base/LookupTable.h"
 #include "HttpHdrCc.h"
 #include "HttpHeader.h"
 #include "HttpHeaderFieldStat.h"
 #include "HttpHeaderStat.h"
 #include "HttpHeaderTools.h"
-#include "sbuf/SBuf.h"
 #include "StatHist.h"
 #include "Store.h"
 #include "StrList.h"
+#include "base/LookupTable.h"
+#include "sbuf/SBuf.h"
 #include "util.h"
 
 #include <map>
-#include <vector>
 #include <ostream>
+#include <vector>
 
 // invariant: row[j].id == j
 static LookupTable<HttpHdrCcType>::Record CcAttrs[] = {
@@ -42,13 +42,13 @@ static LookupTable<HttpHdrCcType>::Record CcAttrs[] = {
     {"stale-if-error", HttpHdrCcType::CC_STALE_IF_ERROR},
     {"immutable", HttpHdrCcType::CC_IMMUTABLE},
     {"Other,", HttpHdrCcType::CC_OTHER}, /* ',' will protect from matches */
-    {nullptr, HttpHdrCcType::CC_ENUM_END}
-};
-LookupTable<HttpHdrCcType> ccLookupTable(HttpHdrCcType::CC_OTHER,CcAttrs);
+    {nullptr, HttpHdrCcType::CC_ENUM_END}};
+LookupTable<HttpHdrCcType> ccLookupTable(HttpHdrCcType::CC_OTHER, CcAttrs);
 std::vector<HttpHeaderFieldStat> ccHeaderStats(HttpHdrCcType::CC_ENUM_END);
 
 /// used to walk a table of http_header_cc_type structs
-HttpHdrCcType &operator++ (HttpHdrCcType &aHeader)
+HttpHdrCcType &
+operator++(HttpHdrCcType &aHeader)
 {
     int tmp = (int)aHeader;
     aHeader = (HttpHdrCcType)(++tmp);
@@ -61,14 +61,14 @@ httpHdrCcInitModule(void)
 {
     // check invariant on initialization table
     for (unsigned int j = 0; CcAttrs[j].name != nullptr; ++j) {
-        assert (static_cast<int>(CcAttrs[j].id) == j);
+        assert(static_cast<int>(CcAttrs[j].id) == j);
     }
 }
 
 void
 HttpHdrCc::clear()
 {
-    *this=HttpHdrCc();
+    *this = HttpHdrCc();
 }
 
 /// set a data member to a new value, and set the corresponding mask-bit.
@@ -78,23 +78,22 @@ HttpHdrCc::setValue(int32_t &value, int32_t new_value, HttpHdrCcType hdr, bool s
 {
     if (setting) {
         if (new_value < 0) {
-            debugs(65, 3, "rejecting negative-value Cache-Control directive " << hdr
-                   << " value " << new_value);
+            debugs(65, 3, "rejecting negative-value Cache-Control directive " << hdr << " value " << new_value);
             return;
         }
     } else {
-        new_value = -1; //rely on the convention that "unknown" is -1
+        new_value = -1;  //rely on the convention that "unknown" is -1
     }
 
     value = new_value;
-    setMask(hdr,setting);
+    setMask(hdr, setting);
 }
 
 bool
-HttpHdrCc::parse(const String & str)
+HttpHdrCc::parse(const String &str)
 {
     const char *item;
-    const char *p;      /* '=' parameter */
+    const char *p; /* '=' parameter */
     const char *pos = NULL;
     int ilen;
     int nlen;
@@ -112,13 +111,13 @@ HttpHdrCc::parse(const String & str)
         }
 
         /* find type */
-        const HttpHdrCcType type = ccLookupTable.lookup(SBuf(item,nlen));
+        const HttpHdrCcType type = ccLookupTable.lookup(SBuf(item, nlen));
 
         // ignore known duplicate directives
         if (isSet(type)) {
             if (type != HttpHdrCcType::CC_OTHER) {
                 debugs(65, 2, "hdr cc: ignoring duplicate cache-directive: near '" << item << "' in '" << str << "'");
-                ++ ccHeaderStats[type].repCount;
+                ++ccHeaderStats[type].repCount;
                 continue;
             }
         }
@@ -131,7 +130,7 @@ HttpHdrCc::parse(const String & str)
                 debugs(65, 2, "cc: invalid max-age specs near '" << item << "'");
                 clearMaxAge();
             } else {
-                setMask(type,true);
+                setMask(type, true);
             }
             break;
 
@@ -140,7 +139,7 @@ HttpHdrCc::parse(const String & str)
                 debugs(65, 2, "cc: invalid s-maxage specs near '" << item << "'");
                 clearSMaxAge();
             } else {
-                setMask(type,true);
+                setMask(type, true);
             }
             break;
 
@@ -149,7 +148,7 @@ HttpHdrCc::parse(const String & str)
                 debugs(65, 2, "cc: max-stale directive is valid without value");
                 maxStale(MAX_STALE_ANY);
             } else {
-                setMask(type,true);
+                setMask(type, true);
             }
             break;
 
@@ -158,7 +157,7 @@ HttpHdrCc::parse(const String & str)
                 debugs(65, 2, "cc: invalid min-fresh specs near '" << item << "'");
                 clearMinFresh();
             } else {
-                setMask(type,true);
+                setMask(type, true);
             }
             break;
 
@@ -167,42 +166,40 @@ HttpHdrCc::parse(const String & str)
                 debugs(65, 2, "cc: invalid stale-if-error specs near '" << item << "'");
                 clearStaleIfError();
             } else {
-                setMask(type,true);
+                setMask(type, true);
             }
             break;
 
         case HttpHdrCcType::CC_PRIVATE: {
             String temp;
-            if (!p)  {
+            if (!p) {
                 // Value parameter is optional.
                 private_.clean();
-            }            else if (/* p &&*/ httpHeaderParseQuotedString(p, (ilen-nlen-1), &temp)) {
+            } else if (/* p &&*/ httpHeaderParseQuotedString(p, (ilen - nlen - 1), &temp)) {
                 private_.append(temp);
-            }            else {
+            } else {
                 debugs(65, 2, "cc: invalid private= specs near '" << item << "'");
             }
             // to be safe we ignore broken parameters, but always remember the 'private' part.
-            setMask(type,true);
-        }
-        break;
+            setMask(type, true);
+        } break;
 
         case HttpHdrCcType::CC_NO_CACHE: {
             String temp;
             if (!p) {
                 // On Requests, missing value parameter is expected syntax.
                 // On Responses, value parameter is optional.
-                setMask(type,true);
+                setMask(type, true);
                 no_cache.clean();
-            } else if (/* p &&*/ httpHeaderParseQuotedString(p, (ilen-nlen-1), &temp)) {
+            } else if (/* p &&*/ httpHeaderParseQuotedString(p, (ilen - nlen - 1), &temp)) {
                 // On Requests, a value parameter is invalid syntax.
                 // XXX: identify when parsing request header and dump err message here.
-                setMask(type,true);
+                setMask(type, true);
                 no_cache.append(temp);
             } else {
                 debugs(65, 2, "cc: invalid no-cache= specs near '" << item << "'");
             }
-        }
-        break;
+        } break;
 
         case HttpHdrCcType::CC_PUBLIC:
             Public(true);
@@ -243,10 +240,10 @@ HttpHdrCc::parse(const String & str)
 }
 
 void
-HttpHdrCc::packInto(Packable * p) const
+HttpHdrCc::packInto(Packable *p) const
 {
     // optimization: if the mask is empty do nothing
-    if (mask==0)
+    if (mask == 0)
         return;
 
     HttpHdrCcType flag;
@@ -257,7 +254,7 @@ HttpHdrCc::packInto(Packable * p) const
         if (isSet(flag) && flag != HttpHdrCcType::CC_OTHER) {
 
             /* print option name for all options */
-            p->appendf((pcount ? ", %s": "%s"), CcAttrs[flag].name);
+            p->appendf((pcount ? ", %s" : "%s"), CcAttrs[flag].name);
 
             /* for all options having values, "=value" after the name */
             switch (flag) {
@@ -317,7 +314,7 @@ HttpHdrCc::packInto(Packable * p) const
 }
 
 void
-httpHdrCcUpdateStats(const HttpHdrCc * cc, StatHist * hist)
+httpHdrCcUpdateStats(const HttpHdrCc *cc, StatHist *hist)
 {
     assert(cc);
 
@@ -327,7 +324,7 @@ httpHdrCcUpdateStats(const HttpHdrCc * cc, StatHist * hist)
 }
 
 void
-httpHdrCcStatDumper(StoreEntry * sentry, int, double val, double, int count)
+httpHdrCcStatDumper(StoreEntry *sentry, int, double val, double, int count)
 {
     extern const HttpHeaderStat *dump_stat; /* argh! */
     const int id = static_cast<int>(val);
@@ -340,13 +337,12 @@ httpHdrCcStatDumper(StoreEntry * sentry, int, double val, double, int count)
 }
 
 std::ostream &
-operator<< (std::ostream &s, HttpHdrCcType c)
+operator<<(std::ostream &s, HttpHdrCcType c)
 {
     const unsigned char ic = static_cast<int>(c);
     if (c < HttpHdrCcType::CC_ENUM_END)
-        s << CcAttrs[ic].name << '[' << ic << ']' ;
+        s << CcAttrs[ic].name << '[' << ic << ']';
     else
         s << "*invalid hdrcc* [" << ic << ']';
     return s;
 }
-

@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
+#include "auth/digest/User.h"
+#include "Debug.h"
 #include "auth/Config.h"
 #include "auth/CredentialsCache.h"
 #include "auth/digest/Config.h"
-#include "auth/digest/User.h"
-#include "Debug.h"
 #include "dlink.h"
 
 Auth::Digest::User::User(Auth::SchemeConfig *aConfig, const char *aRequestRealm) :
@@ -30,8 +30,8 @@ Auth::Digest::User::~User()
         tmplink = link;
         link = link->next;
         dlinkDelete(tmplink, &nonces);
-        authDigestNoncePurge(static_cast < digest_nonce_h * >(tmplink->data));
-        authDigestNonceUnlink(static_cast < digest_nonce_h * >(tmplink->data));
+        authDigestNoncePurge(static_cast<digest_nonce_h *>(tmplink->data));
+        authDigestNonceUnlink(static_cast<digest_nonce_h *>(tmplink->data));
         delete tmplink;
     }
 }
@@ -54,7 +54,7 @@ Auth::Digest::User::ttl() const
     if (latest_nonce == -1)
         return min(-1, global_ttl);
 
-    int32_t nonce_ttl = latest_nonce - current_time.tv_sec + static_cast<Config*>(Auth::SchemeConfig::Find("digest"))->noncemaxduration;
+    int32_t nonce_ttl = latest_nonce - current_time.tv_sec + static_cast<Config *>(Auth::SchemeConfig::Find("digest"))->noncemaxduration;
 
     return min(nonce_ttl, global_ttl);
 }
@@ -75,7 +75,7 @@ Auth::Digest::User::currentNonce()
 CbcPointer<Auth::CredentialsCache>
 Auth::Digest::User::Cache()
 {
-    static CbcPointer<Auth::CredentialsCache> p(new Auth::CredentialsCache("digest","GC Digest user credentials"));
+    static CbcPointer<Auth::CredentialsCache> p(new Auth::CredentialsCache("digest", "GC Digest user credentials"));
     return p;
 }
 
@@ -84,4 +84,3 @@ Auth::Digest::User::addToNameCache()
 {
     Cache()->insert(userKey(), this);
 }
-

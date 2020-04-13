@@ -13,8 +13,7 @@
 
 #include "mgr/Action.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// store service times for 5 and 60 min
 class ServiceTimesActionData
@@ -24,7 +23,7 @@ public:
 
 public:
     ServiceTimesActionData();
-    ServiceTimesActionData& operator += (const ServiceTimesActionData& stats);
+    ServiceTimesActionData &operator+=(const ServiceTimesActionData &stats);
 
 public:
     double http_requests5[seriesSize];
@@ -45,7 +44,7 @@ public:
 };
 
 /// implement aggregated 'service_times' action
-class ServiceTimesAction: public Action
+class ServiceTimesAction : public Action
 {
 protected:
     ServiceTimesAction(const CommandPointer &cmd);
@@ -53,20 +52,19 @@ protected:
 public:
     static Pointer Create(const CommandPointer &cmd);
     /* Action API */
-    virtual void add(const Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     ServiceTimesActionData data;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_SERVICE_TIMES_ACTION_H */
-

@@ -75,5 +75,4 @@ struct RFCNB_Pkt *RFCNB_Alloc_Pkt(int n);
 }
 
 #endif
-#endif                          /* _RFCNB_RFCNB_H */
-
+#endif /* _RFCNB_RFCNB_H */

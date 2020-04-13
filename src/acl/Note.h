@@ -9,32 +9,33 @@
 #ifndef SQUID_ACLNOTE_H
 #define SQUID_ACLNOTE_H
 
+#include "Notes.h"
 #include "acl/CharacterSetOption.h"
 #include "acl/Data.h"
 #include "acl/Strategy.h"
-#include "Notes.h"
 
 namespace Acl {
 
 /// common parent of several ACLs dealing with transaction annotations
-class AnnotationStrategy: public ACLStrategy<NotePairs::Entry *>
+class AnnotationStrategy : public ACLStrategy<NotePairs::Entry *>
 {
 public:
-    AnnotationStrategy(): delimiters(CharacterSet(__FILE__, ",")) {}
+    AnnotationStrategy() :
+        delimiters(CharacterSet(__FILE__, ",")) {}
 
     virtual const Acl::Options &options() override;
 
-    Acl::CharacterSetOptionValue delimiters; ///< annotation separators
+    Acl::CharacterSetOptionValue delimiters;  ///< annotation separators
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 /// \ingroup ACLAPI
-class ACLNoteStrategy: public Acl::AnnotationStrategy
+class ACLNoteStrategy : public Acl::AnnotationStrategy
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *);
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
     virtual bool requiresRequest() const { return true; }
 
 private:
@@ -42,4 +43,3 @@ private:
 };
 
 #endif /* SQUID_ACLNOTE_H */
-

@@ -11,18 +11,17 @@
 #ifndef SQUID_MGR_INFO_ACTION_H
 #define SQUID_MGR_INFO_ACTION_H
 
-#include "mgr/Action.h"
 #include "StoreStats.h"
+#include "mgr/Action.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// store general runtime information
 /// and memory usage
 class InfoActionData
 {
 public:
-    InfoActionData& operator += (const InfoActionData& stats);
+    InfoActionData &operator+=(const InfoActionData &stats);
 
 public:
     struct timeval squid_start = {};
@@ -50,7 +49,7 @@ public:
     double request_hit_disk_ratio5 = 0.0;
     double request_hit_disk_ratio60 = 0.0;
 
-    StoreInfoStats store; ///< disk and memory cache statistics
+    StoreInfoStats store;  ///< disk and memory cache statistics
 
     double unlink_requests = 0.0;
     double http_requests5 = 0.0;
@@ -91,7 +90,7 @@ public:
 };
 
 /// implement aggregated 'info' action
-class InfoAction: public Action
+class InfoAction : public Action
 {
 protected:
     InfoAction(const CommandPointer &cmd);
@@ -99,21 +98,20 @@ protected:
 public:
     static Pointer Create(const CommandPointer &cmd);
     /* Action API */
-    virtual void add(const Action& action);
-    virtual void respond(const Request& request);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Action &action);
+    virtual void respond(const Request &request);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     InfoActionData data;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_INFO_ACTION_H */
-

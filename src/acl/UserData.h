@@ -30,16 +30,13 @@ public:
     virtual ACLData<char const *> *clone() const;
 
 private:
-
-    typedef std::set<SBuf,bool(*)(const SBuf&, const SBuf&)> UserDataNames_t;
+    typedef std::set<SBuf, bool (*)(const SBuf &, const SBuf &)> UserDataNames_t;
     UserDataNames_t userDataNames;
 
     struct {
         bool case_insensitive;
         bool required;
     } flags;
-
 };
 
 #endif /* SQUID_ACLUSERDATA_H */
-

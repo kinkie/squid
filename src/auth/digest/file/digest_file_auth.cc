@@ -45,22 +45,22 @@
 #include "helper/protocol_defines.h"
 
 static void
-GetHHA1(RequestData * requestData)
+GetHHA1(RequestData *requestData)
 {
     TextHHA1(requestData);
 }
 
 static void
-ParseBuffer(char *buf, RequestData * requestData)
+ParseBuffer(char *buf, RequestData *requestData)
 {
     char *p;
     requestData->parsed = 0;
     if ((p = strchr(buf, '\n')) != NULL)
-        *p = '\0';      /* strip \n */
+        *p = '\0'; /* strip \n */
 
     p = NULL;
     requestData->channelId = strtoll(buf, &p, 10);
-    if (*p != ' ') // not a channel-ID
+    if (*p != ' ')  // not a channel-ID
         requestData->channelId = -1;
     else
         buf = ++p;
@@ -75,7 +75,7 @@ ParseBuffer(char *buf, RequestData * requestData)
 }
 
 static void
-OutputHHA1(RequestData * requestData)
+OutputHHA1(RequestData *requestData)
 {
     requestData->error = 0;
     GetHHA1(requestData);
@@ -118,4 +118,3 @@ main(int argc, char **argv)
         DoOneRequest(buf);
     return EXIT_SUCCESS;
 }
-

@@ -15,7 +15,7 @@
 
 #include <cstring>
 
-Helper::ChildConfig::ChildConfig():
+Helper::ChildConfig::ChildConfig() :
     n_max(0),
     n_startup(0),
     n_idle(1),
@@ -25,9 +25,10 @@ Helper::ChildConfig::ChildConfig():
     queue_size(0),
     onPersistentOverload(actDie),
     defaultQueueSize(true)
-{}
+{
+}
 
-Helper::ChildConfig::ChildConfig(const unsigned int m):
+Helper::ChildConfig::ChildConfig(const unsigned int m) :
     n_max(m),
     n_startup(0),
     n_idle(1),
@@ -37,9 +38,9 @@ Helper::ChildConfig::ChildConfig(const unsigned int m):
     queue_size(2 * m),
     onPersistentOverload(actDie),
     defaultQueueSize(true)
-{}
+{
+}
 
-int Helper::ChildConfig::needNew() const STUB_RETVAL(0)
-void Helper::ChildConfig::parseConfig() STUB
-Helper::ChildConfig & Helper::ChildConfig::updateLimits(const Helper::ChildConfig &) STUB_RETVAL(*this)
-
+int
+Helper::ChildConfig::needNew() const STUB_RETVAL(0) void Helper::ChildConfig::parseConfig() STUB
+    Helper::ChildConfig &Helper::ChildConfig::updateLimits(const Helper::ChildConfig &) STUB_RETVAL(*this)

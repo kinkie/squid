@@ -7,70 +7,75 @@
  */
 
 #include "squid.h"
-#include "adaptation/Config.h"
 #include "adaptation/History.h"
-#include "base/TextException.h"
 #include "Debug.h"
-#include "globals.h"
 #include "SquidTime.h"
+#include "adaptation/Config.h"
+#include "base/TextException.h"
+#include "globals.h"
 
 /// impossible services value to identify unset theNextServices
 const static char *TheNullServices = ",null,";
 
-Adaptation::History::Entry::Entry(const String &serviceId, const timeval &when):
+Adaptation::History::Entry::Entry(const String &serviceId, const timeval &when) :
     service(serviceId), start(when), theRptm(-1), retried(false)
 {
 }
 
-Adaptation::History::Entry::Entry():
+Adaptation::History::Entry::Entry() :
     start(current_time), theRptm(-1), retried(false)
 {
 }
 
-void Adaptation::History::Entry::stop()
+void
+Adaptation::History::Entry::stop()
 {
     // theRptm may already be set if the access log entry has already been made
-    (void)rptm(); // will cache result in theRptm if not set already
+    (void)rptm();  // will cache result in theRptm if not set already
 }
 
-int Adaptation::History::Entry::rptm()
+int
+Adaptation::History::Entry::rptm()
 {
     if (theRptm < 0)
         theRptm = tvSubMsec(start, current_time);
     return theRptm;
 }
 
-Adaptation::History::History():
+Adaptation::History::History() :
     lastMeta(hoReply),
     allMeta(hoReply),
     theNextServices(TheNullServices)
 {
 }
 
-int Adaptation::History::recordXactStart(const String &serviceId, const timeval &when, bool retrying)
+int
+Adaptation::History::recordXactStart(const String &serviceId, const timeval &when, bool retrying)
 {
     // the history will be empty on retries if it was enabled after the failure
     if (retrying && !theEntries.empty())
         theEntries.back().retried = true;
 
     theEntries.push_back(Adaptation::History::Entry(serviceId, when));
-    return theEntries.size() - 1; // record position becomes history ID
+    return theEntries.size() - 1;  // record position becomes history ID
 }
 
-void Adaptation::History::recordXactFinish(int hid)
+void
+Adaptation::History::recordXactFinish(int hid)
 {
     Must(0 <= hid && hid < static_cast<int>(theEntries.size()));
     theEntries[hid].stop();
 }
 
-void Adaptation::History::allLogString(const char *serviceId, SBuf &s)
+void
+Adaptation::History::allLogString(const char *serviceId, SBuf &s)
 {
     s.clear();
     bool prevWasRetried = false;
     for (auto &i : theEntries) {
         // TODO: here and below, optimize service ID comparison?
         if (!serviceId || i.service == serviceId) {
-            if (!s.isEmpty()) // not the first logged time, must delimit
+            if (!s.isEmpty())  // not the first logged time, must delimit
                 s.append(prevWasRetried ? '+' : ',');
             s.appendf("%d", i.rptm());
             // continue; we may have two identical services (e.g., for retries)
@@ -79,15 +84,16 @@ void Adaptation::History::allLogString(const char *serviceId, SBuf &s)
     }
 }
 
-void Adaptation::History::sumLogString(const char *serviceId, SBuf &s)
+void
+Adaptation::History::sumLogString(const char *serviceId, SBuf &s)
 {
     s.clear();
-    int retriedRptm = 0; // sum of rptm times of retried transactions
-    for (auto & i : theEntries) {
-        if (i.retried) { // do not log retried xact but accumulate their time
+    int retriedRptm = 0;  // sum of rptm times of retried transactions
+    for (auto &i : theEntries) {
+        if (i.retried) {  // do not log retried xact but accumulate their time
             retriedRptm += i.rptm();
         } else if (!serviceId || i.service == serviceId) {
-            if (!s.isEmpty()) // not the first logged time, must delimit
+            if (!s.isEmpty())  // not the first logged time, must delimit
                 s.append(',');
             s.appendf("%d", retriedRptm + i.rptm());
             // continue; we may have two identical services (e.g., for retries)
@@ -101,13 +107,15 @@ void Adaptation::History::sumLogString(const char *serviceId, SBuf &s)
     Must(!retriedRptm);
 }
 
-void Adaptation::History::updateXxRecord(const char *name, const String &value)
+void
+Adaptation::History::updateXxRecord(const char *name, const String &value)
 {
     theXxName = name;
     theXxValue = value;
 }
 
-bool Adaptation::History::getXxRecord(String &name, String &value) const
+bool
+Adaptation::History::getXxRecord(String &name, String &value) const
 {
     if (theXxName.size() <= 0)
         return false;
@@ -117,26 +125,29 @@ bool Adaptation::History::getXxRecord(String &name, String &value) const
     return true;
 }
 
-void Adaptation::History::updateNextServices(const String &services)
+void
+Adaptation::History::updateNextServices(const String &services)
 {
     if (theNextServices != TheNullServices)
-        debugs(93,3, HERE << "old services: " << theNextServices);
-    debugs(93,3, HERE << "new services: " << services);
+        debugs(93, 3, HERE << "old services: " << theNextServices);
+    debugs(93, 3, HERE << "new services: " << services);
     Must(services != TheNullServices);
     theNextServices = services;
 }
 
-bool Adaptation::History::extractNextServices(String &value)
+bool
+Adaptation::History::extractNextServices(String &value)
 {
     if (theNextServices == TheNullServices)
         return false;
 
     value = theNextServices;
-    theNextServices = TheNullServices; // prevents resetting the plan twice
+    theNextServices = TheNullServices;  // prevents resetting the plan twice
     return true;
 }
 
-void Adaptation::History::recordMeta(const HttpHeader *lm)
+void
+Adaptation::History::recordMeta(const HttpHeader *lm)
 {
     lastMeta.clean();
     lastMeta.update(lm);
@@ -155,12 +166,13 @@ void
 Adaptation::History::setFutureServices(const DynamicGroupCfg &services)
 {
     if (!theFutureServices.empty())
-        debugs(93,3, HERE << "old future services: " << theFutureServices);
-    debugs(93,3, HERE << "new future services: " << services);
-    theFutureServices = services; // may be empty
+        debugs(93, 3, HERE << "old future services: " << theFutureServices);
+    debugs(93, 3, HERE << "new future services: " << services);
+    theFutureServices = services;  // may be empty
 }
 
-bool Adaptation::History::extractFutureServices(DynamicGroupCfg &value)
+bool
+Adaptation::History::extractFutureServices(DynamicGroupCfg &value)
 {
     if (theFutureServices.empty())
         return false;
@@ -169,4 +181,3 @@ bool Adaptation::History::extractFutureServices(DynamicGroupCfg &value)
     theFutureServices.clear();
     return true;
 }
-

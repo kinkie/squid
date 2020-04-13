@@ -11,20 +11,19 @@
 
 #if USE_AUTH
 
+#include "Notes.h"
 #include "auth/CredentialState.h"
-#include "auth/forward.h"
 #include "auth/Type.h"
+#include "auth/forward.h"
 #include "base/CbcPointer.h"
 #include "base/RefCount.h"
 #include "dlink.h"
 #include "ip/Address.h"
-#include "Notes.h"
 #include "sbuf/SBuf.h"
 
 class StoreEntry;
 
-namespace Auth
-{
+namespace Auth {
 
 /**
  * This is the main user related structure. It stores user-related data,
@@ -40,6 +39,7 @@ public:
 
 protected:
     User(Auth::SchemeConfig *, const char *requestRealm);
+
 public:
     virtual ~User();
 
@@ -60,10 +60,10 @@ public:
 
     void absorb(Auth::User::Pointer from);
     char const *username() const { return username_; }
-    void username(char const *); ///< set stored username and userKey
+    void username(char const *);  ///< set stored username and userKey
 
     // NP: key is set at the same time as username_. Until then both are empty/NULL.
-    const SBuf userKey() const {return userKey_;}
+    const SBuf userKey() const { return userKey_; }
 
     /**
      * How long these credentials are still valid for.
@@ -78,7 +78,7 @@ public:
 
     /// add the Auth::User to the protocol-specific username cache.
     virtual void addToNameCache() = 0;
-    static void CredentialsCacheStats(StoreEntry * output);
+    static void CredentialsCacheStats(StoreEntry *output);
 
     // userKey ->Auth::User::Pointer cache
     // must be reimplemented in subclasses
@@ -121,8 +121,7 @@ private:
     dlink_list ip_list;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* SQUID_AUTH_USER_H */
-

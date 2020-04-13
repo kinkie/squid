@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
-#include "base/Here.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "base/Here.h"
+#include "cache_cf.h"
 #include "fatal.h"
 #include "globals.h"
 #include "sbuf/Stream.h"
@@ -39,19 +39,16 @@ ConfigParser::destruct()
     if (!CfgFiles.empty()) {
         std::ostringstream message;
         CfgFile *f = CfgFiles.top();
-        message << "Bungled " << f->filePath << " line " << f->lineNo <<
-                ": " << f->currentLine << std::endl;
+        message << "Bungled " << f->filePath << " line " << f->lineNo << ": " << f->currentLine << std::endl;
         CfgFiles.pop();
         delete f;
         while (!CfgFiles.empty()) {
             f = CfgFiles.top();
-            message << " included from " << f->filePath << " line " <<
-                    f->lineNo << ": " << f->currentLine << std::endl;
+            message << " included from " << f->filePath << " line " << f->lineNo << ": " << f->currentLine << std::endl;
             CfgFiles.pop();
             delete f;
         }
-        message << " included from " <<  cfg_filename << " line " <<
-                config_lineno << ": " << config_input_line << std::endl;
+        message << " included from " << cfg_filename << " line " << config_lineno << ": " << config_input_line << std::endl;
         std::string msg = message.str();
         fatalf("%s", msg.c_str());
     } else
@@ -104,7 +101,7 @@ ConfigParser::strtokFile()
                 return NULL;
             } else if (*t == '\"' || *t == '\'') {
                 /* quote found, start reading from file */
-                debugs(3, 8,"Quoted token found : " << t);
+                debugs(3, 8, "Quoted token found : " << t);
                 char *fn = ++t;
 
                 while (*t && *t != '\"' && *t != '\'')
@@ -152,7 +149,7 @@ ConfigParser::strtokFile()
 
         /* skip comments */
         /* skip blank lines */
-    } while ( *t == '#' || !*t );
+    } while (*t == '#' || !*t);
 
     return t;
 }
@@ -165,7 +162,7 @@ ConfigParser::UnQuote(const char *token, const char **next)
     char quoteChar = *token;
     assert(quoteChar == '"' || quoteChar == '\'');
     LOCAL_ARRAY(char, UnQuoted, CONFIG_LINE_LIMIT);
-    const char  *s = token + 1;
+    const char *s = token + 1;
     char *d = UnQuoted;
     /* scan until the end of the quoted string, handling escape sequences*/
     while (*s && *s != quoteChar && !errorStr && (size_t)(d - UnQuoted) < sizeof(UnQuoted)) {
@@ -251,7 +248,7 @@ ConfigParser::CurrentLocation()
 }
 
 char *
-ConfigParser::TokenParse(const char * &nextToken, ConfigParser::TokenType &type)
+ConfigParser::TokenParse(const char *&nextToken, ConfigParser::TokenType &type)
 {
     if (!nextToken || *nextToken == '\0')
         return NULL;
@@ -287,8 +284,8 @@ ConfigParser::TokenParse(const char * &nextToken, ConfigParser::TokenType &type)
 
     while (ConfigParser::RecognizeQuotedPair_ && *nextToken == '\\') {
         // NP: do not permit \0 terminator to be escaped.
-        if (*(nextToken+1) && *(nextToken+1) != '\r' && *(nextToken+1) != '\n') {
-            nextToken += 2; // skip the quoted-pair (\-escaped) character
+        if (*(nextToken + 1) && *(nextToken + 1) != '\r' && *(nextToken + 1) != '\n') {
+            nextToken += 2;  // skip the quoted-pair (\-escaped) character
             nextToken += strcspn(nextToken, sep);
         } else {
             debugs(3, DBG_CRITICAL, "FATAL: Unescaped '\' character in regex pattern: " << tokenStart);
@@ -317,8 +314,7 @@ ConfigParser::TokenParse(const char * &nextToken, ConfigParser::TokenType &type)
         if (ConfigParser::StrictMode && type == ConfigParser::SimpleToken) {
             bool tokenIsNumber = true;
             for (const char *s = tokenStart; s != nextToken; ++s) {
-                const bool isValidChar = isalnum(*s) || strchr(".,()-=_/:+", *s) ||
-                                         (tokenIsNumber && *s == '%' && (s + 1 == nextToken));
+                const bool isValidChar = isalnum(*s) || strchr(".,()-=_/:+", *s) || (tokenIsNumber && *s == '%' && (s + 1 == nextToken));
 
                 if (!isdigit(*s))
                     tokenIsNumber = false;
@@ -329,7 +325,7 @@ ConfigParser::TokenParse(const char * &nextToken, ConfigParser::TokenType &type)
                         CfgLineTokens_.push(err);
                         return err;
                     } else {
-                        debugs(3, DBG_CRITICAL, "FATAL: Not alphanumeric character '"<< *s << "' in unquoted token " << tokenStart);
+                        debugs(3, DBG_CRITICAL, "FATAL: Not alphanumeric character '" << *s << "' in unquoted token " << tokenStart);
                         self_destruct();
                     }
                 }
@@ -385,7 +381,7 @@ ConfigParser::NextToken()
         if (!token)
             token = NextElement(LastTokenType);
 
-        if (token &&  LastTokenType == ConfigParser::FunctionParameters) {
+        if (token && LastTokenType == ConfigParser::FunctionParameters) {
             //Disable temporary preview mode, we need to parse function parameters
             const bool savePreview = ConfigParser::PreviewMode_;
             ConfigParser::PreviewMode_ = false;
@@ -407,7 +403,8 @@ ConfigParser::NextToken()
             }
 
             if (CfgFiles.size() > 16) {
-                debugs(3, DBG_CRITICAL, "FATAL: can't open %s for reading parameters: includes are nested too deeply (>16)!\n" << path);
+                debugs(3, DBG_CRITICAL, "FATAL: can't open %s for reading parameters: includes are nested too deeply (>16)!\n"
+                           << path);
                 self_destruct();
                 return NULL;
             }
@@ -455,7 +452,7 @@ ConfigParser::NextQuotedOrToEol()
 }
 
 bool
-ConfigParser::NextKvPair(char * &key, char * &value)
+ConfigParser::NextKvPair(char *&key, char *&value)
 {
     key = value = NULL;
     ParseKvPair_ = true;
@@ -484,7 +481,7 @@ ConfigParser::RegexStrtokFile()
         self_destruct();
     }
     ConfigParser::RecognizeQuotedPair_ = true;
-    char * token = strtokFile();
+    char *token = strtokFile();
     ConfigParser::RecognizeQuotedPair_ = false;
     return token;
 }
@@ -497,7 +494,7 @@ ConfigParser::RegexPattern()
         self_destruct();
     }
     ConfigParser::RecognizeQuotedPair_ = true;
-    char * token = NextToken();
+    char *token = NextToken();
     ConfigParser::RecognizeQuotedPair_ = false;
     return token;
 }
@@ -517,9 +514,9 @@ ConfigParser::QuoteString(const String &var)
 {
     static String quotedStr;
     const char *s = var.termedBuf();
-    bool  needQuote = false;
+    bool needQuote = false;
 
-    for (const char *l = s; !needQuote &&  *l != '\0'; ++l  )
+    for (const char *l = s; !needQuote && *l != '\0'; ++l)
         needQuote = !isalnum(*l);
 
     if (!needQuote)
@@ -604,4 +601,3 @@ ConfigParser::CfgFile::~CfgFile()
     if (wordFile)
         fclose(wordFile);
 }
-

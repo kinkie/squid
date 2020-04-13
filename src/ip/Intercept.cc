@@ -12,9 +12,9 @@
 #define BUILDING_SQUID_IP_INTERCEPT_CC 1
 
 #include "squid.h"
+#include "ip/Intercept.h"
 #include "comm/Connection.h"
 #include "fde.h"
-#include "ip/Intercept.h"
 #include "src/tools.h"
 
 #include <cerrno>
@@ -22,7 +22,7 @@
 #if IPF_TRANSPARENT
 
 #if !defined(IPFILTER_VERSION)
-#define IPFILTER_VERSION        5000004
+#define IPFILTER_VERSION 5000004
 #endif
 
 #if HAVE_SYS_PARAM_H
@@ -74,11 +74,11 @@
 #endif /* IPF_TRANSPARENT required headers */
 
 #if PF_TRANSPARENT
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <sys/fcntl.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <sys/fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
 #if HAVE_NET_PF_PFVAR_H
 #include <net/pf/pfvar.h>
 #endif /* HAVE_NET_PF_PFVAR_H */
@@ -103,7 +103,7 @@
 #include <linux/netfilter_ipv6/ip6_tables.h>
 #endif
 #if !defined(IP6T_SO_ORIGINAL_DST)
-#define IP6T_SO_ORIGINAL_DST    80  // stolen with prejudice from the above file.
+#define IP6T_SO_ORIGINAL_DST 80  // stolen with prejudice from the above file.
 #endif
 #endif /* LINUX_NETFILTER required headers */
 
@@ -138,11 +138,12 @@ Ip::Intercept::NetfilterInterception(const Comm::ConnectionPointer &newConn, int
 
     /** \par
      * Try NAT lookup for REDIRECT or DNAT targets. */
-    if ( getsockopt(newConn->fd,
-                    newConn->local.isIPv6() ? IPPROTO_IPV6 : IPPROTO_IP,
-                    newConn->local.isIPv6() ? IP6T_SO_ORIGINAL_DST : SO_ORIGINAL_DST,
-                    &lookup,
-                    &len) != 0) {
+    if (getsockopt(newConn->fd,
+                   newConn->local.isIPv6() ? IPPROTO_IPV6 : IPPROTO_IP,
+                   newConn->local.isIPv6() ? IP6T_SO_ORIGINAL_DST : SO_ORIGINAL_DST,
+                   &lookup,
+                   &len)
+        != 0) {
         if (!silent) {
             int xerrno = errno;
             debugs(89, DBG_IMPORTANT, "ERROR: NF getsockopt(ORIGINAL_DST) failed on " << newConn << ": " << xstrerr(xerrno));
@@ -162,9 +163,7 @@ Ip::Intercept::NetfilterInterception(const Comm::ConnectionPointer &newConn, int
 bool
 Ip::Intercept::TproxyTransparent(const Comm::ConnectionPointer &newConn, int)
 {
-#if (LINUX_NETFILTER && defined(IP_TRANSPARENT)) || \
-    (PF_TRANSPARENT && defined(SO_BINDANY)) || \
-    (IPFW_TRANSPARENT && defined(IP_BINDANY))
+#if (LINUX_NETFILTER && defined(IP_TRANSPARENT)) || (PF_TRANSPARENT && defined(SO_BINDANY)) || (IPFW_TRANSPARENT && defined(IP_BINDANY))
 
     /* Trust the user configured properly. If not no harm done.
      * We will simply attempt a bind outgoing on our own IP.
@@ -194,7 +193,7 @@ Ip::Intercept::IpfwInterception(const Comm::ConnectionPointer &newConn, int)
 bool
 Ip::Intercept::IpfInterception(const Comm::ConnectionPointer &newConn, int silent)
 {
-#if IPF_TRANSPARENT  /* --enable-ipf-transparent */
+#if IPF_TRANSPARENT /* --enable-ipf-transparent */
 
     struct natlookup natLookup;
     static int natfd = -1;
@@ -208,8 +207,7 @@ Ip::Intercept::IpfInterception(const Comm::ConnectionPointer &newConn, int silen
         natLookup.nl_v = 6;
         newConn->local.getInAddr(natLookup.nl_inipaddr.in6);
         newConn->remote.getInAddr(natLookup.nl_outipaddr.in6);
-    }
-    else {
+    } else {
         natLookup.nl_v = 4;
         newConn->local.getInAddr(natLookup.nl_inipaddr.in4);
         newConn->remote.getInAddr(natLookup.nl_outipaddr.in4);
@@ -312,7 +310,7 @@ Ip::Intercept::IpfInterception(const Comm::ConnectionPointer &newConn, int silen
 bool
 Ip::Intercept::PfInterception(const Comm::ConnectionPointer &newConn, int silent)
 {
-#if PF_TRANSPARENT  /* --enable-pf-transparent */
+#if PF_TRANSPARENT /* --enable-pf-transparent */
 
 #if !USE_NAT_DEVPF
     /* On recent PF versions the getsockname() call performed already provided
@@ -324,7 +322,7 @@ Ip::Intercept::PfInterception(const Comm::ConnectionPointer &newConn, int silent
     debugs(89, 5, HERE << "address NAT divert-to: " << newConn);
     return true;
 
-#else /* USE_NAT_DEVPF / --with-nat-devpf */
+#else  /* USE_NAT_DEVPF / --with-nat-devpf */
 
     struct pfioc_natlook nl;
     static int pffd = -1;
@@ -404,21 +402,26 @@ Ip::Intercept::Lookup(const Comm::ConnectionPointer &newConn, const Comm::Connec
 
     debugs(89, 5, HERE << "address BEGIN: me/client= " << newConn->local << ", destination/me= " << newConn->remote);
 
-    newConn->flags |= (listenConn->flags & (COMM_TRANSPARENT|COMM_INTERCEPTION));
+    newConn->flags |= (listenConn->flags & (COMM_TRANSPARENT | COMM_INTERCEPTION));
 
     /* NP: try TPROXY first, its much quieter than NAT when non-matching */
-    if (transparentActive_ && listenConn->flags&COMM_TRANSPARENT) {
-        if (TproxyTransparent(newConn, silent)) return true;
+    if (transparentActive_ && listenConn->flags & COMM_TRANSPARENT) {
+        if (TproxyTransparent(newConn, silent))
+            return true;
     }
 
-    if (interceptActive_ && listenConn->flags&COMM_INTERCEPTION) {
+    if (interceptActive_ && listenConn->flags & COMM_INTERCEPTION) {
         /* NAT methods that use sock-opts to return client address */
-        if (NetfilterInterception(newConn, silent)) return true;
-        if (IpfwInterception(newConn, silent)) return true;
+        if (NetfilterInterception(newConn, silent))
+            return true;
+        if (IpfwInterception(newConn, silent))
+            return true;
 
         /* NAT methods that use ioctl to return client address AND destination address */
-        if (PfInterception(newConn, silent)) return true;
-        if (IpfInterception(newConn, silent)) return true;
+        if (PfInterception(newConn, silent))
+            return true;
+        if (IpfInterception(newConn, silent))
+            return true;
     }
 
 #else /* none of the transparent options configured */
@@ -433,19 +436,19 @@ Ip::Intercept::ProbeForTproxy(Ip::Address &test)
 {
     bool doneSuid = false;
 
-#if _SQUID_LINUX_ && defined(IP_TRANSPARENT) // Linux
-# define soLevel SOL_IP
-# define soFlag  IP_TRANSPARENT
+#if _SQUID_LINUX_ && defined(IP_TRANSPARENT)  // Linux
+#define soLevel SOL_IP
+#define soFlag IP_TRANSPARENT
 
-#elif defined(SO_BINDANY) // OpenBSD 4.7+ and NetBSD with PF
-# define soLevel SOL_SOCKET
-# define soFlag  SO_BINDANY
+#elif defined(SO_BINDANY)  // OpenBSD 4.7+ and NetBSD with PF
+#define soLevel SOL_SOCKET
+#define soFlag SO_BINDANY
     enter_suid();
     doneSuid = true;
 
-#elif defined(IP_BINDANY) // FreeBSD with IPFW
-# define soLevel IPPROTO_IP
-# define soFlag  IP_BINDANY
+#elif defined(IP_BINDANY)  // FreeBSD with IPFW
+#define soLevel IPPROTO_IP
+#define soFlag IP_BINDANY
     enter_suid();
     doneSuid = true;
 
@@ -467,9 +470,7 @@ Ip::Intercept::ProbeForTproxy(Ip::Address &test)
         tmp.port(0);
         tmp.getSockAddr(tmp_ip6);
 
-        if ( (tmp_sock = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP)) >= 0 &&
-                setsockopt(tmp_sock, soLevel, soFlag, (char *)&tos, sizeof(int)) == 0 &&
-                bind(tmp_sock, (struct sockaddr*)&tmp_ip6, sizeof(struct sockaddr_in6)) == 0 ) {
+        if ((tmp_sock = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP)) >= 0 && setsockopt(tmp_sock, soLevel, soFlag, (char *)&tos, sizeof(int)) == 0 && bind(tmp_sock, (struct sockaddr *)&tmp_ip6, sizeof(struct sockaddr_in6)) == 0) {
 
             debugs(3, 3, "IPv6 TPROXY support detected. Using.");
             close(tmp_sock);
@@ -483,8 +484,8 @@ Ip::Intercept::ProbeForTproxy(Ip::Address &test)
         }
     }
 
-    if ( test.isIPv6() && !test.setIPv4() ) {
-        debugs(3, DBG_CRITICAL, "TPROXY lacks IPv6 support for " << test );
+    if (test.isIPv6() && !test.setIPv4()) {
+        debugs(3, DBG_CRITICAL, "TPROXY lacks IPv6 support for " << test);
         if (doneSuid)
             leave_suid();
         return false;
@@ -499,9 +500,7 @@ Ip::Intercept::ProbeForTproxy(Ip::Address &test)
         tmp.port(0);
         tmp.getSockAddr(tmp_ip4);
 
-        if ( (tmp_sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) >= 0 &&
-                setsockopt(tmp_sock, soLevel, soFlag, (char *)&tos, sizeof(int)) == 0 &&
-                bind(tmp_sock, (struct sockaddr*)&tmp_ip4, sizeof(struct sockaddr_in)) == 0 ) {
+        if ((tmp_sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) >= 0 && setsockopt(tmp_sock, soLevel, soFlag, (char *)&tos, sizeof(int)) == 0 && bind(tmp_sock, (struct sockaddr *)&tmp_ip4, sizeof(struct sockaddr_in)) == 0) {
 
             debugs(3, 3, "IPv4 TPROXY support detected. Using.");
             close(tmp_sock);
@@ -522,4 +521,3 @@ Ip::Intercept::ProbeForTproxy(Ip::Address &test)
         leave_suid();
     return false;
 }
-

@@ -17,7 +17,7 @@ class DelaySpec
 
 public:
     DelaySpec();
-    void stats(StoreEntry * sentry, char const *) const;
+    void stats(StoreEntry *sentry, char const *) const;
     void dump(StoreEntry *) const;
     void parse();
     int restore_bps;
@@ -25,4 +25,3 @@ public:
 };
 
 #endif /* SQUID_DELAYSPEC_H */
-

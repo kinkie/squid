@@ -17,19 +17,19 @@
 
 class testEventLoop : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testEventLoop );
-    CPPUNIT_TEST( testCreate );
+    CPPUNIT_TEST_SUITE(testEventLoop);
+    CPPUNIT_TEST(testCreate);
 
 #if POLISHED_MAIN_LOOP
-    CPPUNIT_TEST( testRunOnce );
-    CPPUNIT_TEST( testRegisterDispatcher );
-    CPPUNIT_TEST( testRegisterEngine );
-    CPPUNIT_TEST( testEngineTimeout );
-    CPPUNIT_TEST( testStopOnIdle );
+    CPPUNIT_TEST(testRunOnce);
+    CPPUNIT_TEST(testRegisterDispatcher);
+    CPPUNIT_TEST(testRegisterEngine);
+    CPPUNIT_TEST(testEngineTimeout);
+    CPPUNIT_TEST(testStopOnIdle);
 #endif
 
-    CPPUNIT_TEST( testSetTimeService );
-    CPPUNIT_TEST( testSetPrimaryEngine );
+    CPPUNIT_TEST(testSetTimeService);
+    CPPUNIT_TEST(testSetPrimaryEngine);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -55,4 +55,3 @@ protected:
 };
 
 #endif
-

@@ -17,7 +17,7 @@ Http::TunnelerAnswer::~TunnelerAnswer()
 }
 
 std::ostream &
-Http::operator <<(std::ostream &os, const TunnelerAnswer &answer)
+Http::operator<<(std::ostream &os, const TunnelerAnswer &answer)
 {
     os << '[';
 
@@ -35,4 +35,3 @@ Http::operator <<(std::ostream &os, const TunnelerAnswer &answer)
     os << ']';
     return os;
 }
-

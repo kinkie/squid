@@ -36,9 +36,9 @@
 #if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
 
 #define snprintf _snprintf
+#include <winber.h>
 #include <windows.h>
 #include <winldap.h>
-#include <winber.h>
 #ifndef LDAPAPI
 #define LDAPAPI __cdecl
 #endif
@@ -59,16 +59,16 @@
 
 #include "edir_ldapext.h"
 
-#define NMASLDAP_GET_LOGIN_CONFIG_REQUEST   "2.16.840.1.113719.1.39.42.100.3"
-#define NMASLDAP_GET_LOGIN_CONFIG_RESPONSE  "2.16.840.1.113719.1.39.42.100.4"
-#define NMASLDAP_SET_PASSWORD_REQUEST       "2.16.840.1.113719.1.39.42.100.11"
-#define NMASLDAP_SET_PASSWORD_RESPONSE      "2.16.840.1.113719.1.39.42.100.12"
-#define NMASLDAP_GET_PASSWORD_REQUEST       "2.16.840.1.113719.1.39.42.100.13"
-#define NMASLDAP_GET_PASSWORD_RESPONSE      "2.16.840.1.113719.1.39.42.100.14"
+#define NMASLDAP_GET_LOGIN_CONFIG_REQUEST "2.16.840.1.113719.1.39.42.100.3"
+#define NMASLDAP_GET_LOGIN_CONFIG_RESPONSE "2.16.840.1.113719.1.39.42.100.4"
+#define NMASLDAP_SET_PASSWORD_REQUEST "2.16.840.1.113719.1.39.42.100.11"
+#define NMASLDAP_SET_PASSWORD_RESPONSE "2.16.840.1.113719.1.39.42.100.12"
+#define NMASLDAP_GET_PASSWORD_REQUEST "2.16.840.1.113719.1.39.42.100.13"
+#define NMASLDAP_GET_PASSWORD_RESPONSE "2.16.840.1.113719.1.39.42.100.14"
 
-#define NMAS_LDAP_EXT_VERSION               1
+#define NMAS_LDAP_EXT_VERSION 1
 
-#define SMB_MALLOC_ARRAY(type, nelem)       calloc(sizeof(type), nelem)
+#define SMB_MALLOC_ARRAY(type, nelem) calloc(sizeof(type), nelem)
 #define DEBUG(level, args)
 
 /**********************************************************************
@@ -76,33 +76,34 @@
  data into the BER value
 **********************************************************************/
 
-static int berEncodePasswordData(
+static int
+berEncodePasswordData(
     struct berval **requestBV,
-    const char    *objectDN,
-    const char    *password,
-    const char    *password2)
+    const char *objectDN,
+    const char *password,
+    const char *password2)
 {
-    int err = 0, rc=0;
+    int err = 0, rc = 0;
     BerElement *requestBer = NULL;
 
-    const char    * utf8ObjPtr = NULL;
-    int     utf8ObjSize = 0;
-    const char    * utf8PwdPtr = NULL;
-    int     utf8PwdSize = 0;
-    const char    * utf8Pwd2Ptr = NULL;
-    int     utf8Pwd2Size = 0;
+    const char *utf8ObjPtr = NULL;
+    int utf8ObjSize = 0;
+    const char *utf8PwdPtr = NULL;
+    int utf8PwdSize = 0;
+    const char *utf8Pwd2Ptr = NULL;
+    int utf8Pwd2Size = 0;
 
     /* Convert objectDN and tag strings from Unicode to UTF-8 */
-    utf8ObjSize = strlen(objectDN)+1;
+    utf8ObjSize = strlen(objectDN) + 1;
     utf8ObjPtr = objectDN;
 
     if (password != NULL) {
-        utf8PwdSize = strlen(password)+1;
+        utf8PwdSize = strlen(password) + 1;
         utf8PwdPtr = password;
     }
 
     if (password2 != NULL) {
-        utf8Pwd2Size = strlen(password2)+1;
+        utf8Pwd2Size = strlen(password2) + 1;
         utf8Pwd2Ptr = password2;
     }
 
@@ -146,28 +147,29 @@ static int berEncodePasswordData(
  data into the BER value
 **********************************************************************/
 
-static int berEncodeLoginData(
+static int
+berEncodeLoginData(
     struct berval **requestBV,
-    char     *objectDN,
-    unsigned int  methodIDLen,
+    char *objectDN,
+    unsigned int methodIDLen,
     unsigned int *methodID,
-    char     *tag,
-    size_t   putDataLen,
-    void     *putData)
+    char *tag,
+    size_t putDataLen,
+    void *putData)
 {
     unsigned int elemCnt = methodIDLen / sizeof(unsigned int);
 
-    char    *utf8ObjPtr=NULL;
-    int     utf8ObjSize = 0;
+    char *utf8ObjPtr = NULL;
+    int utf8ObjSize = 0;
 
-    char    *utf8TagPtr = NULL;
-    int     utf8TagSize = 0;
+    char *utf8TagPtr = NULL;
+    int utf8TagSize = 0;
 
     utf8ObjPtr = objectDN;
-    utf8ObjSize = strlen(utf8ObjPtr)+1;
+    utf8ObjSize = strlen(utf8ObjPtr) + 1;
 
     utf8TagPtr = tag;
-    utf8TagSize = strlen(utf8TagPtr)+1;
+    utf8TagSize = strlen(utf8TagPtr) + 1;
 
     /* Allocate a BerElement for the request parameters. */
     BerElement *requestBer = ber_alloc();
@@ -228,22 +230,23 @@ static int berEncodeLoginData(
  decode the the return data and length
 **********************************************************************/
 
-static int berDecodeLoginData(
+static int
+berDecodeLoginData(
     struct berval *replyBV,
-    int      *serverVersion,
-    size_t   *retDataLen,
-    void     *retData )
+    int *serverVersion,
+    size_t *retDataLen,
+    void *retData)
 {
     int err = 0;
     BerElement *replyBer = NULL;
-    char    *retOctStr = NULL;
-    size_t  retOctStrLen = 0;
+    char *retOctStr = NULL;
+    size_t retOctStrLen = 0;
 
     if ((replyBer = ber_init(replyBV)) == NULL) {
         err = LDAP_OPERATIONS_ERROR;
     } else if (retData) {
         retOctStrLen = *retDataLen + 1;
-        retOctStr = (char*)SMB_MALLOC_ARRAY(char, retOctStrLen);
+        retOctStr = (char *)SMB_MALLOC_ARRAY(char, retOctStrLen);
         if (!retOctStr) {
             err = LDAP_OPERATIONS_ERROR;
         } else if (ber_scanf(replyBer, "{iis}", serverVersion, &err, retOctStr, &retOctStrLen) != LBER_ERROR) {
@@ -282,20 +285,21 @@ static int berDecodeLoginData(
  that is tagged with the specified methodID and tag.
 **********************************************************************/
 
-static int getLoginConfig(
-    LDAP     *ld,
-    char     *objectDN,
-    unsigned int  methodIDLen,
+static int
+getLoginConfig(
+    LDAP *ld,
+    char *objectDN,
+    unsigned int methodIDLen,
     unsigned int *methodID,
-    char     *tag,
-    size_t   *dataLen,
-    void     *data )
+    char *tag,
+    size_t *dataLen,
+    void *data)
 {
-    int     err = 0;
-    struct  berval *requestBV = NULL;
-    char    *replyOID = NULL;
-    struct  berval *replyBV = NULL;
-    int     serverVersion = 0;
+    int err = 0;
+    struct berval *requestBV = NULL;
+    char *replyOID = NULL;
+    struct berval *replyBV = NULL;
+    int serverVersion = 0;
 
     /* Validate unicode parameters. */
     if ((strlen(objectDN) == 0) || ld == NULL) {
@@ -305,8 +309,7 @@ static int getLoginConfig(
     err = berEncodeLoginData(&requestBV, objectDN, methodIDLen, methodID, tag, 0, NULL);
     if (err) {
         ;
-    } else if (!err && (err = ldap_extended_operation_s(ld, NMASLDAP_GET_LOGIN_CONFIG_REQUEST,
-                              requestBV, NULL, NULL, &replyOID, &replyBV))) {
+    } else if (!err && (err = ldap_extended_operation_s(ld, NMASLDAP_GET_LOGIN_CONFIG_REQUEST, requestBV, NULL, NULL, &replyOID, &replyBV))) {
         /* Call the ldap_extended_operation (synchronously) */
         ;
     } else if (!replyOID) {
@@ -352,45 +355,46 @@ static int getLoginConfig(
  Attempts to get the Simple Password
 **********************************************************************/
 
-static int nmasldap_get_simple_pwd(
-    LDAP     *ld,
-    char     *objectDN,
-    size_t   pwdLen,
-    char     *pwd )
+static int
+nmasldap_get_simple_pwd(
+    LDAP *ld,
+    char *objectDN,
+    size_t pwdLen,
+    char *pwd)
 {
     int err = 0;
     unsigned int methodID = 0;
     unsigned int methodIDLen = sizeof(methodID);
-    char    tag[] = {'P','A','S','S','W','O','R','D',' ','H','A','S','H',0};
-    char    *pwdBuf=NULL;
-    size_t  pwdBufLen, bufferLen;
+    char tag[] = {'P', 'A', 'S', 'S', 'W', 'O', 'R', 'D', ' ', 'H', 'A', 'S', 'H', 0};
+    char *pwdBuf = NULL;
+    size_t pwdBufLen, bufferLen;
 
-    bufferLen = pwdBufLen = pwdLen+2;
-    pwdBuf = (char*)SMB_MALLOC_ARRAY(char, pwdBufLen); /* digest and null */
+    bufferLen = pwdBufLen = pwdLen + 2;
+    pwdBuf = (char *)SMB_MALLOC_ARRAY(char, pwdBufLen); /* digest and null */
     if (pwdBuf == NULL) {
         return LDAP_NO_MEMORY;
     }
 
     err = getLoginConfig(ld, objectDN, methodIDLen, &methodID, tag, &pwdBufLen, pwdBuf);
     if (err == 0) {
-        if (pwdBufLen !=0) {
-            pwdBuf[pwdBufLen] = 0;       /* null terminate */
+        if (pwdBufLen != 0) {
+            pwdBuf[pwdBufLen] = 0; /* null terminate */
 
             switch (pwdBuf[0]) {
-            case 1:  /* cleartext password  */
+            case 1: /* cleartext password  */
                 break;
-            case 2:  /* SHA1 HASH */
-            case 3:  /* MD5_ID */
-            case 4:  /* UNIXCrypt_ID */
-            case 8:  /* SSHA_ID */
-            default: /* Unknown digest */
-                err = LDAP_INAPPROPRIATE_AUTH;  /* only return clear text */
+            case 2:                            /* SHA1 HASH */
+            case 3:                            /* MD5_ID */
+            case 4:                            /* UNIXCrypt_ID */
+            case 8:                            /* SSHA_ID */
+            default:                           /* Unknown digest */
+                err = LDAP_INAPPROPRIATE_AUTH; /* only return clear text */
                 break;
             }
 
             if (!err) {
-                if (pwdLen >= pwdBufLen-1) {
-                    memcpy(pwd, &pwdBuf[1], pwdBufLen-1);  /* skip digest tag and include null */
+                if (pwdLen >= pwdBufLen - 1) {
+                    memcpy(pwd, &pwdBuf[1], pwdBufLen - 1); /* skip digest tag and include null */
                 } else {
                     err = LDAP_NO_MEMORY;
                 }
@@ -410,11 +414,12 @@ static int nmasldap_get_simple_pwd(
  Attempts to get the Universal Password
 **********************************************************************/
 
-static int nmasldap_get_password(
-    LDAP     *ld,
-    char     *objectDN,
-    size_t   *pwdSize,  /* in bytes */
-    unsigned char     *pwd )
+static int
+nmasldap_get_password(
+    LDAP *ld,
+    char *objectDN,
+    size_t *pwdSize, /* in bytes */
+    unsigned char *pwd)
 {
     int err = 0;
 
@@ -431,7 +436,7 @@ static int nmasldap_get_password(
     }
 
     bufferLen = pwdBufLen = *pwdSize;
-    pwdBuf = (char*)SMB_MALLOC_ARRAY(char, pwdBufLen+2);
+    pwdBuf = (char *)SMB_MALLOC_ARRAY(char, pwdBufLen + 2);
     if (pwdBuf == NULL) {
         return LDAP_NO_MEMORY;
     }
@@ -459,7 +464,7 @@ static int nmasldap_get_password(
             err = LDAP_OPERATIONS_ERROR;
 
         } else if (!err && pwdBufLen != 0) {
-            if (*pwdSize >= pwdBufLen+1 && pwd != NULL) {
+            if (*pwdSize >= pwdBufLen + 1 && pwd != NULL) {
                 memcpy(pwd, pwdBuf, pwdBufLen);
                 pwd[pwdBufLen] = 0; /* add null termination */
             }
@@ -494,18 +499,19 @@ static int nmasldap_get_password(
  Get the user's password from NDS.
  *********************************************************************/
 
-int nds_get_password(
+int
+nds_get_password(
     LDAP *ld,
     char *object_dn,
     size_t *pwd_len,
-    char *pwd )
+    char *pwd)
 {
     int rc = -1;
 
     rc = nmasldap_get_password(ld, object_dn, pwd_len, (unsigned char *)pwd);
     if (rc == LDAP_SUCCESS) {
 #ifdef DEBUG_PASSWORD
-        DEBUG(100,("nmasldap_get_password returned %s for %s\n", pwd, object_dn));
+        DEBUG(100, ("nmasldap_get_password returned %s for %s\n", pwd, object_dn));
 #endif
         DEBUG(5, ("NDS Universal Password retrieved for %s\n", object_dn));
     } else {
@@ -516,7 +522,7 @@ int nds_get_password(
         rc = nmasldap_get_simple_pwd(ld, object_dn, *pwd_len, pwd);
         if (rc == LDAP_SUCCESS) {
 #ifdef DEBUG_PASSWORD
-            DEBUG(100,("nmasldap_get_simple_pwd returned %s for %s\n", pwd, object_dn));
+            DEBUG(100, ("nmasldap_get_simple_pwd returned %s for %s\n", pwd, object_dn));
 #endif
             DEBUG(5, ("NDS Simple Password retrieved for %s\n", object_dn));
         } else {
@@ -529,4 +535,3 @@ int nds_get_password(
     /* We got the password */
     return LDAP_SUCCESS;
 }
-

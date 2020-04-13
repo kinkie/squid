@@ -20,8 +20,7 @@ class netdbEntry;
 class PeerSelector;
 class StoreEntry;
 
-class net_db_name:
-    public hash_link /* must be first */
+class net_db_name : public hash_link /* must be first */
 {
     MEMPROXY_CLASS(net_db_name);
 
@@ -43,8 +42,7 @@ public:
     time_t expires;
 };
 
-class netdbEntry:
-    public hash_link /* must be first */
+class netdbEntry : public hash_link /* must be first */
 {
     MEMPROXY_CLASS(netdbEntry);
 
@@ -85,4 +83,3 @@ CachePeer *netdbClosestParent(PeerSelector *);
 void netdbHostData(const char *host, int *samp, int *rtt, int *hops);
 
 #endif /* ICMP_NET_DB_H */
-

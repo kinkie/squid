@@ -9,12 +9,13 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/StringData.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
 
-ACLStringData::ACLStringData(ACLStringData const &old) : stringValues(old.stringValues)
+ACLStringData::ACLStringData(ACLStringData const &old) :
+    stringValues(old.stringValues)
 {
 }
 
@@ -72,4 +73,3 @@ ACLStringData::clone() const
     /* Splay trees don't clone yet. */
     return new ACLStringData(*this);
 }
-

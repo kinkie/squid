@@ -93,16 +93,16 @@
 #endif
 
 /* AYJ: helper input buffer may be a lot larger than this used to expect... */
-#define MAXPWNAM    254
-#define MAXPASS     254
-#define MAXLINE     254
+#define MAXPWNAM 254
+#define MAXPASS 254
+#define MAXLINE 254
 
 static void md5_calc(uint8_t out[16], void *in, size_t len);
 
 static int i_send_buffer[2048];
 static int i_recv_buffer[2048];
-static char *send_buffer = (char *) i_send_buffer;
-static char *recv_buffer = (char *) i_recv_buffer;
+static char *send_buffer = (char *)i_send_buffer;
+static char *recv_buffer = (char *)i_recv_buffer;
 static int sockfd;
 static u_char request_id;
 static char vector[AUTH_VECTOR_LEN];
@@ -172,7 +172,7 @@ result_recv(char *buffer, int length)
     int secretlen;
     /* VALUE_PAIR   *req; */
 
-    auth = (AUTH_HDR *) buffer;
+    auth = (AUTH_HDR *)buffer;
     totallen = ntohs(auth->length);
 
     if (totallen != length) {
@@ -188,7 +188,7 @@ result_recv(char *buffer, int length)
     memcpy(auth->vector, vector, AUTH_VECTOR_LEN);
     secretlen = strlen(secretkey);
     memcpy(buffer + length, secretkey, secretlen);
-    md5_calc(calc_digest, (unsigned char *) auth, length + secretlen);
+    md5_calc(calc_digest, (unsigned char *)auth, length + secretlen);
 
     if (memcmp(reply_digest, calc_digest, AUTH_VECTOR_LEN) != 0) {
         debug("WARNING: Received invalid reply digest from server\n");
@@ -296,7 +296,7 @@ authenticate(int socket_fd, const char *username, const char *passwd)
     /*
      *    Build an authentication request
      */
-    auth = (AUTH_HDR *) send_buffer;
+    auth = (AUTH_HDR *)send_buffer;
     auth->code = PW_AUTHENTICATION_REQUEST;
     auth->id = ++request_id;
     random_vector(vector);
@@ -314,7 +314,7 @@ authenticate(int socket_fd, const char *username, const char *passwd)
         length = MAXPWNAM;
     }
     *ptr = length + 2;
-    ptr = (unsigned char*)send_buffer + sizeof(AUTH_HDR);
+    ptr = (unsigned char *)send_buffer + sizeof(AUTH_HDR);
     memcpy(ptr, username, length);
     ptr += length;
     total_length += length + 2;
@@ -346,7 +346,7 @@ authenticate(int socket_fd, const char *username, const char *passwd)
     memcpy(cbc, auth->vector, AUTH_VECTOR_LEN);
     for (j = 0; j < length; j += AUTH_VECTOR_LEN) {
         /* Calculate the MD5 Digest */
-        strcpy((char *) md5buf, secretkey);
+        strcpy((char *)md5buf, secretkey);
         memcpy(md5buf + secretlen, cbc, AUTH_VECTOR_LEN);
         md5_calc(cbc, md5buf, secretlen + AUTH_VECTOR_LEN);
 
@@ -417,12 +417,12 @@ authenticate(int socket_fd, const char *username, const char *passwd)
          *    Send the request we've built.
          */
         gettimeofday(&sent, NULL);
-        if (send(socket_fd, (char *) auth, total_length, 0) < 0) {
+        if (send(socket_fd, (char *)auth, total_length, 0) < 0) {
             int xerrno = errno;
             // EAGAIN is expected at high traffic, just retry
             // TODO: block/sleep a few ms to let the apparently full buffer drain ?
             if (xerrno != EAGAIN && xerrno != EWOULDBLOCK)
-                fprintf(stderr,"ERROR: RADIUS send() failure: %s\n", xstrerr(xerrno));
+                fprintf(stderr, "ERROR: RADIUS send() failure: %s\n", xstrerr(xerrno));
             continue;
         }
         while ((time_spent = time_since(&sent)) < 1000000) {
@@ -437,11 +437,11 @@ authenticate(int socket_fd, const char *username, const char *passwd)
             }
             FD_ZERO(&readfds);
             FD_SET(socket_fd, &readfds);
-            if (select(socket_fd + 1, &readfds, NULL, NULL, &tv) == 0)  /* Select timeout */
+            if (select(socket_fd + 1, &readfds, NULL, NULL, &tv) == 0) /* Select timeout */
                 break;
             salen = sizeof(saremote);
             len = recvfrom(socket_fd, recv_buffer, sizeof(i_recv_buffer),
-                           0, (struct sockaddr *) &saremote, &salen);
+                           0, (struct sockaddr *)&saremote, &salen);
 
             if (len < 0)
                 continue;
@@ -488,20 +488,20 @@ main(int argc, char **argv)
             cfname = optarg;
             break;
         case 'h':
-            strncpy(server, optarg, sizeof(server)-1);
-            server[sizeof(server)-1] = '\0';
+            strncpy(server, optarg, sizeof(server) - 1);
+            server[sizeof(server) - 1] = '\0';
             break;
         case 'p':
-            strncpy(svc_name, optarg, sizeof(svc_name)-1);
-            svc_name[sizeof(svc_name)-1] = '\0';
+            strncpy(svc_name, optarg, sizeof(svc_name) - 1);
+            svc_name[sizeof(svc_name) - 1] = '\0';
             break;
         case 'w':
-            strncpy(secretkey, optarg, sizeof(secretkey)-1);
-            secretkey[sizeof(secretkey)-1] = '\0';
+            strncpy(secretkey, optarg, sizeof(secretkey) - 1);
+            secretkey[sizeof(secretkey) - 1] = '\0';
             break;
         case 'i':
-            strncpy(identifier, optarg, sizeof(identifier)-1);
-            identifier[sizeof(identifier)-1] = '\0';
+            strncpy(identifier, optarg, sizeof(identifier) - 1);
+            identifier[sizeof(identifier) - 1] = '\0';
             break;
         case 't':
             retries = atoi(optarg);
@@ -538,7 +538,7 @@ main(int argc, char **argv)
      */
     svp = getservbyname(svc_name, "udp");
     if (svp != NULL)
-        svc_port = ntohs((unsigned short) svp->s_port);
+        svc_port = ntohs((unsigned short)svp->s_port);
     else
         svc_port = atoi(svc_name);
     if (svc_port == 0)
@@ -559,19 +559,19 @@ main(int argc, char **argv)
     saremote.sin_addr.s_addr = htonl(auth_ipaddr);
     saremote.sin_port = htons(svc_port);
 
-    if (connect(sockfd, (struct sockaddr *) &saremote, sizeof(saremote)) < 0) {
+    if (connect(sockfd, (struct sockaddr *)&saremote, sizeof(saremote)) < 0) {
         perror("connect");
         exit(EXIT_FAILURE);
     }
     salen = sizeof(salocal);
-    if (getsockname(sockfd, (struct sockaddr *) &salocal, &salen) < 0) {
+    if (getsockname(sockfd, (struct sockaddr *)&salocal, &salen) < 0) {
         perror("getsockname");
         exit(EXIT_FAILURE);
     }
 #ifdef O_NONBLOCK
     if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) < 0) {
         int xerrno = errno;
-        fprintf(stderr,"%s| ERROR: fcntl() failure: %s\n", argv[0], xstrerr(xerrno));
+        fprintf(stderr, "%s| ERROR: fcntl() failure: %s\n", argv[0], xstrerr(xerrno));
         exit(EXIT_FAILURE);
     }
 #endif
@@ -615,4 +615,3 @@ main(int argc, char **argv)
     close(sockfd);
     return EXIT_SUCCESS;
 }
-

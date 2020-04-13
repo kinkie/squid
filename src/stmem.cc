@@ -9,12 +9,12 @@
 /* DEBUG: section 19    Store Memory Primitives */
 
 #include "squid.h"
+#include "stmem.h"
 #include "Generic.h"
 #include "HttpReply.h"
-#include "mem_node.h"
 #include "MemObject.h"
+#include "mem_node.h"
 #include "profiler/Profiler.h"
-#include "stmem.h"
 
 /*
  * NodeGet() is called to get the data buffer to pass to storeIOWrite().
@@ -24,7 +24,7 @@
  * mem_node.cc.
  */
 char *
-mem_hdr::NodeGet(mem_node * aNode)
+mem_hdr::NodeGet(mem_node *aNode)
 {
     assert(!aNode->write_pending);
     aNode->write_pending = true;
@@ -32,7 +32,7 @@ mem_hdr::NodeGet(mem_node * aNode)
 }
 
 int64_t
-mem_hdr::lowestOffset () const
+mem_hdr::lowestOffset() const
 {
     const SplayNode<mem_node *> *theStart = nodes.start();
 
@@ -43,7 +43,7 @@ mem_hdr::lowestOffset () const
 }
 
 int64_t
-mem_hdr::endOffset () const
+mem_hdr::endOffset() const
 {
     int64_t result = 0;
     const SplayNode<mem_node *> *theEnd = nodes.finish();
@@ -51,7 +51,7 @@ mem_hdr::endOffset () const
     if (theEnd)
         result = theEnd->data->dataRange().end;
 
-    assert (result == inmem_hi);
+    assert(result == inmem_hi);
 
     return result;
 }
@@ -73,7 +73,7 @@ mem_hdr::unlink(mem_node *aNode)
     }
 
     debugs(19, 8, this << " removing " << aNode);
-    nodes.remove (aNode, NodeCompare);
+    nodes.remove(aNode, NodeCompare);
     delete aNode;
     return true;
 }
@@ -83,28 +83,28 @@ mem_hdr::freeDataUpto(int64_t target_offset)
 {
     debugs(19, 8, this << " up to " << target_offset);
     /* keep the last one to avoid change to other part of code */
-    SplayNode<mem_node*> const * theStart;
+    SplayNode<mem_node *> const *theStart;
 
     while ((theStart = nodes.start())) {
         if (theStart == nodes.finish())
             break;
 
-        if (theStart->data->end() > target_offset )
+        if (theStart->data->end() > target_offset)
             break;
 
         if (!unlink(theStart->data))
             break;
     }
 
-    assert (lowestOffset () <= target_offset);
+    assert(lowestOffset() <= target_offset);
 
-    return lowestOffset ();
+    return lowestOffset();
 }
 
 int
 mem_hdr::appendToNode(mem_node *aNode, const char *data, int maxLength)
 {
-    size_t result = writeAvailable (aNode, aNode->nodeBuffer.offset + aNode->nodeBuffer.length,maxLength, data);
+    size_t result = writeAvailable(aNode, aNode->nodeBuffer.offset + aNode->nodeBuffer.length, maxLength, data);
     return result;
 }
 
@@ -112,12 +112,12 @@ size_t
 mem_hdr::writeAvailable(mem_node *aNode, int64_t location, size_t amount, char const *source)
 {
     /* if we attempt to overwrite existing data or leave a gap within a node */
-    assert (location == aNode->nodeBuffer.offset + (int64_t)aNode->nodeBuffer.length);
+    assert(location == aNode->nodeBuffer.offset + (int64_t)aNode->nodeBuffer.length);
     /* And we are not at the end of the node */
-    assert (aNode->canAccept (location));
+    assert(aNode->canAccept(location));
 
     /* these two can go I think */
-    assert (location - aNode->nodeBuffer.offset == (int64_t)aNode->nodeBuffer.length);
+    assert(location - aNode->nodeBuffer.offset == (int64_t)aNode->nodeBuffer.length);
     size_t copyLen = min(amount, aNode->space());
 
     memcpy(aNode->nodeBuffer.data + aNode->nodeBuffer.length, source, copyLen);
@@ -135,23 +135,23 @@ mem_hdr::writeAvailable(mem_node *aNode, int64_t location, size_t amount, char c
 }
 
 void
-mem_hdr::appendNode (mem_node *aNode)
+mem_hdr::appendNode(mem_node *aNode)
 {
-    nodes.insert (aNode, NodeCompare);
+    nodes.insert(aNode, NodeCompare);
 }
 
 void
 mem_hdr::makeAppendSpace()
 {
     if (!nodes.size()) {
-        appendNode (new mem_node (0));
+        appendNode(new mem_node(0));
         return;
     }
 
     if (!nodes.finish()->data->space())
-        appendNode (new mem_node (endOffset()));
+        appendNode(new mem_node(endOffset()));
 
-    assert (nodes.finish()->data->space());
+    assert(nodes.finish()->data->space());
 }
 
 void
@@ -161,8 +161,8 @@ mem_hdr::internalAppend(const char *data, int len)
 
     while (len > 0) {
         makeAppendSpace();
-        int copied = appendToNode (nodes.finish()->data, data, len);
-        assert (copied);
+        int copied = appendToNode(nodes.finish()->data, data, len);
+        assert(copied);
 
         len -= copied;
         data += copied;
@@ -173,12 +173,12 @@ mem_hdr::internalAppend(const char *data, int len)
  * If no node contains the start, it returns NULL.
  */
 mem_node *
-mem_hdr::getBlockContainingLocation (int64_t location) const
+mem_hdr::getBlockContainingLocation(int64_t location) const
 {
     // Optimize: do not create a whole mem_node just to store location
-    mem_node target (location);
+    mem_node target(location);
     target.nodeBuffer.length = 1;
-    mem_node *const *result = nodes.find (&target, NodeCompare);
+    mem_node *const *result = nodes.find(&target, NodeCompare);
 
     if (result)
         return *result;
@@ -192,9 +192,9 @@ mem_hdr::copyAvailable(mem_node *aNode, int64_t location, size_t amount, char *t
     if (aNode->nodeBuffer.offset > location)
         return 0;
 
-    assert (aNode->nodeBuffer.offset <= location);
+    assert(aNode->nodeBuffer.offset <= location);
 
-    assert (aNode->end() > location);
+    assert(aNode->end() > location);
 
     size_t copyOffset = location - aNode->nodeBuffer.offset;
 
@@ -208,11 +208,11 @@ mem_hdr::copyAvailable(mem_node *aNode, int64_t location, size_t amount, char *t
 void
 mem_hdr::debugDump() const
 {
-    debugs (19, 0, "mem_hdr::debugDump: lowest offset: " << lowestOffset() << " highest offset + 1: " << endOffset() << ".");
+    debugs(19, 0, "mem_hdr::debugDump: lowest offset: " << lowestOffset() << " highest offset + 1: " << endOffset() << ".");
     std::ostringstream result;
     PointerPrinter<mem_node *> foo(result, " - ");
     getNodes().visit(foo);
-    debugs (19, 0, "mem_hdr::debugDump: Current available data is: " << result.str() << ".");
+    debugs(19, 0, "mem_hdr::debugDump: Current available data is: " << result.str() << ".");
 }
 
 /* FIXME: how do we deal with sparse results -
@@ -234,7 +234,7 @@ mem_hdr::copy(StoreIOBuffer const &target) const
     if (nodes.size() == 0) {
         debugs(19, DBG_IMPORTANT, "mem_hdr::copy: No data to read");
         debugDump();
-        assert (0);
+        assert(0);
         return 0;
     }
 
@@ -245,8 +245,7 @@ mem_hdr::copy(StoreIOBuffer const &target) const
     mem_node *p = getBlockContainingLocation(target.offset);
 
     if (!p) {
-        debugs(19, DBG_IMPORTANT, "memCopy: could not find start of " << target.range() <<
-               " in memory.");
+        debugs(19, DBG_IMPORTANT, "memCopy: could not find start of " << target.range() << " in memory.");
         debugDump();
         fatal_dump("Squid has attempted to read data from memory that is not present. This is an indication of of (pre-3.0) code that hasn't been updated to deal with sparse objects in memory. Squid should coredump.allowing to review the cause. Immediately preceding this message is a dump of the available data in the format [start,end). The [ means from the value, the ) means up to the value. I.e. [1,5) means that there are 4 bytes of data, at offsets 1,2,3,4.\n");
         return 0;
@@ -260,8 +259,8 @@ mem_hdr::copy(StoreIOBuffer const &target) const
      * we're satiated */
 
     while (p && bytes_to_go > 0) {
-        size_t bytes_to_copy = copyAvailable (p,
-                                              location, bytes_to_go, ptr_to_buf);
+        size_t bytes_to_copy = copyAvailable(p,
+                                             location, bytes_to_go, ptr_to_buf);
 
         /* hit a sparse patch */
 
@@ -281,7 +280,7 @@ mem_hdr::copy(StoreIOBuffer const &target) const
 }
 
 bool
-mem_hdr::hasContigousContentRange(Range<int64_t> const & range) const
+mem_hdr::hasContigousContentRange(Range<int64_t> const &range) const
 {
     int64_t currentStart = range.start;
 
@@ -292,16 +291,16 @@ mem_hdr::hasContigousContentRange(Range<int64_t> const & range) const
             return true;
     }
 
-    return !range.size(); // empty range is contiguous
+    return !range.size();  // empty range is contiguous
 }
 
 bool
 mem_hdr::unionNotEmpty(StoreIOBuffer const &candidate)
 {
-    assert (candidate.offset >= 0);
+    assert(candidate.offset >= 0);
     mem_node target(candidate.offset);
     target.nodeBuffer.length = candidate.length;
-    return nodes.find (&target, NodeCompare);
+    return nodes.find(&target, NodeCompare);
 }
 
 mem_node *
@@ -310,7 +309,7 @@ mem_hdr::nodeToRecieve(int64_t offset)
     /* case 1: Nothing in memory */
 
     if (!nodes.size()) {
-        appendNode (new mem_node(offset));
+        appendNode(new mem_node(offset));
         return nodes.start()->data;
     }
 
@@ -318,9 +317,9 @@ mem_hdr::nodeToRecieve(int64_t offset)
     /* case 2: location fits within an extant node */
 
     if (offset > 0) {
-        mem_node search (offset - 1);
+        mem_node search(offset - 1);
         search.nodeBuffer.length = 1;
-        mem_node *const *leadup =  nodes.find (&search, NodeCompare);
+        mem_node *const *leadup = nodes.find(&search, NodeCompare);
 
         if (leadup)
             candidate = *leadup;
@@ -332,14 +331,14 @@ mem_hdr::nodeToRecieve(int64_t offset)
     /* candidate can't accept, so we need a new node */
     candidate = new mem_node(offset);
 
-    appendNode (candidate);
+    appendNode(candidate);
 
     /* simpler to write than a indented if */
     return candidate;
 }
 
 bool
-mem_hdr::write (StoreIOBuffer const &writeBuffer)
+mem_hdr::write(StoreIOBuffer const &writeBuffer)
 {
     PROF_start(mem_hdr_write);
     debugs(19, 6, "mem_hdr::write: " << this << " " << writeBuffer.range() << " object end " << endOffset());
@@ -352,7 +351,7 @@ mem_hdr::write (StoreIOBuffer const &writeBuffer)
         return false;
     }
 
-    assert (writeBuffer.offset >= 0);
+    assert(writeBuffer.offset >= 0);
 
     mem_node *target;
     int64_t currentOffset = writeBuffer.offset;
@@ -361,7 +360,7 @@ mem_hdr::write (StoreIOBuffer const &writeBuffer)
 
     while (len && (target = nodeToRecieve(currentOffset))) {
         size_t wrote = writeAvailable(target, currentOffset, len, currentSource);
-        assert (wrote);
+        assert(wrote);
         len -= wrote;
         currentOffset += wrote;
         currentSource += wrote;
@@ -371,7 +370,8 @@ mem_hdr::write (StoreIOBuffer const &writeBuffer)
     return true;
 }
 
-mem_hdr::mem_hdr() : inmem_hi(0)
+mem_hdr::mem_hdr() :
+    inmem_hi(0)
 {
     debugs(19, 9, HERE << this << " hi: " << inmem_hi);
 }
@@ -387,7 +387,7 @@ mem_hdr::~mem_hdr()
  * a < b if a < b
  */
 int
-mem_hdr::NodeCompare(mem_node * const &left, mem_node * const &right)
+mem_hdr::NodeCompare(mem_node *const &left, mem_node *const &right)
 {
     // possibly Range can help us at some point.
 
@@ -413,7 +413,7 @@ mem_hdr::size() const
 mem_node const *
 mem_hdr::start() const
 {
-    const SplayNode<mem_node *> * result = nodes.start();
+    const SplayNode<mem_node *> *result = nodes.start();
 
     if (result)
         return result->data;
@@ -426,4 +426,3 @@ mem_hdr::getNodes() const
 {
     return nodes;
 }
-

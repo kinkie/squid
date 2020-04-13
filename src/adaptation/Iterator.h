@@ -15,8 +15,7 @@
 #include "adaptation/ServiceGroups.h"
 #include "http/forward.h"
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 /* Iterator is started by client or server Initiators. It iterates services
    in a given group, starting transaction launcher for each service, according
@@ -28,7 +27,7 @@ namespace Adaptation
 */
 
 /// iterates services in ServiceGroup, starting adaptation launchers
-class Iterator: public Initiate, public Initiator
+class Iterator : public Initiate, public Initiator
 {
     CBDATA_CLASS(Iterator);
 
@@ -54,7 +53,7 @@ protected:
     void step();
 
     /// replace the current group and plan with service-proposed ones if needed
-    bool updatePlan(bool adopt); // returns true iff the plan was replaced
+    bool updatePlan(bool adopt);  // returns true iff the plan was replaced
 
     /// creates service filter for the current step
     ServiceFilter filter() const;
@@ -63,17 +62,16 @@ protected:
     void handleAdaptationBlock(const Answer &answer);
     void handleAdaptationError(bool final);
 
-    ServiceGroupPointer theGroup; ///< the service group we are iterating
-    ServicePlan thePlan; ///< which services to use and in what order
-    Http::Message *theMsg; ///< the message being adapted (virgin for each step)
-    HttpRequest *theCause; ///< the cause of the original virgin message
-    AccessLogEntry::Pointer al; ///< info for the future access.log entry
-    CbcPointer<Adaptation::Initiate> theLauncher; ///< current transaction launcher
-    int iterations; ///< number of steps initiated
-    bool adapted; ///< whether the virgin message has been replaced
+    ServiceGroupPointer theGroup;                  ///< the service group we are iterating
+    ServicePlan thePlan;                           ///< which services to use and in what order
+    Http::Message *theMsg;                         ///< the message being adapted (virgin for each step)
+    HttpRequest *theCause;                         ///< the cause of the original virgin message
+    AccessLogEntry::Pointer al;                    ///< info for the future access.log entry
+    CbcPointer<Adaptation::Initiate> theLauncher;  ///< current transaction launcher
+    int iterations;                                ///< number of steps initiated
+    bool adapted;                                  ///< whether the virgin message has been replaced
 };
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__ITERATOR_H */
-

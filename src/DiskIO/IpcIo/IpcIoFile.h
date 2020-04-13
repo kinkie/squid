@@ -9,30 +9,31 @@
 #ifndef SQUID_IPC_IOFILE_H
 #define SQUID_IPC_IOFILE_H
 
-#include "base/AsyncCall.h"
-#include "cbdata.h"
 #include "DiskIO/DiskFile.h"
 #include "DiskIO/IORequestor.h"
+#include "SquidString.h"
+#include "base/AsyncCall.h"
+#include "cbdata.h"
 #include "ipc/forward.h"
 #include "ipc/mem/Page.h"
-#include "SquidString.h"
 #include <list>
 #include <map>
 #include <memory>
 
-namespace Ipc
-{
+namespace Ipc {
 class FewToFewBiQueue;
-} // Ipc
+}  // Ipc
 
 // TODO: expand to all classes
-namespace IpcIo
-{
+namespace IpcIo {
 
 /// what kind of I/O the disker needs to do or have done
-typedef enum { cmdNone, cmdOpen, cmdRead, cmdWrite } Command;
+typedef enum { cmdNone,
+               cmdOpen,
+               cmdRead,
+               cmdWrite } Command;
 
-} // namespace IpcIo
+}  // namespace IpcIo
 
 /// converts DiskIO requests to IPC queue messages
 class IpcIoMsg
@@ -41,23 +42,23 @@ public:
     IpcIoMsg();
 
 public:
-    unsigned int requestId; ///< unique for requestor; matches request w/ response
+    unsigned int requestId;  ///< unique for requestor; matches request w/ response
 
     off_t offset;
     size_t len;
     Ipc::Mem::PageId page;
 
-    IpcIo::Command command; ///< what disker is supposed to do or did
-    struct timeval start; ///< when the I/O request was converted to IpcIoMsg
+    IpcIo::Command command;  ///< what disker is supposed to do or did
+    struct timeval start;    ///< when the I/O request was converted to IpcIoMsg
 
-    int xerrno; ///< I/O error code or zero
+    int xerrno;  ///< I/O error code or zero
 };
 
 class IpcIoPendingRequest;
 
 /// In a worker process, represents a single (remote) cache_dir disker file.
 /// In a disker process, used as a bunch of static methods handling that file.
-class IpcIoFile: public DiskFile
+class IpcIoFile : public DiskFile
 {
     CBDATA_CLASS(IpcIoFile);
 
@@ -86,7 +87,7 @@ public:
     /// handle queue push notifications from worker or disker
     static void HandleNotification(const Ipc::TypedMsgHdr &msg);
 
-    DiskFile::Config config; ///< supported configuration options
+    DiskFile::Config config;  ///< supported configuration options
 
 protected:
     friend class IpcIoPendingRequest;
@@ -114,39 +115,39 @@ private:
     static void HandleResponses(const char *const when);
     void handleResponse(IpcIoMsg &ipcIo);
 
-    static void DiskerHandleMoreRequests(void*);
+    static void DiskerHandleMoreRequests(void *);
     static void DiskerHandleRequests();
     static void DiskerHandleRequest(const int workerId, IpcIoMsg &ipcIo);
     static bool WaitBeforePop();
 
 private:
-    const String dbName; ///< the name of the file we are managing
-    int diskId; ///< the process ID of the disker we talk to
+    const String dbName;  ///< the name of the file we are managing
+    int diskId;           ///< the process ID of the disker we talk to
     RefCount<IORequestor> ioRequestor;
 
-    bool error_; ///< whether we have seen at least one I/O error (XXX)
+    bool error_;  ///< whether we have seen at least one I/O error (XXX)
 
-    unsigned int lastRequestId; ///< last requestId used
+    unsigned int lastRequestId;  ///< last requestId used
 
     /// maps requestId to the handleResponse callback
-    typedef std::map<unsigned int, IpcIoPendingRequest*> RequestMap;
-    RequestMap requestMap1; ///< older (or newer) pending requests
-    RequestMap requestMap2; ///< newer (or older) pending requests
-    RequestMap *olderRequests; ///< older requests (map1 or map2)
-    RequestMap *newerRequests; ///< newer requests (map2 or map1)
-    bool timeoutCheckScheduled; ///< we expect a CheckTimeouts() call
+    typedef std::map<unsigned int, IpcIoPendingRequest *> RequestMap;
+    RequestMap requestMap1;      ///< older (or newer) pending requests
+    RequestMap requestMap2;      ///< newer (or older) pending requests
+    RequestMap *olderRequests;   ///< older requests (map1 or map2)
+    RequestMap *newerRequests;   ///< newer requests (map2 or map1)
+    bool timeoutCheckScheduled;  ///< we expect a CheckTimeouts() call
 
-    static const double Timeout; ///< timeout value in seconds
+    static const double Timeout;  ///< timeout value in seconds
 
     typedef std::list<Pointer> IpcIoFileList;
-    static IpcIoFileList WaitingForOpen; ///< pending open requests
+    static IpcIoFileList WaitingForOpen;  ///< pending open requests
 
     ///< maps diskerId to IpcIoFile, cleared in destructor
-    typedef std::map<int, IpcIoFile*> IpcIoFilesMap;
+    typedef std::map<int, IpcIoFile *> IpcIoFilesMap;
     static IpcIoFilesMap IpcIoFiles;
 
     typedef Ipc::FewToFewBiQueue Queue;
-    static std::unique_ptr<Queue> queue; ///< IPC queue
+    static std::unique_ptr<Queue> queue;  ///< IPC queue
 
     /// whether we are waiting for an event to handle still queued I/O requests
     static bool DiskerHandleMoreRequestsScheduled;
@@ -162,16 +163,15 @@ public:
     void completeIo(IpcIoMsg *const response);
 
 public:
-    const IpcIoFile::Pointer file; ///< the file object waiting for the response
-    ReadRequest *readRequest; ///< set if this is a read requests
-    WriteRequest *writeRequest; ///< set if this is a write request
+    const IpcIoFile::Pointer file;  ///< the file object waiting for the response
+    ReadRequest *readRequest;       ///< set if this is a read requests
+    WriteRequest *writeRequest;     ///< set if this is a write request
 
-    CodeContext::Pointer codeContext; ///< requestor's context
+    CodeContext::Pointer codeContext;  ///< requestor's context
 
 private:
-    IpcIoPendingRequest(const IpcIoPendingRequest &d); // not implemented
-    IpcIoPendingRequest &operator =(const IpcIoPendingRequest &d); // ditto
+    IpcIoPendingRequest(const IpcIoPendingRequest &d);             // not implemented
+    IpcIoPendingRequest &operator=(const IpcIoPendingRequest &d);  // ditto
 };
 
 #endif /* SQUID_IPC_IOFILE_H */
-

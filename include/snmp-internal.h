@@ -33,9 +33,8 @@
  *
  **********************************************************************/
 
-#define SNMP_PORT       161
-#define SNMP_TRAP_PORT      162
-#define SNMP_MAX_LEN        484
+#define SNMP_PORT 161
+#define SNMP_TRAP_PORT 162
+#define SNMP_MAX_LEN 484
 
 #endif /* SQUID_SNMP_INTERNAL_H */
-

@@ -13,8 +13,7 @@
 #include "log/Formats.h"
 
 class Logfile;
-namespace Format
-{
+namespace Format {
 class Format;
 }
 
@@ -40,4 +39,3 @@ public:
 };
 
 #endif /* SQUID_CUSTOMLOG_H_ */
-

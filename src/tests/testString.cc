@@ -7,17 +7,18 @@
  */
 
 #include "squid.h"
-#include "event.h"
-#include "SquidString.h"
 #include "testString.h"
+#include "SquidString.h"
+#include "event.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testString );
+CPPUNIT_TEST_SUITE_REGISTRATION(testString);
 
 /* let this test link sanely */
 void
-eventAdd(const char *name, EVH * func, void *arg, double when, int, bool cbdata)
-{}
+eventAdd(const char *name, EVH *func, void *arg, double when, int, bool cbdata)
+{
+}
 
 /* init memory pools */
 
@@ -67,11 +68,11 @@ testString::testCmpNotEmptyDefault()
     CPPUNIT_ASSERT(right.cmp("foo", 1) < 0);
 }
 
-void testString::testSubstr()
+void
+testString::testSubstr()
 {
     String s("0123456789");
-    String check=s.substr(3,5);
+    String check = s.substr(3, 5);
     String ref("34");
     CPPUNIT_ASSERT(check == ref);
 }
-

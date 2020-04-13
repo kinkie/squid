@@ -7,16 +7,15 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
-#include "acl/StringData.h"
 #include "acl/Tag.h"
 #include "HttpRequest.h"
+#include "acl/FilledChecklist.h"
+#include "acl/StringData.h"
 
 int
-ACLTagStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLTagStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     if (checklist->request != NULL)
-        return data->match (checklist->request->tag.termedBuf());
+        return data->match(checklist->request->tag.termedBuf());
     return 0;
 }
-

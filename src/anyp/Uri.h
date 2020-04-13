@@ -18,8 +18,7 @@
 
 class HttpRequestMethod;
 
-namespace AnyP
-{
+namespace AnyP {
 
 /**
  * Represents a Uniform Resource Identifier.
@@ -32,12 +31,15 @@ class Uri
     MEMPROXY_CLASS(Uri);
 
 public:
-    Uri() : hostIsNumeric_(false), port_(0) {*host_=0;}
+    Uri() :
+        hostIsNumeric_(false), port_(0) { *host_ = 0; }
     Uri(AnyP::UriScheme const &aScheme);
-    Uri(const Uri &other) {
-        this->operator =(other);
+    Uri(const Uri &other)
+    {
+        this->operator=(other);
     }
-    Uri &operator =(const Uri &o) {
+    Uri &operator=(const Uri &o)
+    {
         scheme_ = o.scheme_;
         userInfo_ = o.userInfo_;
         memcpy(host_, o.host_, sizeof(host_));
@@ -49,53 +51,72 @@ public:
         return *this;
     }
 
-    void clear() {
-        scheme_=AnyP::PROTO_NONE;
+    void clear()
+    {
+        scheme_ = AnyP::PROTO_NONE;
         hostIsNumeric_ = false;
         *host_ = 0;
         hostAddr_.setEmpty();
         port_ = 0;
         touch();
     }
-    void touch(); ///< clear the cached URI display forms
+    void touch();  ///< clear the cached URI display forms
 
     bool parse(const HttpRequestMethod &, const SBuf &url);
 
     /// \return a new URI that honors uri_whitespace
     static char *cleanup(const char *uri);
 
-    AnyP::UriScheme const & getScheme() const {return scheme_;}
+    AnyP::UriScheme const &getScheme() const { return scheme_; }
 
     /// convert the URL scheme to that given
-    void setScheme(const AnyP::ProtocolType &p, const char *str) {
+    void setScheme(const AnyP::ProtocolType &p, const char *str)
+    {
         scheme_ = AnyP::UriScheme(p, str);
         touch();
     }
-    void setScheme(const AnyP::UriScheme &s) {
+    void setScheme(const AnyP::UriScheme &s)
+    {
         scheme_ = s;
         touch();
     }
 
-    void userInfo(const SBuf &s) {userInfo_=s; touch();}
-    const SBuf &userInfo() const {return userInfo_;}
+    void userInfo(const SBuf &s)
+    {
+        userInfo_ = s;
+        touch();
+    }
+    const SBuf &userInfo() const { return userInfo_; }
 
     void host(const char *src);
-    const char *host(void) const {return host_;}
-    int hostIsNumeric(void) const {return hostIsNumeric_;}
-    Ip::Address const & hostIP(void) const {return hostAddr_;}
+    const char *host(void) const { return host_; }
+    int hostIsNumeric(void) const { return hostIsNumeric_; }
+    Ip::Address const &hostIP(void) const { return hostAddr_; }
 
     /// \returns the host subcomponent of the authority component
     /// If the host is an IPv6 address, returns that IP address without
     /// [brackets]! See RFC 3986 Section 3.2.2.
     SBuf hostOrIp() const;
 
-    void port(unsigned short p) {port_=p; touch();}
-    unsigned short port() const {return port_;}
+    void port(unsigned short p)
+    {
+        port_ = p;
+        touch();
+    }
+    unsigned short port() const { return port_; }
     /// reset the port to the default port number for the current scheme
     void defaultPort() { port(getScheme().defaultPort()); }
 
-    void path(const char *p) {path_=p; touch();}
-    void path(const SBuf &p) {path_=p; touch();}
+    void path(const char *p)
+    {
+        path_ = p;
+        touch();
+    }
+    void path(const SBuf &p)
+    {
+        path_ = p;
+        touch();
+    }
     const SBuf &path() const;
 
     /// the static '/' default URL-path
@@ -126,7 +147,7 @@ public:
     SBuf &absolute() const;
 
 private:
-    void parseUrn(Parser::Tokenizer&);
+    void parseUrn(Parser::Tokenizer &);
 
     /**
      \par
@@ -150,29 +171,29 @@ private:
      */
     AnyP::UriScheme scheme_;
 
-    SBuf userInfo_; // aka 'URL-login'
+    SBuf userInfo_;  // aka 'URL-login'
 
     // XXX: uses char[] instead of SBUf to reduce performance regressions
     //      from c_str() since most code using this is not yet using SBuf
-    char host_[SQUIDHOSTNAMELEN];   ///< string representation of the URI authority name or IP
-    bool hostIsNumeric_;            ///< whether the authority 'host' is a raw-IP
-    Ip::Address hostAddr_;          ///< binary representation of the URI authority if it is a raw-IP
+    char host_[SQUIDHOSTNAMELEN];  ///< string representation of the URI authority name or IP
+    bool hostIsNumeric_;           ///< whether the authority 'host' is a raw-IP
+    Ip::Address hostAddr_;         ///< binary representation of the URI authority if it is a raw-IP
 
-    unsigned short port_;   ///< URL port
+    unsigned short port_;  ///< URL port
 
     // XXX: for now includes query-string.
-    SBuf path_;     ///< URI path segment
+    SBuf path_;  ///< URI path segment
 
     // pre-assembled URI forms
-    mutable SBuf authorityHttp_;     ///< RFC 7230 section 5.3.3 authority, maybe without default-port
-    mutable SBuf authorityWithPort_; ///< RFC 7230 section 5.3.3 authority with explicit port
-    mutable SBuf absolute_;          ///< RFC 7230 section 5.3.2 absolute-URI
+    mutable SBuf authorityHttp_;      ///< RFC 7230 section 5.3.3 authority, maybe without default-port
+    mutable SBuf authorityWithPort_;  ///< RFC 7230 section 5.3.3 authority with explicit port
+    mutable SBuf absolute_;           ///< RFC 7230 section 5.3.2 absolute-URI
 };
 
-} // namespace AnyP
+}  // namespace AnyP
 
 inline std::ostream &
-operator <<(std::ostream &os, const AnyP::Uri &url)
+operator<<(std::ostream &os, const AnyP::Uri &url)
 {
     // none means explicit empty string for scheme.
     if (url.getScheme() != AnyP::PROTO_NONE)
@@ -197,12 +218,12 @@ void urlInitialize(void);
 /// \returns a pointer to a local static buffer containing request URI
 /// that honors strip_query_terms and %-encodes unsafe URI characters
 char *urlCanonicalCleanWithoutRequest(const SBuf &url, const HttpRequestMethod &, const AnyP::UriScheme &);
-const char *urlCanonicalFakeHttps(const HttpRequest * request);
+const char *urlCanonicalFakeHttps(const HttpRequest *request);
 bool urlIsRelative(const char *);
 char *urlMakeAbsolute(const HttpRequest *, const char *);
 char *urlRInternal(const char *host, unsigned short port, const char *dir, const char *name);
 char *urlInternal(const char *dir, const char *name);
-bool urlAppendDomain(char *host); ///< apply append_domain config to the given hostname
+bool urlAppendDomain(char *host);  ///< apply append_domain config to the given hostname
 
 enum MatchDomainNameFlags {
     mdnNone = 0,
@@ -249,4 +270,3 @@ char *urlHostname(const char *url);
 void urlExtMethodConfigure(void);
 
 #endif /* SQUID_SRC_ANYP_URI_H */
-

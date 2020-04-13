@@ -16,15 +16,13 @@ class helper_server;
 class helper_stateful_server;
 
 /// helper protocol primitives
-namespace Helper
-{
+namespace Helper {
 
 class Reply;
 class Request;
 
-} // namespace Helper
+}  // namespace Helper
 
 typedef void HLPCB(void *, const Helper::Reply &);
 
 #endif /* SQUID_SRC_HELPER_FORWARD_H */
-

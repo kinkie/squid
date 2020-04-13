@@ -9,8 +9,8 @@
 #ifndef SQUID_DISKIOSTRATEGY_H
 #define SQUID_DISKIOSTRATEGY_H
 
-#include "base/RefCount.h"
 #include "Store.h"
+#include "base/RefCount.h"
 
 class DiskFile;
 
@@ -50,7 +50,7 @@ public:
     virtual void statfs(StoreEntry &) const {}
 
     /** module specific options */
-    virtual ConfigOption *getOptionTree() const {return NULL;}
+    virtual ConfigOption *getOptionTree() const { return NULL; }
 };
 
 /* Because we need the DiskFile definition for newFile. */
@@ -60,13 +60,14 @@ class SingletonIOStrategy : public DiskIOStrategy
 {
 
 public:
-    SingletonIOStrategy(DiskIOStrategy *anIO) : io(anIO) {}
+    SingletonIOStrategy(DiskIOStrategy *anIO) :
+        io(anIO) {}
 
     virtual bool shedLoad() { return io->shedLoad(); }
 
     virtual int load() { return io->load(); }
 
-    virtual RefCount<DiskFile> newFile (char const *path) {return io->newFile(path); }
+    virtual RefCount<DiskFile> newFile(char const *path) { return io->newFile(path); }
 
     virtual void sync() { io->sync(); }
 
@@ -78,7 +79,7 @@ public:
 
     virtual void init() { io->init(); }
 
-    virtual void statfs(StoreEntry & sentry) const { io->statfs(sentry); }
+    virtual void statfs(StoreEntry &sentry) const { io->statfs(sentry); }
 
     virtual ConfigOption *getOptionTree() const { return io->getOptionTree(); }
 
@@ -87,4 +88,3 @@ private:
 };
 
 #endif /* SQUID_DISKIOSTRATEGY_H */
-

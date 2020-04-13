@@ -12,61 +12,61 @@
 #if USE_CACHE_DIGESTS
 #include "CacheDigest.h"
 #include "CachePeer.h"
-#include "event.h"
 #include "FwdState.h"
-#include "globals.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
-#include "internal.h"
 #include "MemObject.h"
-#include "mime_header.h"
-#include "neighbors.h"
 #include "PeerDigest.h"
 #include "SquidTime.h"
 #include "Store.h"
-#include "store_key_md5.h"
 #include "StoreClient.h"
+#include "event.h"
+#include "globals.h"
+#include "internal.h"
+#include "mime_header.h"
+#include "neighbors.h"
+#include "store_key_md5.h"
 #include "tools.h"
 #include "util.h"
 
 /* local types */
 
 /* local prototypes */
-static time_t peerDigestIncDelay(const PeerDigest * pd);
-static time_t peerDigestNewDelay(const StoreEntry * e);
-static void peerDigestSetCheck(PeerDigest * pd, time_t delay);
+static time_t peerDigestIncDelay(const PeerDigest *pd);
+static time_t peerDigestNewDelay(const StoreEntry *e);
+static void peerDigestSetCheck(PeerDigest *pd, time_t delay);
 static EVH peerDigestCheck;
-static void peerDigestRequest(PeerDigest * pd);
+static void peerDigestRequest(PeerDigest *pd);
 static STCB peerDigestHandleReply;
 static int peerDigestFetchReply(void *, char *, ssize_t);
 int peerDigestSwapInHeaders(void *, char *, ssize_t);
 int peerDigestSwapInCBlock(void *, char *, ssize_t);
 int peerDigestSwapInMask(void *, char *, ssize_t);
-static int peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const char *step_name);
-static void peerDigestFetchStop(DigestFetchState * fetch, char *buf, const char *reason);
-static void peerDigestFetchAbort(DigestFetchState * fetch, char *buf, const char *reason);
-static void peerDigestReqFinish(DigestFetchState * fetch, char *buf, int, int, int, const char *reason, int err);
-static void peerDigestPDFinish(DigestFetchState * fetch, int pcb_valid, int err);
-static void peerDigestFetchFinish(DigestFetchState * fetch, int err);
-static void peerDigestFetchSetStats(DigestFetchState * fetch);
-static int peerDigestSetCBlock(PeerDigest * pd, const char *buf);
-static int peerDigestUseful(const PeerDigest * pd);
+static int peerDigestFetchedEnough(DigestFetchState *fetch, char *buf, ssize_t size, const char *step_name);
+static void peerDigestFetchStop(DigestFetchState *fetch, char *buf, const char *reason);
+static void peerDigestFetchAbort(DigestFetchState *fetch, char *buf, const char *reason);
+static void peerDigestReqFinish(DigestFetchState *fetch, char *buf, int, int, int, const char *reason, int err);
+static void peerDigestPDFinish(DigestFetchState *fetch, int pcb_valid, int err);
+static void peerDigestFetchFinish(DigestFetchState *fetch, int err);
+static void peerDigestFetchSetStats(DigestFetchState *fetch);
+static int peerDigestSetCBlock(PeerDigest *pd, const char *buf);
+static int peerDigestUseful(const PeerDigest *pd);
 
 /* local constants */
-Version const CacheDigestVer = { 5, 3 };
+Version const CacheDigestVer = {5, 3};
 
 #define StoreDigestCBlockSize sizeof(StoreDigestCBlock)
 
 /* min interval for requesting digests from a given peer */
-static const time_t PeerDigestReqMinGap = 5 * 60;   /* seconds */
+static const time_t PeerDigestReqMinGap = 5 * 60; /* seconds */
 /* min interval for requesting digests (cumulative request stream) */
-static const time_t GlobDigestReqMinGap = 1 * 60;   /* seconds */
+static const time_t GlobDigestReqMinGap = 1 * 60; /* seconds */
 
 /* local vars */
 
 static time_t pd_last_req_time = 0; /* last call to Check */
 
-PeerDigest::PeerDigest(CachePeer * p)
+PeerDigest::PeerDigest(CachePeer *p)
 {
     assert(p);
 
@@ -127,7 +127,7 @@ DigestFetchState::~DigestFetchState()
 
 /* allocate new peer digest, call Init, and lock everything */
 void
-peerDigestCreate(CachePeer * p)
+peerDigestCreate(CachePeer *p)
 {
     assert(p);
 
@@ -146,11 +146,11 @@ peerDigestCreate(CachePeer * p)
 
 /* call Clean and free/unlock everything */
 static void
-peerDigestDestroy(PeerDigest * pd)
+peerDigestDestroy(PeerDigest *pd)
 {
     void *p;
     assert(pd);
-    void * peerTmp = pd->peer;
+    void *peerTmp = pd->peer;
 
     /*
      * DPW 2007-04-12
@@ -174,7 +174,7 @@ PeerDigest::~PeerDigest()
 
 /* called by peer to indicate that somebody actually needs this digest */
 void
-peerDigestNeeded(PeerDigest * pd)
+peerDigestNeeded(PeerDigest *pd)
 {
     assert(pd);
     assert(!pd->flags.needed);
@@ -182,22 +182,23 @@ peerDigestNeeded(PeerDigest * pd)
 
     pd->flags.needed = true;
     pd->times.needed = squid_curtime;
-    peerDigestSetCheck(pd, 0);  /* check asap */
+    peerDigestSetCheck(pd, 0); /* check asap */
 }
 
 /* currently we do not have a reason to disable without destroying */
 #if FUTURE_CODE
 /* disables peer for good */
 static void
-peerDigestDisable(PeerDigest * pd)
+peerDigestDisable(PeerDigest *pd)
 {
     debugs(72, 2, "peerDigestDisable: peer " << pd->host.buf() << " disabled for good");
     pd->times.disabled = squid_curtime;
-    pd->times.next_check = -1;  /* never */
+    pd->times.next_check = -1; /* never */
     pd->flags.usable = 0;
 
     delete pd->cd
-    pd->cd = nullptr;
+        pd->cd
+        = nullptr;
 
     /* we do not destroy the pd itself to preserve its "history" and stats */
 }
@@ -206,18 +207,17 @@ peerDigestDisable(PeerDigest * pd)
 
 /* increment retry delay [after an unsuccessful attempt] */
 static time_t
-peerDigestIncDelay(const PeerDigest * pd)
+peerDigestIncDelay(const PeerDigest *pd)
 {
     assert(pd);
-    return pd->times.retry_delay > 0 ?
-           2 * pd->times.retry_delay :  /* exponential backoff */
-           PeerDigestReqMinGap; /* minimal delay */
+    return pd->times.retry_delay > 0 ? 2 * pd->times.retry_delay : /* exponential backoff */
+        PeerDigestReqMinGap;                                       /* minimal delay */
 }
 
 /* artificially increases Expires: setting to avoid race conditions
  * returns the delay till that [increased] expiration time */
 static time_t
-peerDigestNewDelay(const StoreEntry * e)
+peerDigestNewDelay(const StoreEntry *e)
 {
     assert(e);
 
@@ -229,9 +229,9 @@ peerDigestNewDelay(const StoreEntry * e)
 
 /* registers next digest verification */
 static void
-peerDigestSetCheck(PeerDigest * pd, time_t delay)
+peerDigestSetCheck(PeerDigest *pd, time_t delay)
 {
-    eventAdd("peerDigestCheck", peerDigestCheck, pd, (double) delay, 1);
+    eventAdd("peerDigestCheck", peerDigestCheck, pd, (double)delay, 1);
     pd->times.next_check = squid_curtime + delay;
     debugs(72, 3, "peerDigestSetCheck: will check peer " << pd->host << " in " << delay << " secs");
 }
@@ -240,7 +240,7 @@ peerDigestSetCheck(PeerDigest * pd, time_t delay)
  * called when peer is about to disappear or have already disappeared
  */
 void
-peerDigestNotePeerGone(PeerDigest * pd)
+peerDigestNotePeerGone(PeerDigest *pd)
 {
     if (pd->flags.requested) {
         debugs(72, 2, "peerDigest: peer " << pd->host << " gone, will destroy after fetch.");
@@ -262,17 +262,15 @@ peerDigestCheck(void *data)
 
     assert(!pd->flags.requested);
 
-    pd->times.next_check = 0;   /* unknown */
+    pd->times.next_check = 0; /* unknown */
 
     if (!cbdataReferenceValid(pd->peer)) {
         peerDigestNotePeerGone(pd);
         return;
     }
 
-    debugs(72, 3, "peerDigestCheck: peer " <<  pd->peer->host << ":" << pd->peer->http_port);
-    debugs(72, 3, "peerDigestCheck: time: " << squid_curtime <<
-           ", last received: " << (long int) pd->times.received << "  (" <<
-           std::showpos << (int) (squid_curtime - pd->times.received) << ")");
+    debugs(72, 3, "peerDigestCheck: peer " << pd->peer->host << ":" << pd->peer->http_port);
+    debugs(72, 3, "peerDigestCheck: time: " << squid_curtime << ", last received: " << (long int)pd->times.received << "  (" << std::showpos << (int)(squid_curtime - pd->times.received) << ")");
 
     /* decide when we should send the request:
      * request now unless too close to other requests */
@@ -281,33 +279,27 @@ peerDigestCheck(void *data)
     /* per-peer limit */
 
     if (req_time - pd->times.received < PeerDigestReqMinGap) {
-        debugs(72, 2, "peerDigestCheck: " << pd->host <<
-               ", avoiding close peer requests (" <<
-               (int) (req_time - pd->times.received) << " < " <<
-               (int) PeerDigestReqMinGap << " secs).");
+        debugs(72, 2, "peerDigestCheck: " << pd->host << ", avoiding close peer requests (" << (int)(req_time - pd->times.received) << " < " << (int)PeerDigestReqMinGap << " secs).");
 
         req_time = pd->times.received + PeerDigestReqMinGap;
     }
 
     /* global limit */
     if (req_time - pd_last_req_time < GlobDigestReqMinGap) {
-        debugs(72, 2, "peerDigestCheck: " << pd->host <<
-               ", avoiding close requests (" <<
-               (int) (req_time - pd_last_req_time) << " < " <<
-               (int) GlobDigestReqMinGap << " secs).");
+        debugs(72, 2, "peerDigestCheck: " << pd->host << ", avoiding close requests (" << (int)(req_time - pd_last_req_time) << " < " << (int)GlobDigestReqMinGap << " secs).");
 
         req_time = pd_last_req_time + GlobDigestReqMinGap;
     }
 
     if (req_time <= squid_curtime)
-        peerDigestRequest(pd);  /* will set pd->flags.requested */
+        peerDigestRequest(pd); /* will set pd->flags.requested */
     else
         peerDigestSetCheck(pd, req_time - squid_curtime);
 }
 
 /* ask store for a digest */
 static void
-peerDigestRequest(PeerDigest * pd)
+peerDigestRequest(PeerDigest *pd)
 {
     CachePeer *p = pd->peer;
     StoreEntry *e, *old_e;
@@ -338,13 +330,8 @@ peerDigestRequest(PeerDigest * pd)
 
     req->header.putStr(Http::HdrType::ACCEPT, "text/html");
 
-    if (p->login &&
-            p->login[0] != '*' &&
-            strcmp(p->login, "PASS") != 0 &&
-            strcmp(p->login, "PASSTHRU") != 0 &&
-            strncmp(p->login, "NEGOTIATE",9) != 0 &&
-            strcmp(p->login, "PROXYPASS") != 0) {
-        req->url.userInfo(SBuf(p->login)); // XXX: performance regression make peer login SBuf as well.
+    if (p->login && p->login[0] != '*' && strcmp(p->login, "PASS") != 0 && strcmp(p->login, "PASSTHRU") != 0 && strncmp(p->login, "NEGOTIATE", 9) != 0 && strcmp(p->login, "PROXYPASS") != 0) {
+        req->url.userInfo(SBuf(p->login));  // XXX: performance regression make peer login SBuf as well.
     }
     /* create fetch state structure */
     DigestFetchState *fetch = new DigestFetchState(pd, req);
@@ -523,9 +510,7 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
         const auto &reply = fetch->entry->mem().freshestReply();
         const auto status = reply.sline.status();
         assert(status != Http::scNone);
-        debugs(72, 3, "peerDigestFetchReply: " << pd->host << " status: " << status <<
-               ", expires: " << (long int) reply.expires << " (" << std::showpos <<
-               (int) (reply.expires - squid_curtime) << ")");
+        debugs(72, 3, "peerDigestFetchReply: " << pd->host << " status: " << status << ", expires: " << (long int)reply.expires << " (" << std::showpos << (int)(reply.expires - squid_curtime) << ")");
 
         /* this "if" is based on clientHandleIMSReply() */
 
@@ -565,7 +550,7 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
         } else {
             /* some kind of a bug */
             peerDigestFetchAbort(fetch, buf, reply.sline.reason());
-            return -1;      /* XXX -1 will abort stuff in ReadReply! */
+            return -1; /* XXX -1 will abort stuff in ReadReply! */
         }
 
         /* must have a ready-to-use store entry if we got here */
@@ -608,15 +593,14 @@ peerDigestSwapInHeaders(void *data, char *buf, ssize_t size)
         assert(status != Http::scNone);
 
         if (status != Http::scOkay) {
-            debugs(72, DBG_IMPORTANT, "peerDigestSwapInHeaders: " << fetch->pd->host <<
-                   " status " << status << " got cached!");
+            debugs(72, DBG_IMPORTANT, "peerDigestSwapInHeaders: " << fetch->pd->host << " status " << status << " got cached!");
 
             peerDigestFetchAbort(fetch, buf, "internal status error");
             return -1;
         }
 
         fetch->state = DIGEST_READ_CBLOCK;
-        return hdr_size;    /* Say how much data we read */
+        return hdr_size; /* Say how much data we read */
     }
 
     /* need more data, do we have space? */
@@ -625,7 +609,7 @@ peerDigestSwapInHeaders(void *data, char *buf, ssize_t size)
         return -1;
     }
 
-    return 0;       /* We need to read more to parse .. */
+    return 0; /* We need to read more to parse .. */
 }
 
 int
@@ -663,7 +647,7 @@ peerDigestSwapInCBlock(void *data, char *buf, ssize_t size)
         return -1;
     }
 
-    return 0;       /* We need more data */
+    return 0; /* We need more data */
 }
 
 int
@@ -689,11 +673,10 @@ peerDigestSwapInMask(void *data, char *buf, ssize_t size)
     fetch->mask_offset += size;
 
     if (fetch->mask_offset >= pd->cd->mask_size) {
-        debugs(72, 2, "peerDigestSwapInMask: Done! Got " <<
-               fetch->mask_offset << ", expected " << pd->cd->mask_size);
+        debugs(72, 2, "peerDigestSwapInMask: Done! Got " << fetch->mask_offset << ", expected " << pd->cd->mask_size);
         assert(fetch->mask_offset == pd->cd->mask_size);
         assert(peerDigestFetchedEnough(fetch, NULL, 0, "peerDigestSwapInMask"));
-        return -1;      /* XXX! */
+        return -1; /* XXX! */
     }
 
     /* We always read everything, so return size */
@@ -701,14 +684,14 @@ peerDigestSwapInMask(void *data, char *buf, ssize_t size)
 }
 
 static int
-peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const char *step_name)
+peerDigestFetchedEnough(DigestFetchState *fetch, char *buf, ssize_t size, const char *step_name)
 {
-    static const SBuf hostUnknown("<unknown>"); // peer host (if any)
+    static const SBuf hostUnknown("<unknown>");  // peer host (if any)
     SBuf host = hostUnknown;
 
     PeerDigest *pd = NULL;
-    const char *reason = NULL;  /* reason for completion */
-    const char *no_bug = NULL;  /* successful completion if set */
+    const char *reason = NULL; /* reason for completion */
+    const char *no_bug = NULL; /* successful completion if set */
     const int pdcb_valid = cbdataReferenceValid(fetch->pd);
     const int pcb_valid = cbdataReferenceValid(fetch->pd->peer);
 
@@ -719,7 +702,7 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
         if (!(pd = fetch->pd))
             reason = "peer digest disappeared?!";
 
-#if DONT            /* WHY NOT? /HNO */
+#if DONT /* WHY NOT? /HNO */
 
         else if (!cbdataReferenceValid(pd))
             reason = "invalidated peer digest?!";
@@ -730,8 +713,7 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
             host = pd->host;
     }
 
-    debugs(72, 6, step_name << ": peer " << host << ", offset: " <<
-           fetch->offset << " size: " << size << ".");
+    debugs(72, 6, step_name << ": peer " << host << ", offset: " << fetch->offset << " size: " << size << ".");
 
     /* continue checking (with pd and host known and valid) */
 
@@ -775,7 +757,7 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
 /* call this when all callback data is valid and fetch must be stopped but
  * no error has occurred (e.g. we received 304 reply and reuse old digest) */
 static void
-peerDigestFetchStop(DigestFetchState * fetch, char *buf, const char *reason)
+peerDigestFetchStop(DigestFetchState *fetch, char *buf, const char *reason)
 {
     assert(reason);
     debugs(72, 2, "peerDigestFetchStop: peer " << fetch->pd->host << ", reason: " << reason);
@@ -784,7 +766,7 @@ peerDigestFetchStop(DigestFetchState * fetch, char *buf, const char *reason)
 
 /* call this when all callback data is valid but something bad happened */
 static void
-peerDigestFetchAbort(DigestFetchState * fetch, char *buf, const char *reason)
+peerDigestFetchAbort(DigestFetchState *fetch, char *buf, const char *reason)
 {
     assert(reason);
     debugs(72, 2, "peerDigestFetchAbort: peer " << fetch->pd->host << ", reason: " << reason);
@@ -793,7 +775,7 @@ peerDigestFetchAbort(DigestFetchState * fetch, char *buf, const char *reason)
 
 /* complete the digest transfer, update stats, unlock/release everything */
 static void
-peerDigestReqFinish(DigestFetchState * fetch, char *buf,
+peerDigestReqFinish(DigestFetchState *fetch, char *buf,
                     int fcb_valid, int pdcb_valid, int pcb_valid,
                     const char *reason, int err)
 {
@@ -833,7 +815,7 @@ peerDigestReqFinish(DigestFetchState * fetch, char *buf,
 /* destroys digest if peer disappeared
  * must be called only when fetch and pd cbdata are valid */
 static void
-peerDigestPDFinish(DigestFetchState * fetch, int pcb_valid, int err)
+peerDigestPDFinish(DigestFetchState *fetch, int pcb_valid, int err)
 {
     PeerDigest *pd = fetch->pd;
     const auto host = pd->host;
@@ -845,7 +827,7 @@ peerDigestPDFinish(DigestFetchState * fetch, int pcb_valid, int err)
     pd->stats.recv.msgs += fetch->recv.msg;
 
     if (err) {
-        debugs(72, DBG_IMPORTANT, "" << (pcb_valid ? "temporary " : "" ) << "disabling (" << pd->req_result << ") digest from " << host);
+        debugs(72, DBG_IMPORTANT, "" << (pcb_valid ? "temporary " : "") << "disabling (" << pd->req_result << ") digest from " << host);
 
         delete pd->cd;
         pd->cd = nullptr;
@@ -873,7 +855,7 @@ peerDigestPDFinish(DigestFetchState * fetch, int pcb_valid, int err)
 /* free fetch state structures
  * must be called only when fetch cbdata is valid */
 static void
-peerDigestFetchFinish(DigestFetchState * fetch, int err)
+peerDigestFetchFinish(DigestFetchState *fetch, int err)
 {
     assert(fetch->entry && fetch->request);
 
@@ -896,7 +878,7 @@ peerDigestFetchFinish(DigestFetchState * fetch, int err)
 
 /* calculate fetch stats after completion */
 static void
-peerDigestFetchSetStats(DigestFetchState * fetch)
+peerDigestFetchSetStats(DigestFetchState *fetch)
 {
     MemObject *mem;
     assert(fetch->entry && fetch->request);
@@ -915,20 +897,13 @@ peerDigestFetchSetStats(DigestFetchState * fetch)
     fetch->expires = fetch->entry->expires;
     fetch->resp_time = squid_curtime - fetch->start_time;
 
-    debugs(72, 3, "peerDigestFetchFinish: recv " << fetch->recv.bytes <<
-           " bytes in " << (int) fetch->resp_time << " secs");
+    debugs(72, 3, "peerDigestFetchFinish: recv " << fetch->recv.bytes << " bytes in " << (int)fetch->resp_time << " secs");
 
-    debugs(72, 3, "peerDigestFetchFinish: expires: " <<
-           (long int) fetch->expires << " (" << std::showpos <<
-           (int) (fetch->expires - squid_curtime) << "), lmt: " <<
-           std::noshowpos << (long int) fetch->entry->lastModified() << " (" <<
-           std::showpos << (int) (fetch->entry->lastModified() - squid_curtime) <<
-           ")");
-
+    debugs(72, 3, "peerDigestFetchFinish: expires: " << (long int)fetch->expires << " (" << std::showpos << (int)(fetch->expires - squid_curtime) << "), lmt: " << std::noshowpos << (long int)fetch->entry->lastModified() << " (" << std::showpos << (int)(fetch->entry->lastModified() - squid_curtime) << ")");
 }
 
 static int
-peerDigestSetCBlock(PeerDigest * pd, const char *buf)
+peerDigestSetCBlock(PeerDigest *pd, const char *buf)
 {
     StoreDigestCBlock cblock;
     int freed_size = 0;
@@ -942,52 +917,39 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
     cblock.count = ntohl(cblock.count);
     cblock.del_count = ntohl(cblock.del_count);
     cblock.mask_size = ntohl(cblock.mask_size);
-    debugs(72, 2, "got digest cblock from " << host << "; ver: " <<
-           (int) cblock.ver.current << " (req: " << (int) cblock.ver.required <<
-           ")");
+    debugs(72, 2, "got digest cblock from " << host << "; ver: " << (int)cblock.ver.current << " (req: " << (int)cblock.ver.required << ")");
 
-    debugs(72, 2, "\t size: " <<
-           cblock.mask_size << " bytes, e-cnt: " <<
-           cblock.count << ", e-util: " <<
-           xpercentInt(cblock.count, cblock.capacity) << "%" );
+    debugs(72, 2, "\t size: " << cblock.mask_size << " bytes, e-cnt: " << cblock.count << ", e-util: " << xpercentInt(cblock.count, cblock.capacity) << "%");
     /* check version requirements (both ways) */
 
     if (cblock.ver.required > CacheDigestVer.current) {
-        debugs(72, DBG_IMPORTANT, "" << host << " digest requires version " <<
-               cblock.ver.required << "; have: " << CacheDigestVer.current);
+        debugs(72, DBG_IMPORTANT, "" << host << " digest requires version " << cblock.ver.required << "; have: " << CacheDigestVer.current);
 
         return 0;
     }
 
     if (cblock.ver.current < CacheDigestVer.required) {
-        debugs(72, DBG_IMPORTANT, "" << host << " digest is version " <<
-               cblock.ver.current << "; we require: " <<
-               CacheDigestVer.required);
+        debugs(72, DBG_IMPORTANT, "" << host << " digest is version " << cblock.ver.current << "; we require: " << CacheDigestVer.required);
 
         return 0;
     }
 
     /* check consistency */
-    if (cblock.ver.required > cblock.ver.current ||
-            cblock.mask_size <= 0 || cblock.capacity <= 0 ||
-            cblock.bits_per_entry <= 0 || cblock.hash_func_count <= 0) {
+    if (cblock.ver.required > cblock.ver.current || cblock.mask_size <= 0 || cblock.capacity <= 0 || cblock.bits_per_entry <= 0 || cblock.hash_func_count <= 0) {
         debugs(72, DBG_CRITICAL, "" << host << " digest cblock is corrupted.");
         return 0;
     }
 
     /* check consistency further */
     if ((size_t)cblock.mask_size != CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry)) {
-        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted " <<
-               "(mask size mismatch: " << cblock.mask_size << " ? " <<
-               CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry)
-               << ").");
+        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted "
+                                      << "(mask size mismatch: " << cblock.mask_size << " ? " << CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry) << ").");
         return 0;
     }
 
     /* there are some things we cannot do yet */
     if (cblock.hash_func_count != CacheDigestHashFuncCount) {
-        debugs(72, DBG_CRITICAL, "" << host << " digest: unsupported #hash functions: " <<
-               cblock.hash_func_count << " ? " << CacheDigestHashFuncCount << ".");
+        debugs(72, DBG_CRITICAL, "" << host << " digest: unsupported #hash functions: " << cblock.hash_func_count << " ? " << CacheDigestHashFuncCount << ".");
         return 0;
     }
 
@@ -996,16 +958,14 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
      */
     /* check size changes */
     if (pd->cd && cblock.mask_size != (ssize_t)pd->cd->mask_size) {
-        debugs(72, 2, host << " digest changed size: " << cblock.mask_size <<
-               " -> " << pd->cd->mask_size);
+        debugs(72, 2, host << " digest changed size: " << cblock.mask_size << " -> " << pd->cd->mask_size);
         freed_size = pd->cd->mask_size;
         delete pd->cd;
         pd->cd = nullptr;
     }
 
     if (!pd->cd) {
-        debugs(72, 2, "creating " << host << " digest; size: " << cblock.mask_size << " (" <<
-               std::showpos <<  (int) (cblock.mask_size - freed_size) << ") bytes");
+        debugs(72, 2, "creating " << host << " digest; size: " << cblock.mask_size << " (" << std::showpos << (int)(cblock.mask_size - freed_size) << ") bytes");
         pd->cd = new CacheDigest(cblock.capacity, cblock.bits_per_entry);
 
         if (cblock.mask_size >= freed_size)
@@ -1020,14 +980,13 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
 }
 
 static int
-peerDigestUseful(const PeerDigest * pd)
+peerDigestUseful(const PeerDigest *pd)
 {
     /* TODO: we should calculate the prob of a false hit instead of bit util */
     const auto bit_util = pd->cd->usedMaskPercent();
 
     if (bit_util > 65.0) {
-        debugs(72, DBG_CRITICAL, "Warning: " << pd->host <<
-               " peer digest has too many bits on (" << bit_util << "%).");
+        debugs(72, DBG_CRITICAL, "Warning: " << pd->host << " peer digest has too many bits on (" << bit_util << "%).");
         return 0;
     }
 
@@ -1037,17 +996,17 @@ peerDigestUseful(const PeerDigest * pd)
 static int
 saneDiff(time_t diff)
 {
-    return abs((int) diff) > squid_curtime / 2 ? 0 : diff;
+    return abs((int)diff) > squid_curtime / 2 ? 0 : diff;
 }
 
 void
-peerDigestStatsReport(const PeerDigest * pd, StoreEntry * e)
+peerDigestStatsReport(const PeerDigest *pd, StoreEntry *e)
 {
 #define f2s(flag) (pd->flags.flag ? "yes" : "no")
-#define appendTime(tm) storeAppendPrintf(e, "%s\t %10ld\t %+d\t %+d\n", \
-    ""#tm, (long int)pd->times.tm, \
-    saneDiff(pd->times.tm - squid_curtime), \
-    saneDiff(pd->times.tm - pd->times.initialized))
+#define appendTime(tm) storeAppendPrintf(e, "%s\t %10ld\t %+d\t %+d\n",          \
+                                         "" #tm, (long int)pd->times.tm,         \
+                                         saneDiff(pd->times.tm - squid_curtime), \
+                                         saneDiff(pd->times.tm - pd->times.initialized))
 
     assert(pd);
 
@@ -1067,17 +1026,17 @@ peerDigestStatsReport(const PeerDigest * pd, StoreEntry * e)
     storeAppendPrintf(e, "\tneeded: %3s, usable: %3s, requested: %3s\n",
                       f2s(needed), f2s(usable), f2s(requested));
     storeAppendPrintf(e, "\n\tlast retry delay: %d secs\n",
-                      (int) pd->times.retry_delay);
+                      (int)pd->times.retry_delay);
     storeAppendPrintf(e, "\tlast request response time: %d secs\n",
-                      (int) pd->times.req_delay);
+                      (int)pd->times.req_delay);
     storeAppendPrintf(e, "\tlast request result: %s\n",
                       pd->req_result ? pd->req_result : "(none)");
 
     storeAppendPrintf(e, "\npeer digest traffic:\n");
     storeAppendPrintf(e, "\trequests sent: %d, volume: %d KB\n",
-                      pd->stats.sent.msgs, (int) pd->stats.sent.kbytes.kb);
+                      pd->stats.sent.msgs, (int)pd->stats.sent.kbytes.kb);
     storeAppendPrintf(e, "\treplies recv:  %d, volume: %d KB\n",
-                      pd->stats.recv.msgs, (int) pd->stats.recv.kbytes.kb);
+                      pd->stats.recv.msgs, (int)pd->stats.recv.kbytes.kb);
 
     storeAppendPrintf(e, "\npeer digest structure:\n");
 
@@ -1088,4 +1047,3 @@ peerDigestStatsReport(const PeerDigest * pd, StoreEntry * e)
 }
 
 #endif
-

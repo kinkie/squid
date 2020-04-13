@@ -24,7 +24,7 @@ public:
     /// Otherwise, adds the element to the end of the list and returns true.
     /// Exists to avoid double iteration of find() and push() combo.
     bool push_back_unique(C const &element);
-    bool find(C const &)const;
+    bool find(C const &) const;
     bool findAndTune(C const &);
     /// Iterates the entire list to return the last element holder.
     CbDataList *tail();
@@ -33,32 +33,35 @@ public:
     bool empty() const { return this == NULL; }
 };
 
-template<class C>
+template <class C>
 class CbDataListContainer
 {
 
 public:
     CbDataListContainer();
     ~CbDataListContainer();
-    CbDataList<C> *push_back (C const &);
+    CbDataList<C> *push_back(C const &);
     C pop_front();
     bool empty() const;
 
     CbDataList<C> *head;
 };
 
-template<class C>
+template <class C>
 class CbDataListIterator
 {
 public:
-    CbDataListIterator(CbDataListContainer<C> const &list) : next_entry(list.head) {}
-    const C & next() {
+    CbDataListIterator(CbDataListContainer<C> const &list) :
+        next_entry(list.head) {}
+    const C &next()
+    {
         CbDataList<C> *entry = next_entry;
         if (entry)
             next_entry = entry->next;
         return entry->element;
     }
-    bool end() {
+    bool end()
+    {
         return next_entry == NULL;
     }
 
@@ -72,8 +75,10 @@ cbdata_type CbDataList<C>::CBDATA_CbDataList = CBDATA_UNKNOWN;
 /** \endcond */
 
 template <class C>
-CbDataList<C>::CbDataList(C const &value) : next(NULL), element (value)
-{}
+CbDataList<C>::CbDataList(C const &value) :
+    next(NULL), element(value)
+{
+}
 
 template <class C>
 CbDataList<C>::~CbDataList()
@@ -101,13 +106,14 @@ CbDataList<C> *
 CbDataList<C>::tail()
 {
     CbDataList<C> *last;
-    for (last = this; last->next; last = last->next);
+    for (last = this; last->next; last = last->next)
+        ;
     return last;
 }
 
 template <class C>
 bool
-CbDataList<C>::find (C const &toFind) const
+CbDataList<C>::find(C const &toFind) const
 {
     CbDataList<C> const *node = NULL;
 
@@ -120,12 +126,11 @@ CbDataList<C>::find (C const &toFind) const
 
 template <class C>
 bool
-CbDataList<C>::findAndTune(C const & toFind)
+CbDataList<C>::findAndTune(C const &toFind)
 {
     CbDataList<C> *prev = NULL;
 
-    for (CbDataList<C> *node = this; node; node = node->
-            next) {
+    for (CbDataList<C> *node = this; node; node = node->next) {
         if (node->element == toFind) {
             if (prev != NULL) {
                 /* shift the element just found to the second position
@@ -145,8 +150,10 @@ CbDataList<C>::findAndTune(C const & toFind)
 }
 
 template <class C>
-CbDataListContainer<C>::CbDataListContainer() : head (NULL)
-{}
+CbDataListContainer<C>::CbDataListContainer() :
+    head(NULL)
+{
+}
 
 template <class C>
 CbDataListContainer<C>::~CbDataListContainer()
@@ -157,14 +164,15 @@ CbDataListContainer<C>::~CbDataListContainer()
 
 template <class C>
 CbDataList<C> *
-CbDataListContainer<C>::push_back (C const &element)
+CbDataListContainer<C>::push_back(C const &element)
 {
-    CbDataList<C> *node = new CbDataList<C> (element);
+    CbDataList<C> *node = new CbDataList<C>(element);
 
     if (head) {
         CbDataList<C> *tempNode = NULL;
 
-        for (tempNode = head; tempNode->next; tempNode = tempNode->next);
+        for (tempNode = head; tempNode->next; tempNode = tempNode->next)
+            ;
         tempNode->next = node;
     } else
         head = node;
@@ -196,4 +204,3 @@ CbDataListContainer<C>::empty() const
 }
 
 #endif /* SQUID_CBDATALIST_H */
-

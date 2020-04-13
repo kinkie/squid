@@ -13,8 +13,7 @@
 #include "parser/forward.h"
 #include "sbuf/SBuf.h"
 
-namespace Parser
-{
+namespace Parser {
 
 class BinaryTokenizer;
 
@@ -32,10 +31,10 @@ public:
     /// reports successful parsing of a named object and calls close()
     inline void success();
 
-    BinaryTokenizer &tokenizer; ///< tokenizer being used for parsing
-    const BinaryTokenizerContext * const parent; ///< enclosing context or nullptr
-    const char *const name; ///< this context description or nullptr
-    uint64_t start; ///< context parsing begins at this tokenizer position
+    BinaryTokenizer &tokenizer;                  ///< tokenizer being used for parsing
+    const BinaryTokenizerContext *const parent;  ///< enclosing context or nullptr
+    const char *const name;                      ///< this context description or nullptr
+    uint64_t start;                              ///< context parsing begins at this tokenizer position
 };
 
 /// Safely extracts byte-oriented (i.e., non-textual) fields from raw input.
@@ -47,7 +46,7 @@ class BinaryTokenizer
 {
 public:
     typedef ::Parser::InsufficientInput InsufficientInput;
-    typedef uint64_t size_type; // enough for the largest supported offset
+    typedef uint64_t size_type;  // enough for the largest supported offset
 
     BinaryTokenizer();
     explicit BinaryTokenizer(const SBuf &data, const bool expectMore = false);
@@ -58,7 +57,11 @@ public:
 
     /// change input state without changing parsing state
     /// this method avoids append overheads during incremental parsing
-    void reinput(const SBuf &data, const bool expectMore) { data_ = data; expectMore_ = expectMore; }
+    void reinput(const SBuf &data, const bool expectMore)
+    {
+        data_ = data;
+        expectMore_ = expectMore;
+    }
 
     /// make progress: future parsing failures will not rollback beyond this point
     void commit();
@@ -94,9 +97,9 @@ public:
      * Variable-length arrays (a.k.a. Pascal or prefix strings).
      * pstringN() extracts and returns N-bit length followed by length bytes
      */
-    SBuf pstring8(const char *description); ///< up to 255 byte-long p-string
-    SBuf pstring16(const char *description); ///< up to 64 KiB-long p-string
-    SBuf pstring24(const char *description); ///< up to 16 MiB-long p-string!
+    SBuf pstring8(const char *description);   ///< up to 255 byte-long p-string
+    SBuf pstring16(const char *description);  ///< up to 64 KiB-long p-string
+    SBuf pstring24(const char *description);  ///< up to 16 MiB-long p-string!
 
     /// ignore the next size bytes
     void skip(uint64_t size, const char *description);
@@ -110,7 +113,7 @@ public:
     /// debugging helper for parsed multi-field structures
     void got(uint64_t size, const char *description) const;
 
-    const BinaryTokenizerContext *context; ///< debugging: thing being parsed
+    const BinaryTokenizerContext *context;  ///< debugging: thing being parsed
 
 protected:
     uint32_t octet();
@@ -125,15 +128,14 @@ private:
     Ip::Address inetAny(const char *description);
 
     SBuf data_;
-    uint64_t parsed_; ///< number of data bytes parsed or skipped
-    uint64_t syncPoint_; ///< where to re-start the next parsing attempt
-    bool expectMore_; ///< whether more data bytes may arrive in the future
+    uint64_t parsed_;     ///< number of data bytes parsed or skipped
+    uint64_t syncPoint_;  ///< where to re-start the next parsing attempt
+    bool expectMore_;     ///< whether more data bytes may arrive in the future
 };
 
 /* BinaryTokenizerContext */
 
-inline
-BinaryTokenizerContext::BinaryTokenizerContext(BinaryTokenizer &tk, const char *aName):
+inline BinaryTokenizerContext::BinaryTokenizerContext(BinaryTokenizer &tk, const char *aName) :
     tokenizer(tk),
     parent(tk.context),
     name(aName),
@@ -142,20 +144,19 @@ BinaryTokenizerContext::BinaryTokenizerContext(BinaryTokenizer &tk, const char *
     tk.context = this;
 }
 
-inline
-void
-BinaryTokenizerContext::close() {
+inline void
+BinaryTokenizerContext::close()
+{
     tokenizer.context = parent;
 }
 
-inline
-void
-BinaryTokenizerContext::success() {
+inline void
+BinaryTokenizerContext::success()
+{
     tokenizer.got(tokenizer.parsed() - start, "");
     close();
 }
 
 } /* namespace Parser */
 
-#endif // SQUID_SRC_PARSER_BINARYTOKENIZER_H
-
+#endif  // SQUID_SRC_PARSER_BINARYTOKENIZER_H

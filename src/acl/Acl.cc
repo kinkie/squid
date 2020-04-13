@@ -10,19 +10,19 @@
 
 #include "squid.h"
 #include "acl/Acl.h"
+#include "ConfigParser.h"
+#include "Debug.h"
+#include "SquidConfig.h"
 #include "acl/Checklist.h"
 #include "acl/Gadgets.h"
 #include "acl/Options.h"
 #include "anyp/PortCfg.h"
 #include "cache_cf.h"
-#include "ConfigParser.h"
-#include "Debug.h"
 #include "fatal.h"
 #include "globals.h"
 #include "profiler/Profiler.h"
 #include "sbuf/List.h"
 #include "sbuf/Stream.h"
-#include "SquidConfig.h"
 
 #include <algorithm>
 #include <map>
@@ -32,7 +32,8 @@ const char *AclMatchedName = NULL;
 namespace Acl {
 
 /// ACL type name comparison functor
-class TypeNameCmp {
+class TypeNameCmp
+{
 public:
     bool operator()(TypeName a, TypeName b) const { return strcmp(a, b) < 0; }
 };
@@ -49,15 +50,14 @@ TheMakers()
 }
 
 /// creates an ACL object of the named (and already registered) ACL child type
-static
-ACL *
+static ACL *
 Make(TypeName typeName)
 {
     const auto pos = TheMakers().find(typeName);
     if (pos == TheMakers().end()) {
         debugs(28, DBG_CRITICAL, "FATAL: Invalid ACL type '" << typeName << "'");
         self_destruct();
-        assert(false); // not reached
+        assert(false);  // not reached
     }
 
     ACL *result = (pos->second)(pos->first);
@@ -66,7 +66,7 @@ Make(TypeName typeName)
     return result;
 }
 
-} // namespace Acl
+}  // namespace Acl
 
 void
 Acl::RegisterMaker(TypeName typeName, Maker maker)
@@ -77,16 +77,16 @@ Acl::RegisterMaker(TypeName typeName, Maker maker)
 }
 
 void *
-ACL::operator new (size_t)
+    ACL::operator new(size_t)
 {
-    fatal ("unusable ACL::new");
+    fatal("unusable ACL::new");
     return (void *)1;
 }
 
 void
-ACL::operator delete (void *)
+ACL::operator delete(void *)
 {
-    fatal ("unusable ACL::delete");
+    fatal("unusable ACL::delete");
 }
 
 ACL *
@@ -112,7 +112,8 @@ ACL::ACL() :
     *name = 0;
 }
 
-bool ACL::valid () const
+bool
+ACL::valid() const
 {
     return true;
 }
@@ -130,27 +131,27 @@ ACL::matches(ACLChecklist *checklist) const
 
     int result = 0;
     if (!checklist->hasAle() && requiresAle()) {
-        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in " <<
-               "context without an ALE state. Assuming mismatch.");
+        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in "
+                                              << "context without an ALE state. Assuming mismatch.");
     } else if (!checklist->hasRequest() && requiresRequest()) {
-        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in " <<
-               "context without an HTTP request. Assuming mismatch.");
+        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in "
+                                              << "context without an HTTP request. Assuming mismatch.");
     } else if (!checklist->hasReply() && requiresReply()) {
-        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in " <<
-               "context without an HTTP response. Assuming mismatch.");
+        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in "
+                                              << "context without an HTTP response. Assuming mismatch.");
     } else {
         // make sure the ALE has as much data as possible
         if (requiresAle())
             checklist->verifyAle();
 
         // have to cast because old match() API is missing const
-        result = const_cast<ACL*>(this)->match(checklist);
+        result = const_cast<ACL *>(this)->match(checklist);
     }
 
     const char *extra = checklist->asyncInProgress() ? " async" : "";
     debugs(28, 3, "checked: " << name << " = " << result << extra);
     PROF_stop(ACL_matches);
-    return result == 1; // true for match; false for everything else
+    return result == 1;  // true for match; false for everything else
 }
 
 void
@@ -158,14 +159,14 @@ ACL::context(const char *aName, const char *aCfgLine)
 {
     name[0] = '\0';
     if (aName)
-        xstrncpy(name, aName, ACL_NAME_SZ-1);
+        xstrncpy(name, aName, ACL_NAME_SZ - 1);
     safe_free(cfgline);
     if (aCfgLine)
         cfgline = xstrdup(aCfgLine);
 }
 
 void
-ACL::ParseAclLine(ConfigParser &parser, ACL ** head)
+ACL::ParseAclLine(ConfigParser &parser, ACL **head)
 {
     /* we're already using strtok() to grok the line */
     char *t = NULL;
@@ -182,8 +183,7 @@ ACL::ParseAclLine(ConfigParser &parser, ACL ** head)
     }
 
     if (strlen(t) >= ACL_NAME_SZ) {
-        debugs(28, DBG_CRITICAL, "aclParseAclLine: aclParseAclLine: ACL name '" << t <<
-               "' too long, max " << ACL_NAME_SZ - 1 << " characters supported");
+        debugs(28, DBG_CRITICAL, "aclParseAclLine: aclParseAclLine: ACL name '" << t << "' too long, max " << ACL_NAME_SZ - 1 << " characters supported");
         parser.destruct();
         return;
     }
@@ -223,7 +223,7 @@ ACL::ParseAclLine(ConfigParser &parser, ACL ** head)
     } else if (strcmp(theType, "proto") == 0 && strcmp(aclname, "manager") == 0) {
         // ACL manager is now a built-in and has a different type.
         debugs(28, DBG_PARSE_NOTE(DBG_IMPORTANT), "UPGRADE: ACL 'manager' is now a built-in ACL. Remove it from your config file.");
-        return; // ignore the line
+        return;  // ignore the line
     } else if (strcmp(theType, "clientside_mark") == 0) {
         debugs(28, DBG_IMPORTANT, "UPGRADE: ACL 'clientside_mark' type has been renamed to 'client_connection_mark'.");
         theType = "client_connection_mark";
@@ -235,7 +235,7 @@ ACL::ParseAclLine(ConfigParser &parser, ACL ** head)
         A->context(aclname, config_input_line);
         new_acl = 1;
     } else {
-        if (strcmp (A->typeString(),theType) ) {
+        if (strcmp(A->typeString(), theType)) {
             debugs(28, DBG_CRITICAL, "aclParseAclLine: ACL '" << A->name << "' already exists with different type.");
             parser.destruct();
             return;
@@ -249,7 +249,7 @@ ACL::ParseAclLine(ConfigParser &parser, ACL ** head)
      * Here we set AclMatchedName in case we need to use it in a
      * warning message in aclDomainCompare().
      */
-    AclMatchedName = A->name;   /* ugly */
+    AclMatchedName = A->name; /* ugly */
 
     A->parseFlags();
 
@@ -259,7 +259,7 @@ ACL::ParseAclLine(ConfigParser &parser, ACL ** head)
     /*
      * Clear AclMatchedName from our temporary hack
      */
-    AclMatchedName = NULL;  /* ugly */
+    AclMatchedName = NULL; /* ugly */
 
     if (!new_acl)
         return;
@@ -320,7 +320,7 @@ ACL::matchForCache(ACLChecklist *)
     /* This is a fatal to ensure that cacheMatchAcl calls are _only_
      * made for supported acl types */
     fatal("aclCacheMatchAcl: unknown or unexpected ACL type");
-    return 0;       /* NOTREACHED */
+    return 0; /* NOTREACHED */
 }
 
 /*
@@ -333,7 +333,7 @@ ACL::matchForCache(ACLChecklist *)
  * TODO: does a dlink_list perform well enough? Kinkie
  */
 int
-ACL::cacheMatchAcl(dlink_list * cache, ACLChecklist *checklist)
+ACL::cacheMatchAcl(dlink_list *cache, ACLChecklist *checklist)
 {
     acl_proxy_auth_match_cache *auth_match;
     dlink_node *link;
@@ -357,7 +357,7 @@ ACL::cacheMatchAcl(dlink_list * cache, ACLChecklist *checklist)
 }
 
 void
-aclCacheMatchFlush(dlink_list * cache)
+aclCacheMatchFlush(dlink_list *cache)
 {
     acl_proxy_auth_match_cache *auth_match;
     dlink_node *link, *tmplink;
@@ -400,7 +400,7 @@ ACL::~ACL()
 {
     debugs(28, 3, "freeing ACL " << name);
     safe_free(cfgline);
-    AclMatchedName = NULL; // in case it was pointing to our name
+    AclMatchedName = NULL;  // in case it was pointing to our name
 }
 
 void
@@ -414,4 +414,3 @@ ACL::Initialize()
         a = a->next;
     }
 }
-

@@ -9,13 +9,13 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
+#include "acl/SourceDomain.h"
+#include "HttpRequest.h"
 #include "acl/Checklist.h"
 #include "acl/DomainData.h"
 #include "acl/FilledChecklist.h"
 #include "acl/RegexData.h"
-#include "acl/SourceDomain.h"
 #include "fqdncache.h"
-#include "HttpRequest.h"
 
 SourceDomainLookup SourceDomainLookup::instance_;
 
@@ -34,14 +34,14 @@ SourceDomainLookup::checkForAsync(ACLChecklist *checklist) const
 void
 SourceDomainLookup::LookupDone(const char *, const Dns::LookupDetails &details, void *data)
 {
-    ACLFilledChecklist *checklist = Filled((ACLChecklist*)data);
+    ACLFilledChecklist *checklist = Filled((ACLChecklist *)data);
     checklist->markSourceDomainChecked();
     checklist->request->recordLookup(details);
     checklist->resumeNonBlockingCheck(SourceDomainLookup::Instance());
 }
 
 int
-ACLSourceDomainStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLSourceDomainStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     const char *fqdn = NULL;
     fqdn = fqdncache_gethostbyaddr(checklist->src_addr, FQDN_LOOKUP_IF_MISS);
@@ -58,4 +58,3 @@ ACLSourceDomainStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *
 
     return data->match("none");
 }
-

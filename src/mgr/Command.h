@@ -14,23 +14,21 @@
 #include "mgr/ActionParams.h"
 #include "mgr/forward.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// combined hard-coded action profile with user-supplied action parameters
-class Command: public RefCountable
+class Command : public RefCountable
 {
 public:
     typedef RefCount<Command> Pointer;
 
 public:
-    ActionProfilePointer profile; ///< hard-coded action specification
-    ActionParams params; ///< user-supplied action arguments
+    ActionProfilePointer profile;  ///< hard-coded action specification
+    ActionParams params;           ///< user-supplied action arguments
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
-std::ostream &operator <<(std::ostream &os, const Mgr::Command &cmd);
+std::ostream &operator<<(std::ostream &os, const Mgr::Command &cmd);
 
 #endif /* SQUID_MGR_COMMAND_H */
-

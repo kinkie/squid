@@ -32,7 +32,8 @@
 static unsigned char itoa64[] = /* 0 ... 63 => ascii - 64 */
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-static void md5to64(char *s, unsigned long v, int n)
+static void
+md5to64(char *s, unsigned long v, int n)
 {
     while (--n >= 0) {
         *s = itoa64[v & 0x3f];
@@ -51,7 +52,8 @@ static void md5to64(char *s, unsigned long v, int n)
  * If not the normal UNIX magic $1$ is used.
  */
 
-char *crypt_md5(const char *pw, const char *salt)
+char *
+crypt_md5(const char *pw, const char *salt)
 {
     const char *magic = "$1$";
     int magiclen = 3;
@@ -89,22 +91,22 @@ char *crypt_md5(const char *pw, const char *salt)
     SquidMD5Init(&ctx);
 
     /* The password first, since that is what is most unknown */
-    SquidMD5Update(&ctx, (unsigned const char *) pw, strlen(pw));
+    SquidMD5Update(&ctx, (unsigned const char *)pw, strlen(pw));
 
     /* Then our magic string */
-    SquidMD5Update(&ctx, (unsigned const char *) magic, magiclen);
+    SquidMD5Update(&ctx, (unsigned const char *)magic, magiclen);
 
     /* Then the raw salt */
-    SquidMD5Update(&ctx, (unsigned const char *) sp, sl);
+    SquidMD5Update(&ctx, (unsigned const char *)sp, sl);
 
     /* Then just as many characters of the MD5(pw,salt,pw) */
     SquidMD5Init(&ctx1);
-    SquidMD5Update(&ctx1, (unsigned const char *) pw, strlen(pw));
-    SquidMD5Update(&ctx1, (unsigned const char *) sp, sl);
-    SquidMD5Update(&ctx1, (unsigned const char *) pw, strlen(pw));
+    SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
+    SquidMD5Update(&ctx1, (unsigned const char *)sp, sl);
+    SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
     SquidMD5Final(final, &ctx1);
     for (pl = strlen(pw); pl > 0; pl -= 16)
-        SquidMD5Update(&ctx, (unsigned const char *) final, pl > 16 ? 16 : pl);
+        SquidMD5Update(&ctx, (unsigned const char *)final, pl > 16 ? 16 : pl);
 
     /* Don't leave anything around in vm they could use. */
     memset(final, 0, sizeof final);
@@ -112,9 +114,9 @@ char *crypt_md5(const char *pw, const char *salt)
     /* Then something really weird... */
     for (j = 0, i = strlen(pw); i; i >>= 1)
         if (i & 1)
-            SquidMD5Update(&ctx, (unsigned const char *) final + j, 1);
+            SquidMD5Update(&ctx, (unsigned const char *)final + j, 1);
         else
-            SquidMD5Update(&ctx, (unsigned const char *) pw + j, 1);
+            SquidMD5Update(&ctx, (unsigned const char *)pw + j, 1);
 
     /* Now make the output string */
     memset(passwd, 0, sizeof(passwd));
@@ -132,20 +134,20 @@ char *crypt_md5(const char *pw, const char *salt)
     for (i = 0; i < 1000; ++i) {
         SquidMD5Init(&ctx1);
         if (i & 1)
-            SquidMD5Update(&ctx1, (unsigned const char *) pw, strlen(pw));
+            SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
         else
-            SquidMD5Update(&ctx1, (unsigned const char *) final, 16);
+            SquidMD5Update(&ctx1, (unsigned const char *)final, 16);
 
         if (i % 3)
-            SquidMD5Update(&ctx1, (unsigned const char *) sp, sl);
+            SquidMD5Update(&ctx1, (unsigned const char *)sp, sl);
 
         if (i % 7)
-            SquidMD5Update(&ctx1, (unsigned const char *) pw, strlen(pw));
+            SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
 
         if (i & 1)
-            SquidMD5Update(&ctx1, (unsigned const char *) final, 16);
+            SquidMD5Update(&ctx1, (unsigned const char *)final, 16);
         else
-            SquidMD5Update(&ctx1, (unsigned const char *) pw, strlen(pw));
+            SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
         SquidMD5Final(final, &ctx1);
     }
 
@@ -180,27 +182,27 @@ char *crypt_md5(const char *pw, const char *salt)
 /* Created by Ramon de Carvalho <ramondecarvalho@yahoo.com.br>
    Refined by Rodrigo Rubira Branco <rodrigo@kernelhacking.com>
 */
-char *md5sum(const char *s)
+char *
+md5sum(const char *s)
 {
     static unsigned char digest[16];
     SquidMD5_CTX ctx;
     int idx;
     static char sum[33];
 
-    memset(digest,0,16);
+    memset(digest, 0, 16);
 
     SquidMD5Init(&ctx);
-    SquidMD5Update(&ctx,(const unsigned char *)s,strlen(s));
-    SquidMD5Final(digest,&ctx);
+    SquidMD5Update(&ctx, (const unsigned char *)s, strlen(s));
+    SquidMD5Final(digest, &ctx);
 
-    for (idx=0; idx<16; ++idx)
-        snprintf(&sum[idx*2],(33-(idx*2)),"%02x",digest[idx]);
+    for (idx = 0; idx < 16; ++idx)
+        snprintf(&sum[idx * 2], (33 - (idx * 2)), "%02x", digest[idx]);
 
-    sum[32]='\0';
+    sum[32] = '\0';
 
     /* Don't leave anything around in vm they could use. */
     memset(digest, 0, sizeof digest);
 
     return sum;
 }
-

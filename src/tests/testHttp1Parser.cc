@@ -14,14 +14,14 @@
 #define protected public
 
 #include "Debug.h"
-#include "http/one/RequestParser.h"
-#include "http/RequestMethod.h"
 #include "MemBuf.h"
 #include "SquidConfig.h"
+#include "http/RequestMethod.h"
+#include "http/one/RequestParser.h"
 #include "testHttp1Parser.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testHttp1Parser );
+CPPUNIT_TEST_SUITE_REGISTRATION(testHttp1Parser);
 
 void
 testHttp1Parser::globalSetup()
@@ -36,7 +36,7 @@ testHttp1Parser::globalSetup()
     // default to strict parser. set for loose parsing specifically where behaviour differs.
     Config.onoff.relaxed_header_parser = 0;
 
-    Config.maxRequestHeaderSize = 1024; // XXX: unit test the RequestParser handling of this limit
+    Config.maxRequestHeaderSize = 1024;  // XXX: unit test the RequestParser handling of this limit
 }
 
 struct resultSet {
@@ -64,13 +64,14 @@ Replace(SBuf &where, const SBuf &what, const SBuf &with)
     while ((pos = where.find(what, pos)) != SBuf::npos) {
         SBuf buf = where.substr(0, pos);
         buf.append(with);
-        buf.append(where.substr(pos+what.length()));
+        buf.append(where.substr(pos + what.length()));
         where = buf;
         pos += with.length();
     }
 }
 
-static SBuf Pretty(SBuf raw)
+static SBuf
+Pretty(SBuf raw)
 {
     Replace(raw, SBuf("\r"), SBuf("\\r"));
     Replace(raw, SBuf("\n"), SBuf("\\n"));
@@ -126,7 +127,7 @@ testHttp1Parser::testParserConstruct()
         Http1::RequestParser output;
         CPPUNIT_ASSERT_EQUAL(true, output.needsMoreData());
         CPPUNIT_ASSERT_EQUAL(Http1::HTTP_PARSE_NONE, output.parsingStage_);
-        CPPUNIT_ASSERT_EQUAL(Http::scNone, output.parseStatusCode); // XXX: clear() not being called.
+        CPPUNIT_ASSERT_EQUAL(Http::scNone, output.parseStatusCode);  // XXX: clear() not being called.
         CPPUNIT_ASSERT(output.buf_.isEmpty());
         CPPUNIT_ASSERT_EQUAL(HttpRequestMethod(Http::METHOD_NONE), output.method_);
         CPPUNIT_ASSERT(output.uri_.isEmpty());
@@ -170,8 +171,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,0,9)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 0, 9)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -188,8 +188,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_POST),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -206,8 +205,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,0)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 0)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -224,8 +222,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -242,8 +239,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,2)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 2)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -262,8 +258,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,2,0)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 2, 0)};
         output.clear();
         testResults(__LINE__, input, output, expectA);
         input.clear();
@@ -277,8 +272,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,9,9)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 9, 9)};
         output.clear();
         testResults(__LINE__, input, output, expectB);
         input.clear();
@@ -295,8 +289,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -313,8 +306,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -331,8 +323,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -349,8 +340,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -367,8 +357,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -385,8 +374,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -403,8 +391,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -421,8 +408,7 @@ testHttp1Parser::testParseRequestLineProtocols()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -451,8 +437,7 @@ testHttp1Parser::testParseRequestLineStrange()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -465,8 +450,7 @@ testHttp1Parser::testParseRequestLineStrange()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -484,8 +468,7 @@ testHttp1Parser::testParseRequestLineStrange()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/fo o/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -498,8 +481,7 @@ testHttp1Parser::testParseRequestLineStrange()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -513,11 +495,10 @@ testHttp1Parser::testParseRequestLineStrange()
             .needsMore = true,
             .parserState = Http1::HTTP_PARSE_MIME,
             .status = Http::scOkay,
-            .suffixSz = 4, // strlen("boo!")
+            .suffixSz = 4,  // strlen("boo!")
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -547,8 +528,7 @@ testHttp1Parser::testParseRequestLineTerminators()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -561,8 +541,7 @@ testHttp1Parser::testParseRequestLineTerminators()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -582,8 +561,7 @@ testHttp1Parser::testParseRequestLineTerminators()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -596,8 +574,7 @@ testHttp1Parser::testParseRequestLineTerminators()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -615,8 +592,7 @@ testHttp1Parser::testParseRequestLineTerminators()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -643,8 +619,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(SBuf(".")),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -661,8 +636,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(SBuf("!#$%&'*+-.^_`|~")),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -679,8 +653,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_OPTIONS),
             .uri = "*",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -697,8 +670,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(SBuf("HELLOWORLD")),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -735,8 +707,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -752,8 +723,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -770,8 +740,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -789,8 +758,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -803,8 +771,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -821,8 +788,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -841,8 +807,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -855,8 +820,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -875,8 +839,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = 0,
             .method = HttpRequestMethod(Http::METHOD_GET),
             .uri = "/",
-            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1)
-        };
+            .version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1)};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -889,8 +852,7 @@ testHttp1Parser::testParseRequestLineMethods()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -918,8 +880,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -936,8 +897,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -954,8 +914,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -972,8 +931,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -992,8 +950,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
 
@@ -1006,8 +963,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expectStrict);
         input.clear();
@@ -1025,8 +981,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -1043,8 +998,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -1061,8 +1015,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -1079,8 +1032,7 @@ testHttp1Parser::testParseRequestLineInvalid()
             .suffixSz = input.length(),
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
         output.clear();
         testResults(__LINE__, input, output, expect);
         input.clear();
@@ -1103,7 +1055,7 @@ testHttp1Parser::testDripFeed()
     SBuf::size_type reqLineEnd = data.length() - 1;
     data.append("Host: example.com\r\n\r\n", 21);
     SBuf::size_type mimeEnd = data.length() - 1;
-    data.append("...", 3); // trailer to catch mime EOS errors.
+    data.append("...", 3);  // trailer to catch mime EOS errors.
 
     SBuf ioBuf;
     Http1::RequestParser hp;
@@ -1111,7 +1063,7 @@ testHttp1Parser::testDripFeed()
     // start with strict and move on to relaxed
     Config.onoff.relaxed_header_parser = 2;
 
-    Config.maxRequestHeaderSize = 1024; // large enough to hold the test data.
+    Config.maxRequestHeaderSize = 1024;  // large enough to hold the test data.
 
     do {
 
@@ -1124,10 +1076,9 @@ testHttp1Parser::testDripFeed()
             .suffixSz = 0,
             .method = HttpRequestMethod(),
             .uri = NULL,
-            .version = AnyP::ProtocolVersion()
-        };
+            .version = AnyP::ProtocolVersion()};
 
-        ioBuf.clear(); // begins empty for each parser type
+        ioBuf.clear();  // begins empty for each parser type
         hp.clear();
 
         --Config.onoff.relaxed_header_parser;
@@ -1135,7 +1086,7 @@ testHttp1Parser::testDripFeed()
         for (SBuf::size_type pos = 0; pos <= data.length(); ++pos) {
 
             // simulate reading one more byte
-            ioBuf.append(data.substr(pos,1));
+            ioBuf.append(data.substr(pos, 1));
 
             // strict does not permit the garbage prefix
             if (pos < garbageEnd && !Config.onoff.relaxed_header_parser) {
@@ -1155,11 +1106,11 @@ testHttp1Parser::testDripFeed()
             // and switch to seeking Mime header section
             if (pos == reqLineEnd) {
                 expect.parserState = Http1::HTTP_PARSE_MIME;
-                expect.suffixSz = 0; // and a checkpoint buffer reset
+                expect.suffixSz = 0;  // and a checkpoint buffer reset
                 expect.status = Http::scOkay;
                 expect.method = HttpRequestMethod(Http::METHOD_GET);
                 expect.uri = "http://example.com/";
-                expect.version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1);
+                expect.version = AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1);
             }
 
             // one mime header is done we are expecting a new request
@@ -1167,7 +1118,7 @@ testHttp1Parser::testDripFeed()
             if (pos == mimeEnd) {
                 expect.parsed = true;
                 expect.needsMore = false;
-                expect.suffixSz = 0; // and a checkpoint buffer reset
+                expect.suffixSz = 0;  // and a checkpoint buffer reset
             }
 
             testResults(__LINE__, ioBuf, hp, expect);
@@ -1181,6 +1132,4 @@ testHttp1Parser::testDripFeed()
         }
 
     } while (Config.onoff.relaxed_header_parser);
-
 }
-

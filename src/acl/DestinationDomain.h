@@ -21,12 +21,12 @@ class ACLDestinationDomainStrategy : public ACLStrategy<char const *>
 
 public:
     /* ACLStrategy API */
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *);
-    virtual bool requiresRequest() const {return true;}
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
+    virtual bool requiresRequest() const { return true; }
     virtual const Acl::Options &options();
 
 private:
-    Acl::BooleanOptionValue lookupBanned; ///< Are DNS lookups allowed?
+    Acl::BooleanOptionValue lookupBanned;  ///< Are DNS lookups allowed?
 };
 
 /// \ingroup ACLAPI
@@ -35,7 +35,7 @@ class DestinationDomainLookup : public ACLChecklist::AsyncState
 
 public:
     static DestinationDomainLookup *Instance();
-    virtual void checkForAsync(ACLChecklist *)const;
+    virtual void checkForAsync(ACLChecklist *) const;
 
 private:
     static DestinationDomainLookup instance_;
@@ -43,4 +43,3 @@ private:
 };
 
 #endif /* SQUID_ACLDESTINATIONDOMAIN_H */
-

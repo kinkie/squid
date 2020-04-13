@@ -8,8 +8,8 @@
 
 #include "squid.h"
 #include "acl/BoolOps.h"
-#include "acl/Checklist.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
 #include "sbuf/SBuf.h"
 
 /* Acl::NotNode */
@@ -17,10 +17,10 @@
 Acl::NotNode::NotNode(ACL *acl)
 {
     assert(acl);
-    Must(strlen(acl->name) <= sizeof(name)-2);
+    Must(strlen(acl->name) <= sizeof(name) - 2);
     name[0] = '!';
     name[1] = '\0';
-    xstrncpy(&name[1], acl->name, sizeof(name)-1); // -1 for '!'
+    xstrncpy(&name[1], acl->name, sizeof(name) - 1);  // -1 for '!'
     add(acl);
 }
 
@@ -35,15 +35,15 @@ Acl::NotNode::parse()
 int
 Acl::NotNode::doMatch(ACLChecklist *checklist, Nodes::const_iterator start) const
 {
-    assert(start == nodes.begin()); // we only have one node
+    assert(start == nodes.begin());  // we only have one node
 
     if (checklist->matchChild(this, start, *start))
-        return 0; // converting match into mismatch
+        return 0;  // converting match into mismatch
 
     if (!checklist->keepMatching())
-        return -1; // suspend on async calls and stop on failures
+        return -1;  // suspend on async calls and stop on failures
 
-    return 1; // converting mismatch into match
+    return 1;  // converting mismatch into match
 }
 
 char const *
@@ -94,7 +94,7 @@ Acl::AndNode::doMatch(ACLChecklist *checklist, Nodes::const_iterator start) cons
     }
 
     // one and not zero on empty because in math empty product equals identity
-    return 1; // no mismatches found (i.e., all kids matched)
+    return 1;  // no mismatches found (i.e., all kids matched)
 }
 
 void
@@ -139,11 +139,11 @@ Acl::OrNode::doMatch(ACLChecklist *checklist, Nodes::const_iterator start) const
         }
 
         if (!checklist->keepMatching())
-            return -1; // suspend on async calls and stop on failures
+            return -1;  // suspend on async calls and stop on failures
     }
 
     // zero and not one on empty because in math empty sum equals zero
-    return 0; // all nodes mismatched
+    return 0;  // all nodes mismatched
 }
 
 void
@@ -152,4 +152,3 @@ Acl::OrNode::parse()
     // Not implemented: OrNode cannot be configured directly. See Acl::AnyOf.
     assert(false);
 }
-

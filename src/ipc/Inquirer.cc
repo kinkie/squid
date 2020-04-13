@@ -9,13 +9,13 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/Inquirer.h"
+#include "MemBuf.h"
 #include "base/TextException.h"
 #include "comm.h"
 #include "comm/Write.h"
-#include "ipc/Inquirer.h"
 #include "ipc/Port.h"
 #include "ipc/TypedMsgHdr.h"
-#include "MemBuf.h"
 #include <algorithm>
 
 CBDATA_NAMESPACED_CLASS_INIT(Ipc, Inquirer);
@@ -30,8 +30,8 @@ LesserStrandByKidId(const Ipc::StrandCoord &c1, const Ipc::StrandCoord &c2)
     return c1.kidId < c2.kidId;
 }
 
-Ipc::Inquirer::Inquirer(Request::Pointer aRequest, const StrandCoords& coords,
-                        double aTimeout):
+Ipc::Inquirer::Inquirer(Request::Pointer aRequest, const StrandCoords &coords,
+                        double aTimeout) :
     AsyncJob("Ipc::Inquirer"),
     request(aRequest), strands(coords), pos(strands.begin()), timeout(aTimeout)
 {
@@ -69,7 +69,7 @@ Ipc::Inquirer::inquire()
     Must(request->requestId == 0);
     AsyncCall::Pointer callback = asyncCall(54, 5, "Mgr::Inquirer::handleRemoteAck",
                                             HandleAckDialer(this, &Inquirer::handleRemoteAck, NULL));
-    if (++LastRequestId == 0) // don't use zero value as request->requestId
+    if (++LastRequestId == 0)  // don't use zero value as request->requestId
         ++LastRequestId;
     request->requestId = LastRequestId;
     const int kidId = pos->kidId;
@@ -90,8 +90,8 @@ Ipc::Inquirer::handleRemoteAck(Response::Pointer response)
     request->requestId = 0;
     removeTimeoutEvent();
     if (aggregate(response)) {
-        Must(!done()); // or we should not be called
-        ++pos; // advance after a successful inquiry
+        Must(!done());  // or we should not be called
+        ++pos;          // advance after a successful inquiry
         inquire();
     } else {
         mustStop("error");
@@ -118,19 +118,19 @@ Ipc::Inquirer::doneAll() const
 }
 
 void
-Ipc::Inquirer::handleException(const std::exception& e)
+Ipc::Inquirer::handleException(const std::exception &e)
 {
     debugs(54, 3, HERE << e.what());
     mustStop("exception");
 }
 
 void
-Ipc::Inquirer::callException(const std::exception& e)
+Ipc::Inquirer::callException(const std::exception &e)
 {
     debugs(54, 3, HERE);
     try {
         handleException(e);
-    } catch (const std::exception& ex) {
+    } catch (const std::exception &ex) {
         debugs(54, DBG_CRITICAL, HERE << ex.what());
     }
     AsyncJob::callException(e);
@@ -153,12 +153,12 @@ Ipc::Inquirer::DequeueRequest(unsigned int requestId)
 }
 
 void
-Ipc::Inquirer::HandleRemoteAck(const Response& response)
+Ipc::Inquirer::HandleRemoteAck(const Response &response)
 {
     Must(response.requestId != 0);
     AsyncCall::Pointer call = DequeueRequest(response.requestId);
     if (call != NULL) {
-        HandleAckDialer* dialer = dynamic_cast<HandleAckDialer*>(call->getDialer());
+        HandleAckDialer *dialer = dynamic_cast<HandleAckDialer *>(call->getDialer());
         Must(dialer);
         dialer->arg1 = response.clone();
         ScheduleCallHere(call);
@@ -175,11 +175,11 @@ Ipc::Inquirer::removeTimeoutEvent()
 
 /// Ipc::Inquirer::requestTimedOut wrapper
 void
-Ipc::Inquirer::RequestTimedOut(void* param)
+Ipc::Inquirer::RequestTimedOut(void *param)
 {
     debugs(54, 3, HERE);
     Must(param != NULL);
-    Inquirer* cmi = static_cast<Inquirer*>(param);
+    Inquirer *cmi = static_cast<Inquirer *>(param);
     // use async call to enable job call protection that time events lack
     CallJobHere(54, 5, cmi, Inquirer, requestTimedOut);
 }
@@ -192,13 +192,13 @@ Ipc::Inquirer::requestTimedOut()
     if (request->requestId != 0) {
         DequeueRequest(request->requestId);
         request->requestId = 0;
-        Must(!done()); // or we should not be called
-        ++pos; // advance after a failed inquiry
+        Must(!done());  // or we should not be called
+        ++pos;          // advance after a failed inquiry
         inquire();
     }
 }
 
-const char*
+const char *
 Ipc::Inquirer::status() const
 {
     static MemBuf buf;
@@ -207,4 +207,3 @@ Ipc::Inquirer::status() const
     buf.terminate();
     return buf.content();
 }
-

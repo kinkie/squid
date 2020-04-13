@@ -33,4 +33,3 @@ private:
 };
 
 #endif /* SQUID_ACLREGEXDATA_H */
-

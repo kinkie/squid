@@ -16,7 +16,7 @@
 
 /// cache_peer and origin server addresses (a.k.a. paths)
 /// selected and resolved by the peering code
-class ResolvedPeers: public RefCountable
+class ResolvedPeers : public RefCountable
 {
     MEMPROXY_CLASS(ResolvedPeers);
 
@@ -77,7 +77,6 @@ private:
 };
 
 /// summarized ResolvedPeers (for debugging)
-std::ostream &operator <<(std::ostream &, const ResolvedPeers &);
+std::ostream &operator<<(std::ostream &, const ResolvedPeers &);
 
 #endif /* SQUID_RESOLVEDPEERS_H */
-

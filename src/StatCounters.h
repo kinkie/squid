@@ -9,8 +9,8 @@
 #ifndef STATCOUNTERS_H_
 #define STATCOUNTERS_H_
 
-#include "base/ByteCounter.h"
 #include "StatHist.h"
+#include "base/ByteCounter.h"
 
 #if USE_CACHE_DIGESTS
 /** statistics for cache digests and other hit "predictors" */
@@ -21,7 +21,7 @@ public:
     int falseHits = 0;
     int trueMisses = 0;
     int falseMisses = 0;
-    int closeHits = 0;     /// \todo: temporary remove it later
+    int closeHits = 0;  /// \todo: temporary remove it later
 };
 #endif
 
@@ -33,7 +33,8 @@ public:
 class StatCounters
 {
 public:
-    StatCounters() : timestamp(current_time) {}
+    StatCounters() :
+        timestamp(current_time) {}
 
     struct {
         int clients = 0;
@@ -164,10 +165,8 @@ public:
         uint64_t refusalsDueToTimeLimit = 0;
         uint64_t failures = 0;
     } hitValidation;
-
 };
 
 extern StatCounters statCounter;
 
 #endif /* STATCOUNTERS_H_ */
-

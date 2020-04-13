@@ -32,4 +32,3 @@
 
 #endif /* _SQUID_AIX_ */
 #endif /* SQUID_OS_AIX_H */
-

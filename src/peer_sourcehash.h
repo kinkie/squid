@@ -15,7 +15,6 @@ class CachePeer;
 class PeerSelector;
 
 void peerSourceHashInit(void);
-CachePeer * peerSourceHashSelectParent(PeerSelector*);
+CachePeer *peerSourceHashSelectParent(PeerSelector *);
 
 #endif /* SQUID_PEER_SOURCEHASH_H_ */
-

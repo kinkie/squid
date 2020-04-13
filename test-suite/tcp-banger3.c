@@ -131,7 +131,7 @@ get_url(const char *url)
         *t = '\0';
     if ((t = strchr(host, ':'))) {
         *t = '\0';
-        port = (unsigned short) atoi(t + 1);
+        port = (unsigned short)atoi(t + 1);
     }
 #if 0
     if ((int) port != 80)
@@ -148,14 +148,14 @@ get_url(const char *url)
     S.sin_family = AF_INET;
     if (debug) {
         char tmp[16];
-        fprintf(stderr, "%s (%s) %d %s\n", host, inet_ntop(AF_INET, &S.sin_addr,tmp,sizeof(tmp)), (int) port, path);
+        fprintf(stderr, "%s (%s) %d %s\n", host, inet_ntop(AF_INET, &S.sin_addr, tmp, sizeof(tmp)), (int)port, path);
     }
     s = socket(PF_INET, SOCK_STREAM, 0);
     if (s < 0) {
         perror("socket");
         return -errno;
     }
-    x = connect(s, (struct sockaddr *) &S, sizeof(S));
+    x = connect(s, (struct sockaddr *)&S, sizeof(S));
     if (x < 0) {
         perror(host);
         return -errno;
@@ -191,7 +191,7 @@ child_main_loop(void)
     struct timeval t1;
     struct timeval t2;
     if (debug)
-        fprintf(stderr, "Child PID %d entering child_main_loop\n", (int) getpid());
+        fprintf(stderr, "Child PID %d entering child_main_loop\n", (int)getpid());
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
@@ -227,7 +227,7 @@ create_a_thing(char *argv[])
     pwfd = c2p[1];
     if ((pid = fork()) < 0)
         abort();
-    if (pid > 0) {      /* parent */
+    if (pid > 0) { /* parent */
         /* close shared socket with child */
         close(crfd);
         close(cwfd);
@@ -295,7 +295,7 @@ get_idle_thing(void)
 }
 
 static void
-dispatch(thing * t, char *url)
+dispatch(thing *t, char *url)
 {
     int x;
     char *s;
@@ -304,7 +304,7 @@ dispatch(thing * t, char *url)
     if (x < 0)
         perror("write");
     if (debug)
-        fprintf(stderr, "dispatched URL to thing PID %d, %d bytes\n", (int) t->pid, x);
+        fprintf(stderr, "dispatched URL to thing PID %d, %d bytes\n", (int)t->pid, x);
     strncpy(t->url, url, URL_BUF_SZ);
     if ((s = strchr(t->url, '\n')))
         *s = '\0';
@@ -313,7 +313,7 @@ dispatch(thing * t, char *url)
 }
 
 static void
-read_reply(thing * t)
+read_reply(thing *t)
 {
     char buf[128];
     int i;
@@ -324,7 +324,7 @@ read_reply(thing * t)
         perror("read");
     } else if (2 == sscanf(buf, "%d %d", &i, &j)) {
         gettimeofday(&now, NULL);
-        printf("%d.%06d %9d %9d %s\n", (int) now.tv_sec, (int) now.tv_usec, i, j, t->url);
+        printf("%d.%06d %9d %9d %s\n", (int)now.tv_sec, (int)now.tv_usec, i, j, t->url);
     }
     t->state = 0;
     FD_CLR(t->rfd, &R1);
@@ -384,4 +384,3 @@ main(int argc, char *argv[])
         close(i);
     sleep(1);
 }
-

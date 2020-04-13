@@ -12,4 +12,3 @@
 SQUIDCEXTERN int xusleep(unsigned int);
 
 #endif /* _INC_XUSLEEP_H */
-

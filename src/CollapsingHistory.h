@@ -25,4 +25,3 @@ public:
 };
 
 #endif /* SQUID_COLLAPSING_HISTORY_H */
-

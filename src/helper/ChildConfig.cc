@@ -7,16 +7,16 @@
  */
 
 #include "squid.h"
-#include "cache_cf.h"
+#include "helper/ChildConfig.h"
 #include "ConfigParser.h"
 #include "Debug.h"
-#include "globals.h"
-#include "helper/ChildConfig.h"
 #include "Parsing.h"
+#include "cache_cf.h"
+#include "globals.h"
 
 #include <cstring>
 
-Helper::ChildConfig::ChildConfig():
+Helper::ChildConfig::ChildConfig() :
     n_max(0),
     n_startup(0),
     n_idle(1),
@@ -26,9 +26,10 @@ Helper::ChildConfig::ChildConfig():
     queue_size(0),
     onPersistentOverload(actDie),
     defaultQueueSize(true)
-{}
+{
+}
 
-Helper::ChildConfig::ChildConfig(const unsigned int m):
+Helper::ChildConfig::ChildConfig(const unsigned int m) :
     n_max(m),
     n_startup(0),
     n_idle(1),
@@ -38,7 +39,8 @@ Helper::ChildConfig::ChildConfig(const unsigned int m):
     queue_size(2 * m),
     onPersistentOverload(actDie),
     defaultQueueSize(true)
-{}
+{
+}
 
 Helper::ChildConfig &
 Helper::ChildConfig::updateLimits(const Helper::ChildConfig &rhs)
@@ -59,10 +61,12 @@ int
 Helper::ChildConfig::needNew() const
 {
     /* during the startup and reconfigure use our special amount... */
-    if (starting_up || reconfiguring) return n_startup;
+    if (starting_up || reconfiguring)
+        return n_startup;
 
     /* keep a minimum of n_idle helpers free... */
-    if ( (n_active + n_idle) < n_max) return n_idle;
+    if ((n_active + n_idle) < n_max)
+        return n_idle;
 
     /* do not ever start more than n_max processes. */
     return (n_max - n_active);
@@ -88,7 +92,7 @@ Helper::ChildConfig::parseConfig()
     }
 
     /* Parse extension options */
-    for (; (token = ConfigParser::NextToken()) ;) {
+    for (; (token = ConfigParser::NextToken());) {
         if (strncmp(token, "startup=", 8) == 0) {
             n_startup = xatoui(token + 8);
         } else if (strncmp(token, "idle=", 5) == 0) {
@@ -125,16 +129,15 @@ Helper::ChildConfig::parseConfig()
     /* simple sanity. */
 
     if (n_startup > n_max) {
-        debugs(0, DBG_CRITICAL, "WARNING OVERRIDE: Capping startup=" << n_startup << " to the defined maximum (" << n_max <<")");
+        debugs(0, DBG_CRITICAL, "WARNING OVERRIDE: Capping startup=" << n_startup << " to the defined maximum (" << n_max << ")");
         n_startup = n_max;
     }
 
     if (n_idle > n_max) {
-        debugs(0, DBG_CRITICAL, "WARNING OVERRIDE: Capping idle=" << n_idle << " to the defined maximum (" << n_max <<")");
+        debugs(0, DBG_CRITICAL, "WARNING OVERRIDE: Capping idle=" << n_idle << " to the defined maximum (" << n_max << ")");
         n_idle = n_max;
     }
 
     if (defaultQueueSize)
         queue_size = 2 * n_max;
 }
-

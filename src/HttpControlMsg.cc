@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "comm/Flag.h"
-#include "CommCalls.h"
 #include "HttpControlMsg.h"
+#include "CommCalls.h"
+#include "comm/Flag.h"
 
 void
 HttpControlMsgSink::doneWithControlMsg()
@@ -43,4 +43,3 @@ HttpControlMsgSink::wroteControlMsg(const CommIoCbParams &params)
     // XXX: writeControlMsgAndCall() should handle writer-specific writing
     // results, including errors and then call us with success/failure outcome.
 }
-

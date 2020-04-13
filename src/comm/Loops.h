@@ -19,8 +19,7 @@
  * Defines are provided short-term for legacy code. These will disappear soon.
  */
 
-namespace Comm
-{
+namespace Comm {
 
 /// Initialize the module on Squid startup
 void SelectLoopInit(void);
@@ -29,7 +28,7 @@ void SelectLoopInit(void);
 inline void
 ResetSelect(int fd)
 {
-    SetSelect(fd, COMM_SELECT_READ|COMM_SELECT_WRITE, nullptr, nullptr, 0);
+    SetSelect(fd, COMM_SELECT_READ | COMM_SELECT_WRITE, nullptr, nullptr, 0);
 }
 
 /** Perform a select() or equivalent call.
@@ -68,9 +67,8 @@ void QuickPollRequired(void);
 #else
 #define INCOMING_TCP_MAX 10
 #endif
-#define INCOMING_TOTAL_MAX (INCOMING_TCP_MAX+INCOMING_UDP_MAX+INCOMING_DNS_MAX)
+#define INCOMING_TOTAL_MAX (INCOMING_TCP_MAX + INCOMING_UDP_MAX + INCOMING_DNS_MAX)
 
-} // namespace Comm
+}  // namespace Comm
 
 #endif /* _SQUID_SRC_COMM_LOOPS_H */
-

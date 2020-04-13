@@ -9,12 +9,12 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/DestinationDomain.h"
+#include "HttpRequest.h"
+#include "acl/Checklist.h"
 #include "acl/DomainData.h"
 #include "acl/RegexData.h"
 #include "fqdncache.h"
-#include "HttpRequest.h"
 
 DestinationDomainLookup DestinationDomainLookup::instance_;
 
@@ -34,7 +34,7 @@ DestinationDomainLookup::checkForAsync(ACLChecklist *cl) const
 void
 DestinationDomainLookup::LookupDone(const char *, const Dns::LookupDetails &details, void *data)
 {
-    ACLFilledChecklist *checklist = Filled((ACLChecklist*)data);
+    ACLFilledChecklist *checklist = Filled((ACLChecklist *)data);
     checklist->markDestinationDomainChecked();
     checklist->request->recordLookup(details);
     checklist->resumeNonBlockingCheck(DestinationDomainLookup::Instance());
@@ -46,13 +46,13 @@ const Acl::Options &
 ACLDestinationDomainStrategy::options()
 {
     static const Acl::BooleanOption LookupBanFlag;
-    static const Acl::Options MyOptions = { { "-n", &LookupBanFlag } };
+    static const Acl::Options MyOptions = {{"-n", &LookupBanFlag}};
     LookupBanFlag.linkWith(&lookupBanned);
     return MyOptions;
 }
 
 int
-ACLDestinationDomainStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLDestinationDomainStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     assert(checklist != NULL && checklist->request != NULL);
 
@@ -98,4 +98,3 @@ ACLDestinationDomainStrategy::match (ACLData<MatchType> * &data, ACLFilledCheckl
 
     return data->match("none");
 }
-

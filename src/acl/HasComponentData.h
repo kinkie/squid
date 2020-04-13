@@ -28,7 +28,10 @@ public:
     virtual ACLData<ACLChecklist *> *clone() const override;
 
 private:
-    enum ComponentKind { coRequest = 0, coResponse, coAle, coEnd };
+    enum ComponentKind { coRequest = 0,
+                         coResponse,
+                         coAle,
+                         coEnd };
     void parseComponent(const char *token);
 
     static const SBuf RequestStr;
@@ -41,4 +44,3 @@ private:
 };
 
 #endif
-

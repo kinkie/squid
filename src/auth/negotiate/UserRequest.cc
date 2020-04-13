@@ -7,13 +7,18 @@
  */
 
 #include "squid.h"
-#include "AccessLogEntry.h"
-#include "auth/CredentialsCache.h"
-#include "auth/negotiate/Config.h"
-#include "auth/negotiate/User.h"
 #include "auth/negotiate/UserRequest.h"
+#include "AccessLogEntry.h"
+#include "HttpHeaderTools.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "MemBuf.h"
+#include "SquidTime.h"
+#include "auth/CredentialsCache.h"
 #include "auth/State.h"
 #include "auth/User.h"
+#include "auth/negotiate/Config.h"
+#include "auth/negotiate/User.h"
 #include "client_side.h"
 #include "fatal.h"
 #include "format/Format.h"
@@ -21,22 +26,18 @@
 #include "helper.h"
 #include "helper/Reply.h"
 #include "http/Stream.h"
-#include "HttpHeaderTools.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
-#include "MemBuf.h"
-#include "SquidTime.h"
 
 Auth::Negotiate::UserRequest::UserRequest() :
     server_blob(nullptr),
     client_blob(nullptr),
     waiting(0),
     request(nullptr)
-{}
+{
+}
 
 Auth::Negotiate::UserRequest::~UserRequest()
 {
-    assert(LockCount()==0);
+    assert(LockCount() == 0);
     safe_free(server_blob);
     safe_free(client_blob);
 
@@ -72,7 +73,7 @@ Auth::Negotiate::UserRequest::credentialsStr()
     static char buf[MAX_AUTHTOKEN_LEN];
     int printResult = 0;
     if (user()->credentials() == Auth::Pending) {
-        printResult = snprintf(buf, sizeof(buf), "YR %s\n", client_blob); //CHECKME: can ever client_blob be 0 here?
+        printResult = snprintf(buf, sizeof(buf), "YR %s\n", client_blob);  //CHECKME: can ever client_blob be 0 here?
     } else {
         printResult = snprintf(buf, sizeof(buf), "KK %s\n", client_blob);
     }
@@ -108,7 +109,7 @@ Auth::Negotiate::UserRequest::module_direction()
         return Auth::CRED_VALID;
 
     case Auth::Failed:
-        return Auth::CRED_ERROR; // XXX: really? not VALID or CHALLENGE?
+        return Auth::CRED_ERROR;  // XXX: really? not VALID or CHALLENGE?
 
     default:
         debugs(29, DBG_IMPORTANT, "WARNING: Negotiate Authentication in unexpected state: " << user()->credentials());
@@ -117,7 +118,7 @@ Auth::Negotiate::UserRequest::module_direction()
 }
 
 void
-Auth::Negotiate::UserRequest::startHelperLookup(HttpRequest *, AccessLogEntry::Pointer &al, AUTHCB * handler, void *data)
+Auth::Negotiate::UserRequest::startHelperLookup(HttpRequest *, AccessLogEntry::Pointer &al, AUTHCB *handler, void *data)
 {
     static char buf[MAX_AUTHTOKEN_LEN];
 
@@ -127,7 +128,7 @@ Auth::Negotiate::UserRequest::startHelperLookup(HttpRequest *, AccessLogEntry::P
     assert(user() != NULL);
     assert(user()->auth_type == Auth::AUTH_NEGOTIATE);
 
-    if (static_cast<Auth::Negotiate::Config*>(Auth::SchemeConfig::Find("negotiate"))->authenticateProgram == NULL) {
+    if (static_cast<Auth::Negotiate::Config *>(Auth::SchemeConfig::Find("negotiate"))->authenticateProgram == NULL) {
         debugs(29, DBG_CRITICAL, "ERROR: No Negotiate authentication program configured.");
         handler(data);
         return;
@@ -141,7 +142,7 @@ Auth::Negotiate::UserRequest::startHelperLookup(HttpRequest *, AccessLogEntry::P
         if (keyExtras)
             printResult = snprintf(buf, sizeof(buf), "YR %s %s\n", client_blob, keyExtras);
         else
-            printResult = snprintf(buf, sizeof(buf), "YR %s\n", client_blob); //CHECKME: can ever client_blob be 0 here?
+            printResult = snprintf(buf, sizeof(buf), "YR %s\n", client_blob);  //CHECKME: can ever client_blob be 0 here?
     } else {
         if (keyExtras)
             printResult = snprintf(buf, sizeof(buf), "KK %s %s\n", client_blob, keyExtras);
@@ -182,7 +183,7 @@ Auth::Negotiate::UserRequest::releaseAuthServer()
 }
 
 void
-Auth::Negotiate::UserRequest::authenticate(HttpRequest * aRequest, ConnStateData * conn, Http::HdrType type)
+Auth::Negotiate::UserRequest::authenticate(HttpRequest *aRequest, ConnStateData *conn, Http::HdrType type)
 {
     /* Check that we are in the client side, where we can generate
      * auth challenges */
@@ -227,7 +228,7 @@ Auth::Negotiate::UserRequest::authenticate(HttpRequest * aRequest, ConnStateData
         debugs(29, 9, HERE << "auth state negotiate none. Received blob: '" << proxy_auth << "'");
         user()->credentials(Auth::Pending);
         safe_free(client_blob);
-        client_blob=xstrdup(blob);
+        client_blob = xstrdup(blob);
         assert(conn->getAuth() == NULL);
         conn->setAuth(this, "new Negotiate handshake request");
         request = aRequest;
@@ -278,7 +279,7 @@ Auth::Negotiate::UserRequest::HandleReply(void *data, const Helper::Reply &reply
 
     // add new helper kv-pair notes to the credentials object
     // so that any transaction using those credentials can access them
-    static const NotePairs::Names appendables = { SBuf("group"), SBuf("tag") };
+    static const NotePairs::Names appendables = {SBuf("group"), SBuf("tag")};
     auth_user_request->user()->notes.replaceOrAddOrAppend(&reply.notes, appendables);
     // remove any private credentials detail which got added.
     auth_user_request->user()->notes.remove("token");
@@ -353,8 +354,7 @@ Auth::Negotiate::UserRequest::HandleReply(void *data, const Helper::Reply &reply
         local_auth_user->expiretime = current_time.tv_sec;
         auth_user_request->user()->credentials(Auth::Ok);
         debugs(29, 4, HERE << "Successfully validated user via Negotiate. Username '" << auth_user_request->user()->username() << "'");
-    }
-    break;
+    } break;
 
     case Helper::Error:
         /* authentication failure (wrong password, etc.) */
@@ -369,7 +369,7 @@ Auth::Negotiate::UserRequest::HandleReply(void *data, const Helper::Reply &reply
 
     case Helper::Unknown:
         debugs(29, DBG_IMPORTANT, "ERROR: Negotiate Authentication Helper crashed (" << reply.reservationId << ")");
-    /* continue to the next case */
+        /* continue to the next case */
 
     case Helper::TimedOut:
     case Helper::BrokenHelper:
@@ -396,4 +396,3 @@ Auth::Negotiate::UserRequest::HandleReply(void *data, const Helper::Reply &reply
     r->handler(r->data);
     delete r;
 }
-

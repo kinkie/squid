@@ -9,8 +9,7 @@
 #ifndef _SQUID_SRC_HELPER_CHILDCONFIG_H
 #define _SQUID_SRC_HELPER_CHILDCONFIG_H
 
-namespace Helper
-{
+namespace Helper {
 
 /**
  * Contains statistics of a particular type of child helper.
@@ -43,7 +42,6 @@ public:
 
     /* values from squid.conf */
 public:
-
     /** maximum child process limits. How many of this helper the system can cope with */
     unsigned int n_max;
 
@@ -92,8 +90,8 @@ public:
 
     /// how to handle a serious problem with a helper request submission
     enum SubmissionErrorHandlingAction {
-        actDie, ///< kill the caller process (i.e., Squid worker)
-        actErr  ///< drop the request and send an error to the caller
+        actDie,  ///< kill the caller process (i.e., Squid worker)
+        actErr   ///< drop the request and send an error to the caller
     };
     /// how to handle a new request for helper that was overloaded for too long
     SubmissionErrorHandlingAction onPersistentOverload;
@@ -106,15 +104,14 @@ public:
     bool defaultQueueSize;
 
     /// older stateful helper server reservations may be forgotten
-    time_t reservationTimeout = 64; // reservation-timeout
+    time_t reservationTimeout = 64;  // reservation-timeout
 };
 
-} // namespace Helper
+}  // namespace Helper
 
 /* Legacy parser interface */
-#define parse_HelperChildConfig(c)     (c)->parseConfig()
-#define dump_HelperChildConfig(e,n,c)  storeAppendPrintf((e), "\n%s %d startup=%d idle=%d concurrency=%d\n", (n), (c).n_max, (c).n_startup, (c).n_idle, (c).concurrency)
+#define parse_HelperChildConfig(c) (c)->parseConfig()
+#define dump_HelperChildConfig(e, n, c) storeAppendPrintf((e), "\n%s %d startup=%d idle=%d concurrency=%d\n", (n), (c).n_max, (c).n_startup, (c).n_idle, (c).concurrency)
 #define free_HelperChildConfig(dummy)  // NO.
 
 #endif /* _SQUID_SRC_HELPER_CHILDCONFIG_H */
-

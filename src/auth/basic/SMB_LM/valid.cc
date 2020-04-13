@@ -32,8 +32,7 @@ Valid_User(char *USERNAME, char *PASSWORD, const char *SERVER, char *, const cha
                                        "Samba",
                                        "NT LM 0.12",
                                        "NT LANMAN 1.0",
-                                       NULL
-                                      };
+                                       NULL};
     SMB_Handle_Type con;
 
     SMB_Init();
@@ -41,7 +40,7 @@ Valid_User(char *USERNAME, char *PASSWORD, const char *SERVER, char *, const cha
     if (con == NULL) {
         return (NTV_SERVER_ERROR);
     }
-    if (SMB_Negotiate(con, supportedDialects) < 0) {    /* An error */
+    if (SMB_Negotiate(con, supportedDialects) < 0) { /* An error */
         SMB_Discon(con, 0);
         return (NTV_PROTOCOL_ERROR);
     }
@@ -52,4 +51,3 @@ Valid_User(char *USERNAME, char *PASSWORD, const char *SERVER, char *, const cha
     SMB_Discon(con, 0);
     return (NTV_NO_ERROR);
 }
-

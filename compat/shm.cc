@@ -33,4 +33,3 @@ shm_portable_segment_name_is_path()
     return false;
 #endif
 }
-

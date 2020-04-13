@@ -9,13 +9,12 @@
 /* DEBUG: section 20    Storage Manager Swapfile Metadata */
 
 #include "squid.h"
+#include "StoreMetaSTDLFS.h"
 #include "MemObject.h"
 #include "Store.h"
-#include "StoreMetaSTDLFS.h"
 
 bool
 StoreMetaSTDLFS::validLength(int len) const
 {
     return len == STORE_HDR_METASIZE;
 }
-

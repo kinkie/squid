@@ -9,15 +9,15 @@
 /* DEBUG: section 50    Log file handling */
 
 #include "squid.h"
+#include "log/ModUdp.h"
+#include "Parsing.h"
+#include "SquidConfig.h"
 #include "comm.h"
 #include "comm/Connection.h"
 #include "fatal.h"
 #include "fd.h"
 #include "fs_io.h"
 #include "log/File.h"
-#include "log/ModUdp.h"
-#include "Parsing.h"
-#include "SquidConfig.h"
 
 #include <cerrno>
 
@@ -37,11 +37,11 @@ typedef struct {
 } l_udp_t;
 
 static void
-logfile_mod_udp_write(Logfile * lf, const char *buf, size_t len)
+logfile_mod_udp_write(Logfile *lf, const char *buf, size_t len)
 {
-    l_udp_t *ll = (l_udp_t *) lf->data;
+    l_udp_t *ll = (l_udp_t *)lf->data;
     ssize_t s;
-    s = write(ll->fd, (char const *) buf, len);
+    s = write(ll->fd, (char const *)buf, len);
     fd_bytes(ll->fd, s, FD_WRITE);
 #if 0
     if (s < 0) {
@@ -57,19 +57,19 @@ logfile_mod_udp_write(Logfile * lf, const char *buf, size_t len)
 }
 
 static void
-logfile_mod_udp_flush(Logfile * lf)
+logfile_mod_udp_flush(Logfile *lf)
 {
-    l_udp_t *ll = (l_udp_t *) lf->data;
+    l_udp_t *ll = (l_udp_t *)lf->data;
     if (0 == ll->offset)
         return;
-    logfile_mod_udp_write(lf, ll->buf, (size_t) ll->offset);
+    logfile_mod_udp_write(lf, ll->buf, (size_t)ll->offset);
     ll->offset = 0;
 }
 
 static void
-logfile_mod_udp_writeline(Logfile * lf, const char *buf, size_t len)
+logfile_mod_udp_writeline(Logfile *lf, const char *buf, size_t len)
 {
-    l_udp_t *ll = (l_udp_t *) lf->data;
+    l_udp_t *ll = (l_udp_t *)lf->data;
 
     if (0 == ll->bufsz) {
         /* buffering disabled */
@@ -91,7 +91,7 @@ logfile_mod_udp_writeline(Logfile * lf, const char *buf, size_t len)
 
     assert(ll->offset >= 0);
 
-    assert((size_t) ll->offset <= ll->bufsz);
+    assert((size_t)ll->offset <= ll->bufsz);
 }
 
 static void
@@ -110,9 +110,9 @@ logfile_mod_udp_rotate(Logfile *, const int16_t)
 }
 
 static void
-logfile_mod_udp_close(Logfile * lf)
+logfile_mod_udp_close(Logfile *lf)
 {
-    l_udp_t *ll = (l_udp_t *) lf->data;
+    l_udp_t *ll = (l_udp_t *)lf->data;
     lf->f_flush(lf);
 
     if (ll->fd >= 0)
@@ -129,7 +129,7 @@ logfile_mod_udp_close(Logfile * lf)
  * This code expects the path to be //host:port
  */
 int
-logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_flag)
+logfile_mod_udp_open(Logfile *lf, const char *path, size_t bufsz, int fatal_flag)
 {
     Ip::Address addr;
     char *strAddr;
@@ -141,7 +141,7 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
     lf->f_flush = logfile_mod_udp_flush;
     lf->f_rotate = logfile_mod_udp_rotate;
 
-    l_udp_t *ll = static_cast<l_udp_t*>(xcalloc(1, sizeof(*ll)));
+    l_udp_t *ll = static_cast<l_udp_t *>(xcalloc(1, sizeof(*ll)));
     lf->data = ll;
 
     if (strncmp(path, "//", 2) == 0) {
@@ -188,12 +188,14 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
         if (ENOENT == xerrno && fatal_flag) {
             fatalf("Cannot open '%s' because\n"
                    "\tthe parent directory does not exist.\n"
-                   "\tPlease create the directory.\n", path);
+                   "\tPlease create the directory.\n",
+                   path);
         } else if (EACCES == xerrno && fatal_flag) {
             fatalf("Cannot open '%s' for writing.\n"
                    "\tThe parent directory must be writeable by the\n"
                    "\tuser '%s', which is the cache_effective_user\n"
-                   "\tset in squid.conf.", path, Config.effectiveUser);
+                   "\tset in squid.conf.",
+                   path, Config.effectiveUser);
         } else {
             debugs(50, DBG_IMPORTANT, "logfileOpen (UDP): " << lf->path << ": " << xstrerr(xerrno));
             return 0;
@@ -208,10 +210,9 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
     if (bufsz > 1400)
         bufsz = 1400;
     if (bufsz > 0) {
-        ll->buf = static_cast<char*>(xmalloc(bufsz));
+        ll->buf = static_cast<char *>(xmalloc(bufsz));
         ll->bufsz = bufsz;
     }
 
     return 1;
 }
-

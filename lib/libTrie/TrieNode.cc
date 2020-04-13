@@ -7,13 +7,14 @@
  */
 
 #include "squid.h"
-#include "TrieCharTransform.h"
 #include "TrieNode.h"
+#include "TrieCharTransform.h"
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-TrieNode::TrieNode() : _privateData(NULL)
+TrieNode::TrieNode() :
+    _privateData(NULL)
 {
     for (int i = 0; i < 256; ++i)
         internal[i] = NULL;
@@ -32,7 +33,7 @@ TrieNode::add(char const *aString, size_t theLength, void *privatedata, TrieChar
     /* We trust that privatedata and existent keys have already been checked */
 
     if (theLength) {
-        int index = transform ? (*transform)(*aString): *aString;
+        int index = transform ? (*transform)(*aString) : *aString;
 
         if (!internal[index])
             internal[index] = new TrieNode;
@@ -49,4 +50,3 @@ TrieNode::add(char const *aString, size_t theLength, void *privatedata, TrieChar
         return true;
     }
 }
-

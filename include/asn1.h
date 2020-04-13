@@ -40,37 +40,37 @@
 
 #ifndef EIGHTBIT_SUBIDS
 typedef u_int oid;
-#define MAX_SUBID   0xFFFFFFFF
+#define MAX_SUBID 0xFFFFFFFF
 #else
 typedef u_char oid;
-#define MAX_SUBID   0xFF
+#define MAX_SUBID 0xFF
 #endif
 
-#define MAX_OID_LEN     128 /* max subid's in an oid, per SNMP spec. */
+#define MAX_OID_LEN 128 /* max subid's in an oid, per SNMP spec. */
 
-#define ASN_BOOLEAN     (0x01)
-#define ASN_INTEGER     (0x02)
-#define ASN_BIT_STR     (0x03)
-#define ASN_OCTET_STR       (0x04)
-#define ASN_NULL        (0x05)
-#define ASN_OBJECT_ID       (0x06)
-#define ASN_SEQUENCE        (0x10)
-#define ASN_SET         (0x11)
+#define ASN_BOOLEAN (0x01)
+#define ASN_INTEGER (0x02)
+#define ASN_BIT_STR (0x03)
+#define ASN_OCTET_STR (0x04)
+#define ASN_NULL (0x05)
+#define ASN_OBJECT_ID (0x06)
+#define ASN_SEQUENCE (0x10)
+#define ASN_SET (0x11)
 
-#define ASN_UNIVERSAL       (0x00)
-#define ASN_APPLICATION     (0x40)
-#define ASN_CONTEXT     (0x80)
-#define ASN_PRIVATE     (0xC0)
+#define ASN_UNIVERSAL (0x00)
+#define ASN_APPLICATION (0x40)
+#define ASN_CONTEXT (0x80)
+#define ASN_PRIVATE (0xC0)
 
-#define ASN_PRIMITIVE       (0x00)
-#define ASN_CONSTRUCTOR     (0x20)
+#define ASN_PRIMITIVE (0x00)
+#define ASN_CONSTRUCTOR (0x20)
 
-#define ASN_LONG_LEN        (0x80)
-#define ASN_EXTENSION_ID    (0x1F)
-#define ASN_BIT8        (0x80)
+#define ASN_LONG_LEN (0x80)
+#define ASN_EXTENSION_ID (0x1F)
+#define ASN_BIT8 (0x80)
 
-#define IS_CONSTRUCTOR(byte)    ((byte) & ASN_CONSTRUCTOR)
-#define IS_EXTENSION_ID(byte)   (((byte) & ASN_EXTENSION_ID) == ASN_EXTENSION_ID)
+#define IS_CONSTRUCTOR(byte) ((byte)&ASN_CONSTRUCTOR)
+#define IS_EXTENSION_ID(byte) (((byte)&ASN_EXTENSION_ID) == ASN_EXTENSION_ID)
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,5 +105,4 @@ u_char *asn_build_exception(u_char *, int *, u_char);
 
 #endif
 
-#endif  /* SQUID_SNMP_ASN1_H */
-
+#endif /* SQUID_SNMP_ASN1_H */

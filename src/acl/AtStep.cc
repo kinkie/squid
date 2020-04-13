@@ -18,7 +18,7 @@
 #endif
 
 int
-ACLAtStepStrategy::match(ACLData<XactionStep> * &data, ACLFilledChecklist *checklist)
+ACLAtStepStrategy::match(ACLData<XactionStep> *&data, ACLFilledChecklist *checklist)
 {
 #if USE_OPENSSL
     // We use step1 for all these very different cases:
@@ -36,11 +36,11 @@ ACLAtStepStrategy::match(ACLData<XactionStep> * &data, ACLFilledChecklist *check
 
     if (data->match(currentSslBumpStep))
         return 1;
-#endif // USE_OPENSSL
+#endif  // USE_OPENSSL
 
     if (data->match(XactionStep::generatingConnect)) {
         if (!checklist->request)
-            return 0; // we have warned about the missing request earlier
+            return 0;  // we have warned about the missing request earlier
 
         if (!checklist->request->masterXaction) {
             debugs(28, DBG_IMPORTANT, "BUG: at_step GeneratingCONNECT ACL is missing master transaction info. Assuming mismatch.");
@@ -52,4 +52,3 @@ ACLAtStepStrategy::match(ACLData<XactionStep> * &data, ACLFilledChecklist *check
 
     return 0;
 }
-

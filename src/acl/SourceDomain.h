@@ -18,7 +18,7 @@ class ACLSourceDomainStrategy : public ACLStrategy<char const *>
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *) override;
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *) override;
 };
 
 class SourceDomainLookup : public ACLChecklist::AsyncState
@@ -26,7 +26,7 @@ class SourceDomainLookup : public ACLChecklist::AsyncState
 
 public:
     static SourceDomainLookup *Instance();
-    virtual void checkForAsync(ACLChecklist *)const;
+    virtual void checkForAsync(ACLChecklist *) const;
 
 private:
     static SourceDomainLookup instance_;
@@ -34,4 +34,3 @@ private:
 };
 
 #endif /* SQUID_ACLSOURCEDOMAIN_H */
-

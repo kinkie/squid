@@ -16,7 +16,7 @@
 #include "ip/Address.h"
 #include "ip/forward.h"
 #include "security/forward.h"
-#include "typedefs.h" //DRCB, DWCB
+#include "typedefs.h"  //DRCB, DWCB
 
 #if USE_DELAY_POOLS
 #include "MessageBucket.h"
@@ -52,14 +52,14 @@ class fde
 {
 
 public:
-
     // TODO: Merge with comm_init() to reduce initialization order dependencies.
     /// Configures fd_table (a.k.a. fde::Table).
     /// Call once, after learning the number of supported descriptors (i.e.
     /// setMaxFD()) and before dereferencing fd_table (e.g., before Comm I/O).
     static void Init();
 
-    fde() {
+    fde()
+    {
         *ipaddr = 0;
         *desc = 0;
         read_handler = nullptr;
@@ -98,25 +98,24 @@ public:
     void noteUse() { ++pconn.uses; }
 
 public:
-
     /// global table of FD and their state.
-    static fde* Table;
+    static fde *Table;
 
     unsigned int type = 0;
     unsigned short remote_port = 0;
 
     Ip::Address local_addr;
-    tos_t tosToServer = '\0';      /**< The TOS value for packets going towards the server.
+    tos_t tosToServer = '\0';    /**< The TOS value for packets going towards the server.
                                         See also tosFromServer. */
-    nfmark_t nfmarkToServer = 0;   /**< The netfilter mark for packets going towards the server.
+    nfmark_t nfmarkToServer = 0; /**< The netfilter mark for packets going towards the server.
                                         See also nfConnmarkFromServer. */
     int sock_family = 0;
-    char ipaddr[MAX_IPSTRLEN];            /* dotted decimal address of peer */
+    char ipaddr[MAX_IPSTRLEN]; /* dotted decimal address of peer */
     char desc[FD_DESC_SZ];
 
     struct _fde_flags {
         bool open = false;
-        bool close_request = false; ///< true if file_ or comm_close has been called
+        bool close_request = false;  ///< true if file_ or comm_close has been called
         bool write_daemon = false;
         bool socket_eof = false;
         bool nolinger = false;
@@ -135,13 +134,13 @@ public:
     int64_t bytes_written = 0;
 
     struct {
-        int uses = 0;                   /* ie # req's over persistent conn */
+        int uses = 0; /* ie # req's over persistent conn */
     } pconn;
 
 #if USE_DELAY_POOLS
     /// pointer to client info used in client write limiter or nullptr if not present
-    ClientInfo * clientInfo = nullptr;
-    MessageBucket::Pointer writeQuotaHandler; ///< response write limiter, if configured
+    ClientInfo *clientInfo = nullptr;
+    MessageBucket::Pointer writeQuotaHandler;  ///< response write limiter, if configured
 #endif
     unsigned epoll_state = 0;
 
@@ -155,15 +154,15 @@ public:
     time_t writeStart = 0;
     void *lifetime_data = nullptr;
     AsyncCall::Pointer closeHandler;
-    AsyncCall::Pointer halfClosedReader; /// read handler for half-closed fds
+    AsyncCall::Pointer halfClosedReader;  /// read handler for half-closed fds
     Security::SessionPointer ssl;
-    Security::ContextPointer dynamicTlsContext; ///< cached and then freed when fd is closed
+    Security::ContextPointer dynamicTlsContext;  ///< cached and then freed when fd is closed
 #if _SQUID_WINDOWS_
     struct {
         long handle = (long)nullptr;
     } win32;
 #endif
-    tos_t tosFromServer = '\0';        /**< Stores the TOS flags of the packets from the remote server.
+    tos_t tosFromServer = '\0';            /**< Stores the TOS flags of the packets from the remote server.
                                             See FwdState::dispatch(). Note that this differs to
                                             tosToServer in that this is the value we *receive* from the,
                                             connection, whereas tosToServer is the value to set on packets
@@ -182,8 +181,8 @@ public:
 
 private:
     // I/O methods connect Squid to the device/stack/library fde represents
-    READ_HANDLER *readMethod_ = nullptr; ///< imports bytes into Squid
-    WRITE_HANDLER *writeMethod_ = nullptr; ///< exports Squid bytes
+    READ_HANDLER *readMethod_ = nullptr;    ///< imports bytes into Squid
+    WRITE_HANDLER *writeMethod_ = nullptr;  ///< exports Squid bytes
 };
 
 #define fd_table fde::Table
@@ -203,4 +202,3 @@ FD_WRITE_METHOD(int fd, const char *buf, int len)
 }
 
 #endif /* SQUID_FDE_H */
-

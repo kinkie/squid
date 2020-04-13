@@ -14,13 +14,13 @@
  \ingroup ServerProtocol
  */
 
+#include "LogTags.h"
+#include "StoreClient.h"
 #include "base/RefCount.h"
 #include "comm/forward.h"
 #include "icp_opcode.h"
 #include "ip/Address.h"
-#include "LogTags.h"
 #include "store_key_md5.h"
-#include "StoreClient.h"
 
 class AccessLogEntry;
 class HttpRequest;
@@ -32,7 +32,8 @@ typedef RefCount<AccessLogEntry> AccessLogEntryPointer;
  * DO NOT add or move fields.
  * DO NOT add virtual methods.
  */
-class icp_common_t {
+class icp_common_t
+{
 public:
     /** opcode */
     unsigned char opcode;
@@ -61,7 +62,7 @@ public:
  \ingroup ServerProtocolICPAPI
  \todo mempool this
  */
-class ICPState: public StoreClient
+class ICPState : public StoreClient
 {
 
 public:
@@ -91,10 +92,10 @@ extern Comm::ConnectionPointer icpOutgoingConn;
 extern Ip::Address theIcpPublicHostID;
 
 /// \ingroup ServerProtocolICPAPI
-HttpRequest* icpGetRequest(char *url, int reqnum, int fd, Ip::Address &from);
+HttpRequest *icpGetRequest(char *url, int reqnum, int fd, Ip::Address &from);
 
 /// \ingroup ServerProtocolICPAPI
-bool icpAccessAllowed(Ip::Address &from, HttpRequest * icp_request);
+bool icpAccessAllowed(Ip::Address &from, HttpRequest *icp_request);
 
 /// \ingroup ServerProtocolICPAPI
 void icpCreateAndSend(icp_opcode, int flags, char const *url, int reqnum, int pad, int fd, const Ip::Address &from, AccessLogEntryPointer);
@@ -121,10 +122,9 @@ void icpConnectionShutdown(void);
 void icpClosePorts(void);
 
 /// \ingroup ServerProtocolICPAPI
-int icpSetCacheKey(const cache_key * key);
+int icpSetCacheKey(const cache_key *key);
 
 /// \ingroup ServerProtocolICPAPI
 const cache_key *icpGetCacheKey(const char *url, int reqnum);
 
 #endif /* SQUID_ICP_H */
-

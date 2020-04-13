@@ -13,11 +13,11 @@
 
 #if USE_DELAY_POOLS
 
-#include "auth/Gadgets.h"
 #include "CompositePoolNode.h"
 #include "DelayBucket.h"
 #include "DelayIdComposite.h"
 #include "DelaySpec.h"
+#include "auth/Gadgets.h"
 #include "splay.h"
 
 /// \ingroup DelayPoolsAPI
@@ -28,7 +28,7 @@ class DelayTaggedBucket : public RefCountable
 public:
     typedef RefCount<DelayTaggedBucket> Pointer;
 
-    void stats(StoreEntry *)const;
+    void stats(StoreEntry *) const;
     DelayTaggedBucket(String &aTag);
     ~DelayTaggedBucket();
     DelayBucket theBucket;
@@ -45,7 +45,7 @@ public:
 
     DelayTagged();
     virtual ~DelayTagged();
-    virtual void stats(StoreEntry * sentry);
+    virtual void stats(StoreEntry *sentry);
     virtual void dump(StoreEntry *entry) const;
     virtual void update(int incr);
     virtual void parse();
@@ -53,16 +53,15 @@ public:
     virtual DelayIdComposite::Pointer id(CompositeSelectionDetails &);
 
 private:
-
     /// \ingroup DelayPoolsInternal
-    class Id:public DelayIdComposite
+    class Id : public DelayIdComposite
     {
         MEMPROXY_CLASS(DelayTagged::Id);
 
     public:
-        Id (RefCount<DelayTagged>, String &);
+        Id(RefCount<DelayTagged>, String &);
         ~Id();
-        virtual int bytesWanted (int min, int max) const;
+        virtual int bytesWanted(int min, int max) const;
         virtual void bytesIn(int qty);
         virtual void delayRead(DeferredRead const &);
 
@@ -79,4 +78,3 @@ private:
 
 #endif /* USE_DELAY_POOLS */
 #endif /* DELAYTAGGED_H */
-

@@ -55,4 +55,3 @@ typedef void HandleArguments(int, char **);
 typedef void HHA1Creator(RequestData *);
 
 #endif /* SQUID_DIGEST_COMMON_H_ */
-

@@ -9,15 +9,15 @@
 /* DEBUG: section 20    Storage Manager Logging Functions */
 
 #include "squid.h"
-#include "format/Token.h"
+#include "store_log.h"
 #include "HttpReply.h"
-#include "log/File.h"
 #include "MemObject.h"
-#include "mgr/Registration.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "Store.h"
-#include "store_log.h"
+#include "format/Token.h"
+#include "log/File.h"
+#include "mgr/Registration.h"
 
 static const char *storeLogTags[] = {
     "CREATE",
@@ -27,7 +27,7 @@ static const char *storeLogTags[] = {
     "SO_FAIL",
 };
 
-static int storeLogTagsCounts[STORE_LOG_SWAPOUTFAIL+1];
+static int storeLogTagsCounts[STORE_LOG_SWAPOUTFAIL + 1];
 static OBJH storeLogTagsHist;
 
 static Logfile *storelog = NULL;
@@ -35,13 +35,13 @@ static Logfile *storelog = NULL;
 static String str_unknown;
 
 void
-storeLog(int tag, const StoreEntry * e)
+storeLog(int tag, const StoreEntry *e)
 {
     MemObject *mem = e->mem_obj;
     HttpReply const *reply;
 
-    if (str_unknown.size()==0)
-        str_unknown="unknown"; //hack. Delay initialization as string doesn't support global variables..
+    if (str_unknown.size() == 0)
+        str_unknown = "unknown";  //hack. Delay initialization as string doesn't support global variables..
 
     if (NULL == storelog)
         return;
@@ -55,23 +55,23 @@ storeLog(int tag, const StoreEntry * e)
          * the existing log format.
          */
 
-        String ctype=(reply->content_type.size() ? reply->content_type.termedBuf() : str_unknown);
+        String ctype = (reply->content_type.size() ? reply->content_type.termedBuf() : str_unknown);
 
         // mem_obj may still lack logging details; especially in RELEASE cases
         const char *logUri = mem->hasUris() ? mem->logUri() : "?";
 
         logfileLineStart(storelog);
         logfilePrintf(storelog, "%9d.%03d %-7s %02d %08X %s %4d %9d %9d %9d " SQUIDSTRINGPH " %" PRId64 "/%" PRId64 " " SQUIDSBUFPH " %s\n",
-                      (int) current_time.tv_sec,
-                      (int) current_time.tv_usec / 1000,
+                      (int)current_time.tv_sec,
+                      (int)current_time.tv_usec / 1000,
                       storeLogTags[tag],
                       e->swap_dirn,
                       e->swap_filen,
                       e->getMD5Text(),
                       reply->sline.status(),
-                      (int) reply->date,
-                      (int) reply->last_modified,
-                      (int) reply->expires,
+                      (int)reply->date,
+                      (int)reply->last_modified,
+                      (int)reply->expires,
                       SQUIDSTRINGPRINT(ctype),
                       reply->content_length,
                       e->contentLen(),
@@ -82,8 +82,8 @@ storeLog(int tag, const StoreEntry * e)
         /* no mem object. Most RELEASE cases */
         logfileLineStart(storelog);
         logfilePrintf(storelog, "%9d.%03d %-7s %02d %08X %s   ?         ?         ?         ? ?/? ?/? ? ?\n",
-                      (int) current_time.tv_sec,
-                      (int) current_time.tv_usec / 1000,
+                      (int)current_time.tv_sec,
+                      (int)current_time.tv_usec / 1000,
                       storeLogTags[tag],
                       e->swap_dirn,
                       e->swap_filen,
@@ -142,4 +142,3 @@ storeLogTagsHist(StoreEntry *e)
                           storeLogTagsCounts[tag]);
     }
 }
-

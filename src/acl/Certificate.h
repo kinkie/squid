@@ -20,8 +20,7 @@ class ACLCertificateStrategy : public ACLStrategy<X509 *>
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *);
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
 };
 
 #endif /* SQUID_ACLCERTIFICATE_H */
-

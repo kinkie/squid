@@ -18,26 +18,26 @@
 typedef std::runtime_error WhatString;
 
 /// a collection of strings indexed by pointers to their creator objects
-typedef std::unordered_multimap<const void*, WhatString> WhatStrings;
+typedef std::unordered_multimap<const void *, WhatString> WhatStrings;
 
 /// requested what() strings of alive TextException objects
 static WhatStrings *WhatStrings_ = nullptr;
 
-TextException::TextException(SBuf message, const SourceLocation &location):
+TextException::TextException(SBuf message, const SourceLocation &location) :
     TextException(message.c_str(), location)
-{}
+{
+}
 
 TextException::~TextException() throw()
 {
     if (WhatStrings_)
-        WhatStrings_->erase(this); // there only if what() has been called
+        WhatStrings_->erase(this);  // there only if what() has been called
 }
 
 std::ostream &
 TextException::print(std::ostream &os) const
 {
-    os << std::runtime_error::what() <<
-       Debug::Extra << "exception location: " << where;
+    os << std::runtime_error::what() << Debug::Extra << "exception location: " << where;
     // TODO: ...error_detail: " << (ERR_DETAIL_EXCEPTION_START+id());
     return os;
 }
@@ -63,12 +63,10 @@ CurrentException(std::ostream &os)
 {
     if (std::current_exception()) {
         try {
-            throw; // re-throw to recognize the exception type
-        }
-        catch (const std::exception &ex) {
+            throw;  // re-throw to recognize the exception type
+        } catch (const std::exception &ex) {
             os << ex.what();
-        }
-        catch (...) {
+        } catch (...) {
             os << "[unknown exception type]";
         }
     } else {
@@ -76,4 +74,3 @@ CurrentException(std::ostream &os)
     }
     return os;
 }
-

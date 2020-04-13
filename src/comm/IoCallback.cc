@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
-#include "ClientInfo.h"
-#include "comm/Connection.h"
 #include "comm/IoCallback.h"
+#include "ClientInfo.h"
+#include "CommCalls.h"
+#include "comm/Connection.h"
 #include "comm/Loops.h"
 #include "comm/Write.h"
-#include "CommCalls.h"
 #include "fde.h"
 #include "globals.h"
 
@@ -22,7 +22,7 @@ void
 Comm::CallbackTableInit()
 {
     // XXX: convert this to a std::map<> ?
-    iocb_table = static_cast<CbEntry*>(xcalloc(Squid_MaxFD, sizeof(CbEntry)));
+    iocb_table = static_cast<CbEntry *>(xcalloc(Squid_MaxFD, sizeof(CbEntry)));
     for (int pos = 0; pos < Squid_MaxFD; ++pos) {
         iocb_table[pos].fd = pos;
         iocb_table[pos].readcb.type = IOCB_READ;
@@ -122,7 +122,8 @@ Comm::IoCallback::finish(Comm::Flag code, int xerrn)
     if (callback != NULL) {
         typedef CommIoCbParams Params;
         Params &params = GetCommParams<Params>(callback);
-        if (conn != NULL) params.fd = conn->fd; // for legacy write handlers...
+        if (conn != NULL)
+            params.fd = conn->fd;  // for legacy write handlers...
         params.conn = conn;
         params.buf = buf;
         params.size = offset;
@@ -135,4 +136,3 @@ Comm::IoCallback::finish(Comm::Flag code, int xerrn)
     /* Reset for next round. */
     reset();
 }
-

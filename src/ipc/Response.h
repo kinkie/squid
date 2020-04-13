@@ -14,38 +14,36 @@
 #include "base/RefCount.h"
 #include "ipc/forward.h"
 
-namespace Ipc
-{
+namespace Ipc {
 
 /// A response to Ipc::Request.
-class Response: public RefCountable
+class Response : public RefCountable
 {
 public:
     typedef RefCount<Response> Pointer;
 
 public:
-    explicit Response(unsigned int aRequestId):
+    explicit Response(unsigned int aRequestId) :
         requestId(aRequestId) {}
 
-    virtual void pack(TypedMsgHdr& msg) const = 0; ///< prepare for sendmsg()
-    virtual Pointer clone() const = 0; ///< returns a copy of this
+    virtual void pack(TypedMsgHdr &msg) const = 0;  ///< prepare for sendmsg()
+    virtual Pointer clone() const = 0;              ///< returns a copy of this
 
 private:
-    Response(const Response&); // not implemented
-    Response& operator= (const Response&); // not implemented
+    Response(const Response &);             // not implemented
+    Response &operator=(const Response &);  // not implemented
 
 public:
-    unsigned int requestId; ///< ID of request we are responding to
+    unsigned int requestId;  ///< ID of request we are responding to
 };
 
-inline
-std::ostream& operator << (std::ostream &os, const Response& response)
+inline std::ostream &
+operator<<(std::ostream &os, const Response &response)
 {
     os << "[response.requestId %u]" << response.requestId << '}';
     return os;
 }
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_RESPONSE_H */
-

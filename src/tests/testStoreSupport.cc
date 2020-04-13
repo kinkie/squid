@@ -7,17 +7,17 @@
  */
 
 #include "squid.h"
-#include "event.h"
+#include "testStoreSupport.h"
 #include "EventLoop.h"
 #include "SquidTime.h"
-#include "testStoreSupport.h"
+#include "event.h"
 
 /* construct a stock loop with event dispatching, a time service that advances
  * 1 second a tick
  */
-StockEventLoop::StockEventLoop() : default_time_engine(TimeEngine())
+StockEventLoop::StockEventLoop() :
+    default_time_engine(TimeEngine())
 {
     registerEngine(EventScheduler::GetInstance());
     setTimeService(&default_time_engine);
 }
-

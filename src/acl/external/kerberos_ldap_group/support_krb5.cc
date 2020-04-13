@@ -47,7 +47,7 @@ void
 krb5_cleanup()
 {
     if (kparam.context)
-        for (int i=0; i<MAX_DOMAINS; i++) {
+        for (int i = 0; i < MAX_DOMAINS; i++) {
             if (kparam.cc[i])
                 krb5_cc_destroy(kparam.context, kparam.cc[i]);
             safe_free(kparam.mem_ccache[i]);
@@ -56,11 +56,11 @@ krb5_cleanup()
 }
 
 static void
-k5_error2(const char* msg, char* msg2, krb5_error_code code)
+k5_error2(const char *msg, char *msg2, krb5_error_code code)
 {
     const char *errmsg;
     errmsg = krb5_get_error_message(kparam.context, code);
-    error((char *) "%s| %s: ERROR: %s%s : %s\n", LogTime(), PROGRAM, msg, msg2, errmsg);
+    error((char *)"%s| %s: ERROR: %s%s : %s\n", LogTime(), PROGRAM, msg, msg2, errmsg);
 #if HAVE_KRB5_FREE_ERROR_MESSAGE
     krb5_free_error_message(kparam.context, errmsg);
 #elif HAVE_KRB5_FREE_ERROR_STRING
@@ -71,11 +71,11 @@ k5_error2(const char* msg, char* msg2, krb5_error_code code)
 }
 
 static void
-k5_debug(const char* msg, krb5_error_code code)
+k5_debug(const char *msg, krb5_error_code code)
 {
     const char *errmsg;
     errmsg = krb5_get_error_message(kparam.context, code);
-    debug((char *) "%s| %s: DEBUG: %s : %s\n", LogTime(), PROGRAM, msg, errmsg);
+    debug((char *)"%s| %s: DEBUG: %s : %s\n", LogTime(), PROGRAM, msg, errmsg);
 #if HAVE_KRB5_FREE_ERROR_MESSAGE
     krb5_free_error_message(kparam.context, errmsg);
 #elif HAVE_KRB5_FREE_ERROR_STRING
@@ -86,7 +86,7 @@ k5_debug(const char* msg, krb5_error_code code)
 }
 
 static void
-k5_error(const char* msg, krb5_error_code code)
+k5_error(const char *msg, krb5_error_code code)
 {
     k5_error2(msg, (char *)"", code);
 }
@@ -108,39 +108,39 @@ krb5_create_cache(char *domain, char *service_principal_name)
     char *service;
     char *keytab_name = NULL, *principal_name = NULL, *mem_cache = NULL;
     char buf[KT_PATH_MAX], *p;
-    size_t j,nprinc = 0;
+    size_t j, nprinc = 0;
     int retval = 0;
     krb5_error_code code = 0;
-    int ccindex=-1;
+    int ccindex = -1;
 
     if (!domain || !strcmp(domain, ""))
         return (1);
 
-    /*
+        /*
      * prepare memory credential cache
      */
-#if  !HAVE_KRB5_MEMORY_CACHE || HAVE_SUN_LDAP_SDK
-    mem_cache = (char *) xmalloc(strlen("FILE:/tmp/squid_ldap_") + strlen(domain) + 1 + 16);
-    snprintf(mem_cache, strlen("FILE:/tmp/squid_ldap_") + strlen(domain) + 1 + 16, "FILE:/tmp/squid_ldap_%s_%d", domain, (int) getpid());
+#if !HAVE_KRB5_MEMORY_CACHE || HAVE_SUN_LDAP_SDK
+    mem_cache = (char *)xmalloc(strlen("FILE:/tmp/squid_ldap_") + strlen(domain) + 1 + 16);
+    snprintf(mem_cache, strlen("FILE:/tmp/squid_ldap_") + strlen(domain) + 1 + 16, "FILE:/tmp/squid_ldap_%s_%d", domain, (int)getpid());
 #else
-    mem_cache = (char *) xmalloc(strlen("MEMORY:squid_ldap_") + strlen(domain) + 1 + 16);
-    snprintf(mem_cache, strlen("MEMORY:squid_ldap_") + strlen(domain) + 1 + 16, "MEMORY:squid_ldap_%s_%d", domain, (int) getpid());
+    mem_cache = (char *)xmalloc(strlen("MEMORY:squid_ldap_") + strlen(domain) + 1 + 16);
+    snprintf(mem_cache, strlen("MEMORY:squid_ldap_") + strlen(domain) + 1 + 16, "MEMORY:squid_ldap_%s_%d", domain, (int)getpid());
 #endif
 
     setenv("KRB5CCNAME", mem_cache, 1);
-    debug((char *) "%s| %s: DEBUG: Set credential cache to %s\n", LogTime(), PROGRAM, mem_cache);
-    for (int i=0; i<MAX_DOMAINS; i++) {
-        if (kparam.mem_ccache[i] && !strcmp(mem_cache,kparam.mem_ccache[i])) {
-            ccindex=i;
+    debug((char *)"%s| %s: DEBUG: Set credential cache to %s\n", LogTime(), PROGRAM, mem_cache);
+    for (int i = 0; i < MAX_DOMAINS; i++) {
+        if (kparam.mem_ccache[i] && !strcmp(mem_cache, kparam.mem_ccache[i])) {
+            ccindex = i;
             break;
         }
     }
-    if ( ccindex == -1 ) {
-        kparam.mem_ccache[kparam.ncache]=xstrdup(mem_cache);
-        ccindex=kparam.ncache;
+    if (ccindex == -1) {
+        kparam.mem_ccache[kparam.ncache] = xstrdup(mem_cache);
+        ccindex = kparam.ncache;
         kparam.ncache++;
-        if ( kparam.ncache == MAX_DOMAINS ) {
-            error((char *) "%s| %s: ERROR: Too many domains to support: # domains %d\n", LogTime(), PROGRAM, kparam.ncache);
+        if (kparam.ncache == MAX_DOMAINS) {
+            error((char *)"%s| %s: ERROR: Too many domains to support: # domains %d\n", LogTime(), PROGRAM, kparam.ncache);
             retval = 1;
             goto cleanup;
         }
@@ -168,7 +168,7 @@ krb5_create_cache(char *domain, char *service_principal_name)
         code = krb5_cc_start_seq_get(kparam.context, kparam.cc[ccindex], &ccursor);
         if (code) {
             k5_error("Error while starting ccache scan", code);
-            code = krb5_cc_close (kparam.context, kparam.cc[ccindex]);
+            code = krb5_cc_close(kparam.context, kparam.cc[ccindex]);
             if (code) {
                 k5_error("Error while closing ccache", code);
             }
@@ -180,7 +180,7 @@ krb5_create_cache(char *domain, char *service_principal_name)
             }
         } else {
             krb5_error_code code2 = 0;
-            creds = static_cast<krb5_creds *>(xcalloc(1,sizeof(*creds)));
+            creds = static_cast<krb5_creds *>(xcalloc(1, sizeof(*creds)));
             while ((krb5_cc_next_cred(kparam.context, kparam.cc[ccindex], &ccursor, creds)) == 0) {
                 code2 = krb5_unparse_name(kparam.context, creds->server, &principal_name);
                 if (code2) {
@@ -193,28 +193,28 @@ krb5_create_cache(char *domain, char *service_principal_name)
                     krb5_free_creds(kparam.context, creds);
                     creds = NULL;
                     safe_free(principal_name);
-                    debug((char *) "%s| %s: DEBUG: Reset credential cache to %s\n", LogTime(), PROGRAM, mem_cache);
+                    debug((char *)"%s| %s: DEBUG: Reset credential cache to %s\n", LogTime(), PROGRAM, mem_cache);
                     code = krb5_cc_resolve(kparam.context, mem_cache, &kparam.cc[ccindex]);
                     if (code) {
                         k5_error("Error while resolving memory ccache", code);
                         retval = 1;
                         goto cleanup;
                     }
-                    code =1;
+                    code = 1;
                     break;
                 }
-                if (!strncmp(KRB5_TGS_NAME,principal_name,KRB5_TGS_NAME_SIZE)) {
+                if (!strncmp(KRB5_TGS_NAME, principal_name, KRB5_TGS_NAME_SIZE)) {
                     time_t now;
-                    static krb5_deltat skew=MAX_SKEW;
+                    static krb5_deltat skew = MAX_SKEW;
 
-                    debug((char *) "%s| %s: DEBUG: Found %s in cache : %s\n", LogTime(), PROGRAM,KRB5_TGS_NAME,principal_name);
+                    debug((char *)"%s| %s: DEBUG: Found %s in cache : %s\n", LogTime(), PROGRAM, KRB5_TGS_NAME, principal_name);
                     /*
                      * Check time
                      */
                     time(&now);
-                    debug((char *) "%s| %s: DEBUG: credential time diff %d\n", LogTime(), PROGRAM, (int)(creds->times.endtime - now));
-                    if (creds->times.endtime - now < 2*skew) {
-                        debug((char *) "%s| %s: DEBUG: credential will soon expire %d\n", LogTime(), PROGRAM, (int)(creds->times.endtime - now));
+                    debug((char *)"%s| %s: DEBUG: credential time diff %d\n", LogTime(), PROGRAM, (int)(creds->times.endtime - now));
+                    if (creds->times.endtime - now < 2 * skew) {
+                        debug((char *)"%s| %s: DEBUG: credential will soon expire %d\n", LogTime(), PROGRAM, (int)(creds->times.endtime - now));
                         if (principal)
                             krb5_free_principal(kparam.context, principal);
                         principal = NULL;
@@ -226,7 +226,7 @@ krb5_create_cache(char *domain, char *service_principal_name)
                         krb5_free_creds(kparam.context, creds);
                         creds = NULL;
                         safe_free(principal_name);
-                        debug((char *) "%s| %s: DEBUG: Reset credential cache to %s\n", LogTime(), PROGRAM, mem_cache);
+                        debug((char *)"%s| %s: DEBUG: Reset credential cache to %s\n", LogTime(), PROGRAM, mem_cache);
                         code = krb5_cc_resolve(kparam.context, mem_cache, &kparam.cc[ccindex]);
                         if (code) {
                             k5_error("Error  while resolving ccache", code);
@@ -260,17 +260,17 @@ krb5_create_cache(char *domain, char *service_principal_name)
          * getting default keytab name
          */
 
-        debug((char *) "%s| %s: DEBUG: Get default keytab file name\n", LogTime(), PROGRAM);
+        debug((char *)"%s| %s: DEBUG: Get default keytab file name\n", LogTime(), PROGRAM);
         krb5_kt_default_name(kparam.context, buf, KT_PATH_MAX);
-        p = strchr(buf, ':');   /* Find the end if "FILE:" */
+        p = strchr(buf, ':'); /* Find the end if "FILE:" */
         if (p)
-            ++p;            /* step past : */
+            ++p; /* step past : */
         keytab_name = xstrdup(p ? p : buf);
-        debug((char *) "%s| %s: DEBUG: Got default keytab file name %s\n", LogTime(), PROGRAM, keytab_name);
+        debug((char *)"%s| %s: DEBUG: Got default keytab file name %s\n", LogTime(), PROGRAM, keytab_name);
 
         code = krb5_kt_resolve(kparam.context, keytab_name, &keytab);
         if (code) {
-            k5_error2("Error while resolving keytab ", keytab_name,code);
+            k5_error2("Error while resolving keytab ", keytab_name, code);
             retval = 1;
             goto cleanup;
         }
@@ -280,18 +280,18 @@ krb5_create_cache(char *domain, char *service_principal_name)
             retval = 1;
             goto cleanup;
         }
-        debug((char *) "%s| %s: DEBUG: Get principal name from keytab %s\n", LogTime(), PROGRAM, keytab_name);
+        debug((char *)"%s| %s: DEBUG: Get principal name from keytab %s\n", LogTime(), PROGRAM, keytab_name);
 
         nprinc = 0;
         while ((code = krb5_kt_next_entry(kparam.context, keytab, &entry, &cursor)) == 0) {
             int found = 0;
 
-            principal_list = (krb5_principal *) xrealloc(principal_list, sizeof(krb5_principal) * (nprinc + 1));
+            principal_list = (krb5_principal *)xrealloc(principal_list, sizeof(krb5_principal) * (nprinc + 1));
             krb5_copy_principal(kparam.context, entry.principal, &principal_list[nprinc++]);
 #if USE_HEIMDAL_KRB5
-            debug((char *) "%s| %s: DEBUG: Keytab entry has realm name: %s\n", LogTime(), PROGRAM, entry.principal->realm);
+            debug((char *)"%s| %s: DEBUG: Keytab entry has realm name: %s\n", LogTime(), PROGRAM, entry.principal->realm);
 #else
-            debug((char *) "%s| %s: DEBUG: Keytab entry has realm name: %s\n", LogTime(), PROGRAM, krb5_princ_realm(kparam.context, entry.principal)->data);
+            debug((char *)"%s| %s: DEBUG: Keytab entry has realm name: %s\n", LogTime(), PROGRAM, krb5_princ_realm(kparam.context, entry.principal)->data);
 #endif
 #if USE_HEIMDAL_KRB5
             if (!strcasecmp(domain, entry.principal->realm))
@@ -303,16 +303,16 @@ krb5_create_cache(char *domain, char *service_principal_name)
                 if (code) {
                     k5_error("Error while unparsing principal name", code);
                 } else {
-                    debug((char *) "%s| %s: DEBUG: Found principal name: %s\n", LogTime(), PROGRAM, principal_name);
+                    debug((char *)"%s| %s: DEBUG: Found principal name: %s\n", LogTime(), PROGRAM, principal_name);
                     found = 1;
-                    if (service_principal_name && strcasecmp(principal_name,service_principal_name) != 0 ) {
-                        debug((char *) "%s| %s: DEBUG: principal name does not match parameter: %s\n", LogTime(), PROGRAM, service_principal_name);
+                    if (service_principal_name && strcasecmp(principal_name, service_principal_name) != 0) {
+                        debug((char *)"%s| %s: DEBUG: principal name does not match parameter: %s\n", LogTime(), PROGRAM, service_principal_name);
                         safe_free(principal_name);
                         found = 0;
                     }
                 }
             }
-#if USE_HEIMDAL_KRB5 || ( HAVE_KRB5_KT_FREE_ENTRY && HAVE_DECL_KRB5_KT_FREE_ENTRY )
+#if USE_HEIMDAL_KRB5 || (HAVE_KRB5_KT_FREE_ENTRY && HAVE_DECL_KRB5_KT_FREE_ENTRY)
             code = krb5_kt_free_entry(kparam.context, &entry);
 #else
             code = krb5_free_keytab_entry_contents(kparam.context, &entry);
@@ -323,20 +323,20 @@ krb5_create_cache(char *domain, char *service_principal_name)
                 break;
             }
             if (found) {
-                debug((char *) "%s| %s: DEBUG: Got principal name %s\n", LogTime(), PROGRAM, principal_name);
+                debug((char *)"%s| %s: DEBUG: Got principal name %s\n", LogTime(), PROGRAM, principal_name);
                 /*
                  * build principal
                  */
                 code = krb5_parse_name(kparam.context, principal_name, &principal);
                 if (code) {
-                    k5_error2("Error while parsing name ", principal_name,code);
+                    k5_error2("Error while parsing name ", principal_name, code);
                     safe_free(principal_name);
                     if (principal)
                         krb5_free_principal(kparam.context, principal);
                     found = 0;
                     continue;
                 }
-                creds = (krb5_creds *) xcalloc(1,sizeof(*creds));
+                creds = (krb5_creds *)xcalloc(1, sizeof(*creds));
 
                 /*
                  * get credentials
@@ -344,7 +344,7 @@ krb5_create_cache(char *domain, char *service_principal_name)
 #if HAVE_GET_INIT_CREDS_KEYTAB
                 code = krb5_get_init_creds_keytab(kparam.context, creds, principal, keytab, 0, NULL, NULL);
 #else
-                service = (char *) xmalloc(strlen("krbtgt") + 2 * strlen(domain) + 3);
+                service = (char *)xmalloc(strlen("krbtgt") + 2 * strlen(domain) + 3);
                 snprintf(service, strlen("krbtgt") + 2 * strlen(domain) + 3, "krbtgt/%s@%s", domain, domain);
                 creds->client = principal;
                 code = krb5_parse_name(kparam.context, service, &creds->server);
@@ -387,7 +387,7 @@ krb5_create_cache(char *domain, char *service_principal_name)
                     found = 0;
                     continue;
                 }
-                debug((char *) "%s| %s: DEBUG: Stored credentials\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: DEBUG: Stored credentials\n", LogTime(), PROGRAM);
                 break;
             }
         }
@@ -409,12 +409,12 @@ krb5_create_cache(char *domain, char *service_principal_name)
          */
         if (!principal_name && !service_principal_name) {
             size_t i;
-            debug((char *) "%s| %s: DEBUG: Did not find a principal in keytab for domain %s.\n", LogTime(), PROGRAM, domain);
-            debug((char *) "%s| %s: DEBUG: Try to get principal of trusted domain.\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: DEBUG: Did not find a principal in keytab for domain %s.\n", LogTime(), PROGRAM, domain);
+            debug((char *)"%s| %s: DEBUG: Try to get principal of trusted domain.\n", LogTime(), PROGRAM);
 
             for (i = 0; i < nprinc; ++i) {
                 krb5_creds *tgt_creds = NULL;
-                creds = (krb5_creds *) xmalloc(sizeof(*creds));
+                creds = (krb5_creds *)xmalloc(sizeof(*creds));
                 memset(creds, 0, sizeof(*creds));
                 /*
                  * get credentials
@@ -424,12 +424,12 @@ krb5_create_cache(char *domain, char *service_principal_name)
                     k5_error("Error while unparsing principal name", code);
                     goto loop_end;
                 }
-                debug((char *) "%s| %s: DEBUG: Keytab entry has principal: %s\n", LogTime(), PROGRAM, principal_name);
+                debug((char *)"%s| %s: DEBUG: Keytab entry has principal: %s\n", LogTime(), PROGRAM, principal_name);
 
 #if HAVE_GET_INIT_CREDS_KEYTAB
                 code = krb5_get_init_creds_keytab(kparam.context, creds, principal_list[i], keytab, 0, NULL, NULL);
 #else
-                service = (char *) xmalloc(strlen("krbtgt") + 2 * strlen(domain) + 3);
+                service = (char *)xmalloc(strlen("krbtgt") + 2 * strlen(domain) + 3);
                 snprintf(service, strlen("krbtgt") + 2 * strlen(domain) + 3, "krbtgt/%s@%s", domain, domain);
                 creds->client = principal_list[i];
                 code = krb5_parse_name(kparam.context, service, &creds->server);
@@ -453,10 +453,10 @@ krb5_create_cache(char *domain, char *service_principal_name)
                 if (creds->server)
                     krb5_free_principal(kparam.context, creds->server);
 #if USE_HEIMDAL_KRB5
-                service = (char *) xmalloc(strlen("krbtgt") + strlen(domain) + strlen(principal_list[i]->realm) + 3);
+                service = (char *)xmalloc(strlen("krbtgt") + strlen(domain) + strlen(principal_list[i]->realm) + 3);
                 snprintf(service, strlen("krbtgt") + strlen(domain) + strlen(principal_list[i]->realm) + 3, "krbtgt/%s@%s", domain, principal_list[i]->realm);
 #else
-                service = (char *) xmalloc(strlen("krbtgt") + strlen(domain) + strlen(krb5_princ_realm(kparam.context, principal_list[i])->data) + 3);
+                service = (char *)xmalloc(strlen("krbtgt") + strlen(domain) + strlen(krb5_princ_realm(kparam.context, principal_list[i])->data) + 3);
                 snprintf(service, strlen("krbtgt") + strlen(domain) + strlen(krb5_princ_realm(kparam.context, principal_list[i])->data) + 3, "krbtgt/%s@%s", domain, krb5_princ_realm(kparam.context, principal_list[i])->data);
 #endif
                 code = krb5_parse_name(kparam.context, service, &creds->server);
@@ -476,14 +476,14 @@ krb5_create_cache(char *domain, char *service_principal_name)
                     k5_error("Error while getting tgt", code);
                     goto loop_end;
                 } else {
-                    debug((char *) "%s| %s: DEBUG: Found trusted principal name: %s\n", LogTime(), PROGRAM, principal_name);
+                    debug((char *)"%s| %s: DEBUG: Found trusted principal name: %s\n", LogTime(), PROGRAM, principal_name);
                     if (tgt_creds)
                         krb5_free_creds(kparam.context, tgt_creds);
                     tgt_creds = NULL;
                     break;
                 }
 
-loop_end:
+            loop_end:
                 safe_free(principal_name);
                 if (tgt_creds)
                     krb5_free_creds(kparam.context, tgt_creds);
@@ -491,7 +491,6 @@ loop_end:
                 if (creds)
                     krb5_free_creds(kparam.context, creds);
                 creds = NULL;
-
             }
 
             if (creds)
@@ -499,7 +498,7 @@ loop_end:
             creds = NULL;
         }
     } else {
-        debug((char *) "%s| %s: DEBUG: Got principal from ccache\n", LogTime(), PROGRAM);
+        debug((char *)"%s| %s: DEBUG: Got principal from ccache\n", LogTime(), PROGRAM);
         /*
          * get credentials
          */
@@ -509,11 +508,11 @@ loop_end:
             retval = 1;
             goto cleanup;
         }
-        debug((char *) "%s| %s: DEBUG: ccache has principal: %s\n", LogTime(), PROGRAM, principal_name);
+        debug((char *)"%s| %s: DEBUG: ccache has principal: %s\n", LogTime(), PROGRAM, principal_name);
     }
 
     if (!principal_name) {
-        debug((char *) "%s| %s: DEBUG: Got no principal name\n", LogTime(), PROGRAM);
+        debug((char *)"%s| %s: DEBUG: Got no principal name\n", LogTime(), PROGRAM);
         retval = 1;
     }
 cleanup:
@@ -534,4 +533,3 @@ cleanup:
     return (retval);
 }
 #endif
-

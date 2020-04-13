@@ -42,12 +42,13 @@
 /* Logon and tree connect to the server. If a tree handle was given to us, */
 /* we use it and return it, otherwise we create one ...                    */
 
-SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
-                                   SMB_Tree_Handle Tree_Handle,
-                                   char *UserName,
-                                   char *PassWord,
-                                   char *service,
-                                   char *service_type)
+SMB_Tree_Handle
+SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
+                   SMB_Tree_Handle Tree_Handle,
+                   char *UserName,
+                   char *PassWord,
+                   char *service,
+                   char *service_type)
 
 {
     struct RFCNB_Pkt *pkt;
@@ -64,13 +65,12 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
         if (tree == NULL) {
 
             SMBlib_errno = SMBlibE_NoSpace;
-            return(tree);
+            return (tree);
 
         } else { /* Initialize the tree */
 
-            tree -> con = Con_Handle;
-            tree -> prev = tree -> next = NULL;
-
+            tree->con = Con_Handle;
+            tree->prev = tree->next = NULL;
         }
     } else
         tree = Tree_Handle;
@@ -82,13 +82,12 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
     /* Since we are going to do a LogonAndX with a TCon as the second command*/
     /* We need the packet size correct. So TCon starts at wct field          */
 
-    if (Con_Handle -> protocol < SMB_P_LanMan1) {
+    if (Con_Handle->protocol < SMB_P_LanMan1) {
 
         SMBlib_errno = SMBlibE_ProtLow;
         if (Tree_Handle == NULL)
             free(tree);
-        return(NULL);
-
+        return (NULL);
     }
 
     /* Now build the correct structure */
@@ -99,7 +98,7 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
 
     andx_param_len = strlen(service) + 1 + strlen(service_type) + 1;
 
-    if (Con_Handle -> protocol < SMB_P_NT1) {
+    if (Con_Handle->protocol < SMB_P_NT1) {
 
 #ifdef SMBLIB_DEBUG
         fprintf(stderr, "Doing an LM session setup etc ...\n");
@@ -107,9 +106,7 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
 
         /* We don't do encrypted passwords ... */
 
-        param_len = strlen(UserName) + 1 + strlen(PassWord) + 1 +
-                    strlen(Con_Handle -> PDomain) + 1 +
-                    strlen(Con_Handle -> OSName) + 1;
+        param_len = strlen(UserName) + 1 + strlen(PassWord) + 1 + strlen(Con_Handle->PDomain) + 1 + strlen(Con_Handle->OSName) + 1;
 
         pkt_len = SMB_ssetpLM_len + param_len + andx_len + andx_param_len;
 
@@ -120,24 +117,23 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
             SMBlib_errno = SMBlibE_NoSpace;
             if (Tree_Handle == NULL)
                 free(tree);
-            return(NULL); /* Should handle the error */
-
+            return (NULL); /* Should handle the error */
         }
 
         memset(SMB_Hdr(pkt), 0, SMB_ssetpLM_len);
-        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
         *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBsesssetupX;
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle->pid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, 0);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle -> mid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle->mid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, 0);
         *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 10;
-        *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) =  SMBtconX;
+        *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = SMBtconX;
         SSVAL(SMB_Hdr(pkt), SMB_hdr_axo_offset, SMB_ssetpLM_len + param_len);
 
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_mbs_offset, SMBLIB_MAX_XMIT);
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_mmc_offset, 2);
-        SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_vcn_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_vcn_offset, Con_Handle->pid);
         SIVAL(SMB_Hdr(pkt), SMB_ssetpLM_snk_offset, 0);
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_pwl_offset, strlen(PassWord) + 1);
         SIVAL(SMB_Hdr(pkt), SMB_ssetpLM_res_offset, 0);
@@ -159,13 +155,13 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
 
         p = p + 1;
 
-        strcpy(p, Con_Handle -> PDomain);
-        p = p + strlen(Con_Handle -> PDomain);
+        strcpy(p, Con_Handle->PDomain);
+        p = p + strlen(Con_Handle->PDomain);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> OSName);
-        p = p + strlen(Con_Handle -> OSName);
+        strcpy(p, Con_Handle->OSName);
+        p = p + strlen(Con_Handle->OSName);
         *p = 0;
 
         AndXCom = SMB_Hdr(pkt) + SMB_ssetpLM_len + param_len - SMB_hdr_wct_offset;
@@ -178,10 +174,7 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
         fprintf(stderr, "Doing NT LM Sess Setup etc ... \n");
 #endif
 
-        param_len = strlen(UserName) + 1 + strlen(PassWord) +
-                    strlen(Con_Handle -> PDomain) + 1 +
-                    strlen(Con_Handle -> OSName) + 1 +
-                    strlen(Con_Handle -> LMType) + 1;
+        param_len = strlen(UserName) + 1 + strlen(PassWord) + strlen(Con_Handle->PDomain) + 1 + strlen(Con_Handle->OSName) + 1 + strlen(Con_Handle->LMType) + 1;
 
         pkt_len = SMB_ssetpNTLM_len + param_len + andx_len + andx_param_len;
 
@@ -192,16 +185,15 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
             SMBlib_errno = SMBlibE_NoSpace;
             if (Tree_Handle == NULL)
                 free(tree);
-            return(NULL); /* Should handle the error */
-
+            return (NULL); /* Should handle the error */
         }
 
         memset(SMB_Hdr(pkt), 0, SMB_ssetpNTLM_len);
-        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
         *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBsesssetupX;
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle->pid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, 0);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle -> mid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle->mid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, 0);
         *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 13;
         *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = SMBtconX;
@@ -233,31 +225,30 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
 
         p = p + 1;
 
-        strcpy(p, Con_Handle -> PDomain);
-        p = p + strlen(Con_Handle -> PDomain);
+        strcpy(p, Con_Handle->PDomain);
+        p = p + strlen(Con_Handle->PDomain);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> OSName);
-        p = p + strlen(Con_Handle -> OSName);
+        strcpy(p, Con_Handle->OSName);
+        p = p + strlen(Con_Handle->OSName);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> LMType);
-        p = p + strlen(Con_Handle -> LMType);
+        strcpy(p, Con_Handle->LMType);
+        p = p + strlen(Con_Handle->LMType);
         *p = 0;
 
         /* Now set up the TCON Part ... from WCT, make up a pointer that will
            help us ...                                                        */
 
         AndXCom = SMB_Hdr(pkt) + SMB_ssetpNTLM_len + param_len - SMB_hdr_wct_offset;
-
     }
     *(AndXCom + SMB_hdr_wct_offset) = 4;
-    *(AndXCom + SMB_tconx_axc_offset) = 0xFF;  /* No command */
+    *(AndXCom + SMB_tconx_axc_offset) = 0xFF; /* No command */
     SSVAL(AndXCom, SMB_tconx_axo_offset, 0);
-    SSVAL(AndXCom, SMB_tconx_flg_offset, 0);   /* Don't disconnect TID    */
-    SSVAL(AndXCom, SMB_tconx_pwl_offset, 0);   /* No password, */
+    SSVAL(AndXCom, SMB_tconx_flg_offset, 0); /* Don't disconnect TID    */
+    SSVAL(AndXCom, SMB_tconx_pwl_offset, 0); /* No password, */
     SSVAL(AndXCom, SMB_tconx_bcc_offset, andx_param_len);
 
     p = (char *)(AndXCom + SMB_tconx_buf_offset);
@@ -270,7 +261,7 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
 
     /* Now send it and get a response */
 
-    if (RFCNB_Send(Con_Handle -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Send(Con_Handle->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error sending SessSetupAndTCon request\n");
@@ -279,13 +270,12 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
         RFCNB_Free_Pkt(pkt);
         free(tree);
         SMBlib_errno = SMBlibE_SendFailed;
-        return(NULL);
-
+        return (NULL);
     }
 
     /* Now get the response ... */
 
-    if (RFCNB_Recv(Con_Handle -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Recv(Con_Handle->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error receiving response to SessSetupAndTCon\n");
@@ -294,13 +284,12 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
         RFCNB_Free_Pkt(pkt);
         free(tree);
         SMBlib_errno = SMBlibE_RecvFailed;
-        return(NULL);
-
+        return (NULL);
     }
 
     /* Check out the response type ... */
 
-    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) {  /* Process error */
+    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) { /* Process error */
 
 #ifdef DEBUG
         fprintf(stderr, "SMB_SessSetupAndTCon failed with errorclass = %i, Error Code = %i\n",
@@ -315,8 +304,7 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
         free(tree);
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_Remote;
-        return(NULL);
-
+        return (NULL);
     }
 
 #ifdef DEBUG
@@ -326,47 +314,46 @@ SMB_Tree_Handle SMB_Logon_And_TCon(SMB_Handle_Type Con_Handle,
 
     /* Now pick up the UID for future reference ... */
 
-    Con_Handle -> uid = SVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset);
+    Con_Handle->uid = SVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset);
 
     /* And pick up the TID as well                  */
 
-    tree -> tid = SVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset);
+    tree->tid = SVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset);
 
-    tree -> mbs = Con_Handle -> max_xmit;
+    tree->mbs = Con_Handle->max_xmit;
 
     /* Link the tree into the list in con */
 
-    if (Con_Handle -> first_tree == NULL) {
+    if (Con_Handle->first_tree == NULL) {
 
-        Con_Handle -> first_tree == tree;
-        Con_Handle -> last_tree == tree;
+        Con_Handle->first_tree == tree;
+        Con_Handle->last_tree == tree;
 
     } else {
 
-        Con_Handle -> last_tree -> next = tree;
-        tree -> prev = Con_Handle -> last_tree;
-        Con_Handle -> last_tree = tree;
-
+        Con_Handle->last_tree->next = tree;
+        tree->prev = Con_Handle->last_tree;
+        Con_Handle->last_tree = tree;
     }
 
     RFCNB_Free_Pkt(pkt);
 
-    return(tree);
-
+    return (tree);
 }
 
 /* Logon and TCon and Open to a file on the server, but we need to pass   */
 /* back a file pointer, so we better have one in the parameter list       */
 
-int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
-                        char *PassWord,
-                        char *service,
-                        char *service_type,
-                        SMB_Tree_Handle *Tree_Handle,
-                        char *filename,
-                        WORD mode,
-                        WORD search,
-                        SMB_File **File_Handle)
+int
+SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
+                    char *PassWord,
+                    char *service,
+                    char *service_type,
+                    SMB_Tree_Handle *Tree_Handle,
+                    char *filename,
+                    WORD mode,
+                    WORD search,
+                    SMB_File **File_Handle)
 
 {
     struct RFCNB_Pkt *pkt;
@@ -383,13 +370,12 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
     if (tree == NULL) {
 
         SMBlib_errno = SMBlibE_NoSpace;
-        return(SMBlibE_BAD);
+        return (SMBlibE_BAD);
 
     } else {
 
-        tree -> con = Con_Handle;
-        tree -> next = tree -> prev = NULL;
-
+        tree->con = Con_Handle;
+        tree->next = tree->prev = NULL;
     }
 
     /* Next, we need a file handle as we are going to pass one back ...    */
@@ -403,8 +389,7 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
         SMBlib_errno = SMBlibE_NoSpace;
         free(tree);
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Next we need a packet etc ... but we need to know what protocol has  */
@@ -414,13 +399,12 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
     /* Since we are going to do a LogonAndX with a TCon as the second command*/
     /* We need the packet size correct. So TCon starts at wct field          */
 
-    if (Con_Handle -> protocol < SMB_P_LanMan1) {
+    if (Con_Handle->protocol < SMB_P_LanMan1) {
 
         free(tree);
         free(file_tmp);
         SMBlib_errno = SMBlibE_ProtLow;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Now build the correct structure */
@@ -431,20 +415,17 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
     tcon_param_len = strlen(service) + 1 + strlen(service_type) + 1;
 
     open_len = SMB_openx_len - SMB_hdr_wct_offset;
-    open_param_len = 1 + strlen(filename) + 1;  /* AsciiID + null */
+    open_param_len = 1 + strlen(filename) + 1; /* AsciiID + null */
 
-    if (Con_Handle -> protocol < SMB_P_NT1) {
+    if (Con_Handle->protocol < SMB_P_NT1) {
 
         /* We don't do encrypted passwords yet */
 
-        param_len = strlen(UserName) + 1 + strlen(PassWord) + 1 +
-                    strlen(Con_Handle -> PDomain) + 1 +
-                    strlen(Con_Handle -> OSName) + 1;
+        param_len = strlen(UserName) + 1 + strlen(PassWord) + 1 + strlen(Con_Handle->PDomain) + 1 + strlen(Con_Handle->OSName) + 1;
 
         header_len = SMB_ssetpLM_len + param_len;
 
-        pkt_len = header_len + tcon_len + tcon_param_len +
-                  open_len + open_param_len;
+        pkt_len = header_len + tcon_len + tcon_param_len + open_len + open_param_len;
 
         pkt = (struct RFCNB_Pkt *)RFCNB_Alloc_Pkt(pkt_len);
 
@@ -453,16 +434,15 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
             SMBlib_errno = SMBlibE_NoSpace;
             free(tree);
             free(file_tmp);
-            return(SMBlibE_BAD); /* Should handle the error */
-
+            return (SMBlibE_BAD); /* Should handle the error */
         }
 
         memset(SMB_Hdr(pkt), 0, SMB_ssetpLM_len);
-        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
         *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBsesssetupX;
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle->pid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, 0);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle -> mid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle->mid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, 0);
         *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 10;
         *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = SMBtconX;
@@ -470,7 +450,7 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_mbs_offset, SMBLIB_MAX_XMIT);
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_mmc_offset, 2);
-        SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_vcn_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_vcn_offset, Con_Handle->pid);
         SIVAL(SMB_Hdr(pkt), SMB_ssetpLM_snk_offset, 0);
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_pwl_offset, strlen(PassWord) + 1);
         SIVAL(SMB_Hdr(pkt), SMB_ssetpLM_res_offset, 0);
@@ -492,13 +472,13 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
         p = p + 1;
 
-        strcpy(p, Con_Handle -> PDomain);
-        p = p + strlen(Con_Handle -> PDomain);
+        strcpy(p, Con_Handle->PDomain);
+        p = p + strlen(Con_Handle->PDomain);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> OSName);
-        p = p + strlen(Con_Handle -> OSName);
+        strcpy(p, Con_Handle->OSName);
+        p = p + strlen(Con_Handle->OSName);
         *p = 0;
 
         AndXCom = SMB_Hdr(pkt) + SMB_ssetpLM_len + param_len - SMB_hdr_wct_offset;
@@ -507,15 +487,11 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
         /* We don't admit to UNICODE support ... */
 
-        param_len = strlen(UserName) + 1 + strlen(PassWord) +
-                    strlen(Con_Handle -> PDomain) + 1 +
-                    strlen(Con_Handle -> OSName) + 1 +
-                    strlen(Con_Handle -> LMType) + 1;
+        param_len = strlen(UserName) + 1 + strlen(PassWord) + strlen(Con_Handle->PDomain) + 1 + strlen(Con_Handle->OSName) + 1 + strlen(Con_Handle->LMType) + 1;
 
         header_len = SMB_ssetpNTLM_len + param_len;
 
-        pkt_len = header_len + tcon_len + tcon_param_len +
-                  open_len + open_param_len;
+        pkt_len = header_len + tcon_len + tcon_param_len + open_len + open_param_len;
 
         pkt = (struct RFCNB_Pkt *)RFCNB_Alloc_Pkt(pkt_len);
 
@@ -523,17 +499,16 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
             SMBlib_errno = SMBlibE_NoSpace;
             free(tree);
-            free(file_tmp);     /* Should only do if we created one ... */
-            return(-1); /* Should handle the error */
-
+            free(file_tmp); /* Should only do if we created one ... */
+            return (-1);    /* Should handle the error */
         }
 
         memset(SMB_Hdr(pkt), 0, SMB_ssetpNTLM_len);
-        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
         *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBsesssetupX;
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle->pid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, 0);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle -> mid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle->mid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, 0);
         *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 13;
         *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = SMBtconX;
@@ -565,33 +540,31 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
         p = p + 1;
 
-        strcpy(p, Con_Handle -> PDomain);
-        p = p + strlen(Con_Handle -> PDomain);
+        strcpy(p, Con_Handle->PDomain);
+        p = p + strlen(Con_Handle->PDomain);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> OSName);
-        p = p + strlen(Con_Handle -> OSName);
+        strcpy(p, Con_Handle->OSName);
+        p = p + strlen(Con_Handle->OSName);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> LMType);
-        p = p + strlen(Con_Handle -> LMType);
+        strcpy(p, Con_Handle->LMType);
+        p = p + strlen(Con_Handle->LMType);
         *p = 0;
 
         /* Now set up the TCON Part ... from WCT, make up a pointer that will
            help us ...                                                        */
 
         AndXCom = SMB_Hdr(pkt) + SMB_ssetpNTLM_len + param_len - SMB_hdr_wct_offset;
-
     }
 
     *(AndXCom + SMB_hdr_wct_offset) = 4;
     *(AndXCom + SMB_tconx_axc_offset) = SMBopenX;
-    SSVAL(AndXCom, SMB_tconx_axo_offset, (header_len +
-                                          tcon_len + tcon_param_len));
-    SSVAL(AndXCom, SMB_tconx_flg_offset, 0);   /* Don't disconnect TID    */
-    SSVAL(AndXCom, SMB_tconx_pwl_offset, 0);   /* No password */
+    SSVAL(AndXCom, SMB_tconx_axo_offset, (header_len + tcon_len + tcon_param_len));
+    SSVAL(AndXCom, SMB_tconx_flg_offset, 0); /* Don't disconnect TID    */
+    SSVAL(AndXCom, SMB_tconx_pwl_offset, 0); /* No password */
     SSVAL(AndXCom, SMB_tconx_bcc_offset, tcon_param_len);
 
     p = (char *)(AndXCom + SMB_tconx_buf_offset);
@@ -604,7 +577,7 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
     /* Now the open bit ... */
 
-    AndXCom = AndXCom + tcon_len + tcon_param_len;  /* Should get us there */
+    AndXCom = AndXCom + tcon_len + tcon_param_len; /* Should get us there */
 
     *(AndXCom + SMB_hdr_wct_offset) = 15;
     *(AndXCom + SMB_openx_axc_offset) = 0xFF;
@@ -626,7 +599,7 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
     /* Now send it and get a response */
 
-    if (RFCNB_Send(Con_Handle -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Send(Con_Handle->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error sending SessSetupAndTCon request\n");
@@ -636,13 +609,12 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
         free(tree);
         free(file_tmp);
         SMBlib_errno = SMBlibE_SendFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Now get the response ... */
 
-    if (RFCNB_Recv(Con_Handle -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Recv(Con_Handle->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error receiving response to SessSetupAndTCon\n");
@@ -652,13 +624,12 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
         free(tree);
         free(file_tmp);
         SMBlib_errno = SMBlibE_RecvFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Check out the response type ... */
 
-    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) {  /* Process error */
+    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) { /* Process error */
 
 #ifdef DEBUG
         fprintf(stderr, "SMB_SessSetupAndTCon failed with errorclass = %i, Error Code = %i\n",
@@ -674,8 +645,7 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
         free(tree);
         free(file_tmp);
         SMBlib_errno = SMBlibE_Remote;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
 #ifdef DEBUG
@@ -685,31 +655,29 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
     /* Now pick up the UID for future reference ... */
 
-    Con_Handle -> uid = SVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset);
+    Con_Handle->uid = SVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset);
 
     /* And pick up the TID as well                  */
 
-    tree -> tid = SVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset);
-    tree -> mbs = Con_Handle -> max_xmit;        /* We need this */
+    tree->tid = SVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset);
+    tree->mbs = Con_Handle->max_xmit; /* We need this */
 
 #ifdef DEBUG
-    fprintf(stderr, "mbs=%i\n", tree -> mbs);
+    fprintf(stderr, "mbs=%i\n", tree->mbs);
 #endif
 
     /* Now we populate the file hanble and pass it back ... */
 
-    strncpy(file_tmp -> filename, filename, sizeof(file_tmp -> filename) - 1);
-    file_tmp -> tree = tree;
+    strncpy(file_tmp->filename, filename, sizeof(file_tmp->filename) - 1);
+    file_tmp->tree = tree;
 
     /* Pick up a pointer to the right part ... */
 
-    AndXCom = SMB_Hdr(pkt) + SVAL(SMB_Hdr(pkt), SMB_hdr_axo_offset) -
-              SMB_hdr_wct_offset;
+    AndXCom = SMB_Hdr(pkt) + SVAL(SMB_Hdr(pkt), SMB_hdr_axo_offset) - SMB_hdr_wct_offset;
 
     /* Now skip the response to the TConX      */
 
-    AndXCom = SMB_Hdr(pkt) + SVAL(AndXCom, SMB_tconxr_axo_offset) -
-              SMB_hdr_wct_offset;
+    AndXCom = SMB_Hdr(pkt) + SVAL(AndXCom, SMB_tconxr_axo_offset) - SMB_hdr_wct_offset;
 
 #ifdef DEBUG
     fprintf(stderr, "Word Params = %x, AXO = %x\n",
@@ -719,34 +687,31 @@ int SMB_Logon_TCon_Open(SMB_Handle_Type Con_Handle, char *UserName,
 
     /* Now pick up the things from the openX response that we need */
 
-    file_tmp -> fid     = SVAL(AndXCom, SMB_openxr_fid_offset);
-    file_tmp -> lastmod = IVAL(AndXCom, SMB_openxr_tim_offset);
-    file_tmp -> size    = IVAL(AndXCom, SMB_openxr_fsz_offset);
-    file_tmp -> access  = SVAL(AndXCom, SMB_openxr_acc_offset);
-    file_tmp -> fileloc = 0;
+    file_tmp->fid = SVAL(AndXCom, SMB_openxr_fid_offset);
+    file_tmp->lastmod = IVAL(AndXCom, SMB_openxr_tim_offset);
+    file_tmp->size = IVAL(AndXCom, SMB_openxr_fsz_offset);
+    file_tmp->access = SVAL(AndXCom, SMB_openxr_acc_offset);
+    file_tmp->fileloc = 0;
 
     *File_Handle = file_tmp;
 
     /* Now link the tree into the right place ... */
 
-    if (Con_Handle -> first_tree == NULL) {
+    if (Con_Handle->first_tree == NULL) {
 
-        Con_Handle -> first_tree == tree;
-        Con_Handle -> last_tree == tree;
+        Con_Handle->first_tree == tree;
+        Con_Handle->last_tree == tree;
 
     } else {
 
-        Con_Handle -> last_tree -> next = tree;
-        tree -> prev = Con_Handle -> last_tree;
-        Con_Handle -> last_tree = tree;
-
+        Con_Handle->last_tree->next = tree;
+        tree->prev = Con_Handle->last_tree;
+        Con_Handle->last_tree = tree;
     }
 
     RFCNB_Free_Pkt(pkt);
 
     *Tree_Handle = tree;
 
-    return(0);
-
+    return (0);
 }
-

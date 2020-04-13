@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
+#include "tools/squidclient/Ping.h"
 #include "SquidTime.h"
 #include "tools/squidclient/Parameters.h"
-#include "tools/squidclient/Ping.h"
 
 #include <climits>
 #include <csignal>
@@ -19,15 +19,14 @@
 #include <getopt.h>
 #endif
 
-namespace Ping
-{
+namespace Ping {
 Ping::TheConfig Config;
 
 /// measurements collected by the squidclient ping mode logics
 class pingStats_
 {
 public:
-    pingStats_() {memset(this, 0, sizeof(pingStats_));}
+    pingStats_() { memset(this, 0, sizeof(pingStats_)); }
 
     long counted;  ///< number of transactions which have so far been measured
     long pMin;     ///< shortest transaction time seen
@@ -36,7 +35,7 @@ public:
 
 } stats;
 
-} // namespace Ping
+}  // namespace Ping
 
 /**
  * Signal interrupt handler for squidclient ping.
@@ -60,12 +59,12 @@ Ping::Init()
             sa.sa_handler = catchSignal;
             sa.sa_flags = 0;
             sigemptyset(&sa.sa_mask);
-            (void) sigaction(SIGINT, &sa, NULL);
+            (void)sigaction(SIGINT, &sa, NULL);
         }
 #else
-        void (*osig) (int);
+        void (*osig)(int);
         if ((osig = signal(SIGINT, catchSignal)) != SIG_DFL)
-            (void) signal(SIGINT, osig);
+            (void)signal(SIGINT, osig);
 #endif
         return Ping::Config.count;
     }
@@ -108,11 +107,11 @@ Ping::TimerStop(size_t fsize)
     t2s = tv2.tv_sec;
     tmp = localtime(&t2s);
     char tbuf[4096];
-    snprintf(tbuf, sizeof(tbuf)-1, "%d-%02d-%02d %02d:%02d:%02d [%ld]: %ld.%03ld secs, %f KB/s",
+    snprintf(tbuf, sizeof(tbuf) - 1, "%d-%02d-%02d %02d:%02d:%02d [%ld]: %ld.%03ld secs, %f KB/s",
              tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday,
              tmp->tm_hour, tmp->tm_min, tmp->tm_sec, stats.counted + 1,
              elapsed_msec / 1000, elapsed_msec % 1000,
-             elapsed_msec ? (double) fsize / elapsed_msec : -1.0);
+             elapsed_msec ? (double)fsize / elapsed_msec : -1.0);
     std::cerr << tbuf << std::endl;
 
     if (!stats.counted || elapsed_msec < stats.pMin)
@@ -144,9 +143,9 @@ Ping::DisplayStats()
         long mean = stats.sum / stats.counted;
         std::cerr << std::endl
                   << stats.counted << " requests, round-trip (secs) min/avg/max = "
-                  << (stats.pMin/1000) << "." << (stats.pMin%1000)
-                  << "/" << (mean/1000) << "." << (mean%1000)
-                  << "/" << (stats.pMax/1000) << "." << (stats.pMax%1000)
+                  << (stats.pMin / 1000) << "." << (stats.pMin % 1000)
+                  << "/" << (mean / 1000) << "." << (mean % 1000)
+                  << "/" << (stats.pMax / 1000) << "." << (stats.pMax % 1000)
                   << std::endl;
     }
 }
@@ -168,20 +167,19 @@ Ping::TheConfig::parseCommandOpts(int argc, char *argv[], int c, int &optIndex)
 {
     // to get here --ping was seen
     enable = true;
-    count = 0;           // default is infinite loop
-    interval = 1 * 1000; // default is 1s intervals
+    count = 0;            // default is infinite loop
+    interval = 1 * 1000;  // default is 1s intervals
 
     const char *shortOpStr = "g:I:?";
 
     // options for controlling squidclient ping mode
     static struct option pingOptions[] = {
-        {"count",    no_argument, 0, 'g'},
+        {"count", no_argument, 0, 'g'},
         {"interval", no_argument, 0, 'I'},
-        {0, 0, 0, 0}
-    };
+        {0, 0, 0, 0}};
 
     int saved_opterr = opterr;
-    opterr = 0; // suppress errors from getopt
+    opterr = 0;  // suppress errors from getopt
     while ((c = getopt_long(argc, argv, shortOpStr, pingOptions, &optIndex)) != -1) {
         switch (c) {
         case 'g':
@@ -198,7 +196,7 @@ Ping::TheConfig::parseCommandOpts(int argc, char *argv[], int c, int &optIndex)
                 std::cerr << "ERROR: -I ping interval missing parameter." << std::endl;
                 usage();
             } else if ((interval = atoi(optarg) * 1000) <= 0) {
-                std::cerr << "ERROR: -I ping interval out of range (0-" << (INT_MAX/1000) << ")." << std::endl;
+                std::cerr << "ERROR: -I ping interval out of range (0-" << (INT_MAX / 1000) << ")." << std::endl;
                 usage();
             }
             break;
@@ -214,4 +212,3 @@ Ping::TheConfig::parseCommandOpts(int argc, char *argv[], int c, int &optIndex)
     opterr = saved_opterr;
     return false;
 }
-

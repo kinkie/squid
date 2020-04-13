@@ -9,19 +9,20 @@
 /* DEBUG: section --    Refcount allocator */
 
 #include "squid.h"
-#include "base/RefCount.h"
 #include "testRefCount.h"
+#include "base/RefCount.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testRefCount );
+CPPUNIT_TEST_SUITE_REGISTRATION(testRefCount);
 
 class _ToRefCount : public RefCountable
 {
 public:
-    _ToRefCount () {++Instances;}
-    ~_ToRefCount() {--Instances;}
+    _ToRefCount() { ++Instances; }
+    ~_ToRefCount() { --Instances; }
 
-    int someMethod() {
+    int someMethod()
+    {
         if (!Instances)
             return 0;
 
@@ -40,7 +41,8 @@ class AlsoRefCountable : public RefCountable, public _ToRefCount
 public:
     typedef RefCount<AlsoRefCountable> Pointer;
 
-    int doSomething() {
+    int doSomething()
+    {
         if (!Instances)
             return 0;
         return 1;
@@ -57,7 +59,7 @@ testRefCount::testCountability()
         CPPUNIT_ASSERT_EQUAL(1, anObject->someMethod());
         anObject = anObject;
         CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
-        ToRefCount objectTwo (anObject);
+        ToRefCount objectTwo(anObject);
         anObject = objectTwo;
         CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
         {
@@ -67,7 +69,7 @@ testRefCount::testCountability()
         }
 
         {
-            ToRefCount aForthObject (anObject);
+            ToRefCount aForthObject(anObject);
             CPPUNIT_ASSERT_EQUAL(2, _ToRefCount::Instances);
             anObject = ToRefCount(nullptr);
             CPPUNIT_ASSERT_EQUAL(2, _ToRefCount::Instances);
@@ -122,20 +124,21 @@ testRefCount::testPointerConst()
 {
     /* Can we get the pointer for a const object */
     CPPUNIT_ASSERT_EQUAL(0, _ToRefCount::Instances);
-    ToRefCount anObject (new _ToRefCount);
-    ToRefCount const aConstObject (anObject);
+    ToRefCount anObject(new _ToRefCount);
+    ToRefCount const aConstObject(anObject);
     _ToRefCount const *aPointer = aConstObject.getRaw();
 
     CPPUNIT_ASSERT(aPointer == anObject.getRaw());
     CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
 }
 
-void testRefCount::testRefCountFromConst()
+void
+testRefCount::testRefCountFromConst()
 {
     /* Can we get a refcounted pointer from a const object */
     CPPUNIT_ASSERT_EQUAL(0, _ToRefCount::Instances);
-    _ToRefCount const * aPointer = new _ToRefCount;
-    ToRefCount anObject (aPointer);
+    _ToRefCount const *aPointer = new _ToRefCount;
+    ToRefCount anObject(aPointer);
 
     CPPUNIT_ASSERT(aPointer == anObject.getRaw());
     CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
@@ -146,7 +149,7 @@ testRefCount::testPointerFromRefCounter()
 {
     /* Can we get a pointer to nonconst from a nonconst refcounter */
     CPPUNIT_ASSERT_EQUAL(0, _ToRefCount::Instances);
-    ToRefCount anObject (new _ToRefCount);
+    ToRefCount anObject(new _ToRefCount);
     CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
     _ToRefCount *aPointer = anObject.getRaw();
     CPPUNIT_ASSERT(aPointer != nullptr);
@@ -164,11 +167,10 @@ testRefCount::testDoubleInheritToSingleInherit()
      */
     ToRefCount aBaseObject;
     {
-        AlsoRefCountable::Pointer anObject (new AlsoRefCountable);
+        AlsoRefCountable::Pointer anObject(new AlsoRefCountable);
         aBaseObject = anObject.getRaw();
         CPPUNIT_ASSERT_EQUAL(1, anObject->doSomething());
         CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
     }
     CPPUNIT_ASSERT_EQUAL(1, _ToRefCount::Instances);
 }
-

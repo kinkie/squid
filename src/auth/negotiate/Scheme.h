@@ -13,36 +13,33 @@
 
 #include "auth/Scheme.h"
 
-namespace Auth
-{
-namespace Negotiate
-{
+namespace Auth {
+namespace Negotiate {
 
-/// \ingroup AuthAPI
-class Scheme : public Auth::Scheme
-{
+    /// \ingroup AuthAPI
+    class Scheme : public Auth::Scheme
+    {
 
-public:
-    static Auth::Scheme::Pointer GetInstance();
-    Scheme() {};
-    virtual ~Scheme() {};
+    public:
+        static Auth::Scheme::Pointer GetInstance();
+        Scheme() {};
+        virtual ~Scheme() {};
 
-    /* per scheme */
-    virtual char const *type() const;
-    virtual void shutdownCleanup();
-    virtual Auth::SchemeConfig *createConfig();
+        /* per scheme */
+        virtual char const *type() const;
+        virtual void shutdownCleanup();
+        virtual Auth::SchemeConfig *createConfig();
 
-    /* Not implemented */
-    Scheme (Scheme const &);
-    Scheme &operator=(Scheme const &);
+        /* Not implemented */
+        Scheme(Scheme const &);
+        Scheme &operator=(Scheme const &);
 
-private:
-    static Auth::Scheme::Pointer _instance;
-};
+    private:
+        static Auth::Scheme::Pointer _instance;
+    };
 
-} // namespace Negotiate
-} // namespace Auth
+}  // namespace Negotiate
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_NEGOTIATE */
 #endif /* SQUID_AUTH_NEGOTIATE_SCHEME_H */
-

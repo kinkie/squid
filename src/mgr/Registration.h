@@ -13,18 +13,16 @@
 
 #include "mgr/forward.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
-void RegisterAction(char const * action, char const * desc,
-                    OBJH * handler,
+void RegisterAction(char const *action, char const *desc,
+                    OBJH *handler,
                     int pw_req_flag, int atomic);
 
-void RegisterAction(char const * action, char const * desc,
+void RegisterAction(char const *action, char const *desc,
                     ClassActionCreationHandler *handler,
                     int pw_req_flag, int atomic);
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_REGISTRATION_H */
-

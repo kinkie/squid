@@ -10,14 +10,14 @@
 
 #include <cppunit/TestAssert.h>
 
-#include "base/AsyncCallQueue.h"
 #include "CapturingStoreEntry.h"
+#include "base/AsyncCallQueue.h"
 #include "event.h"
 #include "stat.h"
 #include "testEvent.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testEvent );
+CPPUNIT_TEST_SUITE_REGISTRATION(testEvent);
 
 /* init legacy static-initialized modules */
 
@@ -40,9 +40,11 @@ testEvent::testCreate()
 /* Helper for tests - an event which records the number of calls it received. */
 
 struct CalledEvent {
-    CalledEvent() : calls(0) {}
+    CalledEvent() :
+        calls(0) {}
 
-    static void Handler(void *data) {
+    static void Handler(void *data)
+    {
         static_cast<CalledEvent *>(data)->calls++;
     }
 
@@ -74,12 +76,12 @@ testEvent::testDump()
     EventScheduler scheduler;
     CalledEvent event;
     CalledEvent event2;
-    CapturingStoreEntry * anEntry = new CapturingStoreEntry();
-    String expect =  "Last event to run: last event\n"
-                     "\n"
-                     "Operation                \tNext Execution \tWeight\tCallback Valid?\n"
-                     "test event               \t0.000 sec\t    0\t N/A\n"
-                     "test event2              \t0.000 sec\t    0\t N/A\n";
+    CapturingStoreEntry *anEntry = new CapturingStoreEntry();
+    String expect = "Last event to run: last event\n"
+                    "\n"
+                    "Operation                \tNext Execution \tWeight\tCallback Valid?\n"
+                    "test event               \t0.000 sec\t    0\t N/A\n"
+                    "test event2              \t0.000 sec\t    0\t N/A\n";
 
     scheduler.schedule("last event", CalledEvent::Handler, &event, 0, 0, false);
 
@@ -93,9 +95,9 @@ testEvent::testDump()
     /* loop over the strings, showing exactly where they differ (if at all) */
     printf("Actual Text:\n");
     /* TODO: these should really be just [] lookups, but String doesn't have those here yet. */
-    for ( unsigned int i = 0; i < anEntry->_appended_text.size(); ++i) {
-        CPPUNIT_ASSERT( expect[i] );
-        CPPUNIT_ASSERT( anEntry->_appended_text[i] );
+    for (unsigned int i = 0; i < anEntry->_appended_text.size(); ++i) {
+        CPPUNIT_ASSERT(expect[i]);
+        CPPUNIT_ASSERT(anEntry->_appended_text[i]);
 
         /* slight hack to make special chars visible */
         switch (anEntry->_appended_text[i]) {
@@ -103,13 +105,13 @@ testEvent::testDump()
             printf("\\t");
             break;
         default:
-            printf("%c", anEntry->_appended_text[i] );
+            printf("%c", anEntry->_appended_text[i]);
         }
         /* make this an int comparison, so that we can see the ASCII code at failure */
-        CPPUNIT_ASSERT_EQUAL( (int)(expect[i]), (int)anEntry->_appended_text[i] );
+        CPPUNIT_ASSERT_EQUAL((int)(expect[i]), (int)anEntry->_appended_text[i]);
     }
     printf("\n");
-    CPPUNIT_ASSERT_EQUAL( expect, anEntry->_appended_text);
+    CPPUNIT_ASSERT_EQUAL(expect, anEntry->_appended_text);
 
     /* cleanup */
     delete anEntry;
@@ -156,4 +158,3 @@ testEvent::testSingleton()
     EventScheduler *scheduler = dynamic_cast<EventScheduler *>(EventScheduler::GetInstance());
     CPPUNIT_ASSERT(NULL != scheduler);
 }
-

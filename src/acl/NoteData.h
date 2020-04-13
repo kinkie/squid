@@ -9,9 +9,9 @@
 #ifndef SQUID_ACLNOTEDATA_H
 #define SQUID_ACLNOTEDATA_H
 
-#include "acl/Data.h"
 #include "Notes.h"
 #include "SquidString.h"
+#include "acl/Data.h"
 
 class ACLStringData;
 
@@ -30,9 +30,8 @@ public:
     virtual ACLData<NotePairs::Entry *> *clone() const;
 
 private:
-    SBuf name;                   ///< Note name to check. It is always set
-    ACLStringData *values; ///< if set, at least one value must match
+    SBuf name;              ///< Note name to check. It is always set
+    ACLStringData *values;  ///< if set, at least one value must match
 };
 
 #endif /* SQUID_ACLNOTEDATA_H */
-

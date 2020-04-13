@@ -39,8 +39,11 @@ typedef const char *OptionName;
 class Option
 {
 public:
-    typedef enum { valueNone, valueOptional, valueRequired } ValueExpectation;
-    explicit Option(ValueExpectation vex = valueNone): valueExpectation(vex) {}
+    typedef enum { valueNone,
+                   valueOptional,
+                   valueRequired } ValueExpectation;
+    explicit Option(ValueExpectation vex = valueNone) :
+        valueExpectation(vex) {}
     virtual ~Option() {}
 
     /// whether the admin explicitly specified this option
@@ -58,7 +61,7 @@ public:
     /// prints a configuration snippet (as an admin could have typed)
     virtual void print(std::ostream &os) const = 0;
 
-    ValueExpectation valueExpectation = valueNone; ///< expect "=value" part?
+    ValueExpectation valueExpectation = valueNone;  ///< expect "=value" part?
 };
 
 /// Stores configuration of a typical boolean flag or a single-value Option.
@@ -68,23 +71,26 @@ class OptionValue
 public:
     typedef Value value_type;
 
-    OptionValue(): value {} {}
-    explicit OptionValue(const Value &aValue): value(aValue) {}
+    OptionValue() :
+        value {} {}
+    explicit OptionValue(const Value &aValue) :
+        value(aValue) {}
 
     explicit operator bool() const { return configured; }
 
-    Value value; ///< final value storage, possibly after conversions
-    bool configured = false; ///< whether the option was present in squid.conf
-    bool valued = false; ///< whether a configured option had a value
+    Value value;              ///< final value storage, possibly after conversions
+    bool configured = false;  ///< whether the option was present in squid.conf
+    bool valued = false;      ///< whether a configured option had a value
 };
 
 /// a type-specific Option (e.g., a boolean --toggle or -m=SBuf)
 template <class Recipient>
-class TypedOption: public Option
+class TypedOption : public Option
 {
 public:
     //typedef typename Recipient::value_type value_type;
-    explicit TypedOption(ValueExpectation vex = valueNone): Option(vex) {}
+    explicit TypedOption(ValueExpectation vex = valueNone) :
+        Option(vex) {}
 
     /// who to tell when this option is enabled
     void linkWith(Recipient *recipient) const
@@ -117,15 +123,21 @@ public:
         import(rawValue);
     }
 
-    virtual void print(std::ostream &os) const override { if (valued()) os << recipient_->value; }
+    virtual void print(std::ostream &os) const override
+    {
+        if (valued())
+            os << recipient_->value;
+    }
 
 private:
     void import(const SBuf &rawValue) const { recipient_->value = rawValue; }
-    void setDefault() const { /*leave recipient_->value as is*/}
+    void setDefault() const
+    { /*leave recipient_->value as is*/
+    }
 
     // The "mutable" specifier demarcates set-once Option kind/behavior from the
     // ever-changing recipient of the actual admin-configured option value.
-    mutable Recipient *recipient_ = nullptr; ///< parsing results storage
+    mutable Recipient *recipient_ = nullptr;  ///< parsing results storage
 };
 
 /* two typical option kinds: --foo and --bar=text  */
@@ -151,12 +163,13 @@ BooleanOption::setDefault() const
 }
 
 /// option name comparison functor
-class OptionNameCmp {
+class OptionNameCmp
+{
 public:
     bool operator()(const OptionName a, const OptionName b) const;
 };
 /// name:option map
-typedef std::map<OptionName, const Option*, OptionNameCmp> Options;
+typedef std::map<OptionName, const Option *, OptionNameCmp> Options;
 
 /// a set of parameter flag names
 typedef std::set<OptionName, OptionNameCmp> ParameterFlags;
@@ -167,13 +180,12 @@ typedef std::set<OptionName, OptionNameCmp> ParameterFlags;
 void ParseFlags(const Options &options, const ParameterFlags &flags);
 
 /* handy for Class::options() and Class::supportedFlags() defaults */
-const Options &NoOptions(); ///< \returns an empty Options container
-const ParameterFlags &NoFlags(); ///< \returns an empty ParameterFlags container
+const Options &NoOptions();       ///< \returns an empty Options container
+const ParameterFlags &NoFlags();  ///< \returns an empty ParameterFlags container
 
-} // namespace Acl
+}  // namespace Acl
 
-std::ostream &operator <<(std::ostream &os, const Acl::Option &option);
-std::ostream &operator <<(std::ostream &os, const Acl::Options &options);
+std::ostream &operator<<(std::ostream &os, const Acl::Option &option);
+std::ostream &operator<<(std::ostream &os, const Acl::Options &options);
 
 #endif /* SQUID_ACL_OPTIONS_H */
-

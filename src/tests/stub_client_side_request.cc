@@ -7,7 +7,6 @@
  */
 
 #include "squid.h"
+#include "Store.h"
 #include "client_side_request.h"
 #include "http/Stream.h"
-#include "Store.h"
-

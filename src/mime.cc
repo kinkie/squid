@@ -9,19 +9,19 @@
 /* DEBUG: section 25    MIME Parsing and Internal Icons */
 
 #include "squid.h"
-#include "fde.h"
-#include "fs_io.h"
-#include "globals.h"
+#include "mime.h"
 #include "HttpHdrCc.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
-#include "internal.h"
 #include "MemBuf.h"
 #include "MemObject.h"
-#include "mime.h"
 #include "SquidConfig.h"
 #include "Store.h"
 #include "StoreClient.h"
+#include "fde.h"
+#include "fs_io.h"
+#include "globals.h"
+#include "internal.h"
 
 #include <array>
 
@@ -46,7 +46,7 @@ public:
 
     /* StoreClient API */
     virtual void created(StoreEntry *);
-    virtual LogTags *loggingTags() { return nullptr; } // no access logging/ACLs
+    virtual LogTags *loggingTags() { return nullptr; }  // no access logging/ACLs
     virtual void fillChecklist(ACLFilledChecklist &) const;
 
 private:
@@ -96,13 +96,13 @@ mimeGetEntry(const char *fn, int skip_encodings)
         }
 
         if (!skip_encodings)
-            (void) 0;
+            (void)0;
         else if (m == NULL)
-            (void) 0;
+            (void)0;
         else if (strcmp(m->content_type, dash_str))
-            (void) 0;
+            (void)0;
         else if (!strcmp(m->content_encoding, dash_str))
-            (void) 0;
+            (void)0;
         else {
             /* Assume we matched /\.\w$/ and cut off the last extension */
             if ((t = strrchr(name, '.'))) {
@@ -318,8 +318,8 @@ mimeInit(char *filename)
             continue;
         }
 
-        m = new MimeEntry(pattern,re,type,encoding,mode,view_option,
-                          download_option,icon);
+        m = new MimeEntry(pattern, re, type, encoding, mode, view_option,
+                          download_option, icon);
 
         *MimeTableTail = m;
 
@@ -373,7 +373,7 @@ MimeIcon::created(StoreEntry *newEntry)
 
     static char path[MAXPATHLEN];
     *path = 0;
-    if (snprintf(path, sizeof(path)-1, "%s/" SQUIDSBUFPH, Config.icons.directory, SQUIDSBUFPRINT(icon_)) < 0) {
+    if (snprintf(path, sizeof(path) - 1, "%s/" SQUIDSBUFPH, Config.icons.directory, SQUIDSBUFPRINT(icon_)) < 0) {
         debugs(25, DBG_CRITICAL, "ERROR: icon file '" << Config.icons.directory << "/" << icon_ << "' path is longer than " << MAXPATHLEN << " bytes");
         status = Http::scNoContent;
     }
@@ -399,7 +399,7 @@ MimeIcon::created(StoreEntry *newEntry)
     e->lock("MimeIcon::created");
     EBIT_SET(e->flags, ENTRY_SPECIAL);
     const auto madePublic = e->setPublicKey();
-    assert(madePublic); // nothing can block ENTRY_SPECIAL from becoming public
+    assert(madePublic);  // nothing can block ENTRY_SPECIAL from becoming public
 
     /* fill `e` with a canned 2xx response object */
 
@@ -475,4 +475,3 @@ MimeEntry::MimeEntry(const char *aPattern, const regex_t &compiledPattern,
     else
         transfer_mode = 'I';
 }
-

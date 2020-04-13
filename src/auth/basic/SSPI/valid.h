@@ -54,18 +54,18 @@
 #define NTV_LOGON_ERROR 3
 
 #ifndef LOGON32_LOGON_NETWORK
-#define LOGON32_LOGON_NETWORK       3
+#define LOGON32_LOGON_NETWORK 3
 #endif
 
 #define NTV_DEFAULT_DOMAIN "."
 
-extern char * NTAllowedGroup;
-extern char * NTDisAllowedGroup;
+extern char *NTAllowedGroup;
+extern char *NTDisAllowedGroup;
 extern int UseDisallowedGroup;
 extern int UseAllowedGroup;
 extern int debug_enabled;
-extern char Default_NTDomain[DNLEN+1];
-extern const char * errormsg;
+extern char Default_NTDomain[DNLEN + 1];
+extern const char *errormsg;
 
 /**
  * Valid_User return codes.
@@ -78,23 +78,25 @@ extern const char * errormsg;
 int Valid_User(char *UserName, char *Password, char *Group);
 
 /* Debugging stuff */
-#if defined(__GNUC__)           /* this is really a gcc-ism */
+#if defined(__GNUC__) /* this is really a gcc-ism */
 #include <unistd.h>
 static char *__foo;
-#define debug(X...) if (debug_enabled) { \
-                    fprintf(stderr,"nt_auth[%d](%s:%d): ", getpid(), \
-                    ((__foo=strrchr(__FILE__,'/'))==NULL?__FILE__:__foo+1),\
-                    __LINE__);\
-                    fprintf(stderr,X); }
-#else /* __GNUC__ */
+#define debug(X...)                                                                \
+    if (debug_enabled) {                                                           \
+        fprintf(stderr, "nt_auth[%d](%s:%d): ", getpid(),                          \
+                ((__foo = strrchr(__FILE__, '/')) == NULL ? __FILE__ : __foo + 1), \
+                __LINE__);                                                         \
+        fprintf(stderr, X);                                                        \
+    }
+#else  /* __GNUC__ */
 static void
-debug(char *format,...)
+debug(char *format, ...)
 {
     if (debug_enabled) {
         va_list args;
 
-        va_start(args,format);
-        fprintf(stderr, "nt_auth[%d]: ",getpid());
+        va_start(args, format);
+        fprintf(stderr, "nt_auth[%d]: ", getpid());
         vfprintf(stderr, format, args);
         va_end(args);
     }
@@ -102,4 +104,3 @@ debug(char *format,...)
 #endif /* __GNUC__ */
 
 #endif
-

@@ -8,17 +8,17 @@
 
 #include "squid.h"
 #include "base/AsyncCall.h"
+#include "Debug.h"
 #include "base/AsyncCallQueue.h"
 #include "base/CodeContext.h"
 #include "cbdata.h"
-#include "Debug.h"
 #include <ostream>
 
 InstanceIdDefinitions(AsyncCall, "call");
 
 /* AsyncCall */
 
-AsyncCall::AsyncCall(int aDebugSection, int aDebugLevel, const char *aName):
+AsyncCall::AsyncCall(int aDebugSection, int aDebugLevel, const char *aName) :
     name(aName),
     codeContext(CodeContext::Current()),
     debugSection(aDebugSection),
@@ -26,38 +26,33 @@ AsyncCall::AsyncCall(int aDebugSection, int aDebugLevel, const char *aName):
     theNext(nullptr),
     isCanceled(nullptr)
 {
-    debugs(debugSection, debugLevel, "The AsyncCall " << name << " constructed, this=" << this <<
-           " [" << id << ']');
+    debugs(debugSection, debugLevel, "The AsyncCall " << name << " constructed, this=" << this << " [" << id << ']');
 }
 
 AsyncCall::~AsyncCall()
 {
-    assert(!theNext); // AsyncCallQueue must clean
+    assert(!theNext);  // AsyncCallQueue must clean
 }
 
 void
 AsyncCall::make()
 {
-    debugs(debugSection, debugLevel, HERE << "make call " << name <<
-           " [" << id << ']');
+    debugs(debugSection, debugLevel, HERE << "make call " << name << " [" << id << ']');
     if (canFire()) {
         fire();
         return;
     }
 
-    if (!isCanceled) // we did not cancel() when returning false from canFire()
+    if (!isCanceled)  // we did not cancel() when returning false from canFire()
         isCanceled = "unknown reason";
 
-    debugs(debugSection, debugLevel, HERE << "will not call " << name <<
-           " [" << id << ']' << " because of " << isCanceled);
+    debugs(debugSection, debugLevel, HERE << "will not call " << name << " [" << id << ']' << " because of " << isCanceled);
 }
 
 bool
 AsyncCall::cancel(const char *reason)
 {
-    debugs(debugSection, debugLevel, HERE << "will not call " << name <<
-           " [" << id << "] " << (isCanceled ? "also " : "") <<
-           "because " << reason);
+    debugs(debugSection, debugLevel, HERE << "will not call " << name << " [" << id << "] " << (isCanceled ? "also " : "") << "because " << reason);
 
     isCanceled = reason;
     return false;
@@ -93,8 +88,7 @@ AsyncCall::dequeue(AsyncCall::Pointer &head, AsyncCall::Pointer &prev)
 bool
 ScheduleCall(const char *fileName, int fileLine, AsyncCall::Pointer &call)
 {
-    debugs(call->debugSection, call->debugLevel, fileName << "(" << fileLine <<
-           ") will call " << *call << " [" << call->id << ']' );
+    debugs(call->debugSection, call->debugLevel, fileName << "(" << fileLine << ") will call " << *call << " [" << call->id << ']');
 
     // Support callback creators that did not get their context from service A,
     // but the current caller (service B) got that context from another source.
@@ -104,4 +98,3 @@ ScheduleCall(const char *fileName, int fileLine, AsyncCall::Pointer &call)
     AsyncCallQueue::Instance().schedule(call);
     return true;
 }
-

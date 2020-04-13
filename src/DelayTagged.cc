@@ -11,21 +11,21 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS
-#include "comm/Connection.h"
 #include "DelayTagged.h"
 #include "NullDelayId.h"
 #include "Store.h"
+#include "comm/Connection.h"
 
 DelayTagged::DelayTagged()
 {
-    DelayPools::registerForUpdates (this);
+    DelayPools::registerForUpdates(this);
 }
 
 static Splay<DelayTaggedBucket::Pointer>::SPLAYFREE DelayTaggedFree;
 
 DelayTagged::~DelayTagged()
 {
-    DelayPools::deregisterForUpdates (this);
+    DelayPools::deregisterForUpdates(this);
     buckets.destroy(DelayTaggedFree);
 }
 
@@ -40,20 +40,23 @@ DelayTaggedCmp(DelayTaggedBucket::Pointer const &left, DelayTaggedBucket::Pointe
 
 void
 DelayTaggedFree(DelayTaggedBucket::Pointer &)
-{}
+{
+}
 
 struct DelayTaggedStatsVisitor {
     StoreEntry *sentry;
-    explicit DelayTaggedStatsVisitor(StoreEntry *se): sentry(se) {}
-    void operator() (DelayTaggedBucket::Pointer const &current) {
+    explicit DelayTaggedStatsVisitor(StoreEntry *se) :
+        sentry(se) {}
+    void operator()(DelayTaggedBucket::Pointer const &current)
+    {
         current->stats(sentry);
     }
 };
 
 void
-DelayTagged::stats(StoreEntry * sentry)
+DelayTagged::stats(StoreEntry *sentry)
 {
-    spec.stats (sentry, "Per Tag");
+    spec.stats(sentry, "Per Tag");
 
     if (spec.restore_bps == -1)
         return;
@@ -61,7 +64,7 @@ DelayTagged::stats(StoreEntry * sentry)
     storeAppendPrintf(sentry, "\t\tCurrent: ");
 
     if (buckets.empty()) {
-        storeAppendPrintf (sentry, "Not used yet.\n\n");
+        storeAppendPrintf(sentry, "Not used yet.\n\n");
         return;
     }
 
@@ -77,7 +80,8 @@ DelayTagged::dump(StoreEntry *entry) const
 }
 
 struct DelayTaggedUpdater {
-    DelayTaggedUpdater (DelaySpec &_spec, int _incr):spec(_spec),incr(_incr) {};
+    DelayTaggedUpdater(DelaySpec &_spec, int _incr) :
+        spec(_spec), incr(_incr) {};
 
     DelaySpec spec;
     int incr;
@@ -93,8 +97,10 @@ DelayTaggedUpdateWalkee(DelayTaggedBucket::Pointer const &current, void *state)
 
 struct DelayTaggedUpdateVisitor {
     DelayTaggedUpdater *updater;
-    explicit DelayTaggedUpdateVisitor(DelayTaggedUpdater *u) : updater(u) {}
-    void operator() (DelayTaggedBucket::Pointer const &current) {
+    explicit DelayTaggedUpdateVisitor(DelayTaggedUpdater *u) :
+        updater(u) {}
+    void operator()(DelayTaggedBucket::Pointer const &current)
+    {
         const_cast<DelayTaggedBucket *>(current.getRaw())->theBucket.update(updater->spec, updater->incr);
     }
 };
@@ -124,7 +130,8 @@ DelayTagged::id(CompositePoolNode::CompositeSelectionDetails &details)
     return new Id(this, details.tag);
 }
 
-DelayTaggedBucket::DelayTaggedBucket(String &aTag) : tag (aTag)
+DelayTaggedBucket::DelayTaggedBucket(String &aTag) :
+    tag(aTag)
 {
     debugs(77, 3, "DelayTaggedBucket::DelayTaggedBucket");
 }
@@ -141,7 +148,8 @@ DelayTaggedBucket::stats(StoreEntry *entry) const
     theBucket.stats(entry);
 }
 
-DelayTagged::Id::Id(DelayTagged::Pointer aDelayTagged, String &aTag) : theTagged(aDelayTagged)
+DelayTagged::Id::Id(DelayTagged::Pointer aDelayTagged, String &aTag) :
+    theTagged(aDelayTagged)
 {
     theBucket = new DelayTaggedBucket(aTag);
     DelayTaggedBucket::Pointer const *existing = theTagged->buckets.find(theBucket, DelayTaggedCmp);
@@ -152,7 +160,7 @@ DelayTagged::Id::Id(DelayTagged::Pointer aDelayTagged, String &aTag) : theTagged
     }
 
     theBucket->theBucket.init(theTagged->spec);
-    theTagged->buckets.insert (theBucket, DelayTaggedCmp);
+    theTagged->buckets.insert(theBucket, DelayTaggedCmp);
 }
 
 DelayTagged::Id::~Id()
@@ -161,9 +169,9 @@ DelayTagged::Id::~Id()
 }
 
 int
-DelayTagged::Id::bytesWanted (int min, int max) const
+DelayTagged::Id::bytesWanted(int min, int max) const
 {
-    return theBucket->theBucket.bytesWanted(min,max);
+    return theBucket->theBucket.bytesWanted(min, max);
 }
 
 void
@@ -179,4 +187,3 @@ DelayTagged::Id::delayRead(DeferredRead const &aRead)
 }
 
 #endif
-

@@ -37,7 +37,6 @@ typedef std::shared_ptr<void> ContextPointer;
 
 #endif
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_CONTEXT_H */
-

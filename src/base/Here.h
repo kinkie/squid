@@ -29,12 +29,13 @@ static FileNameHashCacher UnitFileNameHashCacher;
 class SourceLocation
 {
 public:
-    SourceLocation(const char *aContext, const char *aFileName, const int aLineNo):
+    SourceLocation(const char *aContext, const char *aFileName, const int aLineNo) :
         context(aContext),
         fileName(aFileName),
         lineNo(aLineNo),
         fileNameHashCacher(&UnitFileNameHashCacher)
-    {}
+    {
+    }
 
     /// \returns our location identifier
     SourceLocationId id() const;
@@ -42,9 +43,9 @@ public:
     /// describes location using a compact but human-friendly format
     std::ostream &print(std::ostream &os) const;
 
-    const char *context; ///< line-independent location description
-    const char *fileName; ///< source file name, often relative to build path
-    int lineNo; ///< line number inside the source file name (if positive)
+    const char *context;   ///< line-independent location description
+    const char *fileName;  ///< source file name, often relative to build path
+    int lineNo;            ///< line number inside the source file name (if positive)
 
 private:
     SourceLocationId calculateId(FileNameHasher) const;
@@ -52,7 +53,7 @@ private:
 };
 
 inline std::ostream &
-operator <<(std::ostream &os, const SourceLocation &location)
+operator<<(std::ostream &os, const SourceLocation &location)
 {
     return location.print(os);
 }
@@ -66,7 +67,7 @@ UnitFileNameHashCacher(const char *fileName, FileNameHasher hasher)
     static const char *hashedFilename = 0;
     // Each file #included in a translation unit has its own __FILE__ value.
     // Keep the cache fresh (and the result correct).
-    if (hashedFilename != fileName) { // cheap pointer comparison
+    if (hashedFilename != fileName) {  // cheap pointer comparison
         hashedFilename = fileName;
         cachedHash = hasher(fileName);
     }
@@ -74,4 +75,3 @@ UnitFileNameHashCacher(const char *fileName, FileNameHasher hasher)
 }
 
 #endif
-

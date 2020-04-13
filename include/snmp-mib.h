@@ -35,11 +35,10 @@
  *
  ***************************************************************************/
 
-#include <asn1.h>       /* Need OID Definition */
-#include <snmp_vars.h>      /* Need variable_list */
+#include <asn1.h>      /* Need OID Definition */
+#include <snmp_vars.h> /* Need variable_list */
 #if 0
-#include <mib.h>        /* Then the function definitions */
+#include <mib.h> /* Then the function definitions */
 #endif
 
 #endif /* SQUID_SNMP_MIB_H */
-

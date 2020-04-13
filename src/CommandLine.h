@@ -22,8 +22,8 @@ class LongOption : public RawLongOption
 public:
     LongOption();
     explicit LongOption(const RawLongOption &);
-    LongOption(const LongOption&);
-    LongOption &operator =(const LongOption &);
+    LongOption(const LongOption &);
+    LongOption &operator=(const LongOption &);
     ~LongOption();
 
 private:
@@ -39,7 +39,7 @@ public:
     CommandLine(const CommandLine &them);
     ~CommandLine();
 
-    CommandLine &operator =(const CommandLine &);
+    CommandLine &operator=(const CommandLine &);
 
     /// \returns whether the option with optId identifier is present
     /// When returning true, sets non-nil optValue to the found option's value.
@@ -61,7 +61,7 @@ public:
     int argc() const { return static_cast<int>(argv_.size()) - 1; }
 
     /// \returns main()'s argv[] which is traditionally const-wrong
-    char **argv() const { return const_cast<char**>(argv_.data()); }
+    char **argv() const { return const_cast<char **>(argv_.data()); }
 
     /// replaces argv[0] with the new value
     void resetArg0(const char *programName);
@@ -77,9 +77,8 @@ private:
     std::vector<char *> argv_;
 
     /* getopt_long() grammar rules */
-    const char *shortOptions_; ///< single-dash, single-letter (-x) option rules
-    std::vector<LongOption> longOptions_; ///< long --option rules
+    const char *shortOptions_;             ///< single-dash, single-letter (-x) option rules
+    std::vector<LongOption> longOptions_;  ///< long --option rules
 };
 
 #endif /* SQUID_COMMANDLINE_H */
-

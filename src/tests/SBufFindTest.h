@@ -21,22 +21,24 @@ class SBufFindTest
 public:
     SBufFindTest();
 
-    void run(); ///< generates and executes cases using configuration params
+    void run();  ///< generates and executes cases using configuration params
 
     /* test configuration parameters; can be optionally set before run() */
-    int caseLimit; ///< approximate caseCount limit
-    int errorLimit; ///< errorCount limit
+    int caseLimit;   ///< approximate caseCount limit
+    int errorLimit;  ///< errorCount limit
     /// whether to report only one failed test case per "category"
     bool hushSimilar;
     /// approximate maximum generated hay string length
     SBuf::size_type maxHayLength;
 
     /// Supported algorithms for placing needle in the hay.
-    typedef enum { placeBeginning, placeMiddle, placeEnd, placeNowhere,
+    typedef enum { placeBeginning,
+                   placeMiddle,
+                   placeEnd,
+                   placeNowhere,
                    placeEof
-                 } Placement; // placeLast marker must terminate
+    } Placement;  // placeLast marker must terminate
 protected:
-
     static SBuf RandomSBuf(const int length);
     void nextLen(SBuf::size_type &len, const SBuf::size_type max);
     void placeNeedle(const SBuf &cleanHay);
@@ -61,13 +63,13 @@ protected:
 
 private:
     /* test case parameters */
-    SBuf theSBufHay; ///< the string to be searched
-    SBuf theSBufNeedle; ///< the string to be found
-    SBuf::size_type thePos; ///< search position limit
-    Placement thePlacement; ///< where in the hay the needle is placed
-    std::string::size_type theStringPos; ///< thePos converted to std::string::size_type
-    std::string theStringHay; ///< theHay converted to std::string
-    std::string theStringNeedle; ///< theNeedle converted to std::string
+    SBuf theSBufHay;                      ///< the string to be searched
+    SBuf theSBufNeedle;                   ///< the string to be found
+    SBuf::size_type thePos;               ///< search position limit
+    Placement thePlacement;               ///< where in the hay the needle is placed
+    std::string::size_type theStringPos;  ///< thePos converted to std::string::size_type
+    std::string theStringHay;             ///< theHay converted to std::string
+    std::string theStringNeedle;          ///< theNeedle converted to std::string
 
     /// needle pos w/o thePos restrictions; used for case categorization
     std::string::size_type theBareNeedlePos;
@@ -81,13 +83,12 @@ private:
     char theReportQuote;
 
     /* test progress indicators */
-    int caseCount;  ///< cases executed so far
-    int errorCount; ///< total number of failed test cases so far
-    int reportCount; ///< total number of test cases reported so far
-    std::set<std::string> failedCats; ///< reported failed categories
+    int caseCount;                     ///< cases executed so far
+    int errorCount;                    ///< total number of failed test cases so far
+    int reportCount;                   ///< total number of test cases reported so far
+    std::set<std::string> failedCats;  ///< reported failed categories
 };
 
 typedef SBufFindTest::Placement Placement;
 
 #endif
-

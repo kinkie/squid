@@ -14,13 +14,13 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "HttpRequest.h"
 #include "ICP.h"
 #include "Store.h"
+#include "acl/FilledChecklist.h"
 
 /// \ingroup ServerProtocolICPInternal3
-class ICP3State: public ICPState
+class ICP3State : public ICPState
 {
 
 public:
@@ -28,7 +28,7 @@ public:
         ICPState(aHeader, aRequest) {}
 
     ~ICP3State();
-    void created (StoreEntry *newEntry);
+    void created(StoreEntry *newEntry);
 };
 
 /// \ingroup ServerProtocolICPInternal3
@@ -43,22 +43,23 @@ doV3Query(int fd, Ip::Address &from, char *buf, icp_common_t header)
         return;
 
     if (!icpAccessAllowed(from, icp_request)) {
-        icpDenyAccess (from, url, header.reqnum, fd);
+        icpDenyAccess(from, url, header.reqnum, fd);
         delete icp_request;
         return;
     }
 
     /* The peer is allowed to use this cache */
-    ICP3State *state = new ICP3State (header, icp_request);
+    ICP3State *state = new ICP3State(header, icp_request);
     state->fd = fd;
     state->from = from;
     state->url = xstrdup(url);
 
-    StoreEntry::getPublic (state, url, Http::METHOD_GET);
+    StoreEntry::getPublic(state, url, Http::METHOD_GET);
 }
 
 ICP3State::~ICP3State()
-{}
+{
+}
 
 void
 ICP3State::created(StoreEntry *e)
@@ -92,7 +93,7 @@ icpHandleIcpV3(int fd, Ip::Address &from, char *buf, int len)
         return;
     }
 
-    icp_common_t header (buf, len);
+    icp_common_t header(buf, len);
     /*
      * Length field should match the number of bytes read
      */
@@ -130,4 +131,3 @@ icpHandleIcpV3(int fd, Ip::Address &from, char *buf, int len)
         break;
     }
 }
-

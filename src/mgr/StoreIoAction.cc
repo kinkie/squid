@@ -9,11 +9,11 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/StoreIoAction.h"
+#include "Store.h"
 #include "base/TextException.h"
 #include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
-#include "mgr/StoreIoAction.h"
-#include "Store.h"
 #include "tools.h"
 
 Mgr::StoreIoActionData::StoreIoActionData()
@@ -21,8 +21,8 @@ Mgr::StoreIoActionData::StoreIoActionData()
     memset(this, 0, sizeof(*this));
 }
 
-Mgr::StoreIoActionData&
-Mgr::StoreIoActionData::operator += (const StoreIoActionData& stats)
+Mgr::StoreIoActionData &
+Mgr::StoreIoActionData::operator+=(const StoreIoActionData &stats)
 {
     create_calls += stats.create_calls;
     create_select_fail += stats.create_select_fail;
@@ -38,17 +38,17 @@ Mgr::StoreIoAction::Create(const CommandPointer &cmd)
     return new StoreIoAction(cmd);
 }
 
-Mgr::StoreIoAction::StoreIoAction(const CommandPointer &aCmd):
+Mgr::StoreIoAction::StoreIoAction(const CommandPointer &aCmd) :
     Action(aCmd), data()
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::StoreIoAction::add(const Action& action)
+Mgr::StoreIoAction::add(const Action &action)
 {
     debugs(16, 5, HERE);
-    data += dynamic_cast<const StoreIoAction&>(action).data;
+    data += dynamic_cast<const StoreIoAction &>(action).data;
 }
 
 void
@@ -61,7 +61,7 @@ Mgr::StoreIoAction::collect()
 }
 
 void
-Mgr::StoreIoAction::dump(StoreEntry* entry)
+Mgr::StoreIoAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
@@ -73,16 +73,15 @@ Mgr::StoreIoAction::dump(StoreEntry* entry)
 }
 
 void
-Mgr::StoreIoAction::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::StoreIoAction::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtCacheMgrResponse);
     msg.putPod(data);
 }
 
 void
-Mgr::StoreIoAction::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::StoreIoAction::unpack(const Ipc::TypedMsgHdr &msg)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
     msg.getPod(data);
 }
-

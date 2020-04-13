@@ -29,8 +29,8 @@
 #if HAVE_OPENSSL_ENGINE_H
 #include <openssl/engine.h>
 #endif
-#include <queue>
 #include <map>
+#include <queue>
 
 /**
  \defgroup ServerProtocolSSLAPI Server-Side SSL API
@@ -54,18 +54,15 @@
 #define SQUID_CERT_VALIDATION_ITERATION_MAX 16384
 #endif
 
-namespace AnyP
-{
+namespace AnyP {
 class PortCfg;
 };
 
-namespace Ipc
-{
+namespace Ipc {
 class MemMap;
 }
 
-namespace Ssl
-{
+namespace Ssl {
 
 /// callback for receiving password to access password secured PEM files
 /// XXX: Requires SSL_CTX_set_default_passwd_cb_userdata()!
@@ -91,7 +88,7 @@ void SetupVerifyCallback(Security::ContextPointer &);
 /// if required, setup callback for generating ephemeral RSA keys
 void MaybeSetupRsaCallback(Security::ContextPointer &);
 
-} //namespace Ssl
+}  //namespace Ssl
 
 /// \ingroup ServerProtocolSSLAPI
 const char *sslGetUserEmail(SSL *ssl);
@@ -108,8 +105,7 @@ SBuf sslGetUserCertificatePEM(SSL *ssl);
 /// \ingroup ServerProtocolSSLAPI
 SBuf sslGetUserCertificateChainPEM(SSL *ssl);
 
-namespace Ssl
-{
+namespace Ssl {
 /// \ingroup ServerProtocolSSLAPI
 typedef char const *GETX509ATTRIBUTE(X509 *, const char *);
 typedef SBuf GETX509PEM(X509 *);
@@ -132,19 +128,28 @@ extern const EVP_MD *DefaultSignHash;
   \ingroup ServerProtocolSSLAPI
  * Supported ssl-bump modes
  */
-enum BumpMode {bumpNone = 0, bumpClientFirst, bumpServerFirst, bumpPeek, bumpStare, bumpBump, bumpSplice, bumpTerminate, /*bumpErr,*/ bumpEnd};
+enum BumpMode { bumpNone = 0,
+                bumpClientFirst,
+                bumpServerFirst,
+                bumpPeek,
+                bumpStare,
+                bumpBump,
+                bumpSplice,
+                bumpTerminate,
+                /*bumpErr,*/ bumpEnd };
 
 /**
  \ingroup  ServerProtocolSSLAPI
  * Short names for ssl-bump modes
  */
-extern std::vector<const char *>BumpModeStr;
+extern std::vector<const char *> BumpModeStr;
 
 /**
  \ingroup ServerProtocolSSLAPI
  * Return the short name of the ssl-bump mode "bm"
  */
-inline const char *bumpMode(int bm)
+inline const char *
+bumpMode(int bm)
 {
     return (0 <= bm && bm < Ssl::bumpEnd) ? Ssl::BumpModeStr.at(bm) : NULL;
 }
@@ -181,7 +186,7 @@ void SSL_add_untrusted_cert(SSL *ssl, X509 *cert);
  * Searches in serverCertificates list for the cert issuer and if not found
  * and Authority Info Access of cert provides a URI return it.
  */
-const char *uriOfIssuerIfMissing(X509 *cert,  Security::CertList const &serverCertificates, const Security::ContextPointer &context);
+const char *uriOfIssuerIfMissing(X509 *cert, Security::CertList const &serverCertificates, const Security::ContextPointer &context);
 
 /**
  * Fill URIs queue with the uris of missing certificates from serverCertificate chain
@@ -193,7 +198,7 @@ void missingChainCertificatesUrls(std::queue<SBuf> &URIs, Security::CertList con
   \ingroup ServerProtocolSSLAPI
   * Generate a certificate to be used as untrusted signing certificate, based on a trusted CA
 */
-bool generateUntrustedCert(Security::CertPointer & untrustedCert, Security::PrivateKeyPointer & untrustedPkey, Security::CertPointer const & cert, Security::PrivateKeyPointer const & pkey);
+bool generateUntrustedCert(Security::CertPointer &untrustedCert, Security::PrivateKeyPointer &untrustedPkey, Security::CertPointer const &cert, Security::PrivateKeyPointer const &pkey);
 
 /// certificates indexed by issuer name
 typedef std::multimap<SBuf, X509 *> CertsIndexedList;
@@ -238,13 +243,13 @@ bool verifySslCertificate(Security::ContextPointer &, CertificateProperties cons
   * Read private key and certificate from memory and generate SSL context
   * using their.
  */
-Security::ContextPointer GenerateSslContextUsingPkeyAndCertFromMemory(const char * data, Security::ServerOptions &, bool trusted);
+Security::ContextPointer GenerateSslContextUsingPkeyAndCertFromMemory(const char *data, Security::ServerOptions &, bool trusted);
 
 /**
   \ingroup ServerProtocolSSLAPI
   * Create an SSL context using the provided certificate and key
  */
-Security::ContextPointer createSSLContext(Security::CertPointer & x509, Security::PrivateKeyPointer & pkey, Security::ServerOptions &);
+Security::ContextPointer createSSLContext(Security::CertPointer &x509, Security::PrivateKeyPointer &pkey, Security::ServerOptions &);
 
 /**
  \ingroup ServerProtocolSSLAPI
@@ -288,7 +293,7 @@ void useSquidUntrusted(SSL_CTX *sslContext);
    \param check_func The function used to match X509 CNs. The CN data passed as ASN1_STRING data
    \return   1 if any of the certificate CN matches, 0 if none matches.
  */
-int matchX509CommonNames(X509 *peer_cert, void *check_data, int (*check_func)(void *check_data,  ASN1_STRING *cn_data));
+int matchX509CommonNames(X509 *peer_cert, void *check_data, int (*check_func)(void *check_data, ASN1_STRING *cn_data));
 
 /**
    \ingroup ServerProtocolSSLAPI
@@ -328,33 +333,32 @@ void InRamCertificateDbKey(const Ssl::CertificateProperties &certProperties, SBu
   TODO: Add support for reading from `buf`.
  */
 BIO *BIO_new_SBuf(SBuf *buf);
-} //namespace Ssl
+}  //namespace Ssl
 
 #if _SQUID_WINDOWS_
 
 #if defined(__cplusplus)
 
 /** \cond AUTODOCS-IGNORE */
-namespace Squid
-{
+namespace Squid {
 /** \endcond */
 
 /// \ingroup ServerProtocolSSLAPI
-inline
-int SSL_set_fd(SSL *ssl, int fd)
+inline int
+SSL_set_fd(SSL *ssl, int fd)
 {
     return ::SSL_set_fd(ssl, _get_osfhandle(fd));
 }
 
 /// \ingroup ServerProtocolSSLAPI
-#define SSL_set_fd(ssl,fd) Squid::SSL_set_fd(ssl,fd)
+#define SSL_set_fd(ssl, fd) Squid::SSL_set_fd(ssl, fd)
 
 } /* namespace Squid */
 
 #else
 
 /// \ingroup ServerProtocolSSLAPI
-#define SSL_set_fd(s,f) (SSL_set_fd(s, _get_osfhandle(f)))
+#define SSL_set_fd(s, f) (SSL_set_fd(s, _get_osfhandle(f)))
 
 #endif /* __cplusplus */
 
@@ -362,4 +366,3 @@ int SSL_set_fd(SSL *ssl, int fd)
 
 #endif /* USE_OPENSSL */
 #endif /* SQUID_SSL_SUPPORT_H */
-

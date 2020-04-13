@@ -29,13 +29,13 @@
 #if !HAVE_PAD128_T
 typedef union {
     long double _q;
-    int32_t     _l[4];
+    int32_t _l[4];
 } pad128_t;
 #endif
 #if !HAVE_UPAD128_T
 typedef union {
     long double _q;
-    uint32_t    _l[4];
+    uint32_t _l[4];
 } upad128_t;
 #endif
 #endif
@@ -44,8 +44,8 @@ typedef union {
  * prototypes for system function missing from system includes
  * NP: sys/resource.h and sys/time.h are apparently order-dependant.
  */
-#include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/time.h>
 SQUIDCEXTERN int getrusage(int, struct rusage *);
 
 #if defined(__SUNPRO_CC)
@@ -60,8 +60,7 @@ SQUIDCEXTERN int getrusage(int, struct rusage *);
  * on some Solaris systems.
  */
 SQUIDCEXTERN int getpagesize(void);
-#if !defined(_XPG4_2) && !(defined(__EXTENSIONS__) || \
-(!defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)))
+#if !defined(_XPG4_2) && !(defined(__EXTENSIONS__) || (!defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)))
 SQUIDCEXTERN int gethostname(char *, int);
 #endif
 
@@ -75,7 +74,7 @@ SQUIDCEXTERN int gethostname(char *, int);
 /* Bug 2500: Solaris 10/11 require s6_addr* defines. */
 //#define s6_addr8   _S6_un._S6_u8
 //#define s6_addr16  _S6_un._S6_u16
-#define s6_addr32  _S6_un._S6_u32
+#define s6_addr32 _S6_un._S6_u32
 
 /* Bug 3057: Solaris 9 defines struct addrinfo with size_t instead of socklen_t
  *           this causes binary incompatibility on 64-bit systems.
@@ -105,4 +104,3 @@ SQUIDCEXTERN int gethostname(char *, int);
 
 #endif /* _SQUID_SOLARIS_ */
 #endif /* SQUID_OS_SOALRIS_H */
-

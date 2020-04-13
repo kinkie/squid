@@ -9,8 +9,20 @@
 /* DEBUG: section 18    Cache Manager Statistics */
 
 #include "squid.h"
+#include "stat.h"
 #include "CacheDigest.h"
 #include "CachePeer.h"
+#include "HttpRequest.h"
+#include "IoStats.h"
+#include "MemBuf.h"
+#include "MemObject.h"
+#include "PeerDigest.h"
+#include "SquidConfig.h"
+#include "SquidMath.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "Store.h"
+#include "StoreClient.h"
 #include "client_side.h"
 #include "client_side_request.h"
 #include "comm/Connection.h"
@@ -20,12 +32,8 @@
 #include "format/Token.h"
 #include "globals.h"
 #include "http/Stream.h"
-#include "HttpRequest.h"
-#include "IoStats.h"
 #include "mem/Pool.h"
 #include "mem_node.h"
-#include "MemBuf.h"
-#include "MemObject.h"
 #include "mgr/CountersAction.h"
 #include "mgr/FunAction.h"
 #include "mgr/InfoAction.h"
@@ -34,15 +42,7 @@
 #include "mgr/Registration.h"
 #include "mgr/ServiceTimesAction.h"
 #include "neighbors.h"
-#include "PeerDigest.h"
-#include "SquidConfig.h"
-#include "SquidMath.h"
-#include "SquidTime.h"
-#include "stat.h"
-#include "StatCounters.h"
-#include "Store.h"
 #include "store_digest.h"
-#include "StoreClient.h"
 #include "tools.h"
 // for tvSubDsec() which should be in SquidTime.h
 #include "util.h"
@@ -60,8 +60,8 @@
 /* TODO: provide a self registration mechanism for those classes
  * to use during static construction
  */
-#include "comm.h"
 #include "StoreSearch.h"
+#include "comm.h"
 
 #define DEBUG_OPENFD 1
 
@@ -85,7 +85,7 @@ static void statAvgDump(StoreEntry *, int minutes, int hours);
 static void statGraphDump(StoreEntry *);
 #endif
 static double statPctileSvc(double, int, int);
-static void statStoreEntry(MemBuf * mb, StoreEntry * e);
+static void statStoreEntry(MemBuf *mb, StoreEntry *e);
 static double statCPUUsage(int minutes);
 static OBJH stat_objects_get;
 static OBJH stat_vmobjects_get;
@@ -99,17 +99,17 @@ static OBJH statDigestBlob;
 static OBJH statUtilization;
 static OBJH statCountersHistograms;
 static OBJH statClientRequests;
-void GetAvgStat(Mgr::IntervalActionData& stats, int minutes, int hours);
-void DumpAvgStat(Mgr::IntervalActionData& stats, StoreEntry* sentry);
-void GetInfo(Mgr::InfoActionData& stats);
-void DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry);
-void DumpMallocStatistics(StoreEntry* sentry);
-void GetCountersStats(Mgr::CountersActionData& stats);
-void DumpCountersStats(Mgr::CountersActionData& stats, StoreEntry* sentry);
-void GetServiceTimesStats(Mgr::ServiceTimesActionData& stats);
-void DumpServiceTimesStats(Mgr::ServiceTimesActionData& stats, StoreEntry* sentry);
-void GetIoStats(Mgr::IoActionData& stats);
-void DumpIoStats(Mgr::IoActionData& stats, StoreEntry* sentry);
+void GetAvgStat(Mgr::IntervalActionData &stats, int minutes, int hours);
+void DumpAvgStat(Mgr::IntervalActionData &stats, StoreEntry *sentry);
+void GetInfo(Mgr::InfoActionData &stats);
+void DumpInfo(Mgr::InfoActionData &stats, StoreEntry *sentry);
+void DumpMallocStatistics(StoreEntry *sentry);
+void GetCountersStats(Mgr::CountersActionData &stats);
+void DumpCountersStats(Mgr::CountersActionData &stats, StoreEntry *sentry);
+void GetServiceTimesStats(Mgr::ServiceTimesActionData &stats);
+void DumpServiceTimesStats(Mgr::ServiceTimesActionData &stats, StoreEntry *sentry);
+void GetIoStats(Mgr::IoActionData &stats);
+void DumpIoStats(Mgr::IoActionData &stats, StoreEntry *sentry);
 
 #if XMALLOC_STATISTICS
 static void info_get_mallstat(int, int, int, void *);
@@ -127,7 +127,7 @@ extern unsigned int mem_pool_alloc_calls;
 extern unsigned int mem_pool_free_calls;
 
 static void
-statUtilization(StoreEntry * e)
+statUtilization(StoreEntry *e)
 {
     storeAppendPrintf(e, "Cache Utilisation:\n");
     storeAppendPrintf(e, "\n");
@@ -191,7 +191,7 @@ statUtilization(StoreEntry * e)
 }
 
 void
-GetIoStats(Mgr::IoActionData& stats)
+GetIoStats(Mgr::IoActionData &stats)
 {
     int i;
 
@@ -215,7 +215,7 @@ GetIoStats(Mgr::IoActionData& stats)
 }
 
 void
-DumpIoStats(Mgr::IoActionData& stats, StoreEntry* sentry)
+DumpIoStats(Mgr::IoActionData &stats, StoreEntry *sentry)
 {
     int i;
 
@@ -261,7 +261,7 @@ DumpIoStats(Mgr::IoActionData& stats, StoreEntry* sentry)
 }
 
 static const char *
-describeStatuses(const StoreEntry * entry)
+describeStatuses(const StoreEntry *entry)
 {
     LOCAL_ARRAY(char, buf, 256);
     snprintf(buf, 256, "%-13s %-13s %-12s %-12s",
@@ -273,10 +273,10 @@ describeStatuses(const StoreEntry * entry)
 }
 
 const char *
-storeEntryFlags(const StoreEntry * entry)
+storeEntryFlags(const StoreEntry *entry)
 {
     LOCAL_ARRAY(char, buf, 256);
-    int flags = (int) entry->flags;
+    int flags = (int)entry->flags;
     char *t;
     buf[0] = '\0';
 
@@ -326,18 +326,18 @@ storeEntryFlags(const StoreEntry * entry)
 }
 
 static void
-statStoreEntry(MemBuf * mb, StoreEntry * e)
+statStoreEntry(MemBuf *mb, StoreEntry *e)
 {
     MemObject *mem = e->mem_obj;
     mb->appendf("KEY %s\n", e->getMD5Text());
     mb->appendf("\t%s\n", describeStatuses(e));
     mb->appendf("\t%s\n", storeEntryFlags(e));
     mb->appendf("\t%s\n", e->describeTimestamps());
-    mb->appendf("\t%d locks, %d clients, %d refs\n", (int) e->locks(), storePendingNClients(e), (int) e->refcount);
+    mb->appendf("\t%d locks, %d clients, %d refs\n", (int)e->locks(), storePendingNClients(e), (int)e->refcount);
     mb->appendf("\tSwap Dir %d, File %#08X\n", e->swap_dirn, e->swap_filen);
 
     if (mem != NULL)
-        mem->stat (mb);
+        mem->stat(mb);
 
     mb->append("\n", 1);
 }
@@ -371,8 +371,7 @@ statObjects(void *data)
     MemBuf mb;
     mb.init();
 
-    while (statCount++ < static_cast<size_t>(Config.Store.objectsPerBucket) && state->
-            theSearch->next()) {
+    while (statCount++ < static_cast<size_t>(Config.Store.objectsPerBucket) && state->theSearch->next()) {
         e = state->theSearch->currentItem();
 
         if (state->filter && 0 == state->filter(e))
@@ -389,7 +388,7 @@ statObjects(void *data)
 }
 
 static void
-statObjectsStart(StoreEntry * sentry, STOBJFLT * filter)
+statObjectsStart(StoreEntry *sentry, STOBJFLT *filter)
 {
     StatObjectsState *state = new StatObjectsState;
     state->sentry = sentry;
@@ -402,26 +401,26 @@ statObjectsStart(StoreEntry * sentry, STOBJFLT * filter)
 }
 
 static void
-stat_objects_get(StoreEntry * sentry)
+stat_objects_get(StoreEntry *sentry)
 {
     statObjectsStart(sentry, NULL);
 }
 
 static int
-statObjectsVmFilter(const StoreEntry * e)
+statObjectsVmFilter(const StoreEntry *e)
 {
     return e->mem_obj ? 1 : 0;
 }
 
 static void
-stat_vmobjects_get(StoreEntry * sentry)
+stat_vmobjects_get(StoreEntry *sentry)
 {
     statObjectsStart(sentry, statObjectsVmFilter);
 }
 
 #if DEBUG_OPENFD
 static int
-statObjectsOpenfdFilter(const StoreEntry * e)
+statObjectsOpenfdFilter(const StoreEntry *e)
 {
     if (e->mem_obj == NULL)
         return 0;
@@ -433,7 +432,7 @@ statObjectsOpenfdFilter(const StoreEntry * e)
 }
 
 static void
-statOpenfdObj(StoreEntry * sentry)
+statOpenfdObj(StoreEntry *sentry)
 {
     statObjectsStart(sentry, statObjectsOpenfdFilter);
 }
@@ -446,7 +445,7 @@ info_get_mallstat(int size, int number, int oldnum, void *data)
 {
     StoreEntry *sentry = (StoreEntry *)data;
 
-// format: "%12s %15s %6s %12s\n","Alloc Size","Count","Delta","Alloc/sec"
+    // format: "%12s %15s %6s %12s\n","Alloc Size","Count","Delta","Alloc/sec"
     if (number > 0)
         storeAppendPrintf(sentry, "%12d %15d %6d %.1f\n", size, number, number - oldnum, xdiv((number - oldnum), xm_deltat));
 }
@@ -454,7 +453,7 @@ info_get_mallstat(int size, int number, int oldnum, void *data)
 #endif
 
 void
-GetInfo(Mgr::InfoActionData& stats)
+GetInfo(Mgr::InfoActionData &stats)
 {
 
     struct rusage rusage;
@@ -578,7 +577,7 @@ GetInfo(Mgr::InfoActionData& stats)
 }
 
 void
-DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry)
+DumpInfo(Mgr::InfoActionData &stats, StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Squid Object Cache: Version %s\n",
                       version_string);
@@ -587,13 +586,13 @@ DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry)
 
 #if _SQUID_WINDOWS_
     if (WIN32_run_mode == _WIN_SQUID_RUN_MODE_SERVICE) {
-        storeAppendPrintf(sentry,"\nRunning as " SQUIDSBUFPH " Windows System Service on %s\n",
+        storeAppendPrintf(sentry, "\nRunning as " SQUIDSBUFPH " Windows System Service on %s\n",
                           SQUIDSBUFPRINT(service_name), WIN32_OS_string);
-        storeAppendPrintf(sentry,"Service command line is: %s\n", WIN32_Service_Command_Line);
+        storeAppendPrintf(sentry, "Service command line is: %s\n", WIN32_Service_Command_Line);
     } else
-        storeAppendPrintf(sentry,"Running on %s\n",WIN32_OS_string);
+        storeAppendPrintf(sentry, "Running on %s\n", WIN32_OS_string);
 #else
-    storeAppendPrintf(sentry,"Service Name: " SQUIDSBUFPH "\n", SQUIDSBUFPRINT(service_name));
+    storeAppendPrintf(sentry, "Service Name: " SQUIDSBUFPH "\n", SQUIDSBUFPRINT(service_name));
 #endif
 
     storeAppendPrintf(sentry, "Start Time:\t%s\n",
@@ -602,7 +601,7 @@ DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry)
     storeAppendPrintf(sentry, "Current Time:\t%s\n",
                       mkrfc1123(stats.current_time.tv_sec));
 
-    storeAppendPrintf(sentry, "Connection information for %s:\n",APP_SHORTNAME);
+    storeAppendPrintf(sentry, "Connection information for %s:\n", APP_SHORTNAME);
 
     if (Config.onoff.client_db)
         storeAppendPrintf(sentry, "\tNumber of clients accessing cache:\t%.0f\n", stats.client_http_clients);
@@ -644,7 +643,7 @@ DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry)
     storeAppendPrintf(sentry, "\tSelect loop called: %.0f times, %0.3f ms avg\n",
                       stats.select_loops, stats.avg_loop_time / fct);
 
-    storeAppendPrintf(sentry, "Cache information for %s:\n",APP_SHORTNAME);
+    storeAppendPrintf(sentry, "Cache information for %s:\n", APP_SHORTNAME);
 
     storeAppendPrintf(sentry, "\tHits as %% of all requests:\t5min: %3.1f%%, 60min: %3.1f%%\n",
                       stats.request_hit_ratio5 / fct,
@@ -737,7 +736,7 @@ DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry)
 
 #if HAVE_MSTATS && HAVE_GNUMALLOC_H
 
-    storeAppendPrintf(sentry, "Memory usage for %s via mstats():\n",APP_SHORTNAME);
+    storeAppendPrintf(sentry, "Memory usage for %s via mstats():\n", APP_SHORTNAME);
 
     storeAppendPrintf(sentry, "\tTotal space in arena:  %6.0f KB\n",
                       stats.ms_bytes_total / 1024);
@@ -788,19 +787,19 @@ DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry)
 }
 
 void
-DumpMallocStatistics(StoreEntry* sentry)
+DumpMallocStatistics(StoreEntry *sentry)
 {
 #if XMALLOC_STATISTICS
     xm_deltat = current_dtime - xm_time;
     xm_time = current_dtime;
     storeAppendPrintf(sentry, "\nMemory allocation statistics\n");
-    storeAppendPrintf(sentry, "%12s %15s %6s %12s\n","Alloc Size","Count","Delta","Alloc/sec");
+    storeAppendPrintf(sentry, "%12s %15s %6s %12s\n", "Alloc Size", "Count", "Delta", "Alloc/sec");
     malloc_statistics(info_get_mallstat, sentry);
 #endif
 }
 
 void
-GetServiceTimesStats(Mgr::ServiceTimesActionData& stats)
+GetServiceTimesStats(Mgr::ServiceTimesActionData &stats)
 {
     for (int i = 0; i < Mgr::ServiceTimesActionData::seriesSize; ++i) {
         double p = (i + 1) * 5 / 100.0;
@@ -828,7 +827,7 @@ GetServiceTimesStats(Mgr::ServiceTimesActionData& stats)
 }
 
 void
-DumpServiceTimesStats(Mgr::ServiceTimesActionData& stats, StoreEntry* sentry)
+DumpServiceTimesStats(Mgr::ServiceTimesActionData &stats, StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Service Time Percentiles            5 min    60 min:\n");
     double fct = stats.count > 1 ? stats.count * 1000.0 : 1000.0;
@@ -878,16 +877,16 @@ DumpServiceTimesStats(Mgr::ServiceTimesActionData& stats, StoreEntry* sentry)
 }
 
 static void
-statAvgDump(StoreEntry * sentry, int minutes, int hours)
+statAvgDump(StoreEntry *sentry, int minutes, int hours)
 {
     Mgr::IntervalActionData stats;
     GetAvgStat(stats, minutes, hours);
     DumpAvgStat(stats, sentry);
 }
 
-#define XAVG(X) (dt ? (double) (f->X - l->X) / dt : 0.0)
+#define XAVG(X) (dt ? (double)(f->X - l->X) / dt : 0.0)
 void
-GetAvgStat(Mgr::IntervalActionData& stats, int minutes, int hours)
+GetAvgStat(Mgr::IntervalActionData &stats, int minutes, int hours)
 {
     StatCounters *f;
     StatCounters *l;
@@ -930,15 +929,20 @@ GetAvgStat(Mgr::IntervalActionData& stats, int minutes, int hours)
     stats.client_http_kbytes_out = XAVG(client_http.kbytes_out.kb);
 
     stats.client_http_all_median_svc_time = statHistDeltaMedian(l->client_http.allSvcTime,
-                                            f->client_http.allSvcTime) / 1000.0;
+                                                                f->client_http.allSvcTime)
+        / 1000.0;
     stats.client_http_miss_median_svc_time = statHistDeltaMedian(l->client_http.missSvcTime,
-            f->client_http.missSvcTime) / 1000.0;
+                                                                 f->client_http.missSvcTime)
+        / 1000.0;
     stats.client_http_nm_median_svc_time = statHistDeltaMedian(l->client_http.nearMissSvcTime,
-                                           f->client_http.nearMissSvcTime) / 1000.0;
+                                                               f->client_http.nearMissSvcTime)
+        / 1000.0;
     stats.client_http_nh_median_svc_time = statHistDeltaMedian(l->client_http.nearHitSvcTime,
-                                           f->client_http.nearHitSvcTime) / 1000.0;
+                                                               f->client_http.nearHitSvcTime)
+        / 1000.0;
     stats.client_http_hit_median_svc_time = statHistDeltaMedian(l->client_http.hitSvcTime,
-                                            f->client_http.hitSvcTime) / 1000.0;
+                                                                f->client_http.hitSvcTime)
+        / 1000.0;
 
     stats.server_all_requests = XAVG(server.all.requests);
     stats.server_all_errors = XAVG(server.all.errors);
@@ -976,18 +980,20 @@ GetAvgStat(Mgr::IntervalActionData& stats, int minutes, int hours)
     stats.icp_r_kbytes_recv = XAVG(icp.r_kbytes_recv.kb);
 
     stats.icp_query_median_svc_time = statHistDeltaMedian(l->icp.querySvcTime,
-                                      f->icp.querySvcTime) / 1000000.0;
+                                                          f->icp.querySvcTime)
+        / 1000000.0;
     stats.icp_reply_median_svc_time = statHistDeltaMedian(l->icp.replySvcTime,
-                                      f->icp.replySvcTime) / 1000000.0;
+                                                          f->icp.replySvcTime)
+        / 1000000.0;
     stats.dns_median_svc_time = statHistDeltaMedian(l->dns.svcTime,
-                                f->dns.svcTime) / 1000.0;
+                                                    f->dns.svcTime)
+        / 1000.0;
 
     stats.unlink_requests = XAVG(unlink.requests);
     stats.page_faults = XAVG(page_faults);
     stats.select_loops = XAVG(select_loops);
     stats.select_fds = XAVG(select_fds);
-    stats.average_select_fd_period = f->select_fds > l->select_fds ?
-                                     (f->select_time - l->select_time) / (f->select_fds - l->select_fds) : 0.0;
+    stats.average_select_fd_period = f->select_fds > l->select_fds ? (f->select_time - l->select_time) / (f->select_fds - l->select_fds) : 0.0;
 
     stats.median_select_fds = statHistDeltaMedian(l->select_fds_hist, f->select_fds_hist);
     stats.swap_outs = XAVG(swap.outs);
@@ -1023,7 +1029,7 @@ GetAvgStat(Mgr::IntervalActionData& stats, int minutes, int hours)
 }
 
 void
-DumpAvgStat(Mgr::IntervalActionData& stats, StoreEntry* sentry)
+DumpAvgStat(Mgr::IntervalActionData &stats, StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "sample_start_time = %d.%d (%s)\n",
                       (int)stats.sample_start_time.tv_sec,
@@ -1234,7 +1240,7 @@ statRegisterWithCacheManager(void)
 
 /* add special cases here as they arrive */
 static void
-statCountersInitSpecial(StatCounters * C)
+statCountersInitSpecial(StatCounters *C)
 {
     /*
      * HTTP svc_time hist is kept in milli-seconds; max of 3 hours.
@@ -1260,11 +1266,11 @@ statCountersInitSpecial(StatCounters * C)
     C->comm_udp_incoming.enumInit(INCOMING_UDP_MAX);
     C->comm_dns_incoming.enumInit(INCOMING_DNS_MAX);
     C->comm_tcp_incoming.enumInit(INCOMING_TCP_MAX);
-    C->select_fds_hist.enumInit(256);   /* was SQUID_MAXFD, but it is way too much. It is OK to crop this statistics */
+    C->select_fds_hist.enumInit(256); /* was SQUID_MAXFD, but it is way too much. It is OK to crop this statistics */
 }
 
 static void
-statCountersInit(StatCounters * C)
+statCountersInit(StatCounters *C)
 {
     assert(C);
     *C = StatCounters();
@@ -1285,7 +1291,7 @@ statInit(void)
 
     statCountersInit(&statCounter);
 
-    eventAdd("statAvgTick", statAvgTick, NULL, (double) COUNT_INTERVAL, 1);
+    eventAdd("statAvgTick", statAvgTick, NULL, (double)COUNT_INTERVAL, 1);
 
     ClientActiveRequests.head = NULL;
 
@@ -1298,28 +1304,28 @@ static void
 statAvgTick(void *)
 {
     struct rusage rusage;
-    eventAdd("statAvgTick", statAvgTick, NULL, (double) COUNT_INTERVAL, 1);
+    eventAdd("statAvgTick", statAvgTick, NULL, (double)COUNT_INTERVAL, 1);
     squid_getrusage(&rusage);
     statCounter.page_faults = rusage_pagefaults(&rusage);
     statCounter.cputime = rusage_cputime(&rusage);
     statCounter.timestamp = current_time;
     // shift all elements right and prepend statCounter
-    for(int i = N_COUNT_HIST-1; i > 0; --i)
-        CountHist[i] = CountHist[i-1];
+    for (int i = N_COUNT_HIST - 1; i > 0; --i)
+        CountHist[i] = CountHist[i - 1];
     CountHist[0] = statCounter;
     ++NCountHist;
 
     if ((NCountHist % COUNT_INTERVAL) == 0) {
         /* we have an hours worth of readings.  store previous hour */
         // shift all elements right and prepend final CountHist element
-        for(int i = N_COUNT_HOUR_HIST-1; i > 0; --i)
-            CountHourHist[i] = CountHourHist[i-1];
+        for (int i = N_COUNT_HOUR_HIST - 1; i > 0; --i)
+            CountHourHist[i] = CountHourHist[i - 1];
         CountHourHist[0] = CountHist[N_COUNT_HIST - 1];
         ++NCountHourHist;
     }
 
     if (Config.warnings.high_rptm > 0) {
-        int i = (int) statPctileSvc(0.5, 20, PCTILE_HTTP);
+        int i = (int)statPctileSvc(0.5, 20, PCTILE_HTTP);
 
         if (Config.warnings.high_rptm < i)
             debugs(18, DBG_CRITICAL, "WARNING: Median response time is " << i << " milliseconds");
@@ -1330,7 +1336,7 @@ statAvgTick(void *)
         double dt = tvSubDsec(CountHist[0].timestamp, CountHist[1].timestamp);
 
         if (i > 0 && dt > 0.0) {
-            i /= (int) dt;
+            i /= (int)dt;
 
             if (Config.warnings.high_pf < i)
                 debugs(18, DBG_CRITICAL, "WARNING: Page faults occurring at " << i << "/sec");
@@ -1349,7 +1355,7 @@ statAvgTick(void *)
 }
 
 static void
-statCountersHistograms(StoreEntry * sentry)
+statCountersHistograms(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "client_http.allSvcTime histogram:\n");
     statCounter.client_http.allSvcTime.dump(sentry, NULL);
@@ -1372,7 +1378,7 @@ statCountersHistograms(StoreEntry * sentry)
 }
 
 static void
-statCountersDump(StoreEntry * sentry)
+statCountersDump(StoreEntry *sentry)
 {
     Mgr::CountersActionData stats;
     GetCountersStats(stats);
@@ -1380,7 +1386,7 @@ statCountersDump(StoreEntry * sentry)
 }
 
 void
-GetCountersStats(Mgr::CountersActionData& stats)
+GetCountersStats(Mgr::CountersActionData &stats)
 {
     StatCounters *f = &statCounter;
 
@@ -1462,11 +1468,11 @@ GetCountersStats(Mgr::CountersActionData& stats)
 }
 
 void
-DumpCountersStats(Mgr::CountersActionData& stats, StoreEntry* sentry)
+DumpCountersStats(Mgr::CountersActionData &stats, StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "sample_time = %d.%d (%s)\n",
-                      (int) stats.sample_time.tv_sec,
-                      (int) stats.sample_time.tv_usec,
+                      (int)stats.sample_time.tv_sec,
+                      (int)stats.sample_time.tv_usec,
                       mkrfc1123(stats.sample_time.tv_sec));
     storeAppendPrintf(sentry, "client_http.requests = %.0f\n",
                       stats.client_http_requests);
@@ -1609,7 +1615,7 @@ statFreeMemory(void)
 }
 
 static void
-statPeerSelect(StoreEntry * sentry)
+statPeerSelect(StoreEntry *sentry)
 {
 #if USE_CACHE_DIGESTS
     StatCounters *f = &statCounter;
@@ -1645,7 +1651,7 @@ statPeerSelect(StoreEntry * sentry)
 }
 
 static void
-statDigestBlob(StoreEntry * sentry)
+statDigestBlob(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "\nCounters:\n");
     statCountersDump(sentry);
@@ -1681,31 +1687,31 @@ statPctileSvc(double pctile, int interval, int which)
     switch (which) {
 
     case PCTILE_HTTP:
-        x = statHistDeltaPctile(l->client_http.allSvcTime,f->client_http.allSvcTime, pctile);
+        x = statHistDeltaPctile(l->client_http.allSvcTime, f->client_http.allSvcTime, pctile);
         break;
 
     case PCTILE_HIT:
-        x = statHistDeltaPctile(l->client_http.hitSvcTime,f->client_http.hitSvcTime, pctile);
+        x = statHistDeltaPctile(l->client_http.hitSvcTime, f->client_http.hitSvcTime, pctile);
         break;
 
     case PCTILE_MISS:
-        x = statHistDeltaPctile(l->client_http.missSvcTime,f->client_http.missSvcTime, pctile);
+        x = statHistDeltaPctile(l->client_http.missSvcTime, f->client_http.missSvcTime, pctile);
         break;
 
     case PCTILE_NM:
-        x = statHistDeltaPctile(l->client_http.nearMissSvcTime,f->client_http.nearMissSvcTime, pctile);
+        x = statHistDeltaPctile(l->client_http.nearMissSvcTime, f->client_http.nearMissSvcTime, pctile);
         break;
 
     case PCTILE_NH:
-        x = statHistDeltaPctile(l->client_http.nearHitSvcTime,f->client_http.nearHitSvcTime, pctile);
+        x = statHistDeltaPctile(l->client_http.nearHitSvcTime, f->client_http.nearHitSvcTime, pctile);
         break;
 
     case PCTILE_ICP_QUERY:
-        x = statHistDeltaPctile(l->icp.querySvcTime,f->icp.querySvcTime, pctile);
+        x = statHistDeltaPctile(l->icp.querySvcTime, f->icp.querySvcTime, pctile);
         break;
 
     case PCTILE_DNS:
-        x = statHistDeltaPctile(l->dns.svcTime,f->dns.svcTime, pctile);
+        x = statHistDeltaPctile(l->dns.svcTime, f->dns.svcTime, pctile);
         break;
 
     default:
@@ -1741,30 +1747,24 @@ double
 statRequestHitRatio(int minutes)
 {
     assert(minutes < N_COUNT_HIST);
-    return Math::doublePercent(CountHist[0].client_http.hits -
-                               CountHist[minutes].client_http.hits,
-                               CountHist[0].client_http.requests -
-                               CountHist[minutes].client_http.requests);
+    return Math::doublePercent(CountHist[0].client_http.hits - CountHist[minutes].client_http.hits,
+                               CountHist[0].client_http.requests - CountHist[minutes].client_http.requests);
 }
 
 double
 statRequestHitMemoryRatio(int minutes)
 {
     assert(minutes < N_COUNT_HIST);
-    return Math::doublePercent(CountHist[0].client_http.mem_hits -
-                               CountHist[minutes].client_http.mem_hits,
-                               CountHist[0].client_http.hits -
-                               CountHist[minutes].client_http.hits);
+    return Math::doublePercent(CountHist[0].client_http.mem_hits - CountHist[minutes].client_http.mem_hits,
+                               CountHist[0].client_http.hits - CountHist[minutes].client_http.hits);
 }
 
 double
 statRequestHitDiskRatio(int minutes)
 {
     assert(minutes < N_COUNT_HIST);
-    return Math::doublePercent(CountHist[0].client_http.disk_hits -
-                               CountHist[minutes].client_http.disk_hits,
-                               CountHist[0].client_http.hits -
-                               CountHist[minutes].client_http.hits);
+    return Math::doublePercent(CountHist[0].client_http.disk_hits - CountHist[minutes].client_http.disk_hits,
+                               CountHist[0].client_http.hits - CountHist[minutes].client_http.hits);
 }
 
 double
@@ -1804,7 +1804,7 @@ statByteHitRatio(int minutes)
 }
 
 static void
-statClientRequests(StoreEntry * s)
+statClientRequests(StoreEntry *s)
 {
     dlink_node *i;
     ClientHttpRequest *http;
@@ -1815,7 +1815,7 @@ statClientRequests(StoreEntry * s)
         const char *p = NULL;
         http = static_cast<ClientHttpRequest *>(i->data);
         assert(http);
-        ConnStateData * conn = http->getConn();
+        ConnStateData *conn = http->getConn();
         storeAppendPrintf(s, "Connection: %p\n", conn);
 
         if (conn != NULL) {
@@ -1824,24 +1824,24 @@ statClientRequests(StoreEntry * s)
                               fd_table[fd].bytes_read, fd_table[fd].bytes_written);
             storeAppendPrintf(s, "\tFD desc: %s\n", fd_table[fd].desc);
             storeAppendPrintf(s, "\tin: buf %p, used %ld, free %ld\n",
-                              conn->inBuf.rawContent(), (long int) conn->inBuf.length(), (long int) conn->inBuf.spaceSize());
+                              conn->inBuf.rawContent(), (long int)conn->inBuf.length(), (long int)conn->inBuf.spaceSize());
             storeAppendPrintf(s, "\tremote: %s\n",
-                              conn->clientConnection->remote.toUrl(buf,MAX_IPSTRLEN));
+                              conn->clientConnection->remote.toUrl(buf, MAX_IPSTRLEN));
             storeAppendPrintf(s, "\tlocal: %s\n",
-                              conn->clientConnection->local.toUrl(buf,MAX_IPSTRLEN));
+                              conn->clientConnection->local.toUrl(buf, MAX_IPSTRLEN));
             storeAppendPrintf(s, "\tnrequests: %u\n", conn->pipeline.nrequests);
         }
 
         storeAppendPrintf(s, "uri %s\n", http->uri);
         storeAppendPrintf(s, "logType %s\n", http->logType.c_str());
         storeAppendPrintf(s, "out.offset %ld, out.size %lu\n",
-                          (long int) http->out.offset, (unsigned long int) http->out.size);
-        storeAppendPrintf(s, "req_sz %ld\n", (long int) http->req_sz);
+                          (long int)http->out.offset, (unsigned long int)http->out.size);
+        storeAppendPrintf(s, "req_sz %ld\n", (long int)http->req_sz);
         e = http->storeEntry();
         storeAppendPrintf(s, "entry %p/%s\n", e, e ? e->getMD5Text() : "N/A");
         storeAppendPrintf(s, "start %ld.%06d (%f seconds ago)\n",
-                          (long int) http->al->cache.start_time.tv_sec,
-                          (int) http->al->cache.start_time.tv_usec,
+                          (long int)http->al->cache.start_time.tv_sec,
+                          (int)http->al->cache.start_time.tv_usec,
                           tvSubDsec(http->al->cache.start_time, current_time));
 #if USE_AUTH
         if (http->request->auth_user_request != NULL)
@@ -1849,8 +1849,8 @@ statClientRequests(StoreEntry * s)
         else
 #endif
             if (http->request->extacl_user.size() > 0) {
-                p = http->request->extacl_user.termedBuf();
-            }
+            p = http->request->extacl_user.termedBuf();
+        }
 
         if (!p && conn != NULL && conn->clientConnection->rfc931[0])
             p = conn->clientConnection->rfc931;
@@ -1878,37 +1878,37 @@ statClientRequests(StoreEntry * s)
  * urgh, i don't like these, but they do cut the amount of code down immensely
  */
 
-#define GRAPH_PER_MIN(Y) \
-    for (i=0;i<(N_COUNT_HIST-2);++i) { \
-    dt = tvSubDsec(CountHist[i+1].timestamp, CountHist[i].timestamp); \
-    if (dt <= 0.0) \
-        break; \
-    storeAppendPrintf(e, "%lu,%0.2f:", \
-        CountHist[i].timestamp.tv_sec, \
-        ((CountHist[i].Y - CountHist[i+1].Y) / dt)); \
+#define GRAPH_PER_MIN(Y)                                                    \
+    for (i = 0; i < (N_COUNT_HIST - 2); ++i) {                              \
+        dt = tvSubDsec(CountHist[i + 1].timestamp, CountHist[i].timestamp); \
+        if (dt <= 0.0)                                                      \
+            break;                                                          \
+        storeAppendPrintf(e, "%lu,%0.2f:",                                  \
+                          CountHist[i].timestamp.tv_sec,                    \
+                          ((CountHist[i].Y - CountHist[i + 1].Y) / dt));    \
     }
 
-#define GRAPH_PER_HOUR(Y) \
-    for (i=0;i<(N_COUNT_HOUR_HIST-2);++i) { \
-    dt = tvSubDsec(CountHourHist[i+1].timestamp, CountHourHist[i].timestamp); \
-    if (dt <= 0.0) \
-        break; \
-    storeAppendPrintf(e, "%lu,%0.2f:", \
-        CountHourHist[i].timestamp.tv_sec, \
-        ((CountHourHist[i].Y - CountHourHist[i+1].Y) / dt)); \
+#define GRAPH_PER_HOUR(Y)                                                           \
+    for (i = 0; i < (N_COUNT_HOUR_HIST - 2); ++i) {                                 \
+        dt = tvSubDsec(CountHourHist[i + 1].timestamp, CountHourHist[i].timestamp); \
+        if (dt <= 0.0)                                                              \
+            break;                                                                  \
+        storeAppendPrintf(e, "%lu,%0.2f:",                                          \
+                          CountHourHist[i].timestamp.tv_sec,                        \
+                          ((CountHourHist[i].Y - CountHourHist[i + 1].Y) / dt));    \
     }
 
-#define GRAPH_TITLE(X,Y) storeAppendPrintf(e,"%s\t%s\t",X,Y);
-#define GRAPH_END storeAppendPrintf(e,"\n");
+#define GRAPH_TITLE(X, Y) storeAppendPrintf(e, "%s\t%s\t", X, Y);
+#define GRAPH_END storeAppendPrintf(e, "\n");
 
-#define GENGRAPH(X,Y,Z) \
-    GRAPH_TITLE(Y,Z) \
-    GRAPH_PER_MIN(X) \
-    GRAPH_PER_HOUR(X) \
+#define GENGRAPH(X, Y, Z) \
+    GRAPH_TITLE(Y, Z)     \
+    GRAPH_PER_MIN(X)      \
+    GRAPH_PER_HOUR(X)     \
     GRAPH_END
 
 static void
-statGraphDump(StoreEntry * e)
+statGraphDump(StoreEntry *e)
 {
     int i;
     double dt;
@@ -1962,4 +1962,3 @@ statMemoryAccounted(void)
 {
     return memPoolsTotalAllocated();
 }
-

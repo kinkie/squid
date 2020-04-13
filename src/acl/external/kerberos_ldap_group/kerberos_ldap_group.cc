@@ -49,14 +49,15 @@
 struct kstruct kparam;
 
 #if !HAVE_ERROR_MESSAGE && HAVE_KRB5_GET_ERROR_MESSAGE
-#define error_message(code) krb5_get_error_message(kparam.context,code)
+#define error_message(code) krb5_get_error_message(kparam.context, code)
 #elif !HAVE_ERROR_MESSAGE && HAVE_KRB5_GET_ERR_TEXT
-#define error_message(code) krb5_get_err_text(kparam.context,code)
+#define error_message(code) krb5_get_err_text(kparam.context, code)
 #elif !HAVE_ERROR_MESSAGE
 static char err_code[17];
 const char *KRB5_CALLCONV
-error_message(long code) {
-    snprintf(err_code,16,"%ld",code);
+error_message(long code)
+{
+    snprintf(err_code, 16, "%ld", code);
     return err_code;
 }
 #endif
@@ -189,7 +190,7 @@ main(int argc, char *const argv[])
 {
     char buf[6400];
     char *user, *domain, *group;
-    char *up=NULL, *dp=NULL, *np=NULL;
+    char *up = NULL, *dp = NULL, *np = NULL;
     char *nuser, *nuser8 = NULL, *netbios;
     int opt;
     struct main_args margs;
@@ -304,31 +305,31 @@ main(int argc, char *const argv[])
             clean_args(&margs);
             exit(EXIT_SUCCESS);
         default:
-            warn((char *) "%s| %s: WARNING: unknown option: -%c.\n", LogTime(), PROGRAM, opt);
+            warn((char *)"%s| %s: WARNING: unknown option: -%c.\n", LogTime(), PROGRAM, opt);
         }
     }
 
-    debug((char *) "%s| %s: INFO: Starting version %s\n", LogTime(), PROGRAM, KERBEROS_LDAP_GROUP_VERSION);
+    debug((char *)"%s| %s: INFO: Starting version %s\n", LogTime(), PROGRAM, KERBEROS_LDAP_GROUP_VERSION);
     int gopt = 0;
     if (create_gd(&margs)) {
-        if ( margs.glist != NULL ) {
-            debug((char *) "%s| %s: FATAL: Error in group list: %s\n", LogTime(), PROGRAM, margs.glist ? margs.glist : "NULL");
+        if (margs.glist != NULL) {
+            debug((char *)"%s| %s: FATAL: Error in group list: %s\n", LogTime(), PROGRAM, margs.glist ? margs.glist : "NULL");
             SEND_BH("");
             clean_args(&margs);
             exit(EXIT_FAILURE);
         } else {
-            debug((char *) "%s| %s: INFO: no group list given expect it from stdin\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: INFO: no group list given expect it from stdin\n", LogTime(), PROGRAM);
             gopt = 1;
         }
     }
     if (create_nd(&margs)) {
-        debug((char *) "%s| %s: FATAL: Error in netbios list: %s\n", LogTime(), PROGRAM, margs.nlist ? margs.nlist : "NULL");
+        debug((char *)"%s| %s: FATAL: Error in netbios list: %s\n", LogTime(), PROGRAM, margs.nlist ? margs.nlist : "NULL");
         SEND_BH("");
         clean_args(&margs);
         exit(EXIT_FAILURE);
     }
     if (create_ls(&margs)) {
-        debug((char *) "%s| %s: Error in ldap server list: %s\n", LogTime(), PROGRAM, margs.llist ? margs.llist : "NULL");
+        debug((char *)"%s| %s: Error in ldap server list: %s\n", LogTime(), PROGRAM, margs.llist ? margs.llist : "NULL");
         SEND_BH("");
         clean_args(&margs);
         exit(EXIT_FAILURE);
@@ -340,13 +341,13 @@ main(int argc, char *const argv[])
      */
 
     code = krb5_init_context(&kparam.context);
-    for (int i=0; i<MAX_DOMAINS; i++) {
-        kparam.mem_ccache[i]=NULL;
-        kparam.cc[i]=NULL;
-        kparam.ncache=0;
+    for (int i = 0; i < MAX_DOMAINS; i++) {
+        kparam.mem_ccache[i] = NULL;
+        kparam.cc[i] = NULL;
+        kparam.ncache = 0;
     }
     if (code) {
-        error((char *) "%s| %s: ERROR: Error while initialising Kerberos library : %s\n", LogTime(), PROGRAM, error_message(code));
+        error((char *)"%s| %s: ERROR: Error while initialising Kerberos library : %s\n", LogTime(), PROGRAM, error_message(code));
         SEND_BH("");
         clean_args(&margs);
         exit(EXIT_FAILURE);
@@ -357,7 +358,7 @@ main(int argc, char *const argv[])
         char *c;
         if (fgets(buf, sizeof(buf) - 1, stdin) == NULL) {
             if (ferror(stdin)) {
-                debug((char *) "%s| %s: FATAL: fgets() failed! dying..... errno=%d (%s)\n", LogTime(), PROGRAM, ferror(stdin),
+                debug((char *)"%s| %s: FATAL: fgets() failed! dying..... errno=%d (%s)\n", LogTime(), PROGRAM, ferror(stdin),
                       strerror(ferror(stdin)));
 
                 SEND_BH(strerror(ferror(stdin)));
@@ -365,7 +366,7 @@ main(int argc, char *const argv[])
 #if HAVE_KRB5
                 krb5_cleanup();
 #endif
-                exit(EXIT_FAILURE);    /* BIIG buffer */
+                exit(EXIT_FAILURE); /* BIIG buffer */
             }
             SEND_BH("fgets NULL");
             clean_args(&margs);
@@ -374,18 +375,18 @@ main(int argc, char *const argv[])
 #endif
             exit(EXIT_SUCCESS);
         }
-        c = (char *) memchr(buf, '\n', sizeof(buf) - 1);
+        c = (char *)memchr(buf, '\n', sizeof(buf) - 1);
         if (c) {
             *c = '\0';
         } else {
             SEND_BH("Invalid input. CR missing");
-            debug((char *) "%s| %s: ERR\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: ERR\n", LogTime(), PROGRAM);
             continue;
         }
 
         user = strtok(buf, " \n");
         if (!user) {
-            debug((char *) "%s| %s: INFO: No Username given\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: INFO: No Username given\n", LogTime(), PROGRAM);
             SEND_BH("Invalid request. No Username");
             continue;
         }
@@ -408,9 +409,9 @@ main(int argc, char *const argv[])
             up = xstrdup(rfc1738_escape(nuser));
             np = xstrdup(rfc1738_escape(netbios));
             if (debug_enabled)
-                debug((char *) "%s| %s: INFO: Got User: %s Netbios Name: %s\n", LogTime(), PROGRAM, up, np);
+                debug((char *)"%s| %s: INFO: Got User: %s Netbios Name: %s\n", LogTime(), PROGRAM, up, np);
             else
-                log((char *) "%s| %s: INFO: Got User: %s Netbios Name: %s\n", LogTime(), PROGRAM, up, np);
+                log((char *)"%s| %s: INFO: Got User: %s Netbios Name: %s\n", LogTime(), PROGRAM, up, np);
             domain = get_netbios_name(&margs, netbios);
             user = nuser;
             safe_free(up);
@@ -427,14 +428,14 @@ main(int argc, char *const argv[])
             domain = xstrdup(margs.ddomain);
             dp = xstrdup(rfc1738_escape(domain));
             if (debug_enabled)
-                debug((char *) "%s| %s: INFO: Got User: %s set default domain: %s\n", LogTime(), PROGRAM, up, dp);
+                debug((char *)"%s| %s: INFO: Got User: %s set default domain: %s\n", LogTime(), PROGRAM, up, dp);
             else
-                log((char *) "%s| %s: INFO: Got User: %s set default domain: %s\n", LogTime(), PROGRAM, up, dp);
+                log((char *)"%s| %s: INFO: Got User: %s set default domain: %s\n", LogTime(), PROGRAM, up, dp);
         }
         if (debug_enabled)
-            debug((char *) "%s| %s: INFO: Got User: %s Domain: %s\n", LogTime(), PROGRAM, up, domain ? dp : "NULL");
+            debug((char *)"%s| %s: INFO: Got User: %s Domain: %s\n", LogTime(), PROGRAM, up, domain ? dp : "NULL");
         else
-            log((char *) "%s| %s: INFO: Got User: %s Domain: %s\n", LogTime(), PROGRAM, up, domain ? dp : "NULL");
+            log((char *)"%s| %s: INFO: Got User: %s Domain: %s\n", LogTime(), PROGRAM, up, domain ? dp : "NULL");
 
         safe_free(up);
         safe_free(dp);
@@ -448,7 +449,7 @@ main(int argc, char *const argv[])
         }
         if (gopt) {
             if ((group = strtok(NULL, " \n")) != NULL) {
-                debug((char *) "%s| %s: INFO: Read group list %s from stdin\n", LogTime(), PROGRAM, group);
+                debug((char *)"%s| %s: INFO: Read group list %s from stdin\n", LogTime(), PROGRAM, group);
                 rfc1738_unescape(group);
                 if (margs.groups) {
                     clean_gd(margs.groups);
@@ -457,31 +458,30 @@ main(int argc, char *const argv[])
                 margs.glist = xstrdup(group);
                 if (create_gd(&margs)) {
                     SEND_BH("Error in group list");
-                    debug((char *) "%s| %s: FATAL: Error in group list: %s\n", LogTime(), PROGRAM, margs.glist ? margs.glist : "NULL");
+                    debug((char *)"%s| %s: FATAL: Error in group list: %s\n", LogTime(), PROGRAM, margs.glist ? margs.glist : "NULL");
                     continue;
                 }
             } else {
                 SEND_BH("No group list received on stdin");
-                debug((char *) "%s| %s: FATAL: No group list received on stdin\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: FATAL: No group list received on stdin\n", LogTime(), PROGRAM);
                 continue;
             }
         }
         if (check_memberof(&margs, user, domain)) {
             SEND_OK("");
-            debug((char *) "%s| %s: DEBUG: OK\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: DEBUG: OK\n", LogTime(), PROGRAM);
         } else {
             SEND_ERR("");
-            debug((char *) "%s| %s: DEBUG: ERR\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: DEBUG: ERR\n", LogTime(), PROGRAM);
         }
     }
-
 }
 
 void
 strup(char *s)
 {
     while (*s) {
-        *s = (char)toupper((unsigned char) *s);
+        *s = (char)toupper((unsigned char)*s);
         ++s;
     }
 }
@@ -503,4 +503,3 @@ main(int argc, char *const argv[])
     return EXIT_SUCCESS;
 }
 #endif
-

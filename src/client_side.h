@@ -11,12 +11,12 @@
 #ifndef SQUID_CLIENTSIDE_H
 #define SQUID_CLIENTSIDE_H
 
+#include "HttpControlMsg.h"
 #include "base/RunnersRegistry.h"
 #include "clientStreamForward.h"
 #include "comm.h"
 #include "helper/forward.h"
 #include "http/forward.h"
-#include "HttpControlMsg.h"
 #include "ipc/FdNotes.h"
 #include "log/forward.h"
 #include "proxyp/forward.h"
@@ -42,8 +42,7 @@ class MasterXaction;
 typedef RefCount<MasterXaction> MasterXactionPointer;
 
 #if USE_OPENSSL
-namespace Ssl
-{
+namespace Ssl {
 class ServerBump;
 }
 #endif
@@ -98,7 +97,7 @@ public:
 
     bool isOpen() const;
 
-    Http1::TeChunkedParser *bodyParser; ///< parses HTTP/1.1 chunked request body
+    Http1::TeChunkedParser *bodyParser;  ///< parses HTTP/1.1 chunked request body
 
     /** number of body bytes we need to comm_read for the "current" request
      *
@@ -129,21 +128,21 @@ public:
     Ip::Address log_addr;
 
     struct {
-        bool readMore; ///< needs comm_read (for this request or new requests)
-        bool swanSang; // XXX: temporary flag to check proper cleanup
+        bool readMore;  ///< needs comm_read (for this request or new requests)
+        bool swanSang;  // XXX: temporary flag to check proper cleanup
     } flags;
     struct {
         Comm::ConnectionPointer serverConnection; /* pinned server side connection */
-        char *host;             /* host name of pinned connection */
-        int port;               /* port of pinned connection */
-        bool pinned;             /* this connection was pinned */
-        bool auth;               /* pinned for www authentication */
-        bool reading;   ///< we are monitoring for peer connection closure
-        bool zeroReply; ///< server closed w/o response (ERR_ZERO_SIZE_OBJECT)
-        bool peerAccessDenied; ///< cache_peer_access denied pinned connection reuse
-        CachePeer *peer;             /* CachePeer the connection goes via */
-        AsyncCall::Pointer readHandler; ///< detects serverConnection closure
-        AsyncCall::Pointer closeHandler; /*The close handler for pinned server side connection*/
+        char *host;                               /* host name of pinned connection */
+        int port;                                 /* port of pinned connection */
+        bool pinned;                              /* this connection was pinned */
+        bool auth;                                /* pinned for www authentication */
+        bool reading;                             ///< we are monitoring for peer connection closure
+        bool zeroReply;                           ///< server closed w/o response (ERR_ZERO_SIZE_OBJECT)
+        bool peerAccessDenied;                    ///< cache_peer_access denied pinned connection reuse
+        CachePeer *peer;                          /* CachePeer the connection goes via */
+        AsyncCall::Pointer readHandler;           ///< detects serverConnection closure
+        AsyncCall::Pointer closeHandler;          /*The close handler for pinned server side connection*/
     } pinning;
 
     bool transparent() const;
@@ -157,7 +156,7 @@ public:
     /// note response sending error and close as soon as we read the request
     void stopSending(const char *error);
 
-    void expectNoForwarding(); ///< cleans up virgin request [body] forwarding state
+    void expectNoForwarding();  ///< cleans up virgin request [body] forwarding state
 
     /* BodyPipe API */
     BodyPipe::Pointer expectRequestBody(int64_t size);
@@ -170,10 +169,11 @@ public:
     class PinnedIdleContext
     {
     public:
-        PinnedIdleContext(const Comm::ConnectionPointer &conn, const HttpRequest::Pointer &req): connection(conn), request(req) {}
+        PinnedIdleContext(const Comm::ConnectionPointer &conn, const HttpRequest::Pointer &req) :
+            connection(conn), request(req) {}
 
-        Comm::ConnectionPointer connection; ///< to-server connection to be pinned
-        HttpRequest::Pointer request; ///< to-server request that initiated serverConnection
+        Comm::ConnectionPointer connection;  ///< to-server connection to be pinned
+        HttpRequest::Pointer request;        ///< to-server request that initiated serverConnection
     };
 
     /// Called when a pinned connection becomes available for forwarding the next request.
@@ -190,8 +190,8 @@ public:
     /**
      * returts the pinned CachePeer if exists, NULL otherwise
      */
-    CachePeer *pinnedPeer() const {return pinning.peer;}
-    bool pinnedAuth() const {return pinning.auth;}
+    CachePeer *pinnedPeer() const { return pinning.peer; }
+    bool pinnedAuth() const { return pinning.auth; }
 
     /// called just before a FwdState-dispatched job starts using connection
     virtual void notePeerConnection(Comm::ConnectionPointer) {}
@@ -206,12 +206,12 @@ public:
 
     // AsyncJob API
     virtual void start();
-    virtual bool doneAll() const { return BodyProducer::doneAll() && false;}
+    virtual bool doneAll() const { return BodyProducer::doneAll() && false; }
     virtual void swanSong();
 
     /// Changes state so that we close the connection and quit after serving
     /// the client-side-detected error response instead of getting stuck.
-    void quitAfterError(HttpRequest *request); // meant to be private
+    void quitAfterError(HttpRequest *request);  // meant to be private
 
     /// The caller assumes responsibility for connection closure detection.
     void stopPinnedConnectionMonitoring();
@@ -247,15 +247,16 @@ public:
     void switchToHttps(ClientHttpRequest *, Ssl::BumpMode bumpServerMode);
     void parseTlsHandshake();
     bool switchedToHttps() const { return switchedToHttps_; }
-    Ssl::ServerBump *serverBump() {return sslServerBump;}
-    inline void setServerBump(Ssl::ServerBump *srvBump) {
+    Ssl::ServerBump *serverBump() { return sslServerBump; }
+    inline void setServerBump(Ssl::ServerBump *srvBump)
+    {
         if (!sslServerBump)
             sslServerBump = srvBump;
         else
             assert(sslServerBump == srvBump);
     }
-    const SBuf &sslCommonName() const {return sslCommonName_;}
-    void resetSslCommonName(const char *name) {sslCommonName_ = name;}
+    const SBuf &sslCommonName() const { return sslCommonName_; }
+    void resetSslCommonName(const char *name) { sslCommonName_ = name; }
     const SBuf &tlsClientSni() const { return tlsClientSni_; }
     /// Fill the certAdaptParams with the required data for certificate adaptation
     /// and create the key for storing/retrieve the certificate to/from the cache
@@ -266,13 +267,16 @@ public:
     /// for SQUID_X509_V_ERR_DOMAIN_MISMATCH on bumped requests.
     bool serveDelayedError(Http::Stream *);
 
-    Ssl::BumpMode sslBumpMode; ///< ssl_bump decision (Ssl::bumpEnd if n/a).
+    Ssl::BumpMode sslBumpMode;  ///< ssl_bump decision (Ssl::bumpEnd if n/a).
 
     /// Tls parser to use for client HELLO messages parsing on bumped
     /// connections.
     Security::HandshakeParser tlsParser;
 #else
-    bool switchedToHttps() const { return false; }
+    bool switchedToHttps() const
+    {
+        return false;
+    }
 #endif
     char *prepareTlsSwitchingURL(const Http1::RequestParserPointer &hp);
 
@@ -369,7 +373,7 @@ protected:
     /// The PROXY protocol may require some data input first.
     void whenClientIpKnown();
 
-    BodyPipe::Pointer bodyPipe; ///< set when we are reading request body
+    BodyPipe::Pointer bodyPipe;  ///< set when we are reading request body
 
     /// whether preservedClientData is valid and should be kept up to date
     bool preservingClientData_;
@@ -411,22 +415,22 @@ private:
 
 #if USE_OPENSSL
     bool switchedToHttps_;
-    bool parsingTlsHandshake; ///< whether we are getting/parsing TLS Hello bytes
+    bool parsingTlsHandshake;  ///< whether we are getting/parsing TLS Hello bytes
     /// The number of parsed HTTP requests headers on a bumped client connection
     uint64_t parsedBumpedRequestCount;
 
     /// The TLS server host name appears in CONNECT request or the server ip address for the intercepted requests
-    SBuf tlsConnectHostOrIp; ///< The TLS server host name as passed in the CONNECT request
-    unsigned short tlsConnectPort; ///< The TLS server port number as passed in the CONNECT request
-    SBuf sslCommonName_; ///< CN name for SSL certificate generation
+    SBuf tlsConnectHostOrIp;        ///< The TLS server host name as passed in the CONNECT request
+    unsigned short tlsConnectPort;  ///< The TLS server port number as passed in the CONNECT request
+    SBuf sslCommonName_;            ///< CN name for SSL certificate generation
 
     /// TLS client delivered SNI value. Empty string if none has been received.
     SBuf tlsClientSni_;
-    SBuf sslBumpCertKey; ///< Key to use to store/retrieve generated certificate
+    SBuf sslBumpCertKey;  ///< Key to use to store/retrieve generated certificate
 
     /// HTTPS server cert. fetching state for bump-ssl-server-first
     Ssl::ServerBump *sslServerBump;
-    Ssl::CertSignAlgorithm signAlgorithm; ///< The signing algorithm to use
+    Ssl::CertSignAlgorithm signAlgorithm;  ///< The signing algorithm to use
 #endif
 
     /// the reason why we no longer write the response or nil
@@ -441,10 +445,10 @@ private:
 
 const char *findTrailingHTTPVersion(const char *uriAndHTTPVersion, const char *end = NULL);
 
-int varyEvaluateMatch(StoreEntry * entry, HttpRequest * req);
+int varyEvaluateMatch(StoreEntry *entry, HttpRequest *req);
 
 /// accept requests to a given port and inform subCall about them
-void clientStartListeningOn(AnyP::PortCfgPointer &port, const RefCount< CommCbFunPtrCallT<CommAcceptCbPtrFun> > &subCall, const Ipc::FdNoteId noteId);
+void clientStartListeningOn(AnyP::PortCfgPointer &port, const RefCount<CommCbFunPtrCallT<CommAcceptCbPtrFun>> &subCall, const Ipc::FdNoteId noteId);
 
 void clientOpenListenSockets(void);
 void clientConnectionsClose(void);
@@ -469,7 +473,6 @@ CSD clientSocketDetach;
 void clientProcessRequest(ConnStateData *, const Http1::RequestParserPointer &, Http::Stream *);
 void clientPostHttpsAccept(ConnStateData *);
 
-std::ostream &operator <<(std::ostream &os, const ConnStateData::PinnedIdleContext &pic);
+std::ostream &operator<<(std::ostream &os, const ConnStateData::PinnedIdleContext &pic);
 
 #endif /* SQUID_CLIENTSIDE_H */
-

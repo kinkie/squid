@@ -13,18 +13,16 @@
 
 class testMem : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testMem );
+    CPPUNIT_TEST_SUITE(testMem);
     /* note the statement here and then the actual prototype below */
-    CPPUNIT_TEST( testMemPool );
-    CPPUNIT_TEST( testMemProxy );
+    CPPUNIT_TEST(testMemPool);
+    CPPUNIT_TEST(testMemProxy);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-
 protected:
     void testMemPool();
     void testMemProxy();
 };
 
 #endif /* SQUID_SRC_TESTS_TESTMEM_H */
-

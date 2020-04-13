@@ -15,8 +15,10 @@
 #include <unistd.h>
 #endif
 
-Trie::Trie(TrieCharTransform *aTransform) : head(0), transform(aTransform)
-{}
+Trie::Trie(TrieCharTransform *aTransform) :
+    head(0), transform(aTransform)
+{
+}
 
 Trie::~Trie()
 {
@@ -41,4 +43,3 @@ Trie::add(char const *aString, size_t theLength, void *privatedata)
 
     return head->add(aString, theLength, privatedata, transform);
 }
-

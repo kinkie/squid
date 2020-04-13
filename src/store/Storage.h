@@ -20,7 +20,7 @@ namespace Store {
 
 /// A "response storage" abstraction.
 /// This API is shared among Controller and Controlled classes.
-class Storage: public RefCountable
+class Storage : public RefCountable
 {
 public:
     virtual ~Storage() {}
@@ -78,7 +78,6 @@ public:
     virtual void sync() {}
 };
 
-} // namespace Store
+}  // namespace Store
 
 #endif /* SQUID_STORE_STORAGE_H */
-

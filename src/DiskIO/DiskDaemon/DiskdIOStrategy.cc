@@ -9,18 +9,18 @@
 /* DEBUG: section 79    Squid-side DISKD I/O functions. */
 
 #include "squid.h"
-#include "comm/Loops.h"
-#include "ConfigOption.h"
-#include "diomsg.h"
-#include "DiskdFile.h"
 #include "DiskdIOStrategy.h"
+#include "ConfigOption.h"
 #include "DiskIO/DiskFile.h"
-#include "fd.h"
+#include "DiskdFile.h"
 #include "SquidConfig.h"
 #include "SquidIpc.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "comm/Loops.h"
+#include "diomsg.h"
+#include "fd.h"
 #include "unlinkd.h"
 
 #include <cerrno>
@@ -36,7 +36,7 @@
 
 diskd_stats_t diskd_stats;
 
-size_t DiskdIOStrategy::nextInstanceID (0);
+size_t DiskdIOStrategy::nextInstanceID(0);
 const int diomsg::msg_snd_rcv_sz = sizeof(diomsg) - sizeof(mtyp_t);
 
 size_t
@@ -83,11 +83,13 @@ DiskdIOStrategy::newFile(char const *path)
         return NULL;
     }
 
-    return new DiskdFile (path, this);
+    return new DiskdFile(path, this);
 }
 
-DiskdIOStrategy::DiskdIOStrategy() : magic1(64), magic2(72), away(0), smsgid(-1), rmsgid(-1), wfd(-1), instanceID(newInstance())
-{}
+DiskdIOStrategy::DiskdIOStrategy() :
+    magic1(64), magic2(72), away(0), smsgid(-1), rmsgid(-1), wfd(-1), instanceID(newInstance())
+{
+}
 
 bool
 DiskdIOStrategy::unlinkdUseful() const
@@ -118,7 +120,7 @@ DiskdIOStrategy::unlinkFile(char const *path)
 
     x = send(_MQD_UNLINK,
              0,
-             (StoreIOState::Pointer )NULL,
+             (StoreIOState::Pointer)NULL,
              0,
              0,
              shm_offset);
@@ -126,7 +128,7 @@ DiskdIOStrategy::unlinkFile(char const *path)
     if (x < 0) {
         int xerrno = errno;
         debugs(79, DBG_IMPORTANT, "storeDiskdSend UNLINK: " << xstrerr(xerrno));
-        ::unlink(buf);      /* XXX EWW! */
+        ::unlink(buf); /* XXX EWW! */
         //        shm.put (shm_offset);
     }
 
@@ -137,7 +139,7 @@ void
 DiskdIOStrategy::init()
 {
     int pid;
-    void * hIpc;
+    void *hIpc;
     int rfd;
     int ikey;
     const char *args[5];
@@ -148,7 +150,7 @@ DiskdIOStrategy::init()
 
     ikey = (getpid() << 10) + (instanceID << 2);
     ikey &= 0x7fffffff;
-    smsgid = msgget((key_t) ikey, 0700 | IPC_CREAT);
+    smsgid = msgget((key_t)ikey, 0700 | IPC_CREAT);
 
     if (smsgid < 0) {
         int xerrno = errno;
@@ -156,7 +158,7 @@ DiskdIOStrategy::init()
         fatal("msgget failed");
     }
 
-    rmsgid = msgget((key_t) (ikey + 1), 0700 | IPC_CREAT);
+    rmsgid = msgget((key_t)(ikey + 1), 0700 | IPC_CREAT);
 
     if (rmsgid < 0) {
         int xerrno = errno;
@@ -214,7 +216,7 @@ SharedMemory::put(ssize_t offset)
 
 void *
 
-SharedMemory::get(ssize_t * shm_offset)
+SharedMemory::get(ssize_t *shm_offset)
 {
     char *aBuf = NULL;
     int i;
@@ -247,7 +249,7 @@ void
 SharedMemory::init(int ikey, int magic2)
 {
     nbufs = (int)(magic2 * 1.3);
-    id = shmget((key_t) (ikey + 2),
+    id = shmget((key_t)(ikey + 2),
                 nbufs * SHMBUF_BLKSZ, 0600 | IPC_CREAT);
 
     if (id < 0) {
@@ -258,7 +260,7 @@ SharedMemory::init(int ikey, int magic2)
 
     buf = (char *)shmat(id, NULL, 0);
 
-    if (buf == (void *) -1) {
+    if (buf == (void *)-1) {
         int xerrno = errno;
         debugs(50, DBG_CRITICAL, MYNAME << "shmat: " << xstrerr(xerrno));
         fatal("shmat failed");
@@ -269,12 +271,12 @@ SharedMemory::init(int ikey, int magic2)
 
     for (int i = 0; i < nbufs; ++i) {
         CBIT_SET(inuse_map, i);
-        put (i * SHMBUF_BLKSZ);
+        put(i * SHMBUF_BLKSZ);
     }
 }
 
 void
-DiskdIOStrategy::unlinkDone(diomsg * M)
+DiskdIOStrategy::unlinkDone(diomsg *M)
 {
     debugs(79, 3, "storeDiskdUnlinkDone: file " << shm.buf + M->shm_offset << " status " << M->status);
     ++statCounter.syscalls.disk.unlinks;
@@ -286,15 +288,15 @@ DiskdIOStrategy::unlinkDone(diomsg * M)
 }
 
 void
-DiskdIOStrategy::handle(diomsg * M)
+DiskdIOStrategy::handle(diomsg *M)
 {
-    if (!cbdataReferenceValid (M->callback_data)) {
+    if (!cbdataReferenceValid(M->callback_data)) {
         /* I.e. already closed file
          * - say when we have a error opening after
          *   a read was already queued
          */
         debugs(79, 3, "storeDiskdHandle: Invalid callback_data " << M->callback_data);
-        cbdataReferenceDone (M->callback_data);
+        cbdataReferenceDone(M->callback_data);
         return;
     }
 
@@ -305,7 +307,7 @@ DiskdIOStrategy::handle(diomsg * M)
     if (M->newstyle) {
         DiskdFile *theFile = (DiskdFile *)M->callback_data;
         theFile->unlock();
-        theFile->completed (M);
+        theFile->completed(M);
     } else
         switch (M->mtype) {
 
@@ -318,7 +320,7 @@ DiskdIOStrategy::handle(diomsg * M)
         case _MQD_READ:
 
         case _MQD_WRITE:
-            assert (0);
+            assert(0);
             break;
 
         case _MQD_UNLINK:
@@ -330,7 +332,7 @@ DiskdIOStrategy::handle(diomsg * M)
             break;
         }
 
-    cbdataReferenceDone (M->callback_data);
+    cbdataReferenceDone(M->callback_data);
 }
 
 int
@@ -370,7 +372,7 @@ DiskdIOStrategy::SEND(diomsg *M, int mtype, int id, size_t size, off_t offset, s
     M->size = size;
     M->offset = offset;
     M->status = -1;
-    M->shm_offset = (int) shm_offset;
+    M->shm_offset = (int)shm_offset;
     M->id = id;
     M->seq_no = ++seq_no;
 
@@ -462,7 +464,7 @@ DiskdIOStrategy::optionQ1Parse(const char *name, const char *value, int isaRecon
 }
 
 void
-DiskdIOStrategy::optionQ1Dump(StoreEntry * e) const
+DiskdIOStrategy::optionQ1Dump(StoreEntry *e) const
 {
     storeAppendPrintf(e, " Q1=%d", magic1);
 }
@@ -494,7 +496,7 @@ DiskdIOStrategy::optionQ2Parse(const char *name, const char *value, int isaRecon
 }
 
 void
-DiskdIOStrategy::optionQ2Dump(StoreEntry * e) const
+DiskdIOStrategy::optionQ2Dump(StoreEntry *e) const
 {
     storeAppendPrintf(e, " Q2=%d", magic2);
 }
@@ -538,13 +540,12 @@ DiskdIOStrategy::callback()
          * is full.. */
     }
 
-    if (diskd_stats.sent_count - diskd_stats.recv_count >
-            diskd_stats.max_away) {
+    if (diskd_stats.sent_count - diskd_stats.recv_count > diskd_stats.max_away) {
         diskd_stats.max_away = diskd_stats.sent_count - diskd_stats.recv_count;
     }
 
     while (1) {
-#ifdef  ALWAYS_ZERO_BUFFERS
+#ifdef ALWAYS_ZERO_BUFFERS
         memset(&M, '\0', sizeof(M));
 #endif
 
@@ -560,18 +561,17 @@ DiskdIOStrategy::callback()
         ++diskd_stats.recv_count;
         --away;
         handle(&M);
-        retval = 1;     /* Return that we've actually done some work */
+        retval = 1; /* Return that we've actually done some work */
 
         if (M.shm_offset > -1)
-            shm.put ((off_t) M.shm_offset);
+            shm.put((off_t)M.shm_offset);
     }
 
     return retval;
 }
 
 void
-DiskdIOStrategy::statfs(StoreEntry & sentry)const
+DiskdIOStrategy::statfs(StoreEntry &sentry) const
 {
     storeAppendPrintf(&sentry, "Pending operations: %d\n", away);
 }
-

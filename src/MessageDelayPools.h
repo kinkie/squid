@@ -11,10 +11,10 @@
 
 #if USE_DELAY_POOLS
 
-#include "acl/Acl.h"
-#include "base/RefCount.h"
 #include "DelayBucket.h"
 #include "DelayPools.h"
+#include "acl/Acl.h"
+#include "base/RefCount.h"
 #include "sbuf/SBuf.h"
 
 class MessageBucket;
@@ -37,15 +37,19 @@ public:
     /// Increases the aggregate bucket level with the aggregateRestore speed.
     void refillBucket();
     /// decreases the aggregate level
-    void bytesIn(int qty) { if (!noLimit()) theBucket.bytesIn(qty); }
+    void bytesIn(int qty)
+    {
+        if (!noLimit())
+            theBucket.bytesIn(qty);
+    }
     /// current aggregate level
     int level() { return theBucket.level(); }
     /// creates an individual response bucket
     MessageBucketPointer createBucket();
     /// whether the aggregate bucket has no limit
-    bool noLimit () const { return aggregateRestore < 0; }
+    bool noLimit() const { return aggregateRestore < 0; }
 
-    void dump (StoreEntry * entry) const;
+    void dump(StoreEntry *entry) const;
 
     acl_access *access;
     /// the response delay pool name
@@ -90,7 +94,7 @@ public:
 private:
     MessageDelayPools() {}
     ~MessageDelayPools();
-    void Stats() { } // TODO
+    void Stats() {}  // TODO
 };
 
 /// represents configuration for response delay pools
@@ -107,7 +111,7 @@ public:
 #define dump_response_delay_pool_access(X, Y, Z)
 
 inline void
-free_response_delay_pool_parameters(MessageDelayConfig * cfg)
+free_response_delay_pool_parameters(MessageDelayConfig *cfg)
 {
     cfg->freePools();
 }
@@ -119,17 +123,16 @@ dump_response_delay_pool_parameters(StoreEntry *entry, const char *name, Message
 }
 
 inline void
-parse_response_delay_pool_parameters(MessageDelayConfig * cfg)
+parse_response_delay_pool_parameters(MessageDelayConfig *cfg)
 {
     cfg->parseResponseDelayPool();
 }
 
 inline void
-parse_response_delay_pool_access(MessageDelayConfig * cfg)
+parse_response_delay_pool_access(MessageDelayConfig *cfg)
 {
     cfg->parseResponseDelayPoolAccess();
 }
 
 #endif
 #endif
-

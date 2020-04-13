@@ -37,8 +37,8 @@
 
 #include "snmp_pdu.h"
 
-#define SNMP_VERSION_1      0   /* RFC 1157 */
-#define SNMP_VERSION_2      1   /* RFC 1901 */
+#define SNMP_VERSION_1 0 /* RFC 1157 */
+#define SNMP_VERSION_2 1 /* RFC 1901 */
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,5 +52,4 @@ u_char *snmp_msg_Decode(u_char *, int *, u_char *, int *, int *, struct snmp_pdu
 
 #endif
 
-#endif  /* SQUID_SNMP_MSG_H */
-
+#endif /* SQUID_SNMP_MSG_H */

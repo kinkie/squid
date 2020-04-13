@@ -17,13 +17,13 @@
 
 class testEvent : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testEvent );
-    CPPUNIT_TEST( testCreate );
-    CPPUNIT_TEST( testDump );
-    CPPUNIT_TEST( testFind );
-    CPPUNIT_TEST( testCheckEvents );
-    CPPUNIT_TEST( testSingleton );
-    CPPUNIT_TEST( testCancel );
+    CPPUNIT_TEST_SUITE(testEvent);
+    CPPUNIT_TEST(testCreate);
+    CPPUNIT_TEST(testDump);
+    CPPUNIT_TEST(testFind);
+    CPPUNIT_TEST(testCheckEvents);
+    CPPUNIT_TEST(testSingleton);
+    CPPUNIT_TEST(testCancel);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -39,4 +39,3 @@ protected:
 };
 
 #endif
-

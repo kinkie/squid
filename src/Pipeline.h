@@ -34,10 +34,11 @@
 class Pipeline
 {
     Pipeline(const Pipeline &) = delete;
-    Pipeline & operator =(const Pipeline &) = delete;
+    Pipeline &operator=(const Pipeline &) = delete;
 
 public:
-    Pipeline() : nrequests(0) {}
+    Pipeline() :
+        nrequests(0) {}
     ~Pipeline() = default;
 
     /// register a new request context to the pipeline
@@ -50,10 +51,10 @@ public:
     Http::StreamPointer back() const;
 
     /// how many requests are currently pipelined
-    size_t count() const {return requests.size();}
+    size_t count() const { return requests.size(); }
 
     /// whether there are none or any requests currently pipelined
-    bool empty() const {return requests.empty();}
+    bool empty() const { return requests.empty(); }
 
     /// tell everybody about the err, and abort all waiting requests
     void terminateAll(const int xerrno);
@@ -71,4 +72,3 @@ private:
 };
 
 #endif /* SQUID_SRC_PIPELINE_H */
-

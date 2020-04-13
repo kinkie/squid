@@ -15,7 +15,7 @@
 namespace Store {
 
 /// summary view of all disk caches (cache_dirs) combined
-class Disks: public Controlled
+class Disks : public Controlled
 {
 public:
     Disks();
@@ -47,7 +47,7 @@ public:
 
     /// Additional unknown-size entry bytes required by disks in order to
     /// reduce the risk of selecting the wrong disk cache for the growing entry.
-    int64_t accumulateMore(const StoreEntry&) const;
+    int64_t accumulateMore(const StoreEntry &) const;
     /// whether any disk cache is SMP-aware
     static bool SmpAware();
     /// whether any of disk caches has entry with e.key
@@ -58,12 +58,12 @@ private:
     SwapDir *store(int const x) const;
     static SwapDir &Dir(int const idx);
 
-    int64_t largestMinimumObjectSize; ///< maximum of all Disk::minObjectSize()s
-    int64_t largestMaximumObjectSize; ///< maximum of all Disk::maxObjectSize()s
-    int64_t secondLargestMaximumObjectSize; ///< the second-biggest Disk::maxObjectSize()
+    int64_t largestMinimumObjectSize;        ///< maximum of all Disk::minObjectSize()s
+    int64_t largestMaximumObjectSize;        ///< maximum of all Disk::maxObjectSize()s
+    int64_t secondLargestMaximumObjectSize;  ///< the second-biggest Disk::maxObjectSize()
 };
 
-} // namespace Store
+}  // namespace Store
 
 /* Store::Disks globals that should be converted to use RegisteredRunner */
 void storeDirOpenSwapLogs(void);
@@ -82,4 +82,3 @@ extern STDIRSELECT *storeDirSelectSwapDir;
 void storeDirSwapLog(const StoreEntry *e, int op);
 
 #endif /* SQUID_STORE_DISKS_H */
-

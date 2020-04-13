@@ -7,16 +7,16 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/MyPortName.h"
+#include "HttpRequest.h"
+#include "acl/FilledChecklist.h"
 #include "acl/StringData.h"
 #include "anyp/PortCfg.h"
 #include "client_side.h"
 #include "http/Stream.h"
-#include "HttpRequest.h"
 
 int
-ACLMyPortNameStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLMyPortNameStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     if (checklist->conn() != NULL && checklist->conn()->port != NULL)
         return data->match(checklist->conn()->port->name);
@@ -24,4 +24,3 @@ ACLMyPortNameStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist *che
         return data->match(checklist->request->myportname.termedBuf());
     return 0;
 }
-

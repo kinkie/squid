@@ -21,8 +21,8 @@ class ACLExtUser : public ACL
 
 public:
     ACLExtUser(ACLData<char const *> *newData, char const *);
-    ACLExtUser (ACLExtUser const &old);
-    ACLExtUser & operator= (ACLExtUser const &rhs);
+    ACLExtUser(ACLExtUser const &old);
+    ACLExtUser &operator=(ACLExtUser const &rhs);
     ~ACLExtUser();
 
     /* ACL API */
@@ -31,8 +31,8 @@ public:
     virtual void parseFlags();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
-    virtual ACL *clone()const;
+    virtual bool empty() const;
+    virtual ACL *clone() const;
 
 private:
     ACLData<char const *> *data;
@@ -41,4 +41,3 @@ private:
 
 #endif /* USE_AUTH */
 #endif /* SQUID_EXTUSER_H */
-

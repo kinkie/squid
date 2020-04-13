@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
-#include "CachePeer.h"
-#include "comm/Connection.h"
-#include "comm/ConnOpener.h"
 #include "ResolvedPeers.h"
+#include "CachePeer.h"
 #include "SquidConfig.h"
+#include "comm/ConnOpener.h"
+#include "comm/Connection.h"
 
 ResolvedPeers::ResolvedPeers()
 {
@@ -66,10 +66,9 @@ ResolvedPeers::findSpareOrNextPeer(const Comm::Connection &currentPeer)
     // Optimization: Also stop at the first mismatching peer because all
     // same-peer paths are grouped together.
     return std::find_if(paths_.begin(), paths_.end(),
-    [peerToMatch, familyToAvoid](const Comm::ConnectionPointer &conn) {
-        return peerToMatch != conn->getPeer() ||
-               familyToAvoid != ConnectionFamily(*conn);
-    });
+                        [peerToMatch, familyToAvoid](const Comm::ConnectionPointer &conn) {
+                            return peerToMatch != conn->getPeer() || familyToAvoid != ConnectionFamily(*conn);
+                        });
 }
 
 Comm::ConnectionPointer
@@ -97,8 +96,7 @@ bool
 ResolvedPeers::haveSpare(const Comm::Connection &currentPeer)
 {
     const auto found = findSpareOrNextPeer(currentPeer);
-    return found != paths_.end() &&
-           currentPeer.getPeer() == (*found)->getPeer();
+    return found != paths_.end() && currentPeer.getPeer() == (*found)->getPeer();
 }
 
 bool
@@ -116,8 +114,7 @@ ResolvedPeers::doneWithPrimes(const Comm::Connection &currentPeer) const
     const auto first = paths_.begin();
     if (first == paths_.end())
         return destinationsFinalized;
-    return currentPeer.getPeer() != (*first)->getPeer() ||
-           ConnectionFamily(currentPeer) != ConnectionFamily(**first);
+    return currentPeer.getPeer() != (*first)->getPeer() || ConnectionFamily(currentPeer) != ConnectionFamily(**first);
 }
 
 bool
@@ -136,10 +133,9 @@ ResolvedPeers::ConnectionFamily(const Comm::Connection &conn)
 }
 
 std::ostream &
-operator <<(std::ostream &os, const ResolvedPeers &peers)
+operator<<(std::ostream &os, const ResolvedPeers &peers)
 {
     if (peers.empty())
         return os << "[no paths]";
     return os << peers.size() << (peers.destinationsFinalized ? "" : "+") << " paths";
 }
-

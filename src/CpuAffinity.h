@@ -18,5 +18,4 @@ void CpuAffinityReconfigure();
 /// check CPU affinity configuration and print warnings if needed
 void CpuAffinityCheck();
 
-#endif // SQUID_CPU_AFFINITY_H
-
+#endif  // SQUID_CPU_AFFINITY_H

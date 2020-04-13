@@ -14,15 +14,13 @@
 /* EUI-48 is 6 bytes. */
 #define SZ_EUI48_BUF 6
 
-namespace Ip
-{
+namespace Ip {
 class Address;
 };
 
 #include <cstring>
 
-namespace Eui
-{
+namespace Eui {
 
 class Eui48
 {
@@ -30,15 +28,18 @@ class Eui48
 public:
     Eui48() { clear(); }
     Eui48(const Eui48 &t) { memcpy(this, &t, sizeof(Eui48)); }
-    bool operator== (const Eui48 &t) const { return memcmp(eui, t.eui, SZ_EUI48_BUF) == 0; }
-    bool operator< (const Eui48 &t) const { return memcmp(eui, t.eui, SZ_EUI48_BUF) < 0; }
+    bool operator==(const Eui48 &t) const { return memcmp(eui, t.eui, SZ_EUI48_BUF) == 0; }
+    bool operator<(const Eui48 &t) const { return memcmp(eui, t.eui, SZ_EUI48_BUF) < 0; }
     ~Eui48() {}
 
     const unsigned char *get(void);
 
-    bool set(const char *src, const int len) {
-        if (len > SZ_EUI48_BUF) return false;
-        if (len < SZ_EUI48_BUF) clear();
+    bool set(const char *src, const int len)
+    {
+        if (len > SZ_EUI48_BUF)
+            return false;
+        if (len < SZ_EUI48_BUF)
+            clear();
         memcpy(eui, src, len);
         return true;
     }
@@ -73,8 +74,7 @@ private:
     unsigned char eui[SZ_EUI48_BUF];
 };
 
-} // namespace Eui
+}  // namespace Eui
 
 #endif /* USE_SQUID_EUI */
 #endif /* _SQUID_EUI_EUI48_H */
-

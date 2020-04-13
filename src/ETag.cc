@@ -26,7 +26,7 @@ etagStringsMatch(const ETag &tag1, const ETag &tag2)
 /* parses a string as weak or strong entity-tag; returns true on success */
 /* note: we do not duplicate "str"! */
 int
-etagParseInit(ETag * etag, const char *str)
+etagParseInit(ETag *etag, const char *str)
 {
     int len;
     assert(etag && str);
@@ -56,4 +56,3 @@ etagIsWeakEqual(const ETag &tag1, const ETag &tag2)
 {
     return etagStringsMatch(tag1, tag2);
 }
-

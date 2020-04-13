@@ -41,4 +41,3 @@
 
 #endif /* _SQUID_FREEBSD_ */
 #endif /* SQUID_OS_FREEBSD_H */
-

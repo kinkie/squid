@@ -67,51 +67,50 @@ struct addrinfo {
 };
 
 /* Supposed to be defined in <netdb.h> */
-#define AI_PASSIVE     1       /* Socket address is intended for `bind'.  */
-#define AI_CANONNAME   2       /* Request for canonical name.  */
-#define AI_NUMERICHOST 4       /* Don't use name resolution.  */
+#define AI_PASSIVE 1     /* Socket address is intended for `bind'.  */
+#define AI_CANONNAME 2   /* Request for canonical name.  */
+#define AI_NUMERICHOST 4 /* Don't use name resolution.  */
 
 /* Supposed to be defined in <netdb.h> */
-#define EAI_ADDRFAMILY 1   /* address family for nodename not supported */
-#define EAI_AGAIN      2   /* temporary failure in name resolution */
-#define EAI_BADFLAGS   3   /* invalid value for ai_flags */
-#define EAI_FAIL       4   /* non-recoverable failure in name resolution */
-#define EAI_FAMILY     5   /* ai_family not supported */
-#define EAI_MEMORY     6   /* memory allocation failure */
-#define EAI_NODATA     7   /* no address associated with nodename */
-#define EAI_NONAME     8   /* nodename nor servname provided, or not known */
-#define EAI_SERVICE    9   /* servname not supported for ai_socktype */
-#define EAI_SOCKTYPE   10  /* ai_socktype not supported */
+#define EAI_ADDRFAMILY 1 /* address family for nodename not supported */
+#define EAI_AGAIN 2      /* temporary failure in name resolution */
+#define EAI_BADFLAGS 3   /* invalid value for ai_flags */
+#define EAI_FAIL 4       /* non-recoverable failure in name resolution */
+#define EAI_FAMILY 5     /* ai_family not supported */
+#define EAI_MEMORY 6     /* memory allocation failure */
+#define EAI_NODATA 7     /* no address associated with nodename */
+#define EAI_NONAME 8     /* nodename nor servname provided, or not known */
+#define EAI_SERVICE 9    /* servname not supported for ai_socktype */
+#define EAI_SOCKTYPE 10  /* ai_socktype not supported */
 #endif
 #ifndef EAI_SYSTEM
 /* Not defined on mingw32. */
-#define EAI_SYSTEM     11  /* System error returned in `errno'.  */
+#define EAI_SYSTEM 11 /* System error returned in `errno'.  */
 #endif
 #ifndef EAI_OVERFLOW
 /* Not defined on mingw32. */
-#define EAI_OVERFLOW   12 /* Argument buffer overflow.  */
+#define EAI_OVERFLOW 12 /* Argument buffer overflow.  */
 #endif
 
 #ifndef IN_EXPERIMENTAL
-#define IN_EXPERIMENTAL(a)  \
-     ((((long int) (a)) & 0xf0000000) == 0xf0000000)
+#define IN_EXPERIMENTAL(a) \
+    ((((long int)(a)) & 0xf0000000) == 0xf0000000)
 #endif
 
 /* RFC 2553 / Posix resolver */
-SQUIDCEXTERN int xgetaddrinfo (const char *nodename, const char *servname,
-                               const struct addrinfo *hints, struct addrinfo **res);
+SQUIDCEXTERN int xgetaddrinfo(const char *nodename, const char *servname,
+                              const struct addrinfo *hints, struct addrinfo **res);
 #define getaddrinfo xgetaddrinfo
 
 /* Free addrinfo structure and associated storage */
-SQUIDCEXTERN void xfreeaddrinfo (struct addrinfo *ai);
-#define freeaddrinfo    xfreeaddrinfo
+SQUIDCEXTERN void xfreeaddrinfo(struct addrinfo *ai);
+#define freeaddrinfo xfreeaddrinfo
 
 /* Convert error return from getaddrinfo() to string */
-SQUIDCEXTERN const char *xgai_strerror (int code);
+SQUIDCEXTERN const char *xgai_strerror(int code);
 #if !defined(gai_strerror)
-#define gai_strerror    xgai_strerror
+#define gai_strerror xgai_strerror
 #endif
 
 #endif /* HAVE_DECL_GETADDRINFO */
 #endif /* _getaddrinfo_h */
-

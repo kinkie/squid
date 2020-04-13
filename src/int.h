@@ -11,7 +11,6 @@
 #ifndef SQUID_INT_H_
 #define SQUID_INT_H_
 
-int isPowTen(int); //int.cc
+int isPowTen(int);  //int.cc
 
 #endif /* SQUID_INT_H_ */
-

@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
-#include "anyp/PortCfg.h"
-#include "fatal.h"
 #include "security/KeyData.h"
 #include "SquidConfig.h"
+#include "anyp/PortCfg.h"
+#include "fatal.h"
 #include "ssl/bio.h"
 
 /**
@@ -21,7 +21,7 @@ bool
 Security::KeyData::loadX509CertFromFile()
 {
     debugs(83, DBG_IMPORTANT, "Using certificate in " << certFile);
-    cert.reset(); // paranoid: ensure cert is unset
+    cert.reset();  // paranoid: ensure cert is unset
 
 #if USE_OPENSSL
     const char *certFilename = certFile.c_str();
@@ -62,7 +62,7 @@ Security::KeyData::loadX509CertFromFile()
 
     if (certificate) {
         cert = Security::CertPointer(certificate, [](gnutls_x509_crt_t p) {
-            debugs(83, 5, "gnutls_x509_crt_deinit cert=" << (void*)p);
+            debugs(83, 5, "gnutls_x509_crt_deinit cert=" << (void *)p);
             gnutls_x509_crt_deinit(p);
         });
     }
@@ -94,7 +94,7 @@ Security::KeyData::loadX509ChainFromFile()
         return;
     }
 
-#if TLS_CHAIN_NO_SELFSIGNED // ignore self-signed certs in the chain
+#if TLS_CHAIN_NO_SELFSIGNED  // ignore self-signed certs in the chain
     if (X509_check_issued(cert.get(), cert.get()) == X509_V_OK) {
         char *nameStr = X509_NAME_oneline(X509_get_subject_name(cert.get()), nullptr, 0);
         debugs(83, DBG_PARSE_NOTE(2), "Certificate is self-signed, will not be chained: " << nameStr);
@@ -110,7 +110,7 @@ Security::KeyData::loadX509ChainFromFile()
             // get Issuer name of the cert for debug display
             char *nameStr = X509_NAME_oneline(X509_get_subject_name(ca), nullptr, 0);
 
-#if TLS_CHAIN_NO_SELFSIGNED // ignore self-signed certs in the chain
+#if TLS_CHAIN_NO_SELFSIGNED  // ignore self-signed certs in the chain
             // self-signed certificates are not valid in a sent chain
             if (X509_check_issued(ca, ca) == X509_V_OK) {
                 debugs(83, DBG_PARSE_NOTE(2), "CA " << nameStr << " is self-signed, will not be chained: " << nameStr);
@@ -174,7 +174,7 @@ Security::KeyData::loadX509PrivateKeyFromFile()
             gnutls_privkey_export_x509(key, &xkey);
             gnutls_privkey_deinit(key);
             pkey = Security::PrivateKeyPointer(xkey, [](gnutls_x509_privkey_t p) {
-                debugs(83, 5, "gnutls_x509_privkey_deinit pkey=" << (void*)p);
+                debugs(83, 5, "gnutls_x509_privkey_deinit pkey=" << (void *)p);
                 gnutls_x509_privkey_deinit(p);
             });
         }
@@ -207,4 +207,3 @@ Security::KeyData::loadFromFiles(const AnyP::PortCfg &port, const char *portType
         chain.clear();
     }
 }
-

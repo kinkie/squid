@@ -11,22 +11,26 @@
 #ifndef SQUID_IPC_FD_NOTES_H
 #define SQUID_IPC_FD_NOTES_H
 
-namespace Ipc
-{
+namespace Ipc {
 
 /// We cannot send char* FD notes to other processes. Pass int IDs and convert.
 
 /// fd_note() label ID
-typedef enum { fdnNone, fdnHttpSocket, fdnHttpsSocket, fdnFtpSocket,
+typedef enum { fdnNone,
+               fdnHttpSocket,
+               fdnHttpsSocket,
+               fdnFtpSocket,
 #if SQUID_SNMP
-               fdnInSnmpSocket, fdnOutSnmpSocket,
+               fdnInSnmpSocket,
+               fdnOutSnmpSocket,
 #endif
-               fdnInIcpSocket, fdnInHtcpSocket, fdnEnd
-             } FdNoteId;
+               fdnInIcpSocket,
+               fdnInHtcpSocket,
+               fdnEnd
+} FdNoteId;
 
-const char *FdNote(int fdNodeId); ///< converts FdNoteId into a string
+const char *FdNote(int fdNodeId);  ///< converts FdNoteId into a string
 
-} // namespace Ipc;
+}  // namespace Ipc;
 
 #endif /* SQUID_IPC_FD_NOTES_H */
-

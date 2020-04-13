@@ -30,9 +30,8 @@ public:
     const std::vector<int> &cores() const { return theCores; }
 
 private:
-    std::vector<int> theProcesses; ///< list of process numbers
-    std::vector<int> theCores; ///< list of cores
+    std::vector<int> theProcesses;  ///< list of process numbers
+    std::vector<int> theCores;      ///< list of cores
 };
 
-#endif // SQUID_CPU_AFFINITY_MAP_H
-
+#endif  // SQUID_CPU_AFFINITY_MAP_H

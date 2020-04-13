@@ -11,8 +11,7 @@
 
 #include <ostream>
 
-namespace Helper
-{
+namespace Helper {
 /// a (temporary) lock on a (stateful) helper channel
 class ReservationId
 {
@@ -22,24 +21,24 @@ public:
     bool reserved() const { return id > 0; }
 
     explicit operator bool() const { return reserved(); }
-    bool operator !() const { return !reserved(); }
-    bool operator ==(const Helper::ReservationId &other) const { return id == other.id; }
-    bool operator !=(const Helper::ReservationId &other) const { return !(*this == other); }
+    bool operator!() const { return !reserved(); }
+    bool operator==(const Helper::ReservationId &other) const { return id == other.id; }
+    bool operator!=(const Helper::ReservationId &other) const { return !(*this == other); }
 
     void clear() { id = 0; }
-    uint64_t value() const {return id;}
+    uint64_t value() const { return id; }
 
     /// dumps the reservation info for debugging
     std::ostream &print(std::ostream &os) const;
 
 private:
-    uint64_t id = 0; ///< uniquely identifies this reservation
+    uint64_t id = 0;  ///< uniquely identifies this reservation
 };
 
-}; // namespace Helper
+};  // namespace Helper
 
 inline std::ostream &
-operator <<(std::ostream &os, const Helper::ReservationId &id)
+operator<<(std::ostream &os, const Helper::ReservationId &id)
 {
     return id.print(os);
 }
@@ -47,8 +46,7 @@ operator <<(std::ostream &os, const Helper::ReservationId &id)
 namespace std {
 /// default hash functor to support std::unordered_map<HelperReservationId, *>
 template <>
-struct hash<Helper::ReservationId>
-{
+struct hash<Helper::ReservationId> {
     typedef Helper::ReservationId argument_type;
     typedef std::size_t result_type;
     result_type operator()(const argument_type &reservation) const noexcept
@@ -60,4 +58,3 @@ struct hash<Helper::ReservationId>
 }
 
 #endif
-

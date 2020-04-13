@@ -6,19 +6,19 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef   SQUID_PEERDIGEST_H
-#define   SQUID_PEERDIGEST_H
+#ifndef SQUID_PEERDIGEST_H
+#define SQUID_PEERDIGEST_H
 
 #if USE_CACHE_DIGESTS
 
-#include "cbdata.h"
 #include "StatCounters.h"
+#include "cbdata.h"
 
 class Version
 {
 public:
-    short int current;      /* current version */
-    short int required;     /* minimal version that can safely handle current version */
+    short int current;  /* current version */
+    short int required; /* minimal version that can safely handle current version */
 };
 
 /* digest control block; used for transmission and storage */
@@ -46,7 +46,7 @@ class DigestFetchState
     CBDATA_CLASS(DigestFetchState);
 
 public:
-    DigestFetchState(PeerDigest *,HttpRequest *);
+    DigestFetchState(PeerDigest *, HttpRequest *);
     ~DigestFetchState();
 
     PeerDigest *pd;
@@ -79,15 +79,15 @@ public:
     PeerDigest(CachePeer *);
     ~PeerDigest();
 
-    CachePeer *peer = nullptr;          /**< pointer back to peer structure, argh */
-    CacheDigest *cd = nullptr;            /**< actual digest structure */
+    CachePeer *peer = nullptr;        /**< pointer back to peer structure, argh */
+    CacheDigest *cd = nullptr;        /**< actual digest structure */
     SBuf host;                        ///< copy of peer->host
-    const char *req_result = nullptr;     /**< text status of the last request */
+    const char *req_result = nullptr; /**< text status of the last request */
 
     struct {
-        bool needed = false;          /**< there were requests for this digest */
-        bool usable = false;          /**< can be used for lookups */
-        bool requested = false;       /**< in process of receiving [fresh] digest */
+        bool needed = false;    /**< there were requests for this digest */
+        bool usable = false;    /**< can be used for lookups */
+        bool requested = false; /**< in process of receiving [fresh] digest */
     } flags;
 
     struct {
@@ -115,12 +115,11 @@ public:
 
 extern const Version CacheDigestVer;
 
-void peerDigestCreate(CachePeer * p);
-void peerDigestNeeded(PeerDigest * pd);
-void peerDigestNotePeerGone(PeerDigest * pd);
-void peerDigestStatsReport(const PeerDigest * pd, StoreEntry * e);
+void peerDigestCreate(CachePeer *p);
+void peerDigestNeeded(PeerDigest *pd);
+void peerDigestNotePeerGone(PeerDigest *pd);
+void peerDigestStatsReport(const PeerDigest *pd, StoreEntry *e);
 
 #endif /* USE_CACHE_DIGESTS */
 
 #endif /* SQUID_PEERDIGEST_H */
-

@@ -37,13 +37,14 @@ ESIParser::NewParser(ESIParserClient *aClient)
         }
 
         if (Parser == NULL)
-            fatal ("Unknown ESI Parser type");
+            fatal("Unknown ESI Parser type");
     }
 
     return (Parser->newParser)(aClient);
 }
 
-ESIParser::Register::Register(const char *_name, ESIParser::Pointer (*_newParser)(ESIParserClient *aClient)) : name(_name), newParser(_newParser)
+ESIParser::Register::Register(const char *_name, ESIParser::Pointer (*_newParser)(ESIParserClient *aClient)) :
+    name(_name), newParser(_newParser)
 {
     ESIParser::GetRegistry().emplace_back(this);
 }
@@ -52,4 +53,3 @@ ESIParser::Register::~Register()
 {
     ESIParser::GetRegistry().remove(this);
 }
-

@@ -43,7 +43,7 @@
 #warn "Warning! You have a broken Solaris <krb5.h> system header"
 #warn "http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6837512"
 #if defined(__cplusplus)
-#define KRB5INT_BEGIN_DECLS     extern "C" {
+#define KRB5INT_BEGIN_DECLS extern "C" {
 #define KRB5INT_END_DECLS
 KRB5INT_BEGIN_DECLS
 #endif
@@ -118,26 +118,27 @@ SQUIDCEXTERN int log_enabled;
 /* the macro overload style is really a gcc-ism */
 #ifdef __GNUC__
 
-#define log(X...) \
-                     if (log_enabled) { \
-                         fprintf(stderr, "%s(%d): pid=%ld :", __FILE__, __LINE__, (long)getpid() ); \
-                         fprintf(stderr,X); \
-                     } else (void)0
+#define log(X...)                                                                 \
+    if (log_enabled) {                                                            \
+        fprintf(stderr, "%s(%d): pid=%ld :", __FILE__, __LINE__, (long)getpid()); \
+        fprintf(stderr, X);                                                       \
+    } else                                                                        \
+        (void)0
 
-#define error(X...) \
-                     fprintf(stderr, "%s(%d): pid=%ld :", __FILE__, __LINE__, (long)getpid() ); \
-                     fprintf(stderr,X); \
- 
-#define warn(X...) \
-                     fprintf(stderr, "%s(%d): pid=%ld :", __FILE__, __LINE__, (long)getpid() ); \
-                     fprintf(stderr,X); \
- 
+#define error(X...)                                                           \
+    fprintf(stderr, "%s(%d): pid=%ld :", __FILE__, __LINE__, (long)getpid()); \
+    fprintf(stderr, X);
+
+#define warn(X...)                                                            \
+    fprintf(stderr, "%s(%d): pid=%ld :", __FILE__, __LINE__, (long)getpid()); \
+    fprintf(stderr, X);
+
 #else /* __GNUC__ */
 
 /* non-GCC compilers can't do the above macro define yet. */
-void log(char *format,...);
-void error(char *format,...);
-void warn(char *format,...);
+void log(char *format, ...);
+void error(char *format, ...);
+void warn(char *format, ...);
 #endif
 
 struct hstruct {
@@ -170,7 +171,7 @@ size_t get_hostname_list(struct hstruct **hlist, size_t nhosts, char *name);
 size_t free_hostname_list(struct hstruct **hlist, size_t nhosts);
 
 #if HAVE_SASL_H || HAVE_SASL_SASL_H || HAVE_SASL_DARWIN
-int tool_sasl_bind(LDAP * ld, char *binddn, char *ssl);
+int tool_sasl_bind(LDAP *ld, char *binddn, char *ssl);
 #endif
 
 #if HAVE_KRB5
@@ -179,12 +180,11 @@ int tool_sasl_bind(LDAP * ld, char *binddn, char *ssl);
 struct kstruct {
     krb5_context context;
     krb5_ccache cc[MAX_DOMAINS];
-    char* mem_ccache[MAX_DOMAINS];
+    char *mem_ccache[MAX_DOMAINS];
     int ncache;
 };
-int krb5_create_cache(char *domain, char* princ);
+int krb5_create_cache(char *domain, char *princ);
 void krb5_cleanup(void);
 #endif
 
 #define PROGRAM "kerberos_ldap_group"
-

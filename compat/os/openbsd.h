@@ -35,7 +35,7 @@
 
 /* OpenBSD also hide v6only socket option we need for comm layer. :-( */
 #if !defined(IPV6_V6ONLY)
-#define IPV6_V6ONLY             27 // from OpenBSD 4.3 headers. (NP: does not match non-BSD OS values)
+#define IPV6_V6ONLY 27  // from OpenBSD 4.3 headers. (NP: does not match non-BSD OS values)
 #endif
 
 /* OpenBSD 4.8 and 4.9 require netinet/in.h before arpa/inet.h */
@@ -48,4 +48,3 @@
 
 #endif /* _SQUID_OPENBSD_ */
 #endif /* SQUID_OS_OPENBSD_H */
-

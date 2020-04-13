@@ -14,11 +14,13 @@
 #include <cstring>
 #include <stdexcept>
 
-Ssl::CrtdMessage::CrtdMessage(MessageKind kind)
-    :   body_size(0), state(kind == REPLY ? BEFORE_LENGTH: BEFORE_CODE)
-{}
+Ssl::CrtdMessage::CrtdMessage(MessageKind kind) :
+    body_size(0), state(kind == REPLY ? BEFORE_LENGTH : BEFORE_CODE)
+{
+}
 
-Ssl::CrtdMessage::ParseResult Ssl::CrtdMessage::parse(const char * buffer, size_t len)
+Ssl::CrtdMessage::ParseResult
+Ssl::CrtdMessage::parse(const char *buffer, size_t len)
 {
     char const *current_pos = buffer;
     while (current_pos != buffer + len && state != END) {
@@ -92,8 +94,8 @@ Ssl::CrtdMessage::ParseResult Ssl::CrtdMessage::parse(const char * buffer, size_
         }
         case BODY: {
             size_t body_len = (static_cast<size_t>(buffer + len - current_pos) >= body_size - current_block.length())
-                              ? body_size - current_block.length()
-                              : static_cast<size_t>(buffer + len - current_pos);
+                ? body_size - current_block.length()
+                : static_cast<size_t>(buffer + len - current_pos);
             current_block += std::string(current_pos, body_len);
             current_pos += body_len;
             if (current_block.length() == body_size) {
@@ -111,27 +113,47 @@ Ssl::CrtdMessage::ParseResult Ssl::CrtdMessage::parse(const char * buffer, size_
         }
         }
     }
-    if (state != END) return INCOMPLETE;
+    if (state != END)
+        return INCOMPLETE;
     return OK;
 }
 
-std::string const & Ssl::CrtdMessage::getBody() const { return body; }
-
-std::string const & Ssl::CrtdMessage::getCode() const { return code; }
-
-void Ssl::CrtdMessage::setBody(std::string const & aBody) { body = aBody; }
-
-void Ssl::CrtdMessage::setCode(std::string const & aCode) { code = aCode; }
-
-std::string Ssl::CrtdMessage::compose() const
+std::string const &
+Ssl::CrtdMessage::getBody() const
 {
-    if (code.empty()) return std::string();
+    return body;
+}
+
+std::string const &
+Ssl::CrtdMessage::getCode() const
+{
+    return code;
+}
+
+void
+Ssl::CrtdMessage::setBody(std::string const &aBody)
+{
+    body = aBody;
+}
+
+void
+Ssl::CrtdMessage::setCode(std::string const &aCode)
+{
+    code = aCode;
+}
+
+std::string
+Ssl::CrtdMessage::compose() const
+{
+    if (code.empty())
+        return std::string();
     char buffer[10];
     snprintf(buffer, sizeof(buffer), "%zd", body.length());
     return code + ' ' + buffer + ' ' + body;
 }
 
-void Ssl::CrtdMessage::clear()
+void
+Ssl::CrtdMessage::clear()
 {
     body_size = 0;
     state = BEFORE_CODE;
@@ -140,13 +162,14 @@ void Ssl::CrtdMessage::clear()
     current_block.clear();
 }
 
-void Ssl::CrtdMessage::parseBody(CrtdMessage::BodyParams & map, std::string & other_part) const
+void
+Ssl::CrtdMessage::parseBody(CrtdMessage::BodyParams &map, std::string &other_part) const
 {
     other_part.clear();
     // Copy string for using it as temp buffer.
     std::string temp_body(body.c_str(), body.length());
-    char * buffer = const_cast<char *>(temp_body.c_str());
-    char * token = strtok(buffer, "\r\n");
+    char *buffer = const_cast<char *>(temp_body.c_str());
+    char *token = strtok(buffer, "\r\n");
     while (token != NULL) {
         std::string current_string(token);
         size_t equal_pos = current_string.find('=');
@@ -163,7 +186,8 @@ void Ssl::CrtdMessage::parseBody(CrtdMessage::BodyParams & map, std::string & ot
     }
 }
 
-void Ssl::CrtdMessage::composeBody(CrtdMessage::BodyParams const & map, std::string const & other_part)
+void
+Ssl::CrtdMessage::composeBody(CrtdMessage::BodyParams const &map, std::string const &other_part)
 {
     body.clear();
     for (BodyParams::const_iterator i = map.begin(); i != map.end(); ++i) {
@@ -175,7 +199,8 @@ void Ssl::CrtdMessage::composeBody(CrtdMessage::BodyParams const & map, std::str
         body += '\n' + other_part;
 }
 
-bool Ssl::CrtdMessage::parseRequest(Ssl::CertificateProperties &certProperties, std::string &error)
+bool
+Ssl::CrtdMessage::parseRequest(Ssl::CertificateProperties &certProperties, std::string &error)
 {
     Ssl::CrtdMessage::BodyParams map;
     std::string certs_part;
@@ -230,26 +255,27 @@ bool Ssl::CrtdMessage::parseRequest(Ssl::CertificateProperties &certProperties, 
     size_t pos;
     if ((pos = certs_part.find(CERT_BEGIN_STR)) != std::string::npos) {
         pos += CERT_BEGIN_STR.length();
-        if ((pos= certs_part.find(CERT_BEGIN_STR, pos)) != std::string::npos)
+        if ((pos = certs_part.find(CERT_BEGIN_STR, pos)) != std::string::npos)
             Ssl::readCertFromMemory(certProperties.mimicCert, certs_part.c_str() + pos);
     }
     return true;
 }
 
-void Ssl::CrtdMessage::composeRequest(Ssl::CertificateProperties const &certProperties)
+void
+Ssl::CrtdMessage::composeRequest(Ssl::CertificateProperties const &certProperties)
 {
     body.clear();
     body = Ssl::CrtdMessage::param_host + "=" + certProperties.commonName;
     if (certProperties.setCommonName)
-        body +=  "\n" + Ssl::CrtdMessage::param_SetCommonName + "=" + certProperties.commonName;
+        body += "\n" + Ssl::CrtdMessage::param_SetCommonName + "=" + certProperties.commonName;
     if (certProperties.setValidAfter)
-        body +=  "\n" + Ssl::CrtdMessage::param_SetValidAfter + "=on";
+        body += "\n" + Ssl::CrtdMessage::param_SetValidAfter + "=on";
     if (certProperties.setValidBefore)
-        body +=  "\n" + Ssl::CrtdMessage::param_SetValidBefore + "=on";
+        body += "\n" + Ssl::CrtdMessage::param_SetValidBefore + "=on";
     if (certProperties.signAlgorithm != Ssl::algSignEnd)
-        body +=  "\n" +  Ssl::CrtdMessage::param_Sign + "=" +  certSignAlgorithm(certProperties.signAlgorithm);
+        body += "\n" + Ssl::CrtdMessage::param_Sign + "=" + certSignAlgorithm(certProperties.signAlgorithm);
     if (certProperties.signHash)
-        body +=  "\n" + Ssl::CrtdMessage::param_SignHash + "=" + EVP_MD_name(certProperties.signHash);
+        body += "\n" + Ssl::CrtdMessage::param_SignHash + "=" + EVP_MD_name(certProperties.signHash);
 
     std::string certsPart;
     if (!Ssl::writeCertAndPrivateKeyToMemory(certProperties.signWithX509, certProperties.signWithPkey, certsPart))
@@ -268,4 +294,3 @@ const std::string Ssl::CrtdMessage::param_SetValidBefore(Ssl::CertAdaptAlgorithm
 const std::string Ssl::CrtdMessage::param_SetCommonName(Ssl::CertAdaptAlgorithmStr[algSetCommonName]);
 const std::string Ssl::CrtdMessage::param_Sign("Sign");
 const std::string Ssl::CrtdMessage::param_SignHash("SignHash");
-

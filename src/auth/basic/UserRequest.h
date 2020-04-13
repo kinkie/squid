@@ -16,35 +16,32 @@
 class ConnStateData;
 class HttpRequest;
 
-namespace Auth
-{
+namespace Auth {
 
-namespace Basic
-{
+namespace Basic {
 
-/* follows the http request around */
+    /* follows the http request around */
 
-class UserRequest : public Auth::UserRequest
-{
-    MEMPROXY_CLASS(Auth::Basic::UserRequest);
+    class UserRequest : public Auth::UserRequest
+    {
+        MEMPROXY_CLASS(Auth::Basic::UserRequest);
 
-public:
-    UserRequest() {}
-    virtual ~UserRequest() { assert(LockCount()==0); }
+    public:
+        UserRequest() {}
+        virtual ~UserRequest() { assert(LockCount() == 0); }
 
-    virtual int authenticated() const;
-    virtual void authenticate(HttpRequest * request, ConnStateData *conn, Http::HdrType type);
-    virtual Auth::Direction module_direction();
-    virtual void startHelperLookup(HttpRequest * request, AccessLogEntry::Pointer &al, AUTHCB *, void *);
-    virtual const char *credentialsStr();
+        virtual int authenticated() const;
+        virtual void authenticate(HttpRequest *request, ConnStateData *conn, Http::HdrType type);
+        virtual Auth::Direction module_direction();
+        virtual void startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *, void *);
+        virtual const char *credentialsStr();
 
-private:
-    static HLPCB HandleReply;
-};
+    private:
+        static HLPCB HandleReply;
+    };
 
-} // namespace Basic
-} // namespace Auth
+}  // namespace Basic
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_BASIC */
 #endif /* _SQUID_SRC_AUTH_BASIC_USERREQUEST_H */
-

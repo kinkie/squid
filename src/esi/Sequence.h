@@ -25,10 +25,10 @@ public:
     ~esiSequence();
 
     void render(ESISegment::Pointer);
-    bool addElement (ESIElement::Pointer);
-    esiProcessResult_t process (int dovars);
-    void provideData (ESISegment::Pointer, ESIElement*);
-    bool mayFail () const;
+    bool addElement(ESIElement::Pointer);
+    esiProcessResult_t process(int dovars);
+    void provideData(ESISegment::Pointer, ESIElement *);
+    bool mayFail() const;
     void wontFail();
     void fail(ESIElement *, char const *anError = NULL);
     void makeCachableElements(esiSequence const &old);
@@ -40,7 +40,7 @@ public:
     size_t processedcount;
 
     struct {
-        int dovars:1; /* for esiVar */
+        int dovars : 1; /* for esiVar */
     } flags;
     void finish();
 
@@ -49,7 +49,7 @@ protected:
     esiTreeParentPtr parent;
 
 private:
-    int elementIndex (ESIElement::Pointer anElement) const;
+    int elementIndex(ESIElement::Pointer anElement) const;
     bool mayFail_;
     bool failed;
     esiProcessResult_t processOne(int, size_t);
@@ -64,4 +64,3 @@ private:
 };
 
 #endif /* SQUID_ESISEQUENCE_H */
-

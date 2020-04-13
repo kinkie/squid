@@ -17,8 +17,8 @@
 
 class testPackableStream : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testPackableStream );
-    CPPUNIT_TEST( testGetStream );
+    CPPUNIT_TEST_SUITE(testPackableStream);
+    CPPUNIT_TEST(testGetStream);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -29,4 +29,3 @@ protected:
 };
 
 #endif /* SQUID_SRC_TESTS_TESTPACKABLESTREAM_H */
-

@@ -7,13 +7,12 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/SslError.h"
+#include "acl/FilledChecklist.h"
 #include "acl/SslErrorData.h"
 
 int
-ACLSslErrorStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLSslErrorStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
-    return data->match (checklist->sslErrors);
+    return data->match(checklist->sslErrors);
 }
-

@@ -15,8 +15,7 @@
 #include "sbuf/forward.h"
 
 class StoreEntry;
-namespace Dns
-{
+namespace Dns {
 class LookupDetails;
 }
 
@@ -33,4 +32,3 @@ const char *fqdncache_gethostbyaddr(const Ip::Address &, int flags);
 void fqdncache_nbgethostbyaddr(const Ip::Address &, FQDNH *, void *);
 
 #endif /* SQUID_FQDNCACHE_H_ */
-

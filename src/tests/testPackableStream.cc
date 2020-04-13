@@ -7,20 +7,21 @@
  */
 
 #include "squid.h"
-#include "base/PackableStream.h"
+#include "testPackableStream.h"
 #include "CapturingStoreEntry.h"
 #include "Store.h"
-#include "testPackableStream.h"
+#include "base/PackableStream.h"
 #include "testStore.h"
 
-#include <iomanip>
 #include <cppunit/TestAssert.h>
+#include <iomanip>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testPackableStream );
+CPPUNIT_TEST_SUITE_REGISTRATION(testPackableStream);
 
 /* init memory pools */
 
-void testPackableStream::setUp()
+void
+testPackableStream::setUp()
 {
     Mem::Init();
 }
@@ -33,7 +34,7 @@ testPackableStream::testGetStream()
     /* Setup a store root so we can create a StoreEntry */
     Store::Init();
 
-    CapturingStoreEntry * anEntry = new CapturingStoreEntry();
+    CapturingStoreEntry *anEntry = new CapturingStoreEntry();
     {
         anEntry->lock("test");
         PackableStream stream(*anEntry);
@@ -55,7 +56,6 @@ testPackableStream::testGetStream()
         CPPUNIT_ASSERT_EQUAL(1, anEntry->_buffer_calls);
         CPPUNIT_ASSERT_EQUAL(String("12345677.7 some text   !."), anEntry->_appended_text);
     }
-    delete anEntry; // does the unlock()
+    delete anEntry;  // does the unlock()
     Store::FreeMemory();
 }
-

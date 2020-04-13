@@ -9,18 +9,18 @@
 /* DEBUG: section 79    Disk IO Routines */
 
 #include "squid.h"
-#include "base/TextException.h"
+#include "fs/rock/RockIoState.h"
 #include "CollapsedForwarding.h"
 #include "DiskIO/DiskIOModule.h"
 #include "DiskIO/DiskIOStrategy.h"
 #include "DiskIO/WriteRequest.h"
-#include "fs/rock/RockIoRequests.h"
-#include "fs/rock/RockIoState.h"
-#include "fs/rock/RockSwapDir.h"
-#include "globals.h"
 #include "MemObject.h"
 #include "Parsing.h"
 #include "Transients.h"
+#include "base/TextException.h"
+#include "fs/rock/RockIoRequests.h"
+#include "fs/rock/RockSwapDir.h"
+#include "globals.h"
 
 Rock::IoState::IoState(Rock::SwapDir::Pointer &aDir,
                        StoreEntry *anEntry,
@@ -46,7 +46,7 @@ Rock::IoState::IoState(Rock::SwapDir::Pointer &aDir,
     e = anEntry;
     e->lock("rock I/O");
     // anchor, swap_filen, and swap_dirn are set by the caller
-    ++store_open_disk_fd; // TODO: use a dedicated counter?
+    ++store_open_disk_fd;  // TODO: use a dedicated counter?
     //theFile is set by SwapDir because it depends on DiskIOStrategy
 }
 
@@ -179,7 +179,7 @@ Rock::IoState::write(char const *buf, size_t size, off_t coreOff, FREE *dtor)
     try {
         tryWrite(buf, size, coreOff);
         success = true;
-    } catch (const std::exception &ex) { // TODO: should we catch ... as well?
+    } catch (const std::exception &ex) {  // TODO: should we catch ... as well?
         debugs(79, 2, "db write error: " << ex.what());
         dir->writeError(*this);
         finishedWriting(DISK_ERROR);
@@ -189,7 +189,7 @@ Rock::IoState::write(char const *buf, size_t size, off_t coreOff, FREE *dtor)
     // careful: 'this' might be gone here
 
     if (dtor)
-        (dtor)(const_cast<char*>(buf)); // cast due to a broken API?
+        (dtor)(const_cast<char *>(buf));  // cast due to a broken API?
 
     return success;
 }
@@ -227,10 +227,9 @@ Rock::IoState::tryWrite(char const *buf, size_t size, off_t coreOff)
             sidNext = dir->reserveSlotForWriting();
             assert(sidNext >= 0);
             writeToDisk();
-            Must(sidNext < 0); // short sidNext lifetime simplifies code logic
+            Must(sidNext < 0);  // short sidNext lifetime simplifies code logic
         }
     }
-
 }
 
 /// Buffers incoming data for the current slot.
@@ -249,7 +248,7 @@ Rock::IoState::writeToBuffer(char const *buf, size_t size)
 
     size_t forCurrentSlot = min(size, static_cast<size_t>(theBuf.spaceSize()));
     theBuf.append(buf, forCurrentSlot);
-    offset_ += forCurrentSlot; // so that Core thinks we wrote it
+    offset_ += forCurrentSlot;  // so that Core thinks we wrote it
     return forCurrentSlot;
 }
 
@@ -261,21 +260,21 @@ Rock::IoState::writeToDisk()
     assert(theBuf.size >= sizeof(DbCellHeader));
 
     assert((sidFirst < 0) == (sidCurrent < 0));
-    if (sidFirst < 0) // this is the first disk write
+    if (sidFirst < 0)  // this is the first disk write
         sidCurrent = sidFirst = dir->reserveSlotForWriting();
 
     // negative sidNext means this is the last write request for this entry
     const bool lastWrite = sidNext < 0;
     // here, eof means that we are writing the right-most entry slot
     const bool eof = lastWrite &&
-                     // either not updating or the updating reader has loaded everything
-                     (touchingStoreEntry() || staleSplicingPointNext < 0);
+        // either not updating or the updating reader has loaded everything
+        (touchingStoreEntry() || staleSplicingPointNext < 0);
     debugs(79, 5, "sidCurrent=" << sidCurrent << " sidNext=" << sidNext << " eof=" << eof);
 
     // TODO: if DiskIO module is mmap-based, we should be writing whole pages
     // to avoid triggering read-page;new_head+old_tail;write-page overheads
 
-    assert(!eof || sidNext < 0); // no slots after eof
+    assert(!eof || sidNext < 0);  // no slots after eof
 
     // finalize db cell header
     DbCellHeader header;
@@ -287,7 +286,7 @@ Rock::IoState::writeToDisk()
     header.nextSlot = lastUpdatingWrite ? staleSplicingPointNext : sidNext;
 
     header.payloadSize = theBuf.size - sizeof(DbCellHeader);
-    header.entrySize = eof ? offset_ : 0; // storeSwapOutFileClosed sets swap_file_sz after write
+    header.entrySize = eof ? offset_ : 0;  // storeSwapOutFileClosed sets swap_file_sz after write
     header.version = writeAnchor().basics.timestamp;
 
     // copy finalized db cell header into buffer
@@ -301,18 +300,18 @@ Rock::IoState::writeToDisk()
     memcpy(wBuf, theBuf.mem, theBuf.size);
 
     const uint64_t diskOffset = dir->diskOffset(sidCurrent);
-    debugs(79, 5, HERE << swap_filen << " at " << diskOffset << '+' <<
-           theBuf.size);
+    debugs(79, 5, HERE << swap_filen << " at " << diskOffset << '+' << theBuf.size);
     const auto id = ++requestsSent;
     WriteRequest *const r = new WriteRequest(
-        ::WriteRequest(static_cast<char*>(wBuf), diskOffset, theBuf.size,
-                       memFreeBufFunc(wBufCap)), this, id);
+        ::WriteRequest(static_cast<char *>(wBuf), diskOffset, theBuf.size,
+                       memFreeBufFunc(wBufCap)),
+        this, id);
     r->sidCurrent = sidCurrent;
     r->sidPrevious = sidPrevious;
     r->eof = lastWrite;
 
     sidPrevious = sidCurrent;
-    sidCurrent = sidNext; // sidNext may be cleared/negative already
+    sidCurrent = sidNext;  // sidNext may be cleared/negative already
     sidNext = -1;
 
     theBuf.clear();
@@ -324,16 +323,15 @@ Rock::IoState::writeToDisk()
 bool
 Rock::IoState::expectedReply(const IoXactionId receivedId)
 {
-    Must(requestsSent); // paranoid: we sent some requests
-    Must(receivedId); // paranoid: the request was sent by some sio
-    Must(receivedId <= requestsSent); // paranoid: within our range
+    Must(requestsSent);                // paranoid: we sent some requests
+    Must(receivedId);                  // paranoid: the request was sent by some sio
+    Must(receivedId <= requestsSent);  // paranoid: within our range
     ++repliesReceived;
     const auto expectedId = repliesReceived;
     if (receivedId == expectedId)
         return true;
 
-    debugs(79, 3, "no; expected reply #" << expectedId <<
-           ", but got #" << receivedId);
+    debugs(79, 3, "no; expected reply #" << expectedId << ", but got #" << receivedId);
     return false;
 }
 
@@ -359,10 +357,7 @@ Rock::IoState::finishedWriting(const int errFlag)
 void
 Rock::IoState::close(int how)
 {
-    debugs(79, 3, swap_filen << " offset: " << offset_ << " how: " << how <<
-           " leftovers: " << theBuf.size <<
-           " after " << requestsSent << '/' << repliesReceived <<
-           " callback: " << callback);
+    debugs(79, 3, swap_filen << " offset: " << offset_ << " how: " << how << " leftovers: " << theBuf.size << " after " << requestsSent << '/' << repliesReceived << " callback: " << callback);
 
     if (!theFile) {
         debugs(79, 3, "I/O already canceled");
@@ -374,12 +369,11 @@ Rock::IoState::close(int how)
 
     switch (how) {
     case wroteAll:
-        assert(theBuf.size > 0); // we never flush last bytes on our own
+        assert(theBuf.size > 0);  // we never flush last bytes on our own
         try {
-            writeToDisk(); // flush last, yet unwritten slot to disk
-            return; // writeCompleted() will callBack()
-        }
-        catch (...) {
+            writeToDisk();  // flush last, yet unwritten slot to disk
+            return;         // writeCompleted() will callBack()
+        } catch (...) {
             debugs(79, 2, "db flush error: " << CurrentException);
             // TODO: Move finishedWriting() into SwapDir::writeError().
             dir->writeError(*this);
@@ -388,7 +382,7 @@ Rock::IoState::close(int how)
         return;
 
     case writerGone:
-        dir->writeError(*this); // abort a partially stored entry
+        dir->writeError(*this);  // abort a partially stored entry
         finishedWriting(DISK_ERROR);
         return;
 
@@ -400,49 +394,55 @@ Rock::IoState::close(int how)
 
 /// close callback (STIOCB) dialer: breaks dependencies and
 /// counts IOState concurrency level
-class StoreIOStateCb: public CallDialer
+class StoreIOStateCb : public CallDialer
 {
 public:
-    StoreIOStateCb(StoreIOState::STIOCB *cb, void *data, int err, const Rock::IoState::Pointer &anSio):
+    StoreIOStateCb(StoreIOState::STIOCB *cb, void *data, int err, const Rock::IoState::Pointer &anSio) :
         callback(NULL),
         callback_data(NULL),
         errflag(err),
-        sio(anSio) {
+        sio(anSio)
+    {
 
         callback = cb;
         callback_data = cbdataReference(data);
     }
 
-    StoreIOStateCb(const StoreIOStateCb &cb):
+    StoreIOStateCb(const StoreIOStateCb &cb) :
         callback(NULL),
         callback_data(NULL),
         errflag(cb.errflag),
-        sio(cb.sio) {
+        sio(cb.sio)
+    {
 
         callback = cb.callback;
         callback_data = cbdataReference(cb.callback_data);
     }
 
-    virtual ~StoreIOStateCb() {
-        cbdataReferenceDone(callback_data); // may be nil already
+    virtual ~StoreIOStateCb()
+    {
+        cbdataReferenceDone(callback_data);  // may be nil already
     }
 
-    void dial(AsyncCall &) {
+    void dial(AsyncCall &)
+    {
         void *cbd;
         if (cbdataReferenceValidDone(callback_data, &cbd) && callback)
             callback(cbd, errflag, sio.getRaw());
     }
 
-    bool canDial(AsyncCall &) const {
+    bool canDial(AsyncCall &) const
+    {
         return cbdataReferenceValid(callback_data) && callback;
     }
 
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream &os) const
+    {
         os << '(' << callback_data << ", err=" << errflag << ')';
     }
 
 private:
-    StoreIOStateCb &operator =(const StoreIOStateCb &); // not defined
+    StoreIOStateCb &operator=(const StoreIOStateCb &);  // not defined
 
     StoreIOState::STIOCB *callback;
     void *callback_data;
@@ -453,14 +453,13 @@ private:
 void
 Rock::IoState::callBack(int errflag)
 {
-    debugs(79,3, HERE << "errflag=" << errflag);
+    debugs(79, 3, HERE << "errflag=" << errflag);
     theFile = NULL;
 
-    AsyncCall::Pointer call = asyncCall(79,3, "SomeIoStateCloseCb",
+    AsyncCall::Pointer call = asyncCall(79, 3, "SomeIoStateCloseCb",
                                         StoreIOStateCb(callback, callback_data, errflag, this));
     ScheduleCallHere(call);
 
     callback = NULL;
     cbdataReferenceDone(callback_data);
 }
-

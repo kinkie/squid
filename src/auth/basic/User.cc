@@ -7,18 +7,19 @@
  */
 
 #include "squid.h"
-#include "auth/basic/Config.h"
 #include "auth/basic/User.h"
+#include "Debug.h"
 #include "auth/Config.h"
 #include "auth/CredentialsCache.h"
-#include "Debug.h"
+#include "auth/basic/Config.h"
 
 Auth::Basic::User::User(Auth::SchemeConfig *aConfig, const char *aRequestRealm) :
     Auth::User(aConfig, aRequestRealm),
     passwd(NULL),
     queue(NULL),
     currentRequest(NULL)
-{}
+{
+}
 
 Auth::Basic::User::~User()
 {
@@ -29,9 +30,9 @@ int32_t
 Auth::Basic::User::ttl() const
 {
     if (credentials() != Auth::Ok && credentials() != Auth::Pending)
-        return -1; // TTL is obsolete NOW.
+        return -1;  // TTL is obsolete NOW.
 
-    int32_t basic_ttl = expiretime - squid_curtime + static_cast<Auth::Basic::Config*>(config)->credentialsTTL;
+    int32_t basic_ttl = expiretime - squid_curtime + static_cast<Auth::Basic::Config *>(config)->credentialsTTL;
     int32_t global_ttl = static_cast<int32_t>(expiretime - squid_curtime + Auth::TheConfig.credentialsTtl);
 
     return min(basic_ttl, global_ttl);
@@ -40,7 +41,7 @@ Auth::Basic::User::ttl() const
 bool
 Auth::Basic::User::authenticated() const
 {
-    if ((credentials() == Auth::Ok) && (expiretime + static_cast<Auth::Basic::Config*>(config)->credentialsTTL > squid_curtime))
+    if ((credentials() == Auth::Ok) && (expiretime + static_cast<Auth::Basic::Config *>(config)->credentialsTTL > squid_curtime))
         return true;
 
     debugs(29, 4, "User not authenticated or credentials need rechecking.");
@@ -91,4 +92,3 @@ Auth::Basic::User::addToNameCache()
 {
     Cache()->insert(userKey(), this);
 }
-

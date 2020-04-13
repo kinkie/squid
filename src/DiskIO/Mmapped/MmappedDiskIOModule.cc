@@ -23,13 +23,15 @@ MmappedDiskIOModule::GetInstance()
 
 void
 MmappedDiskIOModule::init()
-{}
+{
+}
 
 void
 MmappedDiskIOModule::gracefulShutdown()
-{}
+{
+}
 
-DiskIOStrategy*
+DiskIOStrategy *
 MmappedDiskIOModule::createStrategy()
 {
     return new MmappedIOStrategy();
@@ -38,8 +40,7 @@ MmappedDiskIOModule::createStrategy()
 MmappedDiskIOModule MmappedDiskIOModule::Instance;
 
 char const *
-MmappedDiskIOModule::type () const
+MmappedDiskIOModule::type() const
 {
     return "Mmapped";
 }
-

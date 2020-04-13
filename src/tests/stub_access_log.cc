@@ -14,12 +14,11 @@
 
 HierarchyLogEntry::HierarchyLogEntry() STUB
 
-void HierarchyLogEntry::notePeerRead() STUB
-void HierarchyLogEntry::notePeerWrite() STUB
-bool HierarchyLogEntry::peerResponseTime(struct timeval &) STUB_RETVAL(false)
-bool HierarchyLogEntry::totalResponseTime(struct timeval &) STUB_RETVAL(false)
+    void HierarchyLogEntry::notePeerRead() STUB
+    void HierarchyLogEntry::notePeerWrite() STUB
+    bool HierarchyLogEntry::peerResponseTime(struct timeval &) STUB_RETVAL(false) bool HierarchyLogEntry::totalResponseTime(struct timeval &) STUB_RETVAL(false)
 
-ping_data::ping_data() :
+        ping_data::ping_data() :
     n_sent(0),
     n_recv(0),
     n_replies_expected(0),
@@ -33,4 +32,3 @@ ping_data::ping_data() :
     stop.tv_sec = 0;
     stop.tv_usec = 0;
 }
-

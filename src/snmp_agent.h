@@ -27,4 +27,3 @@ variable_list *snmp_meshPtblFn(variable_list *, snint *);
 
 #endif /* SQUID_SNMP */
 #endif /* SQUID_SNMP_AGENT_H_ */
-

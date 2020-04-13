@@ -9,10 +9,10 @@
 #ifndef SQUID_CLIENTSTREAM_H
 #define SQUID_CLIENTSTREAM_H
 
+#include "StoreIOBuffer.h"
 #include "base/RefCount.h"
 #include "clientStreamForward.h"
 #include "dlink.h"
-#include "StoreIOBuffer.h"
 
 /**
  \defgroup ClientStreamAPI Client Streams API
@@ -78,7 +78,7 @@ class clientStreamNode
     CBDATA_CLASS(clientStreamNode);
 
 public:
-    clientStreamNode(CSR * aReadfunc, CSCB * aCallback, CSD * aDetach, CSS * aStatus, ClientStreamData);
+    clientStreamNode(CSR *aReadfunc, CSCB *aCallback, CSD *aDetach, CSS *aStatus, ClientStreamData);
     ~clientStreamNode();
 
     clientStreamNode *prev() const;
@@ -86,13 +86,13 @@ public:
     void removeFromStream();
 
     dlink_node node;
-    dlink_list *head;       /* sucks I know, but hey, the interface is limited */
+    dlink_list *head; /* sucks I know, but hey, the interface is limited */
     CSR *readfunc;
     CSCB *callback;
-    CSD *detach;        /* tell this node the next one downstream wants no more data */
+    CSD *detach; /* tell this node the next one downstream wants no more data */
     CSS *status;
-    ClientStreamData data;          /* Context for the node */
-    StoreIOBuffer readBuffer;   /* what, where and how much this node wants */
+    ClientStreamData data;    /* Context for the node */
+    StoreIOBuffer readBuffer; /* what, where and how much this node wants */
 };
 
 /// \ingroup ClientStreamAPI
@@ -167,4 +167,3 @@ void clientStreamAbort(clientStreamNode *thisObject, ClientHttpRequest *http);
 clientStream_status_t clientStreamStatus(clientStreamNode *thisObject, ClientHttpRequest *http);
 
 #endif /* SQUID_CLIENTSTREAM_H */
-

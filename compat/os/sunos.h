@@ -29,4 +29,3 @@
 
 #endif /* _SQUID_SUNOS_ */
 #endif /* SQUID_OS_SUNOS_H */
-

@@ -12,8 +12,8 @@
 #define DELAYPOOL_H
 
 #if USE_DELAY_POOLS
-#include "acl/forward.h"
 #include "CompositePoolNode.h"
+#include "acl/forward.h"
 
 class StoreEntry;
 
@@ -29,11 +29,11 @@ public:
     void freeData();
     void createPool(u_char delay_class);
     void parse();
-    void dump (StoreEntry *, unsigned int poolNumberMinusOne) const;
+    void dump(StoreEntry *, unsigned int poolNumberMinusOne) const;
     CommonPool *pool;
-    CompositePoolNode::Pointer theComposite() {return theComposite_;}
+    CompositePoolNode::Pointer theComposite() { return theComposite_; }
 
-    CompositePoolNode::Pointer const theComposite() const {return theComposite_;}
+    CompositePoolNode::Pointer const theComposite() const { return theComposite_; }
 
     acl_access *access;
 
@@ -43,4 +43,3 @@ private:
 
 #endif /* USE_DELAY_POOLS */
 #endif /* DELAYPOOL_H */
-

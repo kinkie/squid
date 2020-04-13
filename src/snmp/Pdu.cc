@@ -9,9 +9,9 @@
 /* DEBUG: section 49    SNMP Interface */
 
 #include "squid.h"
+#include "snmp/Pdu.h"
 #include "base/TextException.h"
 #include "ipc/TypedMsgHdr.h"
-#include "snmp/Pdu.h"
 #include "snmp/Var.h"
 #include "snmp_core.h"
 #include "tools.h"
@@ -23,7 +23,7 @@ Snmp::Pdu::Pdu()
     init();
 }
 
-Snmp::Pdu::Pdu(const Pdu& pdu)
+Snmp::Pdu::Pdu(const Pdu &pdu)
 {
     init();
     assign(pdu);
@@ -34,8 +34,8 @@ Snmp::Pdu::~Pdu()
     clear();
 }
 
-Snmp::Pdu&
-Snmp::Pdu::operator = (const Pdu& pdu)
+Snmp::Pdu &
+Snmp::Pdu::operator=(const Pdu &pdu)
 {
     clear();
     assign(pdu);
@@ -52,15 +52,15 @@ Snmp::Pdu::init()
 }
 
 void
-Snmp::Pdu::aggregate(const Pdu& pdu)
+Snmp::Pdu::aggregate(const Pdu &pdu)
 {
     Must(varCount() == pdu.varCount());
     ++aggrCount;
-    for (variable_list* p_aggr = variables, *p_var = pdu.variables; p_var != NULL;
-            p_aggr = p_aggr->next_variable, p_var = p_var->next_variable) {
+    for (variable_list *p_aggr = variables, *p_var = pdu.variables; p_var != NULL;
+         p_aggr = p_aggr->next_variable, p_var = p_var->next_variable) {
         Must(p_aggr != NULL);
-        Var& aggr = static_cast<Var&>(*p_aggr);
-        Var& var = static_cast<Var&>(*p_var);
+        Var &aggr = static_cast<Var &>(*p_aggr);
+        Var &var = static_cast<Var &>(*p_var);
         if (aggr.isNull()) {
             aggr.setName(var.getName());
             aggr.copyValue(var);
@@ -96,7 +96,7 @@ Snmp::Pdu::clear()
 }
 
 void
-Snmp::Pdu::assign(const Pdu& pdu)
+Snmp::Pdu::assign(const Pdu &pdu)
 {
     command = pdu.command;
     address.sin_addr.s_addr = pdu.address.sin_addr.s_addr;
@@ -117,9 +117,9 @@ Snmp::Pdu::assign(const Pdu& pdu)
 void
 Snmp::Pdu::clearVars()
 {
-    variable_list* var = variables;
+    variable_list *var = variables;
     while (var != NULL) {
-        variable_list* tmp = var;
+        variable_list *tmp = var;
         var = var->next_variable;
         snmp_var_free(tmp);
     }
@@ -127,12 +127,12 @@ Snmp::Pdu::clearVars()
 }
 
 void
-Snmp::Pdu::setVars(variable_list* vars)
+Snmp::Pdu::setVars(variable_list *vars)
 {
     clearVars();
-    for (variable_list** p_var = &variables; vars != NULL;
-            vars = vars->next_variable, p_var = &(*p_var)->next_variable) {
-        *p_var = new Var(static_cast<Var&>(*vars));
+    for (variable_list **p_var = &variables; vars != NULL;
+         vars = vars->next_variable, p_var = &(*p_var)->next_variable) {
+        *p_var = new Var(static_cast<Var &>(*vars));
     }
 }
 
@@ -146,25 +146,25 @@ Snmp::Pdu::clearSystemOid()
     enterprise_length = 0;
 }
 
-Range<const oid*>
+Range<const oid *>
 Snmp::Pdu::getSystemOid() const
 {
-    return Range<const oid*>(enterprise, enterprise + enterprise_length);
+    return Range<const oid *>(enterprise, enterprise + enterprise_length);
 }
 
 void
-Snmp::Pdu::setSystemOid(const Range<const oid*>& systemOid)
+Snmp::Pdu::setSystemOid(const Range<const oid *> &systemOid)
 {
     clearSystemOid();
     if (systemOid.start != NULL && systemOid.size() != 0) {
         enterprise_length = systemOid.size();
-        enterprise = static_cast<oid*>(xmalloc(enterprise_length * sizeof(oid)));
+        enterprise = static_cast<oid *>(xmalloc(enterprise_length * sizeof(oid)));
         std::copy(systemOid.start, systemOid.end, enterprise);
     }
 }
 
 void
-Snmp::Pdu::pack(Ipc::TypedMsgHdr& msg) const
+Snmp::Pdu::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.putPod(command);
     msg.putPod(address);
@@ -183,12 +183,12 @@ Snmp::Pdu::pack(Ipc::TypedMsgHdr& msg) const
     msg.putPod(specific_type);
     msg.putPod(time);
     msg.putInt(varCount());
-    for (variable_list* var = variables; var != NULL; var = var->next_variable)
-        static_cast<Var*>(var)->pack(msg);
+    for (variable_list *var = variables; var != NULL; var = var->next_variable)
+        static_cast<Var *>(var)->pack(msg);
 }
 
 void
-Snmp::Pdu::unpack(const Ipc::TypedMsgHdr& msg)
+Snmp::Pdu::unpack(const Ipc::TypedMsgHdr &msg)
 {
     clear();
     msg.getPod(command);
@@ -200,7 +200,7 @@ Snmp::Pdu::unpack(const Ipc::TypedMsgHdr& msg)
     msg.getPod(max_repetitions);
     enterprise_length = msg.getInt();
     if (enterprise_length > 0) {
-        enterprise = static_cast<oid*>(xmalloc(enterprise_length * sizeof(oid)));
+        enterprise = static_cast<oid *>(xmalloc(enterprise_length * sizeof(oid)));
         msg.getFixed(enterprise, enterprise_length * sizeof(oid));
     }
     msg.getPod(agent_addr);
@@ -208,9 +208,9 @@ Snmp::Pdu::unpack(const Ipc::TypedMsgHdr& msg)
     msg.getPod(specific_type);
     msg.getPod(time);
     int count = msg.getInt();
-    for (variable_list** p_var = &variables; count > 0;
-            p_var = &(*p_var)->next_variable, --count) {
-        Var* var = new Var();
+    for (variable_list **p_var = &variables; count > 0;
+         p_var = &(*p_var)->next_variable, --count) {
+        Var *var = new Var();
         var->unpack(msg);
         *p_var = var;
     }
@@ -220,7 +220,7 @@ int
 Snmp::Pdu::varCount() const
 {
     int count = 0;
-    for (variable_list* var = variables; var != NULL; var = var->next_variable)
+    for (variable_list *var = variables; var != NULL; var = var->next_variable)
         ++count;
     return count;
 }
@@ -230,12 +230,11 @@ Snmp::Pdu::fixAggregate()
 {
     if (aggrCount < 2)
         return;
-    for (variable_list* p_aggr = variables; p_aggr != NULL; p_aggr = p_aggr->next_variable) {
-        Var& aggr = static_cast<Var&>(*p_aggr);
+    for (variable_list *p_aggr = variables; p_aggr != NULL; p_aggr = p_aggr->next_variable) {
+        Var &aggr = static_cast<Var &>(*p_aggr);
         if (snmpAggrType(aggr.name, aggr.name_length) == atAverage) {
             aggr /= aggrCount;
         }
     }
     aggrCount = 0;
 }
-

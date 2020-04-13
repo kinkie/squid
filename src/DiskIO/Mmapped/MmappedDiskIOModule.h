@@ -19,12 +19,11 @@ public:
     MmappedDiskIOModule();
     virtual void init();
     virtual void gracefulShutdown();
-    virtual char const *type () const;
-    virtual DiskIOStrategy* createStrategy();
+    virtual char const *type() const;
+    virtual DiskIOStrategy *createStrategy();
 
 private:
     static MmappedDiskIOModule Instance;
 };
 
 #endif /* SQUID_MMAPPEDDISKIOMODULE_H */
-

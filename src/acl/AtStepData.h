@@ -9,9 +9,9 @@
 #ifndef SQUID_ACLATSTEPDATA_H
 #define SQUID_ACLATSTEPDATA_H
 
+#include "XactionStep.h"
 #include "acl/Acl.h"
 #include "acl/Data.h"
-#include "XactionStep.h"
 #include <list>
 
 class ACLAtStepData : public ACLData<XactionStep>
@@ -21,7 +21,7 @@ class ACLAtStepData : public ACLData<XactionStep>
 public:
     ACLAtStepData();
     ACLAtStepData(ACLAtStepData const &);
-    ACLAtStepData &operator= (ACLAtStepData const &);
+    ACLAtStepData &operator=(ACLAtStepData const &);
     virtual ~ACLAtStepData();
     bool match(XactionStep);
     virtual SBufList dump() const;
@@ -33,4 +33,3 @@ public:
 };
 
 #endif /* SQUID_ACLSSL_ERRORDATA_H */
-

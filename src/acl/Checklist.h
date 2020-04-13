@@ -27,7 +27,6 @@ class ACLChecklist
 {
 
 public:
-
     /**
      * State class.
      * This abstract class defines the behaviour of
@@ -87,7 +86,7 @@ public:
      * Calling this method with no rules to check wastes a lot of CPU cycles
      * and will result in a DBG_CRITICAL debugging message.
      */
-    void nonBlockingCheck(ACLCB * callback, void *callback_data);
+    void nonBlockingCheck(ACLCB *callback, void *callback_data);
 
     /**
      * Perform a blocking (immediate) check for a list of allow/deny rules.
@@ -109,7 +108,7 @@ public:
      *
      * If there are no rules to check at all, the result becomes ACCESS_DUNNO.
      */
-    Acl::Answer const & fastCheck();
+    Acl::Answer const &fastCheck();
 
     /**
      * Perform a blocking (immediate) check whether a list of ACLs matches.
@@ -132,7 +131,7 @@ public:
      *
      * If there are no ACLs to check at all, the result becomes ACCESS_ALLOWED.
      */
-    Acl::Answer const & fastCheck(const Acl::Tree *list);
+    Acl::Answer const &fastCheck(const Acl::Tree *list);
 
     /// If slow lookups are allowed, switches into "async in progress" state.
     /// Otherwise, returns false; the caller is expected to handle the failure.
@@ -173,7 +172,8 @@ public:
 
     /// change the current ACL list
     /// \return a pointer to the old list value (may be nullptr)
-    const Acl::Tree *changeAcl(const Acl::Tree *t) {
+    const Acl::Tree *changeAcl(const Acl::Tree *t)
+    {
         const Acl::Tree *old = accessList;
         if (t != accessList) {
             cbdataReferenceDone(accessList);
@@ -192,8 +192,8 @@ private:
     AsyncState *asyncState() const;
 
     const Acl::Tree *accessList;
-public:
 
+public:
     ACLCB *callback;
     void *callback_data;
 
@@ -206,18 +206,22 @@ private: /* internal methods */
     class Breadcrumb
     {
     public:
-        Breadcrumb(): parent(NULL) {}
-        Breadcrumb(const Acl::InnerNode *aParent, Acl::Nodes::const_iterator aPos): parent(aParent), position(aPos) {}
-        bool operator ==(const Breadcrumb &b) const { return parent == b.parent && (!parent || position == b.position); }
-        bool operator !=(const Breadcrumb &b) const { return !this->operator ==(b); }
+        Breadcrumb() :
+            parent(NULL) {}
+        Breadcrumb(const Acl::InnerNode *aParent, Acl::Nodes::const_iterator aPos) :
+            parent(aParent), position(aPos) {}
+        bool operator==(const Breadcrumb &b) const { return parent == b.parent && (!parent || position == b.position); }
+        bool operator!=(const Breadcrumb &b) const { return !this->operator==(b); }
         void clear() { parent = NULL; }
-        const Acl::InnerNode *parent; ///< intermediate node in the ACL tree
-        Acl::Nodes::const_iterator position; ///< child position inside parent
+        const Acl::InnerNode *parent;         ///< intermediate node in the ACL tree
+        Acl::Nodes::const_iterator position;  ///< child position inside parent
     };
 
     /// possible outcomes when trying to match a single ACL node in a list
-    typedef enum { nmrMatch, nmrMismatch, nmrFinished, nmrNeedsAsync }
-    NodeMatchingResult;
+    typedef enum { nmrMatch,
+                   nmrMismatch,
+                   nmrFinished,
+                   nmrNeedsAsync } NodeMatchingResult;
 
     /// prepare for checking ACLs; called once per check
     void preCheck(const char *what);
@@ -225,17 +229,20 @@ private: /* internal methods */
     void completeNonBlocking();
     void calcImplicitAnswer();
 
-    bool asyncCaller_; ///< whether the caller supports async/slow ACLs
-    bool occupied_; ///< whether a check (fast or non-blocking) is in progress
+    bool asyncCaller_;  ///< whether the caller supports async/slow ACLs
+    bool occupied_;     ///< whether a check (fast or non-blocking) is in progress
     bool finished_;
     Acl::Answer answer_;
 
-    enum AsyncStage { asyncNone, asyncStarting, asyncRunning, asyncFailed };
+    enum AsyncStage { asyncNone,
+                      asyncStarting,
+                      asyncRunning,
+                      asyncFailed };
     AsyncStage asyncStage_;
     AsyncState *state_;
-    Breadcrumb matchLoc_; ///< location of the node running matches() now
-    Breadcrumb asyncLoc_; ///< currentNode_ that called goAsync()
-    unsigned asyncLoopDepth_; ///< how many times the current async state has resumed
+    Breadcrumb matchLoc_;      ///< location of the node running matches() now
+    Breadcrumb asyncLoc_;      ///< currentNode_ that called goAsync()
+    unsigned asyncLoopDepth_;  ///< how many times the current async state has resumed
 
     bool callerGone();
 
@@ -246,4 +253,3 @@ private: /* internal methods */
 };
 
 #endif /* SQUID_ACLCHECKLIST_H */
-

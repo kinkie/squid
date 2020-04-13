@@ -11,14 +11,13 @@
 
 #include "helper/ChildConfig.h"
 
-namespace Ssl
-{
+namespace Ssl {
 
 class Config
 {
 public:
 #if USE_SSL_CRTD
-    char *ssl_crtd; ///< Name of external ssl_crtd application.
+    char *ssl_crtd;  ///< Name of external ssl_crtd application.
     /// The number of processes spawn for ssl_crtd.
     ::Helper::ChildConfig ssl_crtdChildren;
 #endif
@@ -26,13 +25,13 @@ public:
     ::Helper::ChildConfig ssl_crt_validator_Children;
     Config();
     ~Config();
+
 private:
-    Config(const Config &); // not implemented
-    Config &operator =(const Config &); // not implemented
+    Config(const Config &);             // not implemented
+    Config &operator=(const Config &);  // not implemented
 };
 
 extern Config TheConfig;
 
-} // namespace Ssl
+}  // namespace Ssl
 #endif
-

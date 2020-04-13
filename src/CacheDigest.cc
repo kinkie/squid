@@ -9,9 +9,9 @@
 /* DEBUG: section 70    Cache Digest */
 
 #include "squid.h"
-#include "md5.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "md5.h"
 #include "store_key_md5.h"
 
 #if USE_CACHE_DIGESTS
@@ -22,14 +22,14 @@
 /* local types */
 
 typedef struct {
-    int bit_count;      /* total number of bits */
-    int bit_on_count;       /* #bits turned on */
-    int bseq_len_sum;       /* sum of all bit seq length */
-    int bseq_count;     /* number of bit seqs */
+    int bit_count;    /* total number of bits */
+    int bit_on_count; /* #bits turned on */
+    int bseq_len_sum; /* sum of all bit seq length */
+    int bseq_count;   /* number of bit seqs */
 } CacheDigestStats;
 
 /* local functions */
-static void cacheDigestHashKey(const CacheDigest * cd, const cache_key * key);
+static void cacheDigestHashKey(const CacheDigest *cd, const cache_key *key);
 
 /* static array used by cacheDigestHashKey for optimization purposes */
 static uint32_t hashed_keys[4];
@@ -42,9 +42,8 @@ CacheDigest::init(uint64_t newCapacity)
     assert(newMaskSz != 0);
     capacity = newCapacity;
     mask_size = newMaskSz;
-    mask = static_cast<char *>(xcalloc(mask_size,1));
-    debugs(70, 2, "capacity: " << capacity << " entries, bpe: " << bits_per_entry << "; size: "
-           << mask_size << " bytes");
+    mask = static_cast<char *>(xcalloc(mask_size, 1));
+    debugs(70, 2, "capacity: " << capacity << " entries, bpe: " << bits_per_entry << "; size: " << mask_size << " bytes");
 }
 
 CacheDigest::CacheDigest(uint64_t aCapacity, uint8_t bpe) :
@@ -55,7 +54,7 @@ CacheDigest::CacheDigest(uint64_t aCapacity, uint8_t bpe) :
     mask_size(0),
     bits_per_entry(bpe)
 {
-    assert(SQUID_MD5_DIGEST_LENGTH == 16);  /* our hash functions rely on 16 byte keys */
+    assert(SQUID_MD5_DIGEST_LENGTH == 16); /* our hash functions rely on 16 byte keys */
     updateCapacity(aCapacity);
 }
 
@@ -86,25 +85,21 @@ void
 CacheDigest::updateCapacity(uint64_t newCapacity)
 {
     safe_free(mask);
-    init(newCapacity); // will re-init mask and mask_size
+    init(newCapacity);  // will re-init mask and mask_size
 }
 
 bool
-CacheDigest::contains(const cache_key * key) const
+CacheDigest::contains(const cache_key *key) const
 {
     assert(key);
     /* hash */
     cacheDigestHashKey(this, key);
     /* test corresponding bits */
-    return
-        CBIT_TEST(mask, hashed_keys[0]) &&
-        CBIT_TEST(mask, hashed_keys[1]) &&
-        CBIT_TEST(mask, hashed_keys[2]) &&
-        CBIT_TEST(mask, hashed_keys[3]);
+    return CBIT_TEST(mask, hashed_keys[0]) && CBIT_TEST(mask, hashed_keys[1]) && CBIT_TEST(mask, hashed_keys[2]) && CBIT_TEST(mask, hashed_keys[3]);
 }
 
 void
-CacheDigest::add(const cache_key * key)
+CacheDigest::add(const cache_key *key)
 {
     assert(key);
     /* hash */
@@ -148,7 +143,7 @@ CacheDigest::add(const cache_key * key)
 }
 
 void
-CacheDigest::remove(const cache_key * key)
+CacheDigest::remove(const cache_key *key)
 {
     assert(key);
     ++del_count;
@@ -157,7 +152,7 @@ CacheDigest::remove(const cache_key * key)
 
 /* returns mask utilization parameters */
 static void
-cacheDigestStats(const CacheDigest * cd, CacheDigestStats * stats)
+cacheDigestStats(const CacheDigest *cd, CacheDigestStats *stats)
 {
     int on_count = 0;
     int pos = cd->mask_size * 8;
@@ -199,7 +194,7 @@ CacheDigest::usedMaskPercent() const
 }
 
 void
-cacheDigestGuessStatsUpdate(CacheDigestGuessStats * stats, int real_hit, int guess_hit)
+cacheDigestGuessStatsUpdate(CacheDigestGuessStats *stats, int real_hit, int guess_hit)
 {
     assert(stats);
 
@@ -217,7 +212,7 @@ cacheDigestGuessStatsUpdate(CacheDigestGuessStats * stats, int real_hit, int gue
 }
 
 void
-cacheDigestGuessStatsReport(const CacheDigestGuessStats * stats, StoreEntry * sentry, const SBuf &label)
+cacheDigestGuessStatsReport(const CacheDigestGuessStats *stats, StoreEntry *sentry, const SBuf &label)
 {
     const int true_count = stats->trueHits + stats->trueMisses;
     const int false_count = stats->falseHits + stats->falseMisses;
@@ -226,7 +221,7 @@ cacheDigestGuessStatsReport(const CacheDigestGuessStats * stats, StoreEntry * se
     const int tot_count = true_count + false_count;
 
     assert(!label.isEmpty());
-    assert(tot_count == hit_count + miss_count);    /* paranoid */
+    assert(tot_count == hit_count + miss_count); /* paranoid */
 
     if (!tot_count) {
         storeAppendPrintf(sentry, "no guess stats for " SQUIDSBUFPH " available\n", SQUIDSBUFPRINT(label));
@@ -253,43 +248,38 @@ cacheDigestGuessStatsReport(const CacheDigestGuessStats * stats, StoreEntry * se
 }
 
 void
-cacheDigestReport(CacheDigest * cd, const SBuf &label, StoreEntry * e)
+cacheDigestReport(CacheDigest *cd, const SBuf &label, StoreEntry *e)
 {
     CacheDigestStats stats;
     assert(cd && e);
     cacheDigestStats(cd, &stats);
     storeAppendPrintf(e, SQUIDSBUFPH " digest: size: %d bytes\n",
-                      SQUIDSBUFPRINT(label), stats.bit_count / 8
-                     );
+                      SQUIDSBUFPRINT(label), stats.bit_count / 8);
     storeAppendPrintf(e, "\t entries: count: %" PRIu64 " capacity: %" PRIu64 " util: %d%%\n",
                       cd->count,
                       cd->capacity,
-                      xpercentInt(cd->count, cd->capacity)
-                     );
+                      xpercentInt(cd->count, cd->capacity));
     storeAppendPrintf(e, "\t deletion attempts: %" PRIu64 "\n",
-                      cd->del_count
-                     );
+                      cd->del_count);
     storeAppendPrintf(e, "\t bits: per entry: %d on: %d capacity: %d util: %d%%\n",
                       cd->bits_per_entry,
                       stats.bit_on_count, stats.bit_count,
-                      xpercentInt(stats.bit_on_count, stats.bit_count)
-                     );
+                      xpercentInt(stats.bit_on_count, stats.bit_count));
     storeAppendPrintf(e, "\t bit-seq: count: %d avg.len: %.2f\n",
                       stats.bseq_count,
-                      xdiv(stats.bseq_len_sum, stats.bseq_count)
-                     );
+                      xdiv(stats.bseq_len_sum, stats.bseq_count));
 }
 
 uint32_t
 CacheDigest::CalcMaskSize(uint64_t cap, uint8_t bpe)
 {
     uint64_t bitCount = (cap * bpe) + 7;
-    assert(bitCount < INT_MAX); // do not 31-bit overflow later
+    assert(bitCount < INT_MAX);  // do not 31-bit overflow later
     return static_cast<uint32_t>(bitCount / 8);
 }
 
 static void
-cacheDigestHashKey(const CacheDigest * cd, const cache_key * key)
+cacheDigestHashKey(const CacheDigest *cd, const cache_key *key)
 {
     const uint32_t bit_count = cd->mask_size * 8;
     unsigned int tmp_keys[4];
@@ -299,10 +289,7 @@ cacheDigestHashKey(const CacheDigest * cd, const cache_key * key)
     hashed_keys[1] = htonl(tmp_keys[1]) % bit_count;
     hashed_keys[2] = htonl(tmp_keys[2]) % bit_count;
     hashed_keys[3] = htonl(tmp_keys[3]) % bit_count;
-    debugs(70, 9, "cacheDigestHashKey: " << storeKeyText(key) << " -(" <<
-           bit_count << ")-> " << hashed_keys[0] << " " << hashed_keys[1] <<
-           " " << hashed_keys[2] << " " << hashed_keys[3]);
+    debugs(70, 9, "cacheDigestHashKey: " << storeKeyText(key) << " -(" << bit_count << ")-> " << hashed_keys[0] << " " << hashed_keys[1] << " " << hashed_keys[2] << " " << hashed_keys[3]);
 }
 
 #endif
-

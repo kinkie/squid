@@ -18,9 +18,8 @@ class ACLDestinationASNStrategy : public ACLStrategy<Ip::Address>
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *);
-    virtual bool requiresRequest() const {return true;}
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
+    virtual bool requiresRequest() const { return true; }
 };
 
 #endif /* SQUID_ACLDESTINATIONASN_H */
-

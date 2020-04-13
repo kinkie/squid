@@ -13,10 +13,9 @@
 
 class StoreEntry;
 
-void storeLog(int tag, const StoreEntry * e);
+void storeLog(int tag, const StoreEntry *e);
 void storeLogRotate(void);
 void storeLogClose(void);
 void storeLogOpen(void);
 
 #endif /* SQUID_STORE_LOG_H_ */
-

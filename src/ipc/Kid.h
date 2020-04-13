@@ -17,12 +17,11 @@
 class Kid
 {
 public:
-
     /// keep restarting until the number of bad failures exceed this limit
     enum { badFailureLimit = 4 };
 
     /// slower start failures are not "frequent enough" to be counted as "bad"
-    enum { fastFailureTimeLimit = 10 }; // seconds
+    enum { fastFailureTimeLimit = 10 };  // seconds
 
 public:
     Kid();
@@ -86,29 +85,28 @@ private:
     // Information preserved across restarts
     SBuf processRole;
     int processId = 0;
-    int badFailures = 0; ///< number of "repeated frequent" failures
+    int badFailures = 0;  ///< number of "repeated frequent" failures
 
     // Information specific to a running or stopped kid
-    pid_t  pid = -1; ///< current (for a running kid) or last (for stopped kid) PID
-    time_t startTime = 0; ///< last start time
-    time_t stopTime = 0; ///< last termination time
-    bool isRunning = false; ///< whether the kid is assumed to be alive
-    PidStatus status = 0; ///< exit status of a stopped kid
+    pid_t pid = -1;          ///< current (for a running kid) or last (for stopped kid) PID
+    time_t startTime = 0;    ///< last start time
+    time_t stopTime = 0;     ///< last termination time
+    bool isRunning = false;  ///< whether the kid is assumed to be alive
+    PidStatus status = 0;    ///< exit status of a stopped kid
 };
 
 // TODO: processes may not be kids; is there a better place to put this?
 
 /// process kinds
 typedef enum {
-    pkOther  = 0, ///< we do not know or do not care
-    pkCoordinator = 1, ///< manages all other kids
-    pkWorker = 2, ///< general-purpose worker bee
-    pkDisker = 4, ///< cache_dir manager
-    pkHelper = 8  ///< general-purpose helper child
+    pkOther = 0,        ///< we do not know or do not care
+    pkCoordinator = 1,  ///< manages all other kids
+    pkWorker = 2,       ///< general-purpose worker bee
+    pkDisker = 4,       ///< cache_dir manager
+    pkHelper = 8        ///< general-purpose helper child
 } ProcessKind;
 
 /// ProcessKind for the current process
 extern int TheProcessKind;
 
 #endif /* SQUID_IPC_KID_H */
-

@@ -9,20 +9,19 @@
 #ifndef SQUID_ADAPTATION__CONFIG_H
 #define SQUID_ADAPTATION__CONFIG_H
 
+#include "Notes.h"
+#include "SquidString.h"
 #include "acl/forward.h"
 #include "adaptation/Elements.h"
 #include "adaptation/forward.h"
 #include "base/AsyncCall.h"
 #include "event.h"
-#include "Notes.h"
-#include "SquidString.h"
 
 class ConfigParser;
 class HttpRequest;
 class HttpReply;
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 class Config
 {
@@ -39,10 +38,10 @@ public:
     friend class AccessCheck;
 
 public:
-    static bool Enabled; // true if at least one adaptation mechanism is
+    static bool Enabled;  // true if at least one adaptation mechanism is
 
     // these are global squid.conf options, documented elsewhere
-    static char *masterx_shared_name; // global TODO: do we need TheConfig?
+    static char *masterx_shared_name;  // global TODO: do we need TheConfig?
     static int service_iteration_limit;
     static int send_client_ip;
     static int send_username;
@@ -55,9 +54,9 @@ public:
     time_t oldest_service_failure;
     int service_revival_delay;
 
-    static Notes metaHeaders; ///< The list of configured meta headers
+    static Notes metaHeaders;  ///< The list of configured meta headers
 
-    static bool needHistory; ///< HttpRequest adaptation history should recorded
+    static bool needHistory;  ///< HttpRequest adaptation history should recorded
 
     typedef std::vector<ServiceConfigPointer> ServiceConfigs;
     ServiceConfigs serviceConfigs;
@@ -68,7 +67,7 @@ public:
     void parseService(void);
     void freeService(void);
     void dumpService(StoreEntry *, const char *) const;
-    ServiceConfigPointer findServiceConfig(const String&);
+    ServiceConfigPointer findServiceConfig(const String &);
 
     /**
      * Creates and starts the adaptation services. In the case the adaptation
@@ -86,14 +85,14 @@ protected:
     virtual ServiceConfig *newServiceConfig() const;
 
     /// Removes the given service from all service groups.
-    void removeService(const String& service);
+    void removeService(const String &service);
 
     /// Removes access rules of the given service or group
-    void removeRule(const String& id);
+    void removeRule(const String &id);
 
 private:
-    Config(const Config &); // unsupported
-    Config &operator =(const Config &); // unsupported
+    Config(const Config &);             // unsupported
+    Config &operator=(const Config &);  // unsupported
 
     virtual ServicePointer createService(const ServiceConfigPointer &cfg) = 0;
 
@@ -102,7 +101,6 @@ private:
     static void DumpServiceGroups(StoreEntry *, const char *);
 };
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__CONFIG_H */
-

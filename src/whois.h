@@ -20,4 +20,3 @@
 void whoisStart(FwdState *);
 
 #endif /* SQUID_WHOIS_H_ */
-

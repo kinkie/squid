@@ -25,12 +25,12 @@ extern SBuf service_name;
 void parseEtcHosts(void);
 int getMyPort(void);
 void setUmask(mode_t mask);
-void strwordquote(MemBuf * mb, const char *str);
+void strwordquote(MemBuf *mb, const char *str);
 
 class Packable;
 
 /* a common objPackInto interface; used by debugObj */
-typedef void (*ObjPackMethod) (void *obj, Packable * p);
+typedef void (*ObjPackMethod)(void *obj, Packable *p);
 
 /* packs, then prints an object using debugs() */
 void debugObj(int section, int level, const char *label, void *obj, ObjPackMethod pm);
@@ -44,7 +44,7 @@ const char *uniqueHostname(void);
 void death(int sig);
 void sigusr2_handle(int sig);
 void sig_child(int sig);
-void sig_shutdown(int sig); ///< handles shutdown notifications from kids
+void sig_shutdown(int sig);  ///< handles shutdown notifications from kids
 void leave_suid(void);
 void enter_suid(void);
 void no_suid(void);
@@ -52,7 +52,7 @@ void setMaxFD(void);
 void setSystemLimits(void);
 void squid_signal(int sig, SIGHDLR *, int flags);
 void keepCapabilities(void);
-void BroadcastSignalIfAny(int& sig);
+void BroadcastSignalIfAny(int &sig);
 
 /// whether the current process is the parent of all other Squid processes
 bool IamMasterProcess();
@@ -68,9 +68,9 @@ bool IamWorkerProcess();
 /// whether the current process is dedicated to managing a cache_dir
 bool IamDiskProcess();
 /// Whether we are running in daemon mode
-bool InDaemonMode(); // try using specific Iam*() checks above first
+bool InDaemonMode();  // try using specific Iam*() checks above first
 /// Whether there should be more than one worker process running
-bool UsingSmp(); // try using specific Iam*() checks above first
+bool UsingSmp();  // try using specific Iam*() checks above first
 /// number of Kid processes as defined in src/ipc/Kid.h
 int NumberOfKids();
 /// a string describing this process roles such as worker or coordinator
@@ -108,7 +108,8 @@ pid_t WaitForOnePid(pid_t pid, PidStatus &status, int flags);
  * \param status the exit status returned by waitpid
  * \param flags WNOHANG or 0
  */
-inline pid_t WaitForAnyPid(PidStatus &status, int flags)
+inline pid_t
+WaitForAnyPid(PidStatus &status, int flags)
 {
     return WaitForOnePid(-1, status, flags);
 }
@@ -116,7 +117,6 @@ inline pid_t WaitForAnyPid(PidStatus &status, int flags)
 #if _SQUID_WINDOWS_
 /// xstrerror(errno) equivalent for Windows errors returned by GetLastError()
 SBuf WindowsErrorMessage(DWORD errorId);
-#endif // _SQUID_WINDOWS_
+#endif  // _SQUID_WINDOWS_
 
 #endif /* SQUID_TOOLS_H_ */
-

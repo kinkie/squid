@@ -31,8 +31,7 @@
 #include <netdb.h>
 #endif
 
-namespace Ip
-{
+namespace Ip {
 
 /**
  * Holds and manipulates IPv4, IPv6, and Socket Addresses.
@@ -50,30 +49,30 @@ public:
     Address(const struct sockaddr_in6 &);
     Address(const struct hostent &);
     Address(const struct addrinfo &);
-    Address(const char*);
+    Address(const char *);
     ~Address() {}
     /*@}*/
 
     /** @name Assignment Operators */
     /*@{*/
-    Address& operator =(struct sockaddr_in const &s);
-    Address& operator =(struct sockaddr_storage const &s);
-    Address& operator =(struct in_addr const &s);
-    Address& operator =(struct in6_addr const &s);
-    Address& operator =(struct sockaddr_in6 const &s);
-    bool operator =(const struct hostent &s);
-    bool operator =(const struct addrinfo &s);
-    bool operator =(const char *s);
+    Address &operator=(struct sockaddr_in const &s);
+    Address &operator=(struct sockaddr_storage const &s);
+    Address &operator=(struct in_addr const &s);
+    Address &operator=(struct in6_addr const &s);
+    Address &operator=(struct sockaddr_in6 const &s);
+    bool operator=(const struct hostent &s);
+    bool operator=(const struct addrinfo &s);
+    bool operator=(const char *s);
     /*@}*/
 
     /** @name Boolean Operators */
     /*@{*/
-    bool operator ==(Address const &s) const;
-    bool operator !=(Address const &s) const;
-    bool operator >=(Address const &rhs) const;
-    bool operator <=(Address const &rhs) const;
-    bool operator >(Address const &rhs) const;
-    bool operator <(Address const &rhs) const;
+    bool operator==(Address const &s) const;
+    bool operator!=(Address const &s) const;
+    bool operator>=(Address const &rhs) const;
+    bool operator<=(Address const &rhs) const;
+    bool operator>(Address const &rhs) const;
+    bool operator<(Address const &rhs) const;
 
 public:
     /* methods */
@@ -206,7 +205,7 @@ public:
      \param force (optional) require the IPA in a specific format.
      \return pointer to buffer received.
      */
-    char* toStr(char *buf, const unsigned int blen, int force = AF_UNSPEC) const;
+    char *toStr(char *buf, const unsigned int blen, int force = AF_UNSPEC) const;
 
     /** Return the ASCII equivalent of the address:port combination
      *  Provides a URL formatted version of the content.
@@ -216,7 +215,7 @@ public:
      \param len byte length of buffer available for writing.
      \return pointer to buffer received.
      */
-    char* toUrl(char *buf, unsigned int len) const;
+    char *toUrl(char *buf, unsigned int len) const;
 
     /** Return a properly hostname formatted copy of the address
      *  Provides a URL formatted version of the content.
@@ -334,13 +333,13 @@ private:
 
 private:
     /* Internally used constants */
-    static const unsigned int STRLEN_IP4A = 16;              // aaa.bbb.ccc.ddd\0
-    static const unsigned int STRLEN_IP4R = 28;              // ddd.ccc.bbb.aaa.in-addr.arpa.\0
-    static const unsigned int STRLEN_IP4S = 21;              // ddd.ccc.bbb.aaa:ppppp\0
+    static const unsigned int STRLEN_IP4A = 16;  // aaa.bbb.ccc.ddd\0
+    static const unsigned int STRLEN_IP4R = 28;  // ddd.ccc.bbb.aaa.in-addr.arpa.\0
+    static const unsigned int STRLEN_IP4S = 21;  // ddd.ccc.bbb.aaa:ppppp\0
     static const unsigned int MAX_IP4_STRLEN = STRLEN_IP4R;
-    static const unsigned int STRLEN_IP6A = 42;           // [ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]/0
-    static const unsigned int STRLEN_IP6R = 75;           // f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f ipv6.arpa./0
-    static const unsigned int STRLEN_IP6S = 48;           // [ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:00000/0
+    static const unsigned int STRLEN_IP6A = 42;  // [ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]/0
+    static const unsigned int STRLEN_IP6R = 75;  // f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f f.f.f.f ipv6.arpa./0
+    static const unsigned int STRLEN_IP6S = 48;  // [ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:00000/0
     static const unsigned int MAX_IP6_STRLEN = STRLEN_IP6R;
     static const struct in6_addr v4_localhost;
     static const struct in6_addr v4_anyaddr;
@@ -349,10 +348,10 @@ private:
 };
 
 inline std::ostream &
-operator << (std::ostream &os, const Address &ipa)
+operator<<(std::ostream &os, const Address &ipa)
 {
     char buf[MAX_IPSTRLEN];
-    os << ipa.toUrl(buf,MAX_IPSTRLEN);
+    os << ipa.toUrl(buf, MAX_IPSTRLEN);
     return os;
 }
 
@@ -361,15 +360,19 @@ class Address_list
 {
 public:
     Address_list() { next = NULL; };
-    ~Address_list() { if (next) delete next; next = NULL; };
+    ~Address_list()
+    {
+        if (next)
+            delete next;
+        next = NULL;
+    };
 
     Address s;
     Address_list *next;
 };
 
-} // namespace Ip
+}  // namespace Ip
 
 void parse_IpAddress_list_token(Ip::Address_list **, char *);
 
 #endif /* _SQUID_SRC_IP_ADDRESS_H */
-

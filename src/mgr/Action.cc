@@ -9,20 +9,21 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "comm/Connection.h"
-#include "HttpReply.h"
-#include "ipc/Port.h"
 #include "mgr/Action.h"
+#include "HttpReply.h"
+#include "SquidTime.h"
+#include "Store.h"
+#include "comm/Connection.h"
+#include "ipc/Port.h"
 #include "mgr/ActionCreator.h"
 #include "mgr/ActionParams.h"
 #include "mgr/ActionProfile.h"
 #include "mgr/Command.h"
 #include "mgr/Request.h"
 #include "mgr/Response.h"
-#include "SquidTime.h"
-#include "Store.h"
 
-Mgr::Action::Action(const Command::Pointer &aCmd): cmd(aCmd)
+Mgr::Action::Action(const Command::Pointer &aCmd) :
+    cmd(aCmd)
 {
     Must(cmd != NULL);
     Must(cmd->profile != NULL);
@@ -45,13 +46,13 @@ Mgr::Action::atomic() const
     return command().profile->isAtomic;
 }
 
-const char*
+const char *
 Mgr::Action::name() const
 {
     return command().profile->name;
 }
 
-StoreEntry*
+StoreEntry *
 Mgr::Action::createStoreEntry() const
 {
     const ActionParams &params = command().params;
@@ -88,7 +89,7 @@ Mgr::Action::sendResponse(unsigned int requestId)
 }
 
 void
-Mgr::Action::run(StoreEntry* entry, bool writeHttpHeader)
+Mgr::Action::run(StoreEntry *entry, bool writeHttpHeader)
 {
     debugs(16, 5, HERE);
     collect();
@@ -96,7 +97,7 @@ Mgr::Action::run(StoreEntry* entry, bool writeHttpHeader)
 }
 
 void
-Mgr::Action::fillEntry(StoreEntry* entry, bool writeHttpHeader)
+Mgr::Action::fillEntry(StoreEntry *entry, bool writeHttpHeader)
 {
     debugs(16, 5, HERE);
     entry->buffer();
@@ -109,9 +110,9 @@ Mgr::Action::fillEntry(StoreEntry* entry, bool writeHttpHeader)
         if (params.httpOrigin.size() > 0) {
             rep->header.putExt("Access-Control-Allow-Origin", params.httpOrigin.termedBuf());
 #if HAVE_AUTH_MODULE_BASIC
-            rep->header.putExt("Access-Control-Allow-Credentials","true");
+            rep->header.putExt("Access-Control-Allow-Credentials", "true");
 #endif
-            rep->header.putExt("Access-Control-Expose-Headers","Server");
+            rep->header.putExt("Access-Control-Expose-Headers", "Server");
         }
         entry->replaceHttpReply(rep);
     }
@@ -123,4 +124,3 @@ Mgr::Action::fillEntry(StoreEntry* entry, bool writeHttpHeader)
     if (atomic())
         entry->complete();
 }
-

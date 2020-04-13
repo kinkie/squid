@@ -9,9 +9,9 @@
 #ifndef SQUID_HTTPHEADERTOOLS_H
 #define SQUID_HTTPHEADERTOOLS_H
 
+#include "HttpHeader.h"
 #include "acl/forward.h"
 #include "format/Format.h"
-#include "HttpHeader.h"
 #include "sbuf/forward.h"
 
 #include <functional>
@@ -67,10 +67,11 @@ public:
 private:
     /// Case-insensitive std::string "less than" comparison functor.
     /// Fast version recommended by Meyers' "Effective STL" for ASCII c-strings.
-    class NoCaseLessThan: public std::binary_function<std::string, std::string, bool>
+    class NoCaseLessThan : public std::binary_function<std::string, std::string, bool>
     {
     public:
-        bool operator()(const std::string &lhs, const std::string &rhs) const {
+        bool operator()(const std::string &lhs, const std::string &rhs) const
+        {
             return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
         }
     };
@@ -90,13 +91,14 @@ private:
 private:
     /* not implemented */
     HeaderManglers(const HeaderManglers &);
-    HeaderManglers &operator =(const HeaderManglers &);
+    HeaderManglers &operator=(const HeaderManglers &);
 };
 
 class HeaderWithAcl
 {
 public:
-    HeaderWithAcl() : aclList(NULL), valueFormat(NULL), fieldId(Http::HdrType::BAD_HDR), quoted(false) {}
+    HeaderWithAcl() :
+        aclList(NULL), valueFormat(NULL), fieldId(Http::HdrType::BAD_HDR), quoted(false) {}
 
     /// HTTP header field name
     std::string fieldName;
@@ -125,13 +127,12 @@ public:
 /// \return true if and only if no problems were found.
 bool httpHeaderParseOffset(const char *start, int64_t *offPtr, char **endPtr = nullptr);
 
-bool httpHeaderHasConnDir(const HttpHeader * hdr, const SBuf &directive);
+bool httpHeaderHasConnDir(const HttpHeader *hdr, const SBuf &directive);
 int httpHeaderParseInt(const char *start, int *val);
-void httpHeaderPutStrf(HttpHeader * hdr, Http::HdrType id, const char *fmt,...) PRINTF_FORMAT_ARG3;
+void httpHeaderPutStrf(HttpHeader *hdr, Http::HdrType id, const char *fmt, ...) PRINTF_FORMAT_ARG3;
 
 const char *getStringPrefix(const char *str, size_t len);
 
 void httpHdrMangleList(HttpHeader *, HttpRequest *, const AccessLogEntryPointer &al, req_or_rep_t req_or_rep);
 
 #endif
-

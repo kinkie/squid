@@ -11,14 +11,14 @@
 #include "Debug.h"
 
 /// represents a being-forgotten CodeContext (while it may be being destroyed)
-class FadingCodeContext: public CodeContext
+class FadingCodeContext : public CodeContext
 {
 public:
     /* CodeContext API */
     virtual ScopedId codeContextGist() const override { return gist; }
     virtual std::ostream &detailCodeContext(std::ostream &os) const override { return os << gist; }
 
-    ScopedId gist; ///< identifies the being-forgotten CodeContext
+    ScopedId gist;  ///< identifies the being-forgotten CodeContext
 };
 
 /// guarantees the forever existence of the pointer, starting from the first use
@@ -55,7 +55,7 @@ CodeContext::Entering(const Pointer &codeCtx)
 {
     auto &current = Instance();
     if (current)
-        ForgetCurrent(); // ensure orderly closure of the old context
+        ForgetCurrent();  // ensure orderly closure of the old context
     current = codeCtx;
     debugs(1, 5, codeCtx->codeContextGist());
 }
@@ -82,7 +82,7 @@ void
 CodeContext::Reset(const Pointer codeCtx)
 {
     if (codeCtx == Current())
-        return; // context has not actually changed
+        return;  // context has not actually changed
 
     if (!codeCtx)
         return Leaving();
@@ -97,4 +97,3 @@ CurrentCodeContextDetail(std::ostream &os)
         ctx->detailCodeContext(os);
     return os;
 }
-

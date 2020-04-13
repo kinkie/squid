@@ -7,17 +7,17 @@
  */
 
 #include "squid.h"
-#include "base/AsyncJobCalls.h"
-#include "Debug.h"
 #include "fs/rock/RockHeaderUpdater.h"
-#include "fs/rock/RockIoState.h"
-#include "mime_header.h"
+#include "Debug.h"
 #include "Store.h"
 #include "StoreMetaUnpacker.h"
+#include "base/AsyncJobCalls.h"
+#include "fs/rock/RockIoState.h"
+#include "mime_header.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Rock, HeaderUpdater);
 
-Rock::HeaderUpdater::HeaderUpdater(const Rock::SwapDir::Pointer &aStore, const Ipc::StoreMapUpdate &anUpdate):
+Rock::HeaderUpdater::HeaderUpdater(const Rock::SwapDir::Pointer &aStore, const Ipc::StoreMapUpdate &anUpdate) :
     AsyncJob("Rock::HeaderUpdater"),
     store(aStore),
     update(anUpdate),
@@ -52,7 +52,7 @@ Rock::HeaderUpdater::swanSong()
         // Emulate SwapDir::disconnect() that writeCompleted(err) hopes for.
         // Also required to avoid IoState destructor assertions.
         // We can do this because we closed update earlier or aborted it above.
-        dynamic_cast<IoState&>(*writer).writeableAnchor_ = nullptr;
+        dynamic_cast<IoState &>(*writer).writeableAnchor_ = nullptr;
         writer = nullptr;
     }
 
@@ -72,10 +72,10 @@ void
 Rock::HeaderUpdater::startReading()
 {
     reader = store->openStoreIO(
-                 *update.entry,
-                 nullptr, // unused; see StoreIOState::file_callback
-                 &NoteDoneReading,
-                 this);
+        *update.entry,
+        nullptr,  // unused; see StoreIOState::file_callback
+        &NoteDoneReading,
+        this);
     readMore("need swap entry metadata");
 }
 
@@ -85,14 +85,13 @@ Rock::HeaderUpdater::stopReading(const char *why)
     debugs(47, 7, why);
 
     Must(reader);
-    const IoState &rockReader = dynamic_cast<IoState&>(*reader);
+    const IoState &rockReader = dynamic_cast<IoState &>(*reader);
     update.stale.splicingPoint = rockReader.splicingPoint;
     staleSplicingPointNext = rockReader.staleSplicingPointNext;
-    debugs(47, 5, "stale chain ends at " << update.stale.splicingPoint <<
-           " body continues at " << staleSplicingPointNext);
+    debugs(47, 5, "stale chain ends at " << update.stale.splicingPoint << " body continues at " << staleSplicingPointNext);
 
-    reader->close(StoreIOState::readerDone); // calls noteDoneReading(0)
-    reader = nullptr; // so that swanSong() does not try to close again
+    reader->close(StoreIOState::readerDone);  // calls noteDoneReading(0)
+    reader = nullptr;                         // so that swanSong() does not try to close again
 }
 
 void
@@ -101,7 +100,7 @@ Rock::HeaderUpdater::NoteRead(void *data, const char *buf, ssize_t result, Store
     IoCbParams io(buf, result);
     // TODO: Avoid Rock::StoreIOStateCb for jobs to protect jobs for "free".
     CallJobHere1(47, 7,
-                 CbcPointer<HeaderUpdater>(static_cast<HeaderUpdater*>(data)),
+                 CbcPointer<HeaderUpdater>(static_cast<HeaderUpdater *>(data)),
                  Rock::HeaderUpdater,
                  noteRead,
                  io);
@@ -111,7 +110,7 @@ void
 Rock::HeaderUpdater::noteRead(const Rock::HeaderUpdater::IoCbParams result)
 {
     debugs(47, 7, result.size);
-    if (!result.size) { // EOF
+    if (!result.size) {  // EOF
         stopReading("eof");
     } else {
         Must(result.size > 0);
@@ -143,7 +142,7 @@ Rock::HeaderUpdater::NoteDoneReading(void *data, int errflag, StoreIOState::Poin
 {
     // TODO: Avoid Rock::StoreIOStateCb for jobs to protect jobs for "free".
     CallJobHere1(47, 7,
-                 CbcPointer<HeaderUpdater>(static_cast<HeaderUpdater*>(data)),
+                 CbcPointer<HeaderUpdater>(static_cast<HeaderUpdater *>(data)),
                  Rock::HeaderUpdater,
                  noteDoneReading,
                  errflag);
@@ -154,11 +153,11 @@ Rock::HeaderUpdater::noteDoneReading(int errflag)
 {
     debugs(47, 5, errflag << " writer=" << writer);
     if (!reader) {
-        Must(!errflag); // we only initiate successful closures
-        Must(writer); // otherwise we would be done() and would not be called
+        Must(!errflag);  // we only initiate successful closures
+        Must(writer);    // otherwise we would be done() and would not be called
     } else {
-        reader = nullptr; // we are done reading
-        Must(errflag); // any external closures ought to be errors
+        reader = nullptr;  // we are done reading
+        Must(errflag);     // any external closures ought to be errors
         mustStop("read error");
     }
 }
@@ -167,26 +166,26 @@ void
 Rock::HeaderUpdater::startWriting()
 {
     writer = store->createUpdateIO(
-                 update,
-                 nullptr, // unused; see StoreIOState::file_callback
-                 &NoteDoneWriting,
-                 this);
+        update,
+        nullptr,  // unused; see StoreIOState::file_callback
+        &NoteDoneWriting,
+        this);
     Must(writer);
 
-    IoState &rockWriter = dynamic_cast<IoState&>(*writer);
+    IoState &rockWriter = dynamic_cast<IoState &>(*writer);
     rockWriter.staleSplicingPointNext = staleSplicingPointNext;
 
     // here, prefix is swap header plus HTTP reply header (i.e., updated bytes)
     uint64_t stalePrefixSz = 0;
     uint64_t freshPrefixSz = 0;
 
-    off_t offset = 0; // current writing offset (for debugging)
+    off_t offset = 0;  // current writing offset (for debugging)
 
     const auto &mem = update.entry->mem();
 
     {
         debugs(20, 7, "fresh store meta for " << *update.entry);
-        size_t freshSwapHeaderSize = 0; // set by getSerialisedMetaData() below
+        size_t freshSwapHeaderSize = 0;  // set by getSerialisedMetaData() below
 
         // There is a circular dependency between the correct/fresh value of
         // entry->swap_file_sz and freshSwapHeaderSize. We break that loop by
@@ -211,8 +210,8 @@ Rock::HeaderUpdater::startWriting()
         const auto httpHeader = mem.freshestReply().pack();
         writer->write(httpHeader->content(), httpHeader->contentSize(), -1, nullptr);
         const auto &staleReply = mem.baseReply();
-        Must(staleReply.hdr_sz >= 0); // for int-to-uint64_t conversion below
-        Must(staleReply.hdr_sz > 0); // already initialized
+        Must(staleReply.hdr_sz >= 0);  // for int-to-uint64_t conversion below
+        Must(staleReply.hdr_sz > 0);   // already initialized
         stalePrefixSz += staleReply.hdr_sz;
         freshPrefixSz += httpHeader->contentSize();
         offset += httpHeader->contentSize();
@@ -226,8 +225,7 @@ Rock::HeaderUpdater::startWriting()
         exchangeBuffer.clear();
     }
 
-    debugs(20, 7, "wrote " << offset <<
-           "; swap_file_sz delta: -" << stalePrefixSz << " +" << freshPrefixSz);
+    debugs(20, 7, "wrote " << offset << "; swap_file_sz delta: -" << stalePrefixSz << " +" << freshPrefixSz);
 
     // Optimistic early update OK: Our write lock blocks access to swap_file_sz.
     auto &swap_file_sz = update.fresh.anchor->basics.swap_file_sz;
@@ -235,14 +233,14 @@ Rock::HeaderUpdater::startWriting()
     swap_file_sz -= stalePrefixSz;
     swap_file_sz += freshPrefixSz;
 
-    writer->close(StoreIOState::wroteAll); // should call noteDoneWriting()
+    writer->close(StoreIOState::wroteAll);  // should call noteDoneWriting()
 }
 
 void
 Rock::HeaderUpdater::NoteDoneWriting(void *data, int errflag, StoreIOState::Pointer)
 {
     CallJobHere1(47, 7,
-                 CbcPointer<HeaderUpdater>(static_cast<HeaderUpdater*>(data)),
+                 CbcPointer<HeaderUpdater>(static_cast<HeaderUpdater *>(data)),
                  Rock::HeaderUpdater,
                  noteDoneWriting,
                  errflag);
@@ -253,15 +251,15 @@ Rock::HeaderUpdater::noteDoneWriting(int errflag)
 {
     debugs(47, 5, errflag << " reader=" << reader);
     Must(!errflag);
-    Must(!reader); // if we wrote everything, then we must have read everything
+    Must(!reader);  // if we wrote everything, then we must have read everything
 
     Must(writer);
-    IoState &rockWriter = dynamic_cast<IoState&>(*writer);
+    IoState &rockWriter = dynamic_cast<IoState &>(*writer);
     update.fresh.splicingPoint = rockWriter.splicingPoint;
     debugs(47, 5, "fresh chain ends at " << update.fresh.splicingPoint);
     store->map->closeForUpdating(update);
     rockWriter.writeableAnchor_ = nullptr;
-    writer = nullptr; // we are done writing
+    writer = nullptr;  // we are done writing
 
     Must(doneAll());
 }
@@ -275,15 +273,15 @@ Rock::HeaderUpdater::parseReadBytes()
             exchangeBuffer.length(),
             &staleSwapHeaderSize);
         // Squid assumes that metadata always fits into a single db slot
-        aBuilder.checkBuffer(); // cannot update an entry with invalid metadata
+        aBuilder.checkBuffer();  // cannot update an entry with invalid metadata
         debugs(47, 7, "staleSwapHeaderSize=" << staleSwapHeaderSize);
         Must(staleSwapHeaderSize > 0);
         exchangeBuffer.consume(staleSwapHeaderSize);
     }
 
     const size_t staleHttpHeaderSize = headersEnd(
-                                           exchangeBuffer.rawContent(),
-                                           exchangeBuffer.length());
+        exchangeBuffer.rawContent(),
+        exchangeBuffer.length());
     debugs(47, 7, "staleHttpHeaderSize=" << staleHttpHeaderSize);
     if (!staleHttpHeaderSize) {
         readMore("need more stale HTTP reply header data");
@@ -296,4 +294,3 @@ Rock::HeaderUpdater::parseReadBytes()
     stopReading("read the last HTTP header slot");
     startWriting();
 }
-

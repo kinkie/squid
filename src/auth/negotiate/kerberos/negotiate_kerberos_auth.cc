@@ -53,7 +53,7 @@
 typedef struct _krb5_kt_list {
     struct _krb5_kt_list *next;
     krb5_keytab_entry *entry;
-} *krb5_kt_list;
+} * krb5_kt_list;
 krb5_kt_list ktlist = NULL;
 
 krb5_keytab memory_keytab;
@@ -74,7 +74,7 @@ check_k5_err(krb5_context context, const char *function, krb5_error_code code)
     if (code && code != KRB5_KT_END) {
         const char *errmsg;
         errmsg = krb5_get_error_message(context, code);
-        debug((char *) "%s| %s: ERROR: %s failed: %s\n", LogTime(), PROGRAM, function, errmsg);
+        debug((char *)"%s| %s: ERROR: %s failed: %s\n", LogTime(), PROGRAM, function, errmsg);
         fprintf(stderr, "%s| %s: ERROR: %s: %s\n", LogTime(), PROGRAM, function, errmsg);
 #if HAVE_KRB5_FREE_ERROR_MESSAGE
         krb5_free_error_message(context, errmsg);
@@ -97,16 +97,16 @@ gethost_name(void)
     struct addrinfo *hres = NULL, *hres_list;
     int rc, count;
 
-    rc = gethostname(hostname, sizeof(hostname)-1);
+    rc = gethostname(hostname, sizeof(hostname) - 1);
     if (rc) {
-        debug((char *) "%s| %s: ERROR: resolving hostname '%s' failed\n", LogTime(), PROGRAM, hostname);
+        debug((char *)"%s| %s: ERROR: resolving hostname '%s' failed\n", LogTime(), PROGRAM, hostname);
         fprintf(stderr, "%s| %s: ERROR: resolving hostname '%s' failed\n",
                 LogTime(), PROGRAM, hostname);
         return NULL;
     }
     rc = getaddrinfo(hostname, NULL, NULL, &hres);
-    if (rc != 0 || hres == NULL ) {
-        debug((char *) "%s| %s: ERROR: resolving hostname with getaddrinfo: %s failed\n",
+    if (rc != 0 || hres == NULL) {
+        debug((char *)"%s| %s: ERROR: resolving hostname with getaddrinfo: %s failed\n",
               LogTime(), PROGRAM, gai_strerror(rc));
         fprintf(stderr,
                 "%s| %s: ERROR: resolving hostname with getaddrinfo: %s failed\n",
@@ -122,7 +122,7 @@ gethost_name(void)
     rc = getnameinfo(hres->ai_addr, hres->ai_addrlen, hostname,
                      sizeof(hostname), NULL, 0, 0);
     if (rc != 0) {
-        debug((char *) "%s| %s: ERROR: resolving ip address with getnameinfo: %s failed\n",
+        debug((char *)"%s| %s: ERROR: resolving ip address with getnameinfo: %s failed\n",
               LogTime(), PROGRAM, gai_strerror(rc));
         fprintf(stderr,
                 "%s| %s: ERROR: resolving ip address with getnameinfo: %s failed\n",
@@ -131,7 +131,7 @@ gethost_name(void)
         return NULL;
     }
     freeaddrinfo(hres);
-    hostname[sizeof(hostname)-1] = '\0';
+    hostname[sizeof(hostname) - 1] = '\0';
     return (xstrdup(hostname));
 }
 
@@ -154,7 +154,7 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status,
                                           GSS_C_GSS_CODE, GSS_C_NULL_OID, &msg_ctx, &status_string);
             if (maj_stat == GSS_S_COMPLETE && status_string.length > 0) {
                 if (sizeof(buf) > len + status_string.length + 1) {
-                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *) status_string.value);
+                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *)status_string.value);
                     len += status_string.length;
                 }
             } else
@@ -172,14 +172,14 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status,
                                           GSS_C_MECH_CODE, GSS_C_NULL_OID, &msg_ctx, &status_string);
             if (maj_stat == GSS_S_COMPLETE && status_string.length > 0) {
                 if (sizeof(buf) > len + status_string.length) {
-                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *) status_string.value);
+                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *)status_string.value);
                     len += status_string.length;
                 }
             } else
                 msg_ctx = 0;
             gss_release_buffer(&min_stat, &status_string);
         } while (msg_ctx);
-        debug((char *) "%s| %s: ERROR: %s failed: %s\n", LogTime(), PROGRAM, function, buf);
+        debug((char *)"%s| %s: ERROR: %s failed: %s\n", LogTime(), PROGRAM, function, buf);
         if (sout)
             fprintf(stdout, "BH %s failed: %s\n", function, buf);
         if (log)
@@ -194,15 +194,16 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status,
 /*
  * Free a kt_list
  */
-krb5_error_code krb5_free_kt_list(krb5_context context, krb5_kt_list list)
+krb5_error_code
+krb5_free_kt_list(krb5_context context, krb5_kt_list list)
 {
     krb5_kt_list lp = list;
 
     while (lp) {
-#if USE_HEIMDAL_KRB5 || ( HAVE_KRB5_KT_FREE_ENTRY && HAVE_DECL_KRB5_KT_FREE_ENTRY )
-        krb5_error_code  retval = krb5_kt_free_entry(context, lp->entry);
+#if USE_HEIMDAL_KRB5 || (HAVE_KRB5_KT_FREE_ENTRY && HAVE_DECL_KRB5_KT_FREE_ENTRY)
+        krb5_error_code retval = krb5_kt_free_entry(context, lp->entry);
 #else
-        krb5_error_code  retval = krb5_free_keytab_entry_contents(context, lp->entry);
+        krb5_error_code retval = krb5_free_keytab_entry_contents(context, lp->entry);
 #endif
         safe_free(lp->entry);
         if (check_k5_err(context, "krb5_kt_free_entry", retval))
@@ -217,7 +218,8 @@ krb5_error_code krb5_free_kt_list(krb5_context context, krb5_kt_list list)
  * Read in a keytab and append it to list.  If list starts as NULL,
  * allocate a new one if necessary.
  */
-krb5_error_code krb5_read_keytab(krb5_context context, char *name, krb5_kt_list *list)
+krb5_error_code
+krb5_read_keytab(krb5_context context, char *name, krb5_kt_list *list)
 {
     krb5_kt_list lp = NULL, tail = NULL, back = NULL;
     krb5_keytab kt;
@@ -227,7 +229,8 @@ krb5_error_code krb5_read_keytab(krb5_context context, char *name, krb5_kt_list 
 
     if (*list) {
         /* point lp at the tail of the list */
-        for (lp = *list; lp->next; lp = lp->next);
+        for (lp = *list; lp->next; lp = lp->next)
+            ;
         back = lp;
     }
     retval = krb5_kt_resolve(context, name, &kt);
@@ -237,35 +240,35 @@ krb5_error_code krb5_read_keytab(krb5_context context, char *name, krb5_kt_list 
     if (check_k5_err(context, "krb5_kt_start_seq_get", retval))
         goto close_kt;
     for (;;) {
-        entry = (krb5_keytab_entry *)xcalloc(1, sizeof (krb5_keytab_entry));
+        entry = (krb5_keytab_entry *)xcalloc(1, sizeof(krb5_keytab_entry));
         if (!entry) {
             retval = ENOMEM;
-            debug((char *) "%s| %s: ERROR: krb5_read_keytab failed: %s\n",
+            debug((char *)"%s| %s: ERROR: krb5_read_keytab failed: %s\n",
                   LogTime(), PROGRAM, strerror(retval));
             fprintf(stderr, "%s| %s: ERROR: krb5_read_keytab: %s\n",
                     LogTime(), PROGRAM, strerror(retval));
             break;
         }
-        memset(entry, 0, sizeof (*entry));
+        memset(entry, 0, sizeof(*entry));
         retval = krb5_kt_next_entry(context, kt, entry, &cursor);
         if (check_k5_err(context, "krb5_kt_next_entry", retval))
             break;
 
-        if (!lp) {              /* if list is empty, start one */
-            lp = (krb5_kt_list)xmalloc(sizeof (*lp));
+        if (!lp) { /* if list is empty, start one */
+            lp = (krb5_kt_list)xmalloc(sizeof(*lp));
             if (!lp) {
                 retval = ENOMEM;
-                debug((char *) "%s| %s: ERROR: krb5_read_keytab failed: %s\n",
+                debug((char *)"%s| %s: ERROR: krb5_read_keytab failed: %s\n",
                       LogTime(), PROGRAM, strerror(retval));
                 fprintf(stderr, "%s| %s: ERROR: krb5_read_keytab: %s\n",
                         LogTime(), PROGRAM, strerror(retval));
                 break;
             }
         } else {
-            lp->next = (krb5_kt_list)xmalloc(sizeof (*lp));
+            lp->next = (krb5_kt_list)xmalloc(sizeof(*lp));
             if (!lp->next) {
                 retval = ENOMEM;
-                debug((char *) "%s| %s: ERROR: krb5_read_keytab failed: %s\n",
+                debug((char *)"%s| %s: ERROR: krb5_read_keytab failed: %s\n",
                       LogTime(), PROGRAM, strerror(retval));
                 fprintf(stderr, "%s| %s: ERROR: krb5_read_keytab: %s\n",
                         LogTime(), PROGRAM, strerror(retval));
@@ -300,9 +303,10 @@ close_kt:
 /*
  * Takes a kt_list and writes it to the named keytab.
  */
-krb5_error_code krb5_write_keytab(krb5_context context, krb5_kt_list list, char *name)
+krb5_error_code
+krb5_write_keytab(krb5_context context, krb5_kt_list list, char *name)
 {
-    char ktname[MAXPATHLEN+sizeof("MEMORY:")+1];
+    char ktname[MAXPATHLEN + sizeof("MEMORY:") + 1];
     krb5_error_code retval = 0;
 
     snprintf(ktname, sizeof(ktname), "%s", name);
@@ -330,7 +334,7 @@ main(int argc, char *const argv[])
     char *rfc_user = NULL;
 #if HAVE_PAC_SUPPORT
     char ad_groups[MAX_PAC_GROUP_SIZE];
-    char *ag=NULL;
+    char *ag = NULL;
     krb5_pac pac;
 #if USE_HEIMDAL_KRB5
     gss_buffer_desc data_set = GSS_C_EMPTY_BUFFER;
@@ -344,7 +348,7 @@ main(int argc, char *const argv[])
     static int err = 0;
     int opt, log = 0, norealm = 0;
     OM_uint32 ret_flags = 0, spnego_flag = 0;
-    char *service_name = (char *) "HTTP", *host_name = NULL;
+    char *service_name = (char *)"HTTP", *host_name = NULL;
     char *token = NULL;
     char *service_principal = NULL;
     char *keytab_name = NULL;
@@ -399,24 +403,24 @@ main(int argc, char *const argv[])
              * Some sanity checks
              */
 #if HAVE_SYS_STAT_H
-            if ((ktp=strchr(keytab_name,':')))
+            if ((ktp = strchr(keytab_name, ':')))
                 ktp++;
             else
-                ktp=keytab_name;
-            if (stat((const char*)ktp, &fstat)) {
+                ktp = keytab_name;
+            if (stat((const char *)ktp, &fstat)) {
                 if (ENOENT == errno)
-                    fprintf(stderr, "ERROR: keytab file %s does not exist\n",keytab_name);
+                    fprintf(stderr, "ERROR: keytab file %s does not exist\n", keytab_name);
                 else
-                    fprintf(stderr, "ERROR: Error %s during stat of keytab file %s\n",strerror(errno),keytab_name);
+                    fprintf(stderr, "ERROR: Error %s during stat of keytab file %s\n", strerror(errno), keytab_name);
                 exit(EXIT_FAILURE);
             } else if (!S_ISREG(fstat.st_mode)) {
-                fprintf(stderr, "ERROR: keytab file %s is not a file\n",keytab_name);
+                fprintf(stderr, "ERROR: keytab file %s is not a file\n", keytab_name);
                 exit(EXIT_FAILURE);
             }
 #endif
 #if HAVE_UNISTD_H
             if (access(ktp, R_OK)) {
-                fprintf(stderr, "ERROR: keytab file %s is not accessible\n",keytab_name);
+                fprintf(stderr, "ERROR: keytab file %s is not accessible\n", keytab_name);
                 exit(EXIT_FAILURE);
             }
 #endif
@@ -435,20 +439,20 @@ main(int argc, char *const argv[])
              * Some sanity checks
              */
 #if HAVE_SYS_STAT_H
-            if (stat((const char*)rcache_dir, &dstat)) {
+            if (stat((const char *)rcache_dir, &dstat)) {
                 if (ENOENT == errno)
-                    fprintf(stderr, "ERROR: replay cache directory %s does not exist\n",rcache_dir);
+                    fprintf(stderr, "ERROR: replay cache directory %s does not exist\n", rcache_dir);
                 else
-                    fprintf(stderr, "ERROR: Error %s during stat of replay cache directory %s\n",strerror(errno),rcache_dir);
+                    fprintf(stderr, "ERROR: Error %s during stat of replay cache directory %s\n", strerror(errno), rcache_dir);
                 exit(EXIT_FAILURE);
             } else if (!S_ISDIR(dstat.st_mode)) {
-                fprintf(stderr, "ERROR: replay cache directory %s is not a directory\n",rcache_dir);
+                fprintf(stderr, "ERROR: replay cache directory %s is not a directory\n", rcache_dir);
                 exit(EXIT_FAILURE);
             }
 #endif
 #if HAVE_UNISTD_H
             if (access(rcache_dir, W_OK)) {
-                fprintf(stderr, "ERROR: replay cache directory %s is not accessible\n",rcache_dir);
+                fprintf(stderr, "ERROR: replay cache directory %s is not accessible\n", rcache_dir);
                 exit(EXIT_FAILURE);
             }
 #endif
@@ -486,14 +490,14 @@ main(int argc, char *const argv[])
         }
     }
 
-    debug((char *) "%s| %s: INFO: Starting version %s\n", LogTime(), PROGRAM, SQUID_KERB_AUTH_VERSION);
+    debug((char *)"%s| %s: INFO: Starting version %s\n", LogTime(), PROGRAM, SQUID_KERB_AUTH_VERSION);
     if (service_principal && strcasecmp(service_principal, "GSS_C_NO_NAME")) {
-        if (!strstr(service_principal,"HTTP/")) {
-            debug((char *) "%s| %s: WARN: service_principal %s does not start with HTTP/\n",
+        if (!strstr(service_principal, "HTTP/")) {
+            debug((char *)"%s| %s: WARN: service_principal %s does not start with HTTP/\n",
                   LogTime(), PROGRAM, service_principal);
         }
         service.value = service_principal;
-        service.length = strlen((char *) service.value);
+        service.length = strlen((char *)service.value);
     } else {
         host_name = gethost_name();
         if (!host_name) {
@@ -504,32 +508,32 @@ main(int argc, char *const argv[])
             exit(EXIT_FAILURE);
         }
         service.value = xmalloc(strlen(service_name) + strlen(host_name) + 2);
-        snprintf((char *) service.value, strlen(service_name) + strlen(host_name) + 2,
+        snprintf((char *)service.value, strlen(service_name) + strlen(host_name) + 2,
                  "%s@%s", service_name, host_name);
-        service.length = strlen((char *) service.value);
+        service.length = strlen((char *)service.value);
         xfree(host_name);
     }
 
     if (rcache_type) {
-        rcache_type_env = (char *) xmalloc(strlen("KRB5RCACHETYPE=")+strlen(rcache_type)+1);
+        rcache_type_env = (char *)xmalloc(strlen("KRB5RCACHETYPE=") + strlen(rcache_type) + 1);
         strcpy(rcache_type_env, "KRB5RCACHETYPE=");
         strcat(rcache_type_env, rcache_type);
         putenv(rcache_type_env);
-        debug((char *) "%s| %s: INFO: Setting replay cache type to %s\n",
+        debug((char *)"%s| %s: INFO: Setting replay cache type to %s\n",
               LogTime(), PROGRAM, rcache_type);
     }
 
     if (rcache_dir) {
-        rcache_dir_env = (char *) xmalloc(strlen("KRB5RCACHEDIR=")+strlen(rcache_dir)+1);
+        rcache_dir_env = (char *)xmalloc(strlen("KRB5RCACHEDIR=") + strlen(rcache_dir) + 1);
         strcpy(rcache_dir_env, "KRB5RCACHEDIR=");
         strcat(rcache_dir_env, rcache_dir);
         putenv(rcache_dir_env);
-        debug((char *) "%s| %s: INFO: Setting replay cache directory to %s\n",
+        debug((char *)"%s| %s: INFO: Setting replay cache directory to %s\n",
               LogTime(), PROGRAM, rcache_dir);
     }
 
     if (keytab_name) {
-        keytab_name_env = (char *) xmalloc(strlen("KRB5_KTNAME=")+strlen(keytab_name)+1);
+        keytab_name_env = (char *)xmalloc(strlen("KRB5_KTNAME=") + strlen(keytab_name) + 1);
         strcpy(keytab_name_env, "KRB5_KTNAME=");
         strcat(keytab_name_env, keytab_name);
         putenv(keytab_name_env);
@@ -545,36 +549,36 @@ main(int argc, char *const argv[])
         } else
             keytab_name = xstrdup(keytab_name_env);
     }
-    debug((char *) "%s| %s: INFO: Setting keytab to %s\n", LogTime(), PROGRAM, keytab_name);
+    debug((char *)"%s| %s: INFO: Setting keytab to %s\n", LogTime(), PROGRAM, keytab_name);
 #if HAVE_KRB5_MEMORY_KEYTAB
     ret = krb5_init_context(&context);
     if (!check_k5_err(context, "krb5_init_context", ret)) {
-        memory_keytab_name = (char *)xmalloc(strlen("MEMORY:negotiate_kerberos_auth_")+16);
-        snprintf(memory_keytab_name, strlen("MEMORY:negotiate_kerberos_auth_")+16,
-                 "MEMORY:negotiate_kerberos_auth_%d", (unsigned int) getpid());
+        memory_keytab_name = (char *)xmalloc(strlen("MEMORY:negotiate_kerberos_auth_") + 16);
+        snprintf(memory_keytab_name, strlen("MEMORY:negotiate_kerberos_auth_") + 16,
+                 "MEMORY:negotiate_kerberos_auth_%d", (unsigned int)getpid());
         ret = krb5_read_keytab(context, keytab_name, &ktlist);
         if (check_k5_err(context, "krb5_read_keytab", ret)) {
-            debug((char *) "%s| %s: ERROR: Reading keytab %s into list failed\n",
+            debug((char *)"%s| %s: ERROR: Reading keytab %s into list failed\n",
                   LogTime(), PROGRAM, keytab_name);
         } else {
             ret = krb5_write_keytab(context, ktlist, memory_keytab_name);
             if (check_k5_err(context, "krb5_write_keytab", ret)) {
-                debug((char *) "%s| %s: ERROR: Writing list into keytab %s\n",
+                debug((char *)"%s| %s: ERROR: Writing list into keytab %s\n",
                       LogTime(), PROGRAM, memory_keytab_name);
             } else {
-                memory_keytab_name_env = (char *) xmalloc(strlen("KRB5_KTNAME=")+strlen(memory_keytab_name)+1);
+                memory_keytab_name_env = (char *)xmalloc(strlen("KRB5_KTNAME=") + strlen(memory_keytab_name) + 1);
                 strcpy(memory_keytab_name_env, "KRB5_KTNAME=");
                 strcat(memory_keytab_name_env, memory_keytab_name);
                 putenv(memory_keytab_name_env);
                 xfree(keytab_name);
                 keytab_name = xstrdup(memory_keytab_name);
-                debug((char *) "%s| %s: INFO: Changed keytab to %s\n",
+                debug((char *)"%s| %s: INFO: Changed keytab to %s\n",
                       LogTime(), PROGRAM, memory_keytab_name);
             }
         }
-        ret = krb5_free_kt_list(context,ktlist);
+        ret = krb5_free_kt_list(context, ktlist);
         if (check_k5_err(context, "krb5_free_kt_list", ret)) {
-            debug((char *) "%s| %s: ERROR: Freeing list failed\n",
+            debug((char *)"%s| %s: ERROR: Freeing list failed\n",
                   LogTime(), PROGRAM);
         }
     }
@@ -586,17 +590,17 @@ main(int argc, char *const argv[])
     while (1) {
         if (fgets(buf, sizeof(buf) - 1, stdin) == NULL) {
             if (ferror(stdin)) {
-                debug((char *) "%s| %s: FATAL: fgets() failed! dying..... errno=%d (%s)\n",
+                debug((char *)"%s| %s: FATAL: fgets() failed! dying..... errno=%d (%s)\n",
                       LogTime(), PROGRAM, ferror(stdin),
                       strerror(ferror(stdin)));
 
                 fprintf(stdout, "BH input error\n");
-                exit(EXIT_FAILURE);    /* BIIG buffer */
+                exit(EXIT_FAILURE); /* BIIG buffer */
             }
             fprintf(stdout, "BH input error\n");
             exit(EXIT_SUCCESS);
         }
-        c = (char *) memchr(buf, '\n', sizeof(buf) - 1);
+        c = (char *)memchr(buf, '\n', sizeof(buf) - 1);
         if (c) {
             *c = '\0';
             length = c - buf;
@@ -604,20 +608,20 @@ main(int argc, char *const argv[])
             err = 1;
         }
         if (err) {
-            debug((char *) "%s| %s: ERROR: Oversized message\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: ERROR: Oversized message\n", LogTime(), PROGRAM);
             fprintf(stdout, "BH Oversized message\n");
             err = 0;
             continue;
         }
-        debug((char *) "%s| %s: DEBUG: Got '%s' from squid (length: %ld).\n", LogTime(), PROGRAM, buf, length);
+        debug((char *)"%s| %s: DEBUG: Got '%s' from squid (length: %ld).\n", LogTime(), PROGRAM, buf, length);
 
         if (buf[0] == '\0') {
-            debug((char *) "%s| %s: ERROR: Invalid request\n", LogTime(), PROGRAM);
+            debug((char *)"%s| %s: ERROR: Invalid request\n", LogTime(), PROGRAM);
             fprintf(stdout, "BH Invalid request\n");
             continue;
         }
         if (strlen(buf) < 2) {
-            debug((char *) "%s| %s: ERROR: Invalid request [%s]\n", LogTime(), PROGRAM, buf);
+            debug((char *)"%s| %s: ERROR: Invalid request [%s]\n", LogTime(), PROGRAM, buf);
             fprintf(stdout, "BH Invalid request\n");
             continue;
         }
@@ -658,7 +662,7 @@ main(int argc, char *const argv[])
             exit(EXIT_SUCCESS);
         }
         if (strncmp(buf, "YR", 2) && strncmp(buf, "KK", 2)) {
-            debug((char *) "%s| %s: ERROR: Invalid request [%s]\n", LogTime(), PROGRAM, buf);
+            debug((char *)"%s| %s: ERROR: Invalid request [%s]\n", LogTime(), PROGRAM, buf);
             fprintf(stdout, "BH Invalid request\n");
             continue;
         }
@@ -668,43 +672,39 @@ main(int argc, char *const argv[])
             gss_context = GSS_C_NO_CONTEXT;
         }
         if (strlen(buf) <= 3) {
-            debug((char *) "%s| %s: ERROR: Invalid negotiate request [%s]\n", LogTime(), PROGRAM, buf);
+            debug((char *)"%s| %s: ERROR: Invalid negotiate request [%s]\n", LogTime(), PROGRAM, buf);
             fprintf(stdout, "BH Invalid negotiate request\n");
             continue;
         }
-        const char *b64Token = buf+3;
-        const size_t srcLen = strlen(buf+3);
+        const char *b64Token = buf + 3;
+        const size_t srcLen = strlen(buf + 3);
         input_token.length = BASE64_DECODE_LENGTH(srcLen);
-        debug((char *) "%s| %s: DEBUG: Decode '%s' (decoded length estimate: %d).\n",
-              LogTime(), PROGRAM, b64Token, (int) input_token.length);
+        debug((char *)"%s| %s: DEBUG: Decode '%s' (decoded length estimate: %d).\n",
+              LogTime(), PROGRAM, b64Token, (int)input_token.length);
         input_token.value = xmalloc(input_token.length);
 
         struct base64_decode_ctx ctx;
         base64_decode_init(&ctx);
         size_t dstLen = 0;
-        if (!base64_decode_update(&ctx, &dstLen, static_cast<uint8_t*>(input_token.value), srcLen, b64Token) ||
-                !base64_decode_final(&ctx)) {
-            debug((char *) "%s| %s: ERROR: Invalid base64 token [%s]\n", LogTime(), PROGRAM, b64Token);
+        if (!base64_decode_update(&ctx, &dstLen, static_cast<uint8_t *>(input_token.value), srcLen, b64Token) || !base64_decode_final(&ctx)) {
+            debug((char *)"%s| %s: ERROR: Invalid base64 token [%s]\n", LogTime(), PROGRAM, b64Token);
             fprintf(stdout, "BH Invalid negotiate request token\n");
             continue;
         }
         input_token.length = dstLen;
 
-        if ((input_token.length >= sizeof ntlmProtocol + 1) &&
-                (!memcmp(input_token.value, ntlmProtocol, sizeof ntlmProtocol))) {
-            debug((char *) "%s| %s: WARNING: received type %d NTLM token\n",
+        if ((input_token.length >= sizeof ntlmProtocol + 1) && (!memcmp(input_token.value, ntlmProtocol, sizeof ntlmProtocol))) {
+            debug((char *)"%s| %s: WARNING: received type %d NTLM token\n",
                   LogTime(), PROGRAM,
-                  (int) *((unsigned char *) input_token.value +
-                          sizeof ntlmProtocol));
+                  (int)*((unsigned char *)input_token.value + sizeof ntlmProtocol));
             fprintf(stdout, "BH received type %d NTLM token\n",
-                    (int) *((unsigned char *) input_token.value +
-                            sizeof ntlmProtocol));
+                    (int)*((unsigned char *)input_token.value + sizeof ntlmProtocol));
             goto cleanup;
         }
         if (service_principal) {
             if (strcasecmp(service_principal, "GSS_C_NO_NAME")) {
                 major_status = gss_import_name(&minor_status, &service,
-                                               (gss_OID) GSS_C_NULL_OID, &server_name);
+                                               (gss_OID)GSS_C_NULL_OID, &server_name);
 
             } else {
                 server_name = GSS_C_NO_NAME;
@@ -719,9 +719,8 @@ main(int argc, char *const argv[])
         if (check_gss_err(major_status, minor_status, "gss_import_name()", log, 1))
             goto cleanup;
 
-        major_status =
-            gss_acquire_cred(&minor_status, server_name, GSS_C_INDEFINITE,
-                             GSS_C_NO_OID_SET, GSS_C_ACCEPT, &server_creds, NULL, NULL);
+        major_status = gss_acquire_cred(&minor_status, server_name, GSS_C_INDEFINITE,
+                                        GSS_C_NO_OID_SET, GSS_C_ACCEPT, &server_creds, NULL, NULL);
         if (check_gss_err(major_status, minor_status, "gss_acquire_cred()", log, 1))
             goto cleanup;
 
@@ -733,37 +732,36 @@ main(int argc, char *const argv[])
                                               &client_name, NULL, &output_token, &ret_flags, NULL, NULL);
 
         if (output_token.length) {
-            spnegoToken = (const unsigned char *) output_token.value;
+            spnegoToken = (const unsigned char *)output_token.value;
             spnegoTokenLength = output_token.length;
-            token = (char *) xmalloc((size_t)base64_encode_len(spnegoTokenLength));
+            token = (char *)xmalloc((size_t)base64_encode_len(spnegoTokenLength));
             if (token == NULL) {
-                debug((char *) "%s| %s: ERROR: Not enough memory\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: ERROR: Not enough memory\n", LogTime(), PROGRAM);
                 fprintf(stdout, "BH Not enough memory\n");
                 goto cleanup;
             }
             struct base64_encode_ctx tokCtx;
             base64_encode_init(&tokCtx);
-            size_t blen = base64_encode_update(&tokCtx, token, spnegoTokenLength, reinterpret_cast<const uint8_t*>(spnegoToken));
-            blen += base64_encode_final(&tokCtx, token+blen);
+            size_t blen = base64_encode_update(&tokCtx, token, spnegoTokenLength, reinterpret_cast<const uint8_t *>(spnegoToken));
+            blen += base64_encode_final(&tokCtx, token + blen);
             token[blen] = '\0';
 
             if (check_gss_err(major_status, minor_status, "gss_accept_sec_context()", log, 1))
                 goto cleanup;
             if (major_status & GSS_S_CONTINUE_NEEDED) {
-                debug((char *) "%s| %s: INFO: continuation needed\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: INFO: continuation needed\n", LogTime(), PROGRAM);
                 fprintf(stdout, "TT token=%s\n", token);
                 goto cleanup;
             }
             gss_release_buffer(&minor_status, &output_token);
-            major_status =
-                gss_display_name(&minor_status, client_name, &output_token,
-                                 NULL);
+            major_status = gss_display_name(&minor_status, client_name, &output_token,
+                                            NULL);
 
             if (check_gss_err(major_status, minor_status, "gss_display_name()", log, 1))
                 goto cleanup;
-            user = (char *) xmalloc(output_token.length + 1);
+            user = (char *)xmalloc(output_token.length + 1);
             if (user == NULL) {
-                debug((char *) "%s| %s: ERROR: Not enough memory\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: ERROR: Not enough memory\n", LogTime(), PROGRAM);
                 fprintf(stdout, "BH Not enough memory\n");
                 goto cleanup;
             }
@@ -779,7 +777,7 @@ main(int argc, char *const argv[])
 #if USE_HEIMDAL_KRB5
 #define ADWIN2KPAC 128
                 major_status = gsskrb5_extract_authz_data_from_sec_context(&minor_status,
-                               gss_context, ADWIN2KPAC, &data_set);
+                                                                           gss_context, ADWIN2KPAC, &data_set);
                 if (!check_gss_err(major_status, minor_status,
                                    "gsskrb5_extract_authz_data_from_sec_context()", log, 0)) {
                     ret = krb5_pac_parse(context, data_set.value, data_set.length, &pac);
@@ -793,26 +791,26 @@ main(int argc, char *const argv[])
 #else
                 type_id.value = (void *)"mspac";
                 type_id.length = strlen((char *)type_id.value);
-#define KRB5PACLOGONINFO        1
+#define KRB5PACLOGONINFO 1
                 major_status = gss_map_name_to_any(&minor_status, client_name, KRB5PACLOGONINFO, &type_id, (gss_any_t *)&pac);
                 if (!check_gss_err(major_status, minor_status, "gss_map_name_to_any()", log, 0)) {
-                    ag = get_ad_groups((char *)&ad_groups,context, pac);
+                    ag = get_ad_groups((char *)&ad_groups, context, pac);
                 }
                 (void)gss_release_any_name_mapping(&minor_status, client_name, &type_id, (gss_any_t *)&pac);
                 krb5_free_context(context);
 #endif
             }
             if (ag) {
-                debug((char *) "%s| %s: DEBUG: Groups %s\n", LogTime(), PROGRAM, ag);
+                debug((char *)"%s| %s: DEBUG: Groups %s\n", LogTime(), PROGRAM, ag);
             }
 #endif
             rfc_user = rfc1738_escape(user);
 #if HAVE_PAC_SUPPORT
-            fprintf(stdout, "OK token=%s user=%s %s\n", token, rfc_user, ag?ag:"group=");
+            fprintf(stdout, "OK token=%s user=%s %s\n", token, rfc_user, ag ? ag : "group=");
 #else
             fprintf(stdout, "OK token=%s user=%s\n", token, rfc_user);
 #endif
-            debug((char *) "%s| %s: DEBUG: OK token=%s user=%s\n", LogTime(), PROGRAM, token, rfc_user);
+            debug((char *)"%s| %s: DEBUG: OK token=%s user=%s\n", LogTime(), PROGRAM, token, rfc_user);
             if (log)
                 fprintf(stderr, "%s| %s: INFO: User %s authenticated\n", LogTime(),
                         PROGRAM, rfc_user);
@@ -821,24 +819,23 @@ main(int argc, char *const argv[])
             if (check_gss_err(major_status, minor_status, "gss_accept_sec_context()", log, 1))
                 goto cleanup;
             if (major_status & GSS_S_CONTINUE_NEEDED) {
-                debug((char *) "%s| %s: INFO: continuation needed\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: INFO: continuation needed\n", LogTime(), PROGRAM);
                 // XXX: where to get the server token for delivery to client? token is nullptr here.
                 fprintf(stdout, "ERR\n");
                 goto cleanup;
             }
             gss_release_buffer(&minor_status, &output_token);
-            major_status =
-                gss_display_name(&minor_status, client_name, &output_token,
-                                 NULL);
+            major_status = gss_display_name(&minor_status, client_name, &output_token,
+                                            NULL);
 
             if (check_gss_err(major_status, minor_status, "gss_display_name()", log, 1))
                 goto cleanup;
             /*
              *  Return dummy token AA. May need an extra return tag then AF
              */
-            user = (char *) xmalloc(output_token.length + 1);
+            user = (char *)xmalloc(output_token.length + 1);
             if (user == NULL) {
-                debug((char *) "%s| %s: ERROR: Not enough memory\n", LogTime(), PROGRAM);
+                debug((char *)"%s| %s: ERROR: Not enough memory\n", LogTime(), PROGRAM);
                 fprintf(stdout, "BH Not enough memory\n");
                 goto cleanup;
             }
@@ -849,16 +846,16 @@ main(int argc, char *const argv[])
             }
             rfc_user = rfc1738_escape(user);
 #if HAVE_PAC_SUPPORT
-            fprintf(stdout, "OK token=%s user=%s %s\n", "AA==", rfc_user, ag?ag:"group=");
+            fprintf(stdout, "OK token=%s user=%s %s\n", "AA==", rfc_user, ag ? ag : "group=");
 #else
             fprintf(stdout, "OK token=%s user=%s\n", "AA==", rfc_user);
 #endif
-            debug((char *) "%s| %s: DEBUG: OK token=%s user=%s\n", LogTime(), PROGRAM, "AA==", rfc_user);
+            debug((char *)"%s| %s: DEBUG: OK token=%s user=%s\n", LogTime(), PROGRAM, "AA==", rfc_user);
             if (log)
                 fprintf(stderr, "%s| %s: INFO: User %s authenticated\n", LogTime(),
                         PROGRAM, rfc_user);
         }
-cleanup:
+    cleanup:
         gss_release_buffer(&minor_status, &input_token);
         gss_release_buffer(&minor_status, &output_token);
         gss_release_cred(&minor_status, &server_creds);
@@ -884,7 +881,7 @@ cleanup:
 #else
 #include <cstdlib>
 #ifndef MAX_AUTHTOKEN_LEN
-#define MAX_AUTHTOKEN_LEN   65535
+#define MAX_AUTHTOKEN_LEN 65535
 #endif
 int
 main(int argc, char *const argv[])
@@ -902,4 +899,3 @@ main(int argc, char *const argv[])
     return EXIT_SUCCESS;
 }
 #endif /* HAVE_GSSAPI */
-

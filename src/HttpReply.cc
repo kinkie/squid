@@ -9,24 +9,24 @@
 /* DEBUG: section 58    HTTP Reply (Response) */
 
 #include "squid.h"
-#include "acl/AclSizeLimit.h"
-#include "acl/FilledChecklist.h"
-#include "base/EnumIterator.h"
-#include "globals.h"
-#include "http/ContentLengthInterpreter.h"
+#include "HttpReply.h"
 #include "HttpBody.h"
 #include "HttpHdrCc.h"
 #include "HttpHdrContRange.h"
 #include "HttpHdrSc.h"
-#include "HttpReply.h"
 #include "HttpRequest.h"
 #include "MemBuf.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "Store.h"
 #include "StrList.h"
+#include "acl/AclSizeLimit.h"
+#include "acl/FilledChecklist.h"
+#include "base/EnumIterator.h"
+#include "globals.h"
+#include "http/ContentLengthInterpreter.h"
 
-HttpReply::HttpReply():
+HttpReply::HttpReply() :
     Http::Message(hoReply),
     date(0),
     last_modified(0),
@@ -55,7 +55,8 @@ HttpReply::init()
     do_clean = true;
 }
 
-void HttpReply::reset()
+void
+HttpReply::reset()
 {
 
     // reset should not reset the protocol; could have made protoPrefix a
@@ -79,7 +80,7 @@ HttpReply::clean()
     hdrCacheClean();
     header.clean();
     sline.clean();
-    bodySizeMax = -2; // hack: make calculatedBodySizeMax() false
+    bodySizeMax = -2;  // hack: make calculatedBodySizeMax() false
 }
 
 void
@@ -117,7 +118,8 @@ HttpReply::pack() const
 }
 
 HttpReplyPointer
-HttpReply::MakeConnectionEstablished() {
+HttpReply::MakeConnectionEstablished()
+{
 
     HttpReplyPointer rep(new HttpReply);
     rep->sline.set(Http::ProtocolVersion(), Http::scOkay, "Connection established");
@@ -187,7 +189,7 @@ HttpReply::setHeaders(Http::StatusCode status, const char *reason,
     if (expiresTime >= 0)
         hdr->putTime(Http::HdrType::EXPIRES, expiresTime);
 
-    if (lmt > 0)        /* this used to be lmt != 0 @?@ */
+    if (lmt > 0) /* this used to be lmt != 0 @?@ */
         hdr->putTime(Http::HdrType::LAST_MODIFIED, lmt);
 
     date = squid_curtime;
@@ -218,17 +220,16 @@ HttpReply::redirect(Http::StatusCode status, const char *loc)
  * 0 = they do not match
  */
 int
-HttpReply::validatorsMatch(HttpReply const * otherRep) const
+HttpReply::validatorsMatch(HttpReply const *otherRep) const
 {
-    String one,two;
-    assert (otherRep);
+    String one, two;
+    assert(otherRep);
     /* Numbers first - easiest to check */
     /* Content-Length */
     /* TODO: remove -1 bypass */
 
     if (content_length != otherRep->content_length
-            && content_length > -1 &&
-            otherRep->content_length > -1)
+        && content_length > -1 && otherRep->content_length > -1)
         return 0;
 
     /* ETag */
@@ -236,7 +237,7 @@ HttpReply::validatorsMatch(HttpReply const * otherRep) const
 
     two = otherRep->header.getStrOrList(Http::HdrType::ETAG);
 
-    if (one.size()==0 || two.size()==0 || one.caseCmp(two)!=0 ) {
+    if (one.size() == 0 || two.size() == 0 || one.caseCmp(two) != 0) {
         one.clean();
         two.clean();
         return 0;
@@ -250,7 +251,7 @@ HttpReply::validatorsMatch(HttpReply const * otherRep) const
 
     two = otherRep->header.getStrOrList(Http::HdrType::CONTENT_MD5);
 
-    if (one.size()==0 || two.size()==0 || one.caseCmp(two)!=0 ) {
+    if (one.size() == 0 || two.size() == 0 || one.caseCmp(two) != 0) {
         one.clean();
         two.clean();
         return 0;
@@ -292,8 +293,7 @@ HttpReply::hdrExpirationTime()
             return (date >= 0) ? date + maxAge : squid_curtime;
     }
 
-    if (Config.onoff.vary_ignore_expire &&
-            header.has(Http::HdrType::VARY)) {
+    if (Config.onoff.vary_ignore_expire && header.has(Http::HdrType::VARY)) {
         const time_t d = header.getTime(Http::HdrType::DATE);
         const time_t e = header.getTime(Http::HdrType::EXPIRES);
 
@@ -325,8 +325,7 @@ HttpReply::hdrCacheInit()
     date = header.getTime(Http::HdrType::DATE);
     last_modified = header.getTime(Http::HdrType::LAST_MODIFIED);
     surrogate_control = header.getSc();
-    content_range = (sline.status() == Http::scPartialContent) ?
-                    header.getContRange() : nullptr;
+    content_range = (sline.status() == Http::scPartialContent) ? header.getContRange() : nullptr;
     keep_alive = persistent() ? 1 : 0;
     const char *str = header.getStr(Http::HdrType::CONTENT_TYPE);
 
@@ -372,14 +371,14 @@ HttpReply::hdrCacheClean()
  * Returns the body size of a HTTP response
  */
 int64_t
-HttpReply::bodySize(const HttpRequestMethod& method) const
+HttpReply::bodySize(const HttpRequestMethod &method) const
 {
     if (sline.version.major < 1)
         return -1;
     else if (method.id() == Http::METHOD_HEAD)
         return 0;
     else if (sline.status() == Http::scOkay)
-        (void) 0;       /* common case, continue */
+        (void)0; /* common case, continue */
     else if (sline.status() == Http::scNoContent)
         return 0;
     else if (sline.status() == Http::scNotModified)
@@ -429,7 +428,8 @@ HttpReply::sanityCheckStartLine(const char *buf, const size_t hdr_len, Http::Sta
         pos = protoPrefix.psize();
 
         // skip arbitrary number of digits and a dot in the version portion
-        while ((size_t)pos <= hdr_len && (*(buf+pos) == '.' || xisdigit(*(buf+pos)) ) ) ++pos;
+        while ((size_t)pos <= hdr_len && (*(buf + pos) == '.' || xisdigit(*(buf + pos))))
+            ++pos;
 
         // catch missing version info
         if (pos == protoPrefix.psize()) {
@@ -440,9 +440,10 @@ HttpReply::sanityCheckStartLine(const char *buf, const size_t hdr_len, Http::Sta
     }
 
     // skip arbitrary number of spaces...
-    while ((size_t)pos <= hdr_len && (char)*(buf+pos) == ' ') ++pos;
+    while ((size_t)pos <= hdr_len && (char)*(buf + pos) == ' ')
+        ++pos;
 
-    if ((size_t)pos < hdr_len && !xisdigit(*(buf+pos))) {
+    if ((size_t)pos < hdr_len && !xisdigit(*(buf + pos))) {
         debugs(58, 3, "missing or invalid status number in '" << buf << "'");
         *error = Http::scInvalidHeader;
         return false;
@@ -485,7 +486,7 @@ HttpReply::httpMsgParseError()
  * along with this response
  */
 bool
-HttpReply::expectingBody(const HttpRequestMethod& req_method, int64_t& theSize) const
+HttpReply::expectingBody(const HttpRequestMethod &req_method, int64_t &theSize) const
 {
     bool expectBody = true;
 
@@ -514,7 +515,7 @@ HttpReply::expectingBody(const HttpRequestMethod& req_method, int64_t& theSize) 
 }
 
 bool
-HttpReply::receivedBodyTooLarge(HttpRequest& request, int64_t receivedSize)
+HttpReply::receivedBodyTooLarge(HttpRequest &request, int64_t receivedSize)
 {
     calcMaxBodySize(request);
     debugs(58, 3, HERE << receivedSize << " >? " << bodySizeMax);
@@ -522,12 +523,12 @@ HttpReply::receivedBodyTooLarge(HttpRequest& request, int64_t receivedSize)
 }
 
 bool
-HttpReply::expectedBodyTooLarge(HttpRequest& request)
+HttpReply::expectedBodyTooLarge(HttpRequest &request)
 {
     calcMaxBodySize(request);
     debugs(58, 7, HERE << "bodySizeMax=" << bodySizeMax);
 
-    if (bodySizeMax < 0) // no body size limit
+    if (bodySizeMax < 0)  // no body size limit
         return false;
 
     int64_t expectedSize = -1;
@@ -536,17 +537,17 @@ HttpReply::expectedBodyTooLarge(HttpRequest& request)
 
     debugs(58, 6, HERE << expectedSize << " >? " << bodySizeMax);
 
-    if (expectedSize < 0) // expecting body of an unknown length
+    if (expectedSize < 0)  // expecting body of an unknown length
         return false;
 
     return expectedSize > bodySizeMax;
 }
 
 void
-HttpReply::calcMaxBodySize(HttpRequest& request) const
+HttpReply::calcMaxBodySize(HttpRequest &request) const
 {
     // hack: -2 is used as "we have not calculated max body size yet" state
-    if (bodySizeMax != -2) // already tried
+    if (bodySizeMax != -2)  // already tried
         return;
     bodySizeMax = -1;
 
@@ -558,11 +559,11 @@ HttpReply::calcMaxBodySize(HttpRequest& request) const
     // XXX: cont-cast becomes irrelevant when checklist is HttpReply::Pointer
     ch.reply = const_cast<HttpReply *>(this);
     HTTPMSGLOCK(ch.reply);
-    for (AclSizeLimit *l = Config.ReplyBodySize; l; l = l -> next) {
+    for (AclSizeLimit *l = Config.ReplyBodySize; l; l = l->next) {
         /* if there is no ACL list or if the ACLs listed match use this size value */
         if (!l->aclList || ch.fastCheck(l->aclList).allowed()) {
             debugs(58, 4, HERE << "bodySizeMax=" << bodySizeMax);
-            bodySizeMax = l->size; // may be -1
+            bodySizeMax = l->size;  // may be -1
             break;
         }
     }
@@ -573,7 +574,7 @@ HttpReply *
 HttpReply::clone() const
 {
     HttpReply *rep = new HttpReply();
-    rep->sline = sline; // used in hdrCacheInit() call below
+    rep->sline = sline;  // used in hdrCacheInit() call below
     rep->header.append(&header);
     rep->hdrCacheInit();
     rep->hdr_sz = hdr_sz;
@@ -588,7 +589,7 @@ HttpReply::clone() const
 bool
 HttpReply::inheritProperties(const Http::Message *aMsg)
 {
-    const HttpReply *aRep = dynamic_cast<const HttpReply*>(aMsg);
+    const HttpReply *aRep = dynamic_cast<const HttpReply *>(aMsg);
     if (!aRep)
         return false;
     keep_alive = aRep->keep_alive;
@@ -596,17 +597,17 @@ HttpReply::inheritProperties(const Http::Message *aMsg)
     return true;
 }
 
-void HttpReply::removeStaleWarnings()
+void
+HttpReply::removeStaleWarnings()
 {
     String warning;
     if (header.getList(Http::HdrType::WARNING, &warning)) {
         const String newWarning = removeStaleWarningValues(warning);
         if (warning.size() && warning.size() == newWarning.size())
-            return; // some warnings are there and none changed
+            return;  // some warnings are there and none changed
         header.delById(Http::HdrType::WARNING);
-        if (newWarning.size()) { // some warnings left
-            HttpHeaderEntry *const e =
-                new HttpHeaderEntry(Http::HdrType::WARNING, SBuf(), newWarning.termedBuf());
+        if (newWarning.size()) {  // some warnings left
+            HttpHeaderEntry *const e = new HttpHeaderEntry(Http::HdrType::WARNING, SBuf(), newWarning.termedBuf());
             header.addEntry(e);
         }
     }
@@ -616,7 +617,8 @@ void HttpReply::removeStaleWarnings()
  * Remove warning-values with warn-date different from Date value from
  * a single header entry. Returns a string with all valid warning-values.
  */
-String HttpReply::removeStaleWarningValues(const String &value)
+String
+HttpReply::removeStaleWarningValues(const String &value)
 {
     String newValue;
     const char *item = 0;
@@ -629,24 +631,27 @@ String HttpReply::removeStaleWarningValues(const String &value)
         // warning-value = warn-code SP warn-agent SP warn-text [SP warn-date]
         const char *p = item + len - 1;
 
-        while (p >= item && xisspace(*p)) --p; // skip whitespace
+        while (p >= item && xisspace(*p))
+            --p;  // skip whitespace
 
         // warning-value MUST end with quote
         if (p >= item && *p == '"') {
             const char *const warnDateEnd = p;
             --p;
-            while (p >= item && *p != '"') --p; // find the next quote
+            while (p >= item && *p != '"')
+                --p;  // find the next quote
 
             const char *warnDateBeg = p + 1;
             --p;
-            while (p >= item && xisspace(*p)) --p; // skip whitespace
+            while (p >= item && xisspace(*p))
+                --p;  // skip whitespace
 
             if (p >= item && *p == '"' && warnDateBeg - p > 2) {
                 // found warn-text
                 String warnDate;
                 warnDate.append(warnDateBeg, warnDateEnd - warnDateBeg);
                 const time_t time = parse_rfc1123(warnDate.termedBuf());
-                keep = (time > 0 && time == date); // keep valid and matching date
+                keep = (time > 0 && time == date);  // keep valid and matching date
             }
         }
 
@@ -669,9 +674,9 @@ HttpReply::olderThan(const HttpReply *them) const
 }
 
 void
-HttpReply::removeIrrelevantContentLength() {
+HttpReply::removeIrrelevantContentLength()
+{
     if (Http::ProhibitsContentLength(sline.status()))
         if (header.delById(Http::HdrType::CONTENT_LENGTH))
             debugs(58, 3, "Removing unexpected Content-Length header");
 }
-

@@ -20,8 +20,8 @@ class esiExcept : public esiSequence
 {
 
 public:
-    esiExcept(esiTreeParentPtr aParent) : esiSequence (aParent) {}
+    esiExcept(esiTreeParentPtr aParent) :
+        esiSequence(aParent) {}
 };
 
 #endif /* SQUID_ESIEXCEPT_H */
-

@@ -31,17 +31,19 @@
 
 extern "C" {
 
-    inline int
-    shm_open(const char *, int, mode_t) {
-        errno = ENOTSUP;
-        return -1;
-    }
+inline int
+shm_open(const char *, int, mode_t)
+{
+    errno = ENOTSUP;
+    return -1;
+}
 
-    inline int
-    shm_unlink(const char *) {
-        errno = ENOTSUP;
-        return -1;
-    }
+inline int
+shm_unlink(const char *)
+{
+    errno = ENOTSUP;
+    return -1;
+}
 
 } /* extern "C" */
 
@@ -51,4 +53,3 @@ extern "C" {
 bool shm_portable_segment_name_is_path();
 
 #endif /* SQUID_COMPAT_CPU_H */
-

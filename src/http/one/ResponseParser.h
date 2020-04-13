@@ -9,13 +9,13 @@
 #ifndef _SQUID_SRC_HTTP_ONE_RESPONSEPARSER_H
 #define _SQUID_SRC_HTTP_ONE_RESPONSEPARSER_H
 
-#include "http/one/Parser.h"
 #include "http/StatusCode.h"
+#include "http/one/Parser.h"
 
 namespace Http {
 namespace One {
 
-/** HTTP/1.x  protocol response parser
+    /** HTTP/1.x  protocol response parser
  *
  * Also capable of parsing unexpected ICY responses and
  * upgrading HTTP/0.9 syntax responses to HTTP/1.1
@@ -26,45 +26,44 @@ namespace One {
  * \li status-line (version SP status SP reash-phrase)
  * \li mime-header (set of RFC2616 syntax header fields)
  */
-class ResponseParser : public Http1::Parser
-{
-public:
-    ResponseParser() = default;
-    ResponseParser(const ResponseParser &) = default;
-    ResponseParser &operator =(const ResponseParser &) = default;
-    ResponseParser(ResponseParser &&) = default;
-    ResponseParser &operator =(ResponseParser &&) = default;
-    virtual ~ResponseParser() {}
+    class ResponseParser : public Http1::Parser
+    {
+    public:
+        ResponseParser() = default;
+        ResponseParser(const ResponseParser &) = default;
+        ResponseParser &operator=(const ResponseParser &) = default;
+        ResponseParser(ResponseParser &&) = default;
+        ResponseParser &operator=(ResponseParser &&) = default;
+        virtual ~ResponseParser() {}
 
-    /* Http::One::Parser API */
-    virtual void clear() {*this=ResponseParser();}
-    virtual Http1::Parser::size_type firstLineSize() const;
-    virtual bool parse(const SBuf &aBuf);
+        /* Http::One::Parser API */
+        virtual void clear() { *this = ResponseParser(); }
+        virtual Http1::Parser::size_type firstLineSize() const;
+        virtual bool parse(const SBuf &aBuf);
 
-    /* respone specific fields, read-only */
-    Http::StatusCode messageStatus() const { return statusCode_;}
-    SBuf reasonPhrase() const { return reasonPhrase_;}
+        /* respone specific fields, read-only */
+        Http::StatusCode messageStatus() const { return statusCode_; }
+        SBuf reasonPhrase() const { return reasonPhrase_; }
 
-private:
-    int parseResponseFirstLine();
-    int parseResponseStatusAndReason(Tokenizer&, const CharacterSet &);
+    private:
+        int parseResponseFirstLine();
+        int parseResponseStatusAndReason(Tokenizer &, const CharacterSet &);
 
-    /// magic prefix for identifying ICY response messages
-    static const SBuf IcyMagic;
+        /// magic prefix for identifying ICY response messages
+        static const SBuf IcyMagic;
 
-    /// Whether we found the status code yet.
-    /// We cannot rely on status value because server may send "000".
-    bool completedStatus_ = false;
+        /// Whether we found the status code yet.
+        /// We cannot rely on status value because server may send "000".
+        bool completedStatus_ = false;
 
-    /// HTTP/1 status-line status code
-    Http::StatusCode statusCode_ = Http::scNone;
+        /// HTTP/1 status-line status code
+        Http::StatusCode statusCode_ = Http::scNone;
 
-    /// HTTP/1 status-line reason phrase
-    SBuf reasonPhrase_;
-};
+        /// HTTP/1 status-line reason phrase
+        SBuf reasonPhrase_;
+    };
 
-} // namespace One
-} // namespace Http
+}  // namespace One
+}  // namespace Http
 
 #endif /* _SQUID_SRC_HTTP_ONE_RESPONSEPARSER_H */
-

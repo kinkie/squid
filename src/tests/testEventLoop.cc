@@ -12,13 +12,13 @@
 
 #include "AsyncEngine.h"
 #include "EventLoop.h"
-#include "mem/forward.h"
 #include "SquidTime.h"
+#include "mem/forward.h"
 #include "stat.h"
 #include "testEventLoop.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testEventLoop );
+CPPUNIT_TEST_SUITE_REGISTRATION(testEventLoop);
 
 /* init legacy static-initialized modules */
 
@@ -53,9 +53,11 @@ class RecordDispatcher : public CompletionDispatcher
 
 public:
     int calls;
-    RecordDispatcher(): calls(0) {}
+    RecordDispatcher() :
+        calls(0) {}
 
-    bool dispatch() {
+    bool dispatch()
+    {
         ++calls;
         /* claim we dispatched calls to be useful for the testStopOnIdle test.
          */
@@ -72,9 +74,11 @@ public:
     int calls;
     int lasttimeout;
     int return_timeout;
-    RecordingEngine(int aTimeout=0): calls(0), lasttimeout(0), return_timeout(aTimeout) {}
+    RecordingEngine(int aTimeout = 0) :
+        calls(0), lasttimeout(0), return_timeout(aTimeout) {}
 
-    virtual int checkEvents(int timeout) {
+    virtual int checkEvents(int timeout)
+    {
         ++calls;
         lasttimeout = timeout;
         return return_timeout;
@@ -113,9 +117,11 @@ class ShutdownDispatcher : public CompletionDispatcher
 public:
     EventLoop &theLoop;
     int calls;
-    ShutdownDispatcher(EventLoop & theLoop):theLoop(theLoop), calls(0) {}
+    ShutdownDispatcher(EventLoop &theLoop) :
+        theLoop(theLoop), calls(0) {}
 
-    bool dispatch() {
+    bool dispatch()
+    {
         if (++calls == 2)
             theLoop.stop();
 
@@ -230,10 +236,12 @@ class StubTime : public TimeEngine
 {
 
 public:
-    StubTime() : calls(0) {}
+    StubTime() :
+        calls(0) {}
 
     int calls;
-    void tick() {
+    void tick()
+    {
         ++calls;
     }
 };
@@ -279,4 +287,3 @@ testEventLoop::testSetPrimaryEngine()
     CPPUNIT_ASSERT_EQUAL(10, first_engine.lasttimeout);
     CPPUNIT_ASSERT_EQUAL(0, second_engine.lasttimeout);
 }
-

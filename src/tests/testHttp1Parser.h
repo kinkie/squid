@@ -13,31 +13,30 @@
 
 class testHttp1Parser : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testHttp1Parser );
+    CPPUNIT_TEST_SUITE(testHttp1Parser);
     // object basics are working, just in case.
-    CPPUNIT_TEST( testParserConstruct );
-    CPPUNIT_TEST( testDripFeed );
-    CPPUNIT_TEST( testParseRequestLineMethods );
-    CPPUNIT_TEST( testParseRequestLineProtocols );
-    CPPUNIT_TEST( testParseRequestLineTerminators );
-    CPPUNIT_TEST( testParseRequestLineStrange );
-    CPPUNIT_TEST( testParseRequestLineInvalid );
+    CPPUNIT_TEST(testParserConstruct);
+    CPPUNIT_TEST(testDripFeed);
+    CPPUNIT_TEST(testParseRequestLineMethods);
+    CPPUNIT_TEST(testParseRequestLineProtocols);
+    CPPUNIT_TEST(testParseRequestLineTerminators);
+    CPPUNIT_TEST(testParseRequestLineStrange);
+    CPPUNIT_TEST(testParseRequestLineInvalid);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
-    void globalSetup(); // MemPools init etc.
+    void globalSetup();  // MemPools init etc.
 
-    void testParserConstruct(); // whether the constructor works
+    void testParserConstruct();  // whether the constructor works
 
     // request-line unit tests
-    void testParseRequestLineTerminators(); // terminator detection correct
-    void testParseRequestLineMethods();     // methoid detection correct
-    void testParseRequestLineProtocols();   // protocol tokens handled correctly
-    void testParseRequestLineStrange();     // strange but valid lines accepted
-    void testParseRequestLineInvalid();     // rejection of invalid lines happens
+    void testParseRequestLineTerminators();  // terminator detection correct
+    void testParseRequestLineMethods();      // methoid detection correct
+    void testParseRequestLineProtocols();    // protocol tokens handled correctly
+    void testParseRequestLineStrange();      // strange but valid lines accepted
+    void testParseRequestLineInvalid();      // rejection of invalid lines happens
 
-    void testDripFeed(); // test incremental parse works
+    void testDripFeed();  // test incremental parse works
 };
 
 #endif
-

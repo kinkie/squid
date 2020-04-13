@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
-#include "AccessLogEntry.h"
 #include "adaptation/ServiceFilter.h"
+#include "AccessLogEntry.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 
-Adaptation::ServiceFilter::ServiceFilter(Method aMethod, VectPoint aPoint, HttpRequest *aReq, HttpReply *aRep, AccessLogEntry::Pointer const &alp):
+Adaptation::ServiceFilter::ServiceFilter(Method aMethod, VectPoint aPoint, HttpRequest *aReq, HttpReply *aRep, AccessLogEntry::Pointer const &alp) :
     method(aMethod),
     point(aPoint),
     request(aReq),
@@ -27,7 +27,7 @@ Adaptation::ServiceFilter::ServiceFilter(Method aMethod, VectPoint aPoint, HttpR
     HTTPMSGLOCK(request);
 }
 
-Adaptation::ServiceFilter::ServiceFilter(const ServiceFilter &f):
+Adaptation::ServiceFilter::ServiceFilter(const ServiceFilter &f) :
     method(f.method),
     point(f.point),
     request(f.request),
@@ -47,7 +47,8 @@ Adaptation::ServiceFilter::~ServiceFilter()
     HTTPMSGUNLOCK(reply);
 }
 
-Adaptation::ServiceFilter &Adaptation::ServiceFilter::operator =(const ServiceFilter &f)
+Adaptation::ServiceFilter &
+Adaptation::ServiceFilter::operator=(const ServiceFilter &f)
 {
     if (this != &f) {
         method = f.method;
@@ -62,4 +63,3 @@ Adaptation::ServiceFilter &Adaptation::ServiceFilter::operator =(const ServiceFi
     }
     return *this;
 }
-

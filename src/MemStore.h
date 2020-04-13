@@ -9,15 +9,15 @@
 #ifndef SQUID_MEMSTORE_H
 #define SQUID_MEMSTORE_H
 
+#include "Store.h"
+#include "ipc/StoreMap.h"
 #include "ipc/mem/Page.h"
 #include "ipc/mem/PageStack.h"
-#include "ipc/StoreMap.h"
-#include "Store.h"
 #include "store/Controlled.h"
 
 // StoreEntry restoration info not already stored by Ipc::StoreMap
 struct MemStoreMapExtraItem {
-    Ipc::Mem::PageId page; ///< shared memory page with entry slice content
+    Ipc::Mem::PageId page;  ///< shared memory page with entry slice content
 };
 typedef Ipc::StoreMapItems<MemStoreMapExtraItem> MemStoreMapExtras;
 typedef Ipc::StoreMap MemStoreMap;
@@ -26,7 +26,7 @@ class ShmWriter;
 
 /// Stores HTTP entities in RAM. Current implementation uses shared memory.
 /// Unlike a disk store (SwapDir), operations are synchronous (and fast).
-class MemStore: public Store::Controlled, public Ipc::StoreMapCleaner
+class MemStore : public Store::Controlled, public Ipc::StoreMapCleaner
 {
 public:
     MemStore();
@@ -96,11 +96,11 @@ protected:
 
 private:
     // TODO: move freeSlots into map
-    Ipc::Mem::Pointer<Ipc::Mem::PageStack> freeSlots; ///< unused map slot IDs
-    MemStoreMap *map; ///< index of mem-cached entries
+    Ipc::Mem::Pointer<Ipc::Mem::PageStack> freeSlots;  ///< unused map slot IDs
+    MemStoreMap *map;                                  ///< index of mem-cached entries
 
     typedef MemStoreMapExtras Extras;
-    Ipc::Mem::Pointer<Extras> extras; ///< IDs of pages with slice data
+    Ipc::Mem::Pointer<Extras> extras;  ///< IDs of pages with slice data
 
     /// the last allocate slice for writing a store entry (during copyToShm)
     sfileno lastWritingSlice;
@@ -109,12 +109,13 @@ private:
     class SlotAndPage
     {
     public:
-        SlotAndPage(): slot(NULL), page(NULL) {}
-        bool operator !() const { return !slot && !page; }
-        Ipc::Mem::PageId *slot; ///< local slot variable, waiting to be filled
-        Ipc::Mem::PageId *page; ///< local page variable, waiting to be filled
+        SlotAndPage() :
+            slot(NULL), page(NULL) {}
+        bool operator!() const { return !slot && !page; }
+        Ipc::Mem::PageId *slot;  ///< local slot variable, waiting to be filled
+        Ipc::Mem::PageId *page;  ///< local page variable, waiting to be filled
     };
-    SlotAndPage waitingFor; ///< a cache for a single "hot" free slot and page
+    SlotAndPage waitingFor;  ///< a cache for a single "hot" free slot and page
 };
 
 // Why use Store as a base? MemStore and SwapDir are both "caches".
@@ -124,4 +125,3 @@ private:
 // would hurt because we can support synchronous get/put, unlike the disks.
 
 #endif /* SQUID_MEMSTORE_H */
-

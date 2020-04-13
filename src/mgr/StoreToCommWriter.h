@@ -11,21 +11,20 @@
 #ifndef SQUID_MGR_STORE_TO_COMM_WRITER_H
 #define SQUID_MGR_STORE_TO_COMM_WRITER_H
 
+#include "StoreIOBuffer.h"
 #include "base/AsyncJob.h"
 #include "comm/forward.h"
 #include "mgr/Action.h"
-#include "StoreIOBuffer.h"
 
 class store_client;
 class CommIoCbParams;
 class CommCloseCbParams;
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// manages receive-from-store, write-to-comm, receive-... sequence
 /// for the given StoreEntry and client FD
-class StoreToCommWriter: public AsyncJob
+class StoreToCommWriter : public AsyncJob
 {
     CBDATA_CLASS(StoreToCommWriter);
 
@@ -43,32 +42,31 @@ protected:
     void scheduleStoreCopy();
     /// receive some action results from the store
     void noteStoreCopied(StoreIOBuffer ioBuf);
-    static void NoteStoreCopied(void* data, StoreIOBuffer ioBuf);
+    static void NoteStoreCopied(void *data, StoreIOBuffer ioBuf);
     /// called by Store if the entry is no longer usable
-    static void Abort(void* param);
+    static void Abort(void *param);
 
     /// tell Comm to write action results
-    void scheduleCommWrite(const StoreIOBuffer& ioBuf);
+    void scheduleCommWrite(const StoreIOBuffer &ioBuf);
     /// called by Comm after the action results are written
-    void noteCommWrote(const CommIoCbParams& params);
+    void noteCommWrote(const CommIoCbParams &params);
     /// called by Comm if the client socket got closed
-    void noteCommClosed(const CommCloseCbParams& params);
+    void noteCommClosed(const CommCloseCbParams &params);
 
     /// closes the local connection to the HTTP client, if any
     void close();
 
 protected:
-    Comm::ConnectionPointer clientConnection; ///< HTTP client descriptor
+    Comm::ConnectionPointer clientConnection;  ///< HTTP client descriptor
 
-    StoreEntry* entry; ///< store entry with the cache manager response
-    store_client* sc; ///< our registration with the store
-    int64_t writeOffset; ///< number of bytes written to the client
+    StoreEntry *entry;    ///< store entry with the cache manager response
+    store_client *sc;     ///< our registration with the store
+    int64_t writeOffset;  ///< number of bytes written to the client
 
-    AsyncCall::Pointer closer; ///< comm_close handler
-    char buffer[HTTP_REQBUF_SZ]; ///< action results; Store fills, Comm writes
+    AsyncCall::Pointer closer;    ///< comm_close handler
+    char buffer[HTTP_REQBUF_SZ];  ///< action results; Store fills, Comm writes
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_STORE_TO_COMM_WRITER_H */
-

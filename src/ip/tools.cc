@@ -9,9 +9,9 @@
 /* DEBUG: section 21    Misc Functions */
 
 #include "squid.h"
+#include "ip/tools.h"
 #include "Debug.h"
 #include "ip/Address.h"
-#include "ip/tools.h"
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -43,7 +43,7 @@ Ip::ProbeTransport()
     // (AKA. the operating system supports RFC 3493 section 5.3)
 #if defined(IPV6_V6ONLY)
     int tos = 0;
-    if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &tos, sizeof(int)) == 0) {
+    if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&tos, sizeof(int)) == 0) {
         debugs(3, 2, "Detected IPv6 hybrid or v4-mapping stack...");
         EnableIpv6 |= IPV6_SPECIAL_V4MAPPING;
     } else {
@@ -60,7 +60,7 @@ Ip::ProbeTransport()
     // Test for IPv6 loopback/localhost address binding
     Ip::Address ip;
     ip.setLocalhost();
-    if (ip.isIPv6()) { // paranoid; always succeeds if we got this far
+    if (ip.isIPv6()) {  // paranoid; always succeeds if we got this far
         struct sockaddr_in6 sin;
         ip.getSockAddr(sin);
         if (bind(s, reinterpret_cast<struct sockaddr *>(&sin), sizeof(sin)) != 0) {
@@ -74,13 +74,12 @@ Ip::ProbeTransport()
     close(s);
 
 #if USE_IPV6
-    debugs(3, 2, "IPv6 transport " << (EnableIpv6?"Enabled":"Disabled"));
+    debugs(3, 2, "IPv6 transport " << (EnableIpv6 ? "Enabled" : "Disabled"));
 #else
-    debugs(3, 2, "IPv6 transport " << (EnableIpv6?"Available":"Disabled"));
+    debugs(3, 2, "IPv6 transport " << (EnableIpv6 ? "Available" : "Disabled"));
     if (EnableIpv6 != IPV6_OFF) {
         debugs(3, DBG_CRITICAL, "WARNING: BCP 177 violation. IPv6 transport forced OFF by build parameters.");
         EnableIpv6 = IPV6_OFF;
     }
 #endif
 }
-

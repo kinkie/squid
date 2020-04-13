@@ -13,14 +13,14 @@
 class HttpHeaderFieldStat
 {
 public:
-    HttpHeaderFieldStat() : aliveCount(0), seenCount(0), parsCount(0), errCount(0), repCount(0) {}
+    HttpHeaderFieldStat() :
+        aliveCount(0), seenCount(0), parsCount(0), errCount(0), repCount(0) {}
 
-    int aliveCount;     /* created but not destroyed (count) */
-    int seenCount;      /* number of fields we've seen */
-    int parsCount;      /* number of parsing attempts */
-    int errCount;       /* number of pasring errors */
-    int repCount;       /* number of repetitons */
+    int aliveCount; /* created but not destroyed (count) */
+    int seenCount;  /* number of fields we've seen */
+    int parsCount;  /* number of parsing attempts */
+    int errCount;   /* number of pasring errors */
+    int repCount;   /* number of repetitons */
 };
 
 #endif /* SQUID_HTTPHEADERFIELDSTAT_H_ */
-

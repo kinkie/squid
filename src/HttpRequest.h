@@ -9,16 +9,16 @@
 #ifndef SQUID_HTTPREQUEST_H
 #define SQUID_HTTPREQUEST_H
 
+#include "HierarchyLogEntry.h"
+#include "MasterXaction.h"
+#include "Notes.h"
+#include "RequestFlags.h"
 #include "anyp/Uri.h"
 #include "base/CbcPointer.h"
 #include "dns/forward.h"
 #include "err_type.h"
-#include "HierarchyLogEntry.h"
 #include "http/Message.h"
 #include "http/RequestMethod.h"
-#include "MasterXaction.h"
-#include "Notes.h"
-#include "RequestFlags.h"
 
 #if USE_AUTH
 #include "auth/UserRequest.h"
@@ -45,7 +45,7 @@ void httpRequestPack(void *obj, Packable *p);
 
 class HttpHdrRange;
 
-class HttpRequest: public Http::Message
+class HttpRequest : public Http::Message
 {
     MEMPROXY_CLASS(HttpRequest);
 
@@ -53,11 +53,11 @@ public:
     typedef RefCount<HttpRequest> Pointer;
 
     HttpRequest(const MasterXaction::Pointer &);
-    HttpRequest(const HttpRequestMethod& aMethod, AnyP::ProtocolType aProtocol, const char *schemeImage, const char *aUrlpath, const MasterXaction::Pointer &);
+    HttpRequest(const HttpRequestMethod &aMethod, AnyP::ProtocolType aProtocol, const char *schemeImage, const char *aUrlpath, const MasterXaction::Pointer &);
     ~HttpRequest();
     virtual void reset();
 
-    void initHTTP(const HttpRequestMethod& aMethod, AnyP::ProtocolType aProtocol, const char *schemeImage, const char *aUrlpath);
+    void initHTTP(const HttpRequestMethod &aMethod, AnyP::ProtocolType aProtocol, const char *schemeImage, const char *aUrlpath);
 
     virtual HttpRequest *clone() const;
 
@@ -66,7 +66,7 @@ public:
     /// \retval true   Possibly cacheable. Response factors will determine.
     bool maybeCacheable();
 
-    bool conditional() const; ///< has at least one recognized If-* header
+    bool conditional() const;  ///< has at least one recognized If-* header
 
     /// whether the client is likely to be able to handle a 1xx reply
     bool canHandle1xx() const;
@@ -112,14 +112,14 @@ protected:
 
 public:
     HttpRequestMethod method;
-    AnyP::Uri url; ///< the request URI
+    AnyP::Uri url;  ///< the request URI
 
 private:
 #if USE_ADAPTATION
-    mutable Adaptation::History::Pointer adaptHistory_; ///< per-HTTP transaction info
+    mutable Adaptation::History::Pointer adaptHistory_;  ///< per-HTTP transaction info
 #endif
 #if ICAP_CLIENT
-    mutable Adaptation::Icap::History::Pointer icapHistory_; ///< per-HTTP transaction info
+    mutable Adaptation::Icap::History::Pointer icapHistory_;  ///< per-HTTP transaction info
 #endif
 
 public:
@@ -156,37 +156,37 @@ public:
 
     HierarchyLogEntry hier;
 
-    int dnsWait; ///< sum of DNS lookup delays in milliseconds, for %dt
+    int dnsWait;  ///< sum of DNS lookup delays in milliseconds, for %dt
 
     err_type errType;
-    int errDetail; ///< errType-specific detail about the transaction error
+    int errDetail;  ///< errType-specific detail about the transaction error
 
-    char *peer_login;       /* Configured peer login:password */
+    char *peer_login; /* Configured peer login:password */
 
-    char *peer_host;           /* Selected peer host*/
+    char *peer_host; /* Selected peer host*/
 
-    time_t lastmod;     /* Used on refreshes */
+    time_t lastmod; /* Used on refreshes */
 
     /// The variant second-stage cache key. Generated from Vary header pattern for this request.
     SBuf vary_headers;
 
-    char *peer_domain;      /* Configured peer forceddomain */
+    char *peer_domain; /* Configured peer forceddomain */
 
-    String myportname; // Internal tag name= value from port this requests arrived in.
+    String myportname;  // Internal tag name= value from port this requests arrived in.
 
-    String tag;         /* Internal tag for this request */
+    String tag; /* Internal tag for this request */
 
-    String extacl_user;     /* User name returned by extacl lookup */
+    String extacl_user; /* User name returned by extacl lookup */
 
-    String extacl_passwd;   /* Password returned by extacl lookup */
+    String extacl_passwd; /* Password returned by extacl lookup */
 
-    String extacl_log;      /* String to be used for access.log purposes */
+    String extacl_log; /* String to be used for access.log purposes */
 
-    String extacl_message;  /* String to be used for error page purposes */
+    String extacl_message; /* String to be used for error page purposes */
 
 #if FOLLOW_X_FORWARDED_FOR
     String x_forwarded_for_iterator; /* XXX a list of IP addresses */
-#endif /* FOLLOW_X_FORWARDED_FOR */
+#endif                               /* FOLLOW_X_FORWARDED_FOR */
 
     /// A strong etag of the cached entry. Used for refreshing that entry.
     String etag;
@@ -199,22 +199,22 @@ public:
 
     bool parseFirstLine(const char *start, const char *end);
 
-    virtual bool expectingBody(const HttpRequestMethod& unused, int64_t&) const;
+    virtual bool expectingBody(const HttpRequestMethod &unused, int64_t &) const;
 
-    bool bodyNibbled() const; // the request has a [partially] consumed body
+    bool bodyNibbled() const;  // the request has a [partially] consumed body
 
     int prefixLen() const;
 
-    void swapOut(StoreEntry * e);
+    void swapOut(StoreEntry *e);
 
-    void pack(Packable * p) const;
+    void pack(Packable *p) const;
 
     static void httpRequestPack(void *obj, Packable *p);
 
-    static HttpRequest * FromUrl(const SBuf &url, const MasterXaction::Pointer &, const HttpRequestMethod &method = Http::METHOD_GET);
+    static HttpRequest *FromUrl(const SBuf &url, const MasterXaction::Pointer &, const HttpRequestMethod &method = Http::METHOD_GET);
 
     /// \deprecated use SBuf variant instead
-    static HttpRequest * FromUrlXXX(const char * url, const MasterXaction::Pointer &, const HttpRequestMethod &method = Http::METHOD_GET);
+    static HttpRequest *FromUrlXXX(const char *url, const MasterXaction::Pointer &, const HttpRequestMethod &method = Http::METHOD_GET);
 
     ConnStateData *pinnedConnection();
 
@@ -257,13 +257,14 @@ public:
     bool parseHeader(const char *buffer, const size_t size);
 
 private:
-    mutable int64_t rangeOffsetLimit;  /* caches the result of getRangeOffsetLimit */
+    mutable int64_t rangeOffsetLimit; /* caches the result of getRangeOffsetLimit */
 
     /// annotations added by the note directive and helpers
     /// and(or) by annotate_transaction/annotate_client ACLs.
     NotePairs::Pointer theNotes;
+
 protected:
-    virtual void packFirstLineInto(Packable * p, bool full_uri) const;
+    virtual void packFirstLineInto(Packable *p, bool full_uri) const;
 
     virtual bool sanityCheckStartLine(const char *buf, const size_t hdr_len, Http::StatusCode *error);
 
@@ -283,4 +284,3 @@ void UpdateRequestNotes(ConnStateData *csd, HttpRequest &request, NotePairs cons
 const Ip::Address *FindListeningPortAddress(const HttpRequest *, const AccessLogEntry *);
 
 #endif /* SQUID_HTTPREQUEST_H */
-

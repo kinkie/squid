@@ -7,14 +7,15 @@
  */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/SslErrorData.h"
+#include "acl/Checklist.h"
 #include "security/CertError.h"
 #include "ssl/ErrorDetail.h"
 
 ACLSslErrorData::ACLSslErrorData(ACLSslErrorData const &o) :
     values(o.values)
-{}
+{
+}
 
 bool
 ACLSslErrorData::match(const Security::CertErrors *toFind)
@@ -49,4 +50,3 @@ ACLSslErrorData::clone() const
 {
     return new ACLSslErrorData(*this);
 }
-

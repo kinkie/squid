@@ -7,18 +7,18 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
-#include "acl/Gadgets.h"
-#include "adaptation/AccessRule.h"
 #include "adaptation/Config.h"
-#include "adaptation/History.h"
-#include "adaptation/Service.h"
-#include "adaptation/ServiceGroups.h"
 #include "ConfigParser.h"
-#include "globals.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "Store.h"
+#include "acl/FilledChecklist.h"
+#include "acl/Gadgets.h"
+#include "adaptation/AccessRule.h"
+#include "adaptation/History.h"
+#include "adaptation/Service.h"
+#include "adaptation/ServiceGroups.h"
+#include "globals.h"
 
 #include <algorithm>
 
@@ -42,35 +42,33 @@ static const char *protectedFieldNamesRaw[] = {
     "Service-ID",
     "Transfer-Complete",
     "Transfer-Ignore",
-    "Transfer-Preview"
-};
+    "Transfer-Preview"};
 static const Notes::Keys protectedFieldNames(std::begin(protectedFieldNamesRaw), std::end(protectedFieldNamesRaw));
 Notes Adaptation::Config::metaHeaders("ICAP header", &protectedFieldNames);
 bool Adaptation::Config::needHistory = false;
 
-Adaptation::ServiceConfig*
+Adaptation::ServiceConfig *
 Adaptation::Config::newServiceConfig() const
 {
     return new ServiceConfig();
 }
 
 void
-Adaptation::Config::removeService(const String& service)
+Adaptation::Config::removeService(const String &service)
 {
     removeRule(service);
-    const Groups& groups = AllGroups();
-    for (unsigned int i = 0; i < groups.size(); ) {
+    const Groups &groups = AllGroups();
+    for (unsigned int i = 0; i < groups.size();) {
         const ServiceGroupPointer group = groups[i];
-        const ServiceGroup::Store& services = group->services;
+        const ServiceGroup::Store &services = group->services;
         typedef ServiceGroup::Store::const_iterator SGSI;
         for (SGSI it = services.begin(); it != services.end(); ++it) {
             if (*it == service) {
                 group->removedServices.push_back(service);
                 ServiceGroup::Store::iterator newend;
                 newend = std::remove(group->services.begin(), group->services.end(), service);
-                group->services.resize(newend-group->services.begin());
-                debugs(93, 5, "adaptation service " << service <<
-                       " removed from group " << group->id);
+                group->services.resize(newend - group->services.begin());
+                debugs(93, 5, "adaptation service " << service << " removed from group " << group->id);
                 break;
             }
         }
@@ -78,7 +76,7 @@ Adaptation::Config::removeService(const String& service)
             removeRule(group->id);
             Groups::iterator newend;
             newend = std::remove(AllGroups().begin(), AllGroups().end(), group);
-            AllGroups().resize(newend-AllGroups().begin());
+            AllGroups().resize(newend - AllGroups().begin());
         } else {
             ++i;
         }
@@ -89,7 +87,7 @@ Adaptation::ServiceConfigPointer
 Adaptation::Config::findServiceConfig(const String &service)
 {
     typedef ServiceConfigs::const_iterator SCI;
-    const ServiceConfigs& configs = serviceConfigs;
+    const ServiceConfigs &configs = serviceConfigs;
     for (SCI cfg = configs.begin(); cfg != configs.end(); ++cfg) {
         if ((*cfg)->key == service)
             return *cfg;
@@ -98,17 +96,17 @@ Adaptation::Config::findServiceConfig(const String &service)
 }
 
 void
-Adaptation::Config::removeRule(const String& id)
+Adaptation::Config::removeRule(const String &id)
 {
     typedef AccessRules::const_iterator ARI;
-    const AccessRules& rules = AllRules();
+    const AccessRules &rules = AllRules();
     for (ARI it = rules.begin(); it != rules.end(); ++it) {
-        AccessRule* rule = *it;
+        AccessRule *rule = *it;
         if (rule->groupId == id) {
             debugs(93, 5, "removing access rules for:" << id);
             AccessRules::iterator newend;
             newend = std::remove(AllRules().begin(), AllRules().end(), rule);
-            AllRules().resize(newend-AllRules().begin());
+            AllRules().resize(newend - AllRules().begin());
             delete (rule);
             break;
         }
@@ -118,15 +116,13 @@ Adaptation::Config::removeRule(const String& id)
 void
 Adaptation::Config::clear()
 {
-    debugs(93, 3, HERE << "rules: " << AllRules().size() << ", groups: " <<
-           AllGroups().size() << ", services: " << serviceConfigs.size());
+    debugs(93, 3, HERE << "rules: " << AllRules().size() << ", groups: " << AllGroups().size() << ", services: " << serviceConfigs.size());
     typedef ServiceConfigs::const_iterator SCI;
-    const ServiceConfigs& configs = serviceConfigs;
+    const ServiceConfigs &configs = serviceConfigs;
     for (SCI cfg = configs.begin(); cfg != configs.end(); ++cfg)
         removeService((*cfg)->key);
     serviceConfigs.clear();
-    debugs(93, 3, HERE << "rules: " << AllRules().size() << ", groups: " <<
-           AllGroups().size() << ", services: " << serviceConfigs.size());
+    debugs(93, 3, HERE << "rules: " << AllRules().size() << ", groups: " << AllGroups().size() << ", services: " << serviceConfigs.size());
 }
 
 void
@@ -194,9 +190,8 @@ Adaptation::Config::finalize()
     for (VISCI i = configs.begin(); i != configs.end(); ++i) {
         const ServiceConfigPointer cfg = *i;
         if (FindService(cfg->key) != NULL) {
-            debugs(93, DBG_CRITICAL, "ERROR: Duplicate adaptation service name: " <<
-                   cfg->key);
-            continue; // TODO: make fatal
+            debugs(93, DBG_CRITICAL, "ERROR: Duplicate adaptation service name: " << cfg->key);
+            continue;  // TODO: make fatal
         }
         ServicePointer s = createService(cfg);
         if (s != NULL) {
@@ -205,7 +200,7 @@ Adaptation::Config::finalize()
         }
     }
 
-    debugs(93,3, HERE << "Created " << created << " adaptation services");
+    debugs(93, 3, HERE << "Created " << created << " adaptation services");
 
     // services remember their configs; we do not have to
     serviceConfigs.clear();
@@ -221,7 +216,7 @@ FinalizeEach(Collection &collection, const char *label)
     for (CI i = collection.begin(); i != collection.end(); ++i)
         (*i)->finalize();
 
-    debugs(93,2, HERE << "Initialized " << collection.size() << ' ' << label);
+    debugs(93, 2, HERE << "Initialized " << collection.size() << ' ' << label);
 }
 
 void
@@ -277,7 +272,7 @@ Adaptation::Config::ParseAccess(ConfigParser &parser)
 {
     String groupId = ConfigParser::NextToken();
     AccessRule *r;
-    if (!(r=FindRuleByGroupId(groupId))) {
+    if (!(r = FindRuleByGroupId(groupId))) {
         r = new AccessRule(groupId);
         AllRules().push_back(r);
     }
@@ -308,7 +303,8 @@ Adaptation::Config::DumpAccess(StoreEntry *entry, const char *name)
 Adaptation::Config::Config() :
     onoff(0), service_failure_limit(0), oldest_service_failure(0),
     service_revival_delay(0)
-{}
+{
+}
 
 // XXX: this is called for ICAP and eCAP configs, but deals mostly
 // with global arrays shared by those individual configs
@@ -316,4 +312,3 @@ Adaptation::Config::~Config()
 {
     freeService();
 }
-

@@ -12,7 +12,8 @@
 #include "ipc/ReadWriteLock.h"
 #include "Store.h"
 
-void Ipc::AssertFlagIsSet(std::atomic_flag &flag)
+void
+Ipc::AssertFlagIsSet(std::atomic_flag &flag)
 {
     // If the flag was false, then we set it to true and assert. A true flag
     // may help keep other processes away from this broken entry.
@@ -23,8 +24,8 @@ void Ipc::AssertFlagIsSet(std::atomic_flag &flag)
 bool
 Ipc::ReadWriteLock::lockShared()
 {
-    ++readLevel; // this locks "new" writers out
-    if (!writeLevel || appending) { // nobody is writing, or sharing is OK
+    ++readLevel;                     // this locks "new" writers out
+    if (!writeLevel || appending) {  // nobody is writing, or sharing is OK
         ++readers;
         return true;
     }
@@ -35,8 +36,8 @@ Ipc::ReadWriteLock::lockShared()
 bool
 Ipc::ReadWriteLock::lockExclusive()
 {
-    if (!writeLevel++) { // we are the first writer + lock "new" readers out
-        if (!readLevel) { // no old readers and nobody is becoming one
+    if (!writeLevel++) {   // we are the first writer + lock "new" readers out
+        if (!readLevel) {  // no old readers and nobody is becoming one
             writing = true;
             return true;
         }
@@ -50,7 +51,7 @@ Ipc::ReadWriteLock::lockHeaders()
 {
     if (lockShared()) {
         if (!updating.test_and_set(std::memory_order_acquire))
-            return true; // we got here first
+            return true;  // we got here first
         // the updating lock was already set by somebody else
         unlockShared();
     }
@@ -86,7 +87,7 @@ void
 Ipc::ReadWriteLock::switchExclusiveToShared()
 {
     assert(writing);
-    ++readLevel; // must be done before we release exclusive control
+    ++readLevel;  // must be done before we release exclusive control
     ++readers;
     unlockExclusive();
 }
@@ -95,7 +96,7 @@ bool
 Ipc::ReadWriteLock::unlockSharedAndSwitchToExclusive()
 {
     assert(readers > 0);
-    if (!writeLevel++) { // we are the first writer + lock "new" readers out
+    if (!writeLevel++) {  // we are the first writer + lock "new" readers out
         assert(!appending);
         unlockShared();
         if (!readers) {
@@ -168,11 +169,8 @@ Ipc::ReadWriteLockStats::dump(StoreEntry &e) const
 }
 
 std::ostream &
-Ipc::operator <<(std::ostream &os, const Ipc::ReadWriteLock &lock)
+Ipc::operator<<(std::ostream &os, const Ipc::ReadWriteLock &lock)
 {
-    return os << lock.readers << 'R' <<
-           (lock.writing ? "W" : "") <<
-           (lock.appending ? "A" : "");
+    return os << lock.readers << 'R' << (lock.writing ? "W" : "") << (lock.appending ? "A" : "");
     // impossible to report lock.updating without setting/clearing that flag
 }
-

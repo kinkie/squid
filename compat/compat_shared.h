@@ -27,7 +27,7 @@
  * If error_notify is set by the linked program it will be used by the local
  * portability functions. Otherwise perror() will be used.
  */
-extern void (*failure_notify) (const char *);
+extern void (*failure_notify)(const char *);
 #endif
 
 /*
@@ -37,7 +37,7 @@ extern void (*failure_notify) (const char *);
 #include <sys/time.h>
 #endif
 #if HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>       /* needs sys/time.h above it */
+#include <sys/resource.h> /* needs sys/time.h above it */
 #endif
 
 /*
@@ -81,17 +81,17 @@ extern void (*failure_notify) (const char *);
  */
 #if defined(USE_SELECT) || defined(USE_SELECT_WIN32)
 /* Limited by design */
-# define SQUID_MAXFD_LIMIT    ((signed int)FD_SETSIZE)
+#define SQUID_MAXFD_LIMIT ((signed int)FD_SETSIZE)
 
 #elif defined(USE_POLL)
 /* Limited due to delay pools */
-# define SQUID_MAXFD_LIMIT    ((signed int)FD_SETSIZE)
+#define SQUID_MAXFD_LIMIT ((signed int)FD_SETSIZE)
 
 #elif defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
-# define SQUID_FDSET_NOUSE 1
+#define SQUID_FDSET_NOUSE 1
 
 #else
-# error Unknown select loop model!
+#error Unknown select loop model!
 #endif
 
 #if !HAVE_STRUCT_RUSAGE
@@ -116,9 +116,9 @@ struct rusage {
  * Squid bundles this template for when its needed.
  * May be used on any type which provides operator '<'
  */
-template<class A>
+template <class A>
 inline A const &
-min(A const & lhs, A const & rhs)
+min(A const &lhs, A const &rhs)
 {
     if (rhs < lhs)
         return rhs;
@@ -126,7 +126,7 @@ min(A const & lhs, A const & rhs)
 }
 #else /* !__cplusplus */
 /* for non-C++ we are stuck with the < and ? operator */
-#define min(a,b) ((a) < (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
 #endif /* __cplusplus */
 #endif /* min */
 
@@ -137,9 +137,9 @@ min(A const & lhs, A const & rhs)
  * Squid bundles this template for when its needed.
  * May be used on any type which provides operator '>'
  */
-template<class A>
+template <class A>
 inline A const &
-max(A const & lhs, A const & rhs)
+max(A const &lhs, A const &rhs)
 {
     if (rhs > lhs)
         return rhs;
@@ -147,14 +147,14 @@ max(A const & lhs, A const & rhs)
 }
 #else /* !__cplusplus */
 /* for non-C++ we are stuck with the < and ? operator */
-#define max(a,b) ((a) < (b) ? (b) : (a))
+#define max(a, b) ((a) < (b) ? (b) : (a))
 #endif /* __cplusplus */
 #endif /* max */
 
 /**
  * Common shared definition of what whitespace consists of for string tests
  */
-#define w_space     " \t\n\r"
+#define w_space " \t\n\r"
 
 #ifndef SQUID_NONBLOCK
 /* REQUIRED for the below logics. If they move this needs to as well */
@@ -235,14 +235,14 @@ extern "C" {
 
 #if !HAVE_MEMCPY
 #if HAVE_BCOPY
-#define memcpy(d,s,n) bcopy((s),(d),(n))
+#define memcpy(d, s, n) bcopy((s), (d), (n))
 #elif HAVE_MEMMOVE
-#define memcpy(d,s,n) memmove((d),(s),(n))
+#define memcpy(d, s, n) memmove((d), (s), (n))
 #endif
 #endif
 
 #if !HAVE_MEMMOVE && HAVE_BCOPY
-#define memmove(d,s,n) bcopy((s),(d),(n))
+#define memmove(d, s, n) bcopy((s), (d), (n))
 #endif
 
 /*
@@ -250,21 +250,21 @@ extern "C" {
  */
 #if HAVE_STRNSTR
 /* If strnstr exists and is usable we do so. */
-#define squid_strnstr(a,b,c)    strnstr(a,b,c)
+#define squid_strnstr(a, b, c) strnstr(a, b, c)
 #else
 /* If not we have our own copy imported from FreeBSD */
-const char * squid_strnstr(const char *s, const char *find, size_t slen);
+const char *squid_strnstr(const char *s, const char *find, size_t slen);
 #endif
 
 #if __GNUC__
 #if !defined(PRINTF_FORMAT_ARG1)
-#define PRINTF_FORMAT_ARG1 __attribute__ ((format (printf, 1, 2)))
+#define PRINTF_FORMAT_ARG1 __attribute__((format(printf, 1, 2)))
 #endif
 #if !defined(PRINTF_FORMAT_ARG2)
-#define PRINTF_FORMAT_ARG2 __attribute__ ((format (printf, 2, 3)))
+#define PRINTF_FORMAT_ARG2 __attribute__((format(printf, 2, 3)))
 #endif
 #if !defined(PRINTF_FORMAT_ARG3)
-#define PRINTF_FORMAT_ARG3 __attribute__ ((format (printf, 3, 4)))
+#define PRINTF_FORMAT_ARG3 __attribute__((format(printf, 3, 4)))
 #endif
 #else /* !__GNU__ */
 #define PRINTF_FORMAT_ARG1
@@ -273,4 +273,3 @@ const char * squid_strnstr(const char *s, const char *find, size_t slen);
 #endif
 
 #endif /* _SQUID_COMPAT_SHARED_H */
-

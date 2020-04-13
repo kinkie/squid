@@ -9,18 +9,18 @@
 /* DEBUG: section 33    Client-side Routines */
 
 #include "squid.h"
+#include "ssl/ServerBump.h"
+#include "FwdState.h"
+#include "Store.h"
+#include "StoreClient.h"
 #include "anyp/Uri.h"
 #include "client_side.h"
 #include "client_side_request.h"
-#include "FwdState.h"
 #include "http/Stream.h"
-#include "ssl/ServerBump.h"
-#include "Store.h"
-#include "StoreClient.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Ssl, ServerBump);
 
-Ssl::ServerBump::ServerBump(ClientHttpRequest *http, StoreEntry *e, Ssl::BumpMode md):
+Ssl::ServerBump::ServerBump(ClientHttpRequest *http, StoreEntry *e, Ssl::BumpMode md) :
     step(XactionStep::tlsBump1)
 {
     assert(http->request);
@@ -71,7 +71,6 @@ Ssl::ServerBump::sslErrors() const
     if (!serverSession)
         return NULL;
 
-    const Security::CertErrors *errs = static_cast<const Security::CertErrors*>(SSL_get_ex_data(serverSession.get(), ssl_ex_index_ssl_errors));
+    const Security::CertErrors *errs = static_cast<const Security::CertErrors *>(SSL_get_ex_data(serverSession.get(), ssl_ex_index_ssl_errors));
     return errs;
 }
-

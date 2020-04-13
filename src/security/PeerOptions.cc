@@ -7,13 +7,13 @@
  */
 
 #include "squid.h"
-#include "base/Packable.h"
+#include "security/PeerOptions.h"
 #include "Debug.h"
+#include "Parsing.h"
+#include "base/Packable.h"
 #include "fatal.h"
 #include "globals.h"
 #include "parser/Tokenizer.h"
-#include "Parsing.h"
-#include "security/PeerOptions.h"
 
 #if USE_OPENSSL
 #include "ssl/support.h"
@@ -104,7 +104,7 @@ Security::PeerOptions::dumpCfg(Packable *p, const char *pfx) const
 {
     if (!encryptTransport) {
         p->appendf(" %sdisable", pfx);
-        return; // no other settings are relevant
+        return;  // no other settings are relevant
     }
 
     for (auto &i : certs) {
@@ -175,7 +175,7 @@ Security::PeerOptions::updateTlsVersionLimits()
 #endif
 
             if (!tlsMinOptions.isEmpty())
-                add.chop(1); // remove the initial ':'
+                add.chop(1);  // remove the initial ':'
             tlsMinOptions.append(add);
             optsReparse = true;
 
@@ -221,17 +221,17 @@ Security::PeerOptions::updateTlsVersionLimits()
             add = ":-VERS-TLS1.0:-VERS-TLS1.1:-VERS-TLS1.3";
 #endif
             break;
-        default: // nothing
+        default:  // nothing
             break;
         }
         if (add) {
             if (sslOptions.isEmpty())
-                sslOptions.append(add+1, strlen(add+1));
+                sslOptions.append(add + 1, strlen(add + 1));
             else
                 sslOptions.append(add, strlen(add));
             optsReparse = true;
         }
-        sslVersion = 0; // prevent sslOptions being repeatedly appended
+        sslVersion = 0;  // prevent sslOptions being repeatedly appended
     }
 }
 
@@ -296,140 +296,87 @@ static struct ssl_option {
 } ssl_options[] = {
 
 #if SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
-    {
-        "NETSCAPE_REUSE_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
-    },
+    {"NETSCAPE_REUSE_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG},
 #endif
 #if SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
-    {
-        "SSLREF2_REUSE_CERT_TYPE_BUG", SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
-    },
+    {"SSLREF2_REUSE_CERT_TYPE_BUG", SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG},
 #endif
 #if SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
-    {
-        "MICROSOFT_BIG_SSLV3_BUFFER", SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
-    },
+    {"MICROSOFT_BIG_SSLV3_BUFFER", SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER},
 #endif
 #if SSL_OP_SSLEAY_080_CLIENT_DH_BUG
-    {
-        "SSLEAY_080_CLIENT_DH_BUG", SSL_OP_SSLEAY_080_CLIENT_DH_BUG
-    },
+    {"SSLEAY_080_CLIENT_DH_BUG", SSL_OP_SSLEAY_080_CLIENT_DH_BUG},
 #endif
 #if SSL_OP_TLS_D5_BUG
-    {
-        "TLS_D5_BUG", SSL_OP_TLS_D5_BUG
-    },
+    {"TLS_D5_BUG", SSL_OP_TLS_D5_BUG},
 #endif
 #if SSL_OP_TLS_BLOCK_PADDING_BUG
-    {
-        "TLS_BLOCK_PADDING_BUG", SSL_OP_TLS_BLOCK_PADDING_BUG
-    },
+    {"TLS_BLOCK_PADDING_BUG", SSL_OP_TLS_BLOCK_PADDING_BUG},
 #endif
 #if SSL_OP_TLS_ROLLBACK_BUG
-    {
-        "TLS_ROLLBACK_BUG", SSL_OP_TLS_ROLLBACK_BUG
-    },
+    {"TLS_ROLLBACK_BUG", SSL_OP_TLS_ROLLBACK_BUG},
 #endif
 #if SSL_OP_ALL
-    {
-        "ALL", (long)SSL_OP_ALL
-    },
+    {"ALL", (long)SSL_OP_ALL},
 #endif
 #if SSL_OP_SINGLE_DH_USE
-    {
-        "SINGLE_DH_USE", SSL_OP_SINGLE_DH_USE
-    },
+    {"SINGLE_DH_USE", SSL_OP_SINGLE_DH_USE},
 #endif
 #if SSL_OP_EPHEMERAL_RSA
-    {
-        "EPHEMERAL_RSA", SSL_OP_EPHEMERAL_RSA
-    },
+    {"EPHEMERAL_RSA", SSL_OP_EPHEMERAL_RSA},
 #endif
 #if SSL_OP_PKCS1_CHECK_1
-    {
-        "PKCS1_CHECK_1", SSL_OP_PKCS1_CHECK_1
-    },
+    {"PKCS1_CHECK_1", SSL_OP_PKCS1_CHECK_1},
 #endif
 #if SSL_OP_PKCS1_CHECK_2
-    {
-        "PKCS1_CHECK_2", SSL_OP_PKCS1_CHECK_2
-    },
+    {"PKCS1_CHECK_2", SSL_OP_PKCS1_CHECK_2},
 #endif
 #if SSL_OP_NETSCAPE_CA_DN_BUG
-    {
-        "NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG
-    },
+    {"NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG},
 #endif
 #if SSL_OP_NON_EXPORT_FIRST
-    {
-        "NON_EXPORT_FIRST", SSL_OP_NON_EXPORT_FIRST
-    },
+    {"NON_EXPORT_FIRST", SSL_OP_NON_EXPORT_FIRST},
 #endif
 #if SSL_OP_CIPHER_SERVER_PREFERENCE
-    {
-        "CIPHER_SERVER_PREFERENCE", SSL_OP_CIPHER_SERVER_PREFERENCE
-    },
+    {"CIPHER_SERVER_PREFERENCE", SSL_OP_CIPHER_SERVER_PREFERENCE},
 #endif
 #if SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
-    {
-        "NETSCAPE_DEMO_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
-    },
+    {"NETSCAPE_DEMO_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG},
 #endif
 #if SSL_OP_NO_SSLv3
-    {
-        "NO_SSLv3", SSL_OP_NO_SSLv3
-    },
+    {"NO_SSLv3", SSL_OP_NO_SSLv3},
 #endif
 #if SSL_OP_NO_TLSv1
-    {
-        "NO_TLSv1", SSL_OP_NO_TLSv1
-    },
+    {"NO_TLSv1", SSL_OP_NO_TLSv1},
 #else
-    { "NO_TLSv1", 0 },
+    {"NO_TLSv1", 0},
 #endif
 #if SSL_OP_NO_TLSv1_1
-    {
-        "NO_TLSv1_1", SSL_OP_NO_TLSv1_1
-    },
+    {"NO_TLSv1_1", SSL_OP_NO_TLSv1_1},
 #else
-    { "NO_TLSv1_1", 0 },
+    {"NO_TLSv1_1", 0},
 #endif
 #if SSL_OP_NO_TLSv1_2
-    {
-        "NO_TLSv1_2", SSL_OP_NO_TLSv1_2
-    },
+    {"NO_TLSv1_2", SSL_OP_NO_TLSv1_2},
 #else
-    { "NO_TLSv1_2", 0 },
+    {"NO_TLSv1_2", 0},
 #endif
 #if SSL_OP_NO_TLSv1_3
-    {
-        "NO_TLSv1_3", SSL_OP_NO_TLSv1_3
-    },
+    {"NO_TLSv1_3", SSL_OP_NO_TLSv1_3},
 #else
-    { "NO_TLSv1_3", 0 },
+    {"NO_TLSv1_3", 0},
 #endif
 #if SSL_OP_NO_COMPRESSION
-    {
-        "No_Compression", SSL_OP_NO_COMPRESSION
-    },
+    {"No_Compression", SSL_OP_NO_COMPRESSION},
 #endif
 #if SSL_OP_NO_TICKET
-    {
-        "NO_TICKET", SSL_OP_NO_TICKET
-    },
+    {"NO_TICKET", SSL_OP_NO_TICKET},
 #endif
 #if SSL_OP_SINGLE_ECDH_USE
-    {
-        "SINGLE_ECDH_USE", SSL_OP_SINGLE_ECDH_USE
-    },
+    {"SINGLE_ECDH_USE", SSL_OP_SINGLE_ECDH_USE},
 #endif
-    {
-        "", 0
-    },
-    {
-        NULL, 0
-    }
-};
+    {"", 0},
+    {NULL, 0}};
 #endif /* USE_OPENSSL */
 
 /**
@@ -457,13 +404,14 @@ Security::PeerOptions::parseOptions()
 
     while (!tok.atEnd()) {
         enum {
-            MODE_ADD, MODE_REMOVE
+            MODE_ADD,
+            MODE_REMOVE
         } mode;
 
         if (tok.skip('-') || tok.skip('!'))
             mode = MODE_REMOVE;
         else {
-            (void)tok.skip('+'); // default action is add. ignore if missing operator
+            (void)tok.skip('+');  // default action is add. ignore if missing operator
             mode = MODE_ADD;
         }
 
@@ -503,11 +451,10 @@ Security::PeerOptions::parseOptions()
             debugs(83, DBG_PARSE_NOTE(1), "ERROR: Unknown TLS option " << option);
         }
 
-        static const CharacterSet delims("TLS-option-delim",":,");
+        static const CharacterSet delims("TLS-option-delim", ":,");
         if (!tok.skipAll(delims) && !tok.atEnd()) {
             fatalf("Unknown TLS option '" SQUIDSBUFPH "'", SQUIDSBUFPRINT(tok.remaining()));
         }
-
     }
 
 #if SSL_OP_NO_SSLv2
@@ -530,7 +477,7 @@ Security::PeerOptions::parseOptions()
         fatalf("(%s) in TLS options '%s'", ErrorString(x), err);
     }
     parsedOptions = Security::ParsedOptions(op, [](gnutls_priority_t p) {
-        debugs(83, 5, "gnutls_priority_deinit p=" << (void*)p);
+        debugs(83, 5, "gnutls_priority_deinit p=" << (void *)p);
         gnutls_priority_deinit(p);
     });
 #endif
@@ -549,16 +496,16 @@ Security::PeerOptions::parseFlags()
         SBuf label;
         long mask;
     } flagTokens[] = {
-        { SBuf("NO_DEFAULT_CA"), SSL_FLAG_NO_DEFAULT_CA },
-        { SBuf("DELAYED_AUTH"), SSL_FLAG_DELAYED_AUTH },
-        { SBuf("DONT_VERIFY_PEER"), SSL_FLAG_DONT_VERIFY_PEER },
-        { SBuf("DONT_VERIFY_DOMAIN"), SSL_FLAG_DONT_VERIFY_DOMAIN },
-        { SBuf("NO_SESSION_REUSE"), SSL_FLAG_NO_SESSION_REUSE },
+        {SBuf("NO_DEFAULT_CA"), SSL_FLAG_NO_DEFAULT_CA},
+        {SBuf("DELAYED_AUTH"), SSL_FLAG_DELAYED_AUTH},
+        {SBuf("DONT_VERIFY_PEER"), SSL_FLAG_DONT_VERIFY_PEER},
+        {SBuf("DONT_VERIFY_DOMAIN"), SSL_FLAG_DONT_VERIFY_DOMAIN},
+        {SBuf("NO_SESSION_REUSE"), SSL_FLAG_NO_SESSION_REUSE},
 #if X509_V_FLAG_CRL_CHECK
-        { SBuf("VERIFY_CRL"), SSL_FLAG_VERIFY_CRL },
-        { SBuf("VERIFY_CRL_ALL"), SSL_FLAG_VERIFY_CRL_ALL },
+        {SBuf("VERIFY_CRL"), SSL_FLAG_VERIFY_CRL},
+        {SBuf("VERIFY_CRL_ALL"), SSL_FLAG_VERIFY_CRL_ALL},
 #endif
-        { SBuf(), 0 }
+        {SBuf(), 0}
     };
 
     ::Parser::Tokenizer tok(sslFlags);
@@ -603,7 +550,7 @@ Security::PeerOptions::loadCrlFile()
         return;
     }
 
-    while (X509_CRL *crl = PEM_read_bio_X509_CRL(in,NULL,NULL,NULL)) {
+    while (X509_CRL *crl = PEM_read_bio_X509_CRL(in, NULL, NULL, NULL)) {
         parsedCrl.emplace_back(Security::CrlPointer(crl));
     }
     BIO_free(in);
@@ -626,7 +573,7 @@ Security::PeerOptions::updateContextOptions(Security::ContextPointer &ctx)
 static int
 ssl_next_proto_cb(SSL *s, unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen, void *arg)
 {
-    static const unsigned char supported_protos[] = {8, 'h','t','t', 'p', '/', '1', '.', '1'};
+    static const unsigned char supported_protos[] = {8, 'h', 't', 't', 'p', '/', '1', '.', '1'};
     (void)SSL_select_next_proto(out, outlen, in, inlen, supported_protos, sizeof(supported_protos));
     return SSL_TLSEXT_ERR_OK;
 }
@@ -649,7 +596,7 @@ Security::PeerOptions::updateContextNpn(Security::ContextPointer &ctx)
 static const char *
 loadSystemTrustedCa(Security::ContextPointer &ctx)
 {
-    debugs(83, 8, "Setting default system Trusted CA. ctx=" << (void*)ctx.get());
+    debugs(83, 8, "Setting default system Trusted CA. ctx=" << (void *)ctx.get());
 #if USE_OPENSSL
     if (SSL_CTX_set_default_verify_paths(ctx.get()) == 0)
         return Security::ErrorString(ERR_get_error());
@@ -679,14 +626,12 @@ Security::PeerOptions::updateContextCa(Security::ContextPointer &ctx)
 #if USE_OPENSSL
         if (!SSL_CTX_load_verify_locations(ctx.get(), i.c_str(), nullptr)) {
             const auto x = ERR_get_error();
-            debugs(83, DBG_IMPORTANT, "WARNING: Ignoring error setting CA certificate location " <<
-                   i << ": " << Security::ErrorString(x));
+            debugs(83, DBG_IMPORTANT, "WARNING: Ignoring error setting CA certificate location " << i << ": " << Security::ErrorString(x));
         }
 #elif USE_GNUTLS
         const auto x = gnutls_certificate_set_x509_trust_file(ctx.get(), i.c_str(), GNUTLS_X509_FMT_PEM);
         if (x < 0) {
-            debugs(83, DBG_IMPORTANT, "WARNING: Ignoring error setting CA certificate location " <<
-                   i << ": " << Security::ErrorString(x));
+            debugs(83, DBG_IMPORTANT, "WARNING: Ignoring error setting CA certificate location " << i << ": " << Security::ErrorString(x));
         }
 #endif
     }
@@ -716,7 +661,7 @@ Security::PeerOptions::updateContextCrl(Security::ContextPointer &ctx)
 
 #if X509_V_FLAG_CRL_CHECK
     if ((parsedFlags & SSL_FLAG_VERIFY_CRL_ALL))
-        X509_STORE_set_flags(st, X509_V_FLAG_CRL_CHECK|X509_V_FLAG_CRL_CHECK_ALL);
+        X509_STORE_set_flags(st, X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
     else if (verifyCrl || (parsedFlags & SSL_FLAG_VERIFY_CRL))
         X509_STORE_set_flags(st, X509_V_FLAG_CRL_CHECK);
 #endif
@@ -732,8 +677,7 @@ Security::PeerOptions::updateContextTrust(Security::ContextPointer &ctx)
     const auto st = SSL_CTX_get_cert_store(ctx.get());
     assert(st);
     if (X509_STORE_set_flags(st, X509_V_FLAG_PARTIAL_CHAIN) != 1) {
-        debugs(83, DBG_IMPORTANT, "ERROR: Failed to enable trust in intermediate CA certificates: " <<
-               Security::ErrorString(ERR_get_error()));
+        debugs(83, DBG_IMPORTANT, "ERROR: Failed to enable trust in intermediate CA certificates: " << Security::ErrorString(ERR_get_error()));
     }
 #endif
 #elif USE_GNUTLS
@@ -773,8 +717,7 @@ Security::PeerOptions::updateSessionOptions(Security::SessionPointer &s)
 void
 parse_securePeerOptions(Security::PeerOptions *opt)
 {
-    while(const char *token = ConfigParser::NextToken())
+    while (const char *token = ConfigParser::NextToken())
         opt->parse(token);
     opt->parseOptions();
 }
-

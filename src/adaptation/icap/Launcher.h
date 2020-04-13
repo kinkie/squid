@@ -9,9 +9,9 @@
 #ifndef SQUID_ICAPLAUNCHER_H
 #define SQUID_ICAPLAUNCHER_H
 
-#include "adaptation/icap/ServiceRep.h"
 #include "adaptation/Initiate.h"
 #include "adaptation/Initiator.h"
+#include "adaptation/icap/ServiceRep.h"
 
 /*
  * The ICAP Launcher starts an ICAP transaction. If the transaction fails
@@ -33,82 +33,79 @@
  * ICAP transactions.
  */
 
-namespace Adaptation
-{
-namespace Icap
-{
+namespace Adaptation {
+namespace Icap {
 
-class Xaction;
-class XactAbortInfo;
+    class Xaction;
+    class XactAbortInfo;
 
-// Note: Initiate must be the first parent for cbdata to work. We use
-// a temporary InitaitorHolder/toCbdata hacks and do not call cbdata
-// operations on the initiator directly.
-class Launcher: public Adaptation::Initiate, public Adaptation::Initiator
-{
-public:
-    Launcher(const char *aTypeName, Adaptation::ServicePointer &aService);
-    virtual ~Launcher();
+    // Note: Initiate must be the first parent for cbdata to work. We use
+    // a temporary InitaitorHolder/toCbdata hacks and do not call cbdata
+    // operations on the initiator directly.
+    class Launcher : public Adaptation::Initiate, public Adaptation::Initiator
+    {
+    public:
+        Launcher(const char *aTypeName, Adaptation::ServicePointer &aService);
+        virtual ~Launcher();
 
-    // Adaptation::Initiate: asynchronous communication with the initiator
-    void noteInitiatorAborted();
+        // Adaptation::Initiate: asynchronous communication with the initiator
+        void noteInitiatorAborted();
 
-    // Adaptation::Initiator: asynchronous communication with the current transaction
-    virtual void noteAdaptationAnswer(const Answer &answer);
-    virtual void noteXactAbort(XactAbortInfo info);
+        // Adaptation::Initiator: asynchronous communication with the current transaction
+        virtual void noteAdaptationAnswer(const Answer &answer);
+        virtual void noteXactAbort(XactAbortInfo info);
 
-private:
-    bool canRetry(XactAbortInfo &info) const; //< true if can retry in the case of persistent connection failures
-    bool canRepeat(XactAbortInfo &info) const; //< true if can repeat in the case of no or unsatisfactory response
+    private:
+        bool canRetry(XactAbortInfo &info) const;   //< true if can retry in the case of persistent connection failures
+        bool canRepeat(XactAbortInfo &info) const;  //< true if can repeat in the case of no or unsatisfactory response
 
-protected:
-    // Adaptation::Initiate API implementation
-    virtual void start();
-    virtual bool doneAll() const;
-    virtual void swanSong();
+    protected:
+        // Adaptation::Initiate API implementation
+        virtual void start();
+        virtual bool doneAll() const;
+        virtual void swanSong();
 
-    // creates the right ICAP transaction using stored configuration params
-    virtual Xaction *createXaction() = 0;
+        // creates the right ICAP transaction using stored configuration params
+        virtual Xaction *createXaction() = 0;
 
-    void launchXaction(const char *xkind);
+        void launchXaction(const char *xkind);
 
-    Adaptation::ServicePointer theService; ///< ICAP service for all launches
-    CbcPointer<Initiate> theXaction; ///< current ICAP transaction
-    int theLaunches; // the number of transaction launches
-};
+        Adaptation::ServicePointer theService;  ///< ICAP service for all launches
+        CbcPointer<Initiate> theXaction;        ///< current ICAP transaction
+        int theLaunches;                        // the number of transaction launches
+    };
 
-/// helper class to pass information about aborted ICAP requests to
-/// the Adaptation::Icap::Launcher class
-class XactAbortInfo
-{
-public:
-    XactAbortInfo(HttpRequest *anIcapRequest, HttpReply *anIcapReply,
-                  bool beRetriable, bool beRepeatable);
-    XactAbortInfo(const XactAbortInfo &);
-    ~XactAbortInfo();
+    /// helper class to pass information about aborted ICAP requests to
+    /// the Adaptation::Icap::Launcher class
+    class XactAbortInfo
+    {
+    public:
+        XactAbortInfo(HttpRequest *anIcapRequest, HttpReply *anIcapReply,
+                      bool beRetriable, bool beRepeatable);
+        XactAbortInfo(const XactAbortInfo &);
+        ~XactAbortInfo();
 
-    std::ostream &print(std::ostream &os) const {
-        return os << isRetriable << ',' << isRepeatable;
+        std::ostream &print(std::ostream &os) const
+        {
+            return os << isRetriable << ',' << isRepeatable;
+        }
+
+        HttpRequest *icapRequest;
+        HttpReply *icapReply;
+        bool isRetriable;
+        bool isRepeatable;
+
+    private:
+        XactAbortInfo &operator=(const XactAbortInfo &);  // undefined
+    };
+
+    inline std::ostream &
+    operator<<(std::ostream &os, const XactAbortInfo &xai)
+    {
+        return xai.print(os);
     }
 
-    HttpRequest *icapRequest;
-    HttpReply *icapReply;
-    bool isRetriable;
-    bool isRepeatable;
-
-private:
-    XactAbortInfo &operator =(const XactAbortInfo &); // undefined
-};
-
-inline
-std::ostream &
-operator <<(std::ostream &os, const XactAbortInfo &xai)
-{
-    return xai.print(os);
-}
-
-} // namespace Icap
-} // namespace Adaptation
+}  // namespace Icap
+}  // namespace Adaptation
 
 #endif /* SQUID_ICAPLAUNCHER_H */
-

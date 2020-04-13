@@ -21,4 +21,3 @@ void nt_lm_owf_gen(char *pwd, char *nt_p16, char *p16);
 }
 #endif
 #endif /* _SMBLIB_SMBENCRYPT_H */
-

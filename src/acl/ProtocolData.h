@@ -22,16 +22,15 @@ class ACLProtocolData : public ACLData<AnyP::ProtocolType>
 public:
     ACLProtocolData() {}
     ACLProtocolData(ACLProtocolData const &);
-    ACLProtocolData &operator= (ACLProtocolData const &);
+    ACLProtocolData &operator=(ACLProtocolData const &);
     virtual ~ACLProtocolData();
     bool match(AnyP::ProtocolType);
     virtual SBufList dump() const;
     void parse();
-    bool empty() const {return values.empty();}
+    bool empty() const { return values.empty(); }
     virtual ACLData<AnyP::ProtocolType> *clone() const;
 
     std::list<AnyP::ProtocolType> values;
 };
 
 #endif /* SQUID_ACLPROTOCOLDATA_H */
-

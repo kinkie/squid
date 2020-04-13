@@ -15,24 +15,24 @@
 #include "adaptation/Config.h"
 #endif
 #include "CachePeer.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "err_detail_type.h"
 #include "errorpage.h"
 #include "format/Token.h"
 #include "globals.h"
 #include "hier_code.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
-#include "log/access_log.h"
 #include "log/Config.h"
 #include "log/CustomLog.h"
 #include "log/File.h"
 #include "log/Formats.h"
-#include "MemBuf.h"
+#include "log/access_log.h"
 #include "mgr/Registration.h"
 #include "rfc1738.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "Store.h"
 
 #if USE_SQUID_EUI
 #include "eui/Eui48.h"
@@ -59,8 +59,8 @@ typedef struct {
 static hash_table *via_table = NULL;
 static hash_table *forw_table = NULL;
 static void fvdbInit();
-static void fvdbDumpTable(StoreEntry * e, hash_table * hash);
-static void fvdbCount(hash_table * hash, const char *key);
+static void fvdbDumpTable(StoreEntry *e, hash_table *hash);
+static void fvdbCount(hash_table *hash, const char *key);
 static OBJH fvdbDumpVia;
 static OBJH fvdbDumpForw;
 static FREE fvdbFreeEntry;
@@ -71,7 +71,7 @@ static void fvdbRegisterWithCacheManager();
 int LogfileStatus = LOG_DISABLE;
 
 void
-accessLogLogTo(CustomLog* log, AccessLogEntry::Pointer &al, ACLChecklist * checklist)
+accessLogLogTo(CustomLog *log, AccessLogEntry::Pointer &al, ACLChecklist *checklist)
 {
 
     if (al->url.isEmpty())
@@ -141,7 +141,7 @@ accessLogLogTo(CustomLog* log, AccessLogEntry::Pointer &al, ACLChecklist * check
 }
 
 void
-accessLogLog(AccessLogEntry::Pointer &al, ACLChecklist * checklist)
+accessLogLog(AccessLogEntry::Pointer &al, ACLChecklist *checklist)
 {
     if (LogfileStatus != LOG_ENABLE)
         return;
@@ -150,22 +150,22 @@ accessLogLog(AccessLogEntry::Pointer &al, ACLChecklist * checklist)
 #if MULTICAST_MISS_STREAM
 
     if (al->cache.code != LOG_TCP_MISS)
-        (void) 0;
+        (void)0;
     else if (al->http.method != METHOD_GET)
-        (void) 0;
+        (void)0;
     else if (mcast_miss_fd < 0)
-        (void) 0;
+        (void)0;
     else {
         unsigned int ibuf[365];
         size_t isize;
-        xstrncpy((char *) ibuf, al->url.c_str(), 364 * sizeof(int));
+        xstrncpy((char *)ibuf, al->url.c_str(), 364 * sizeof(int));
         isize = ((al->url.length() + 8) / 8) * 2;
 
         if (isize > 364)
             isize = 364;
 
-        mcast_encode((unsigned int *) ibuf, isize,
-                     (const unsigned int *) Config.mcast_miss.encode_key);
+        mcast_encode((unsigned int *)ibuf, isize,
+                     (const unsigned int *)Config.mcast_miss.encode_key);
 
         comm_udp_sendto(mcast_miss_fd,
                         &mcast_miss_to, sizeof(mcast_miss_to),
@@ -231,11 +231,11 @@ HierarchyLogEntry::HierarchyLogEntry() :
     memset(host, '\0', SQUIDHOSTNAMELEN);
     memset(cd_host, '\0', SQUIDHOSTNAMELEN);
 
-    peer_select_start.tv_sec =0;
-    peer_select_start.tv_usec =0;
+    peer_select_start.tv_sec = 0;
+    peer_select_start.tv_usec = 0;
 
-    store_complete_stop.tv_sec =0;
-    store_complete_stop.tv_usec =0;
+    store_complete_stop.tv_sec = 0;
+    store_complete_stop.tv_usec = 0;
 
     clearPeerNotes();
 
@@ -302,10 +302,7 @@ HierarchyLogEntry::startPeerClock()
 void
 HierarchyLogEntry::stopPeerClock(const bool force)
 {
-    debugs(46, 5, "First connection started: " << firstConnStart_.tv_sec << "." <<
-           std::setfill('0') << std::setw(6) << firstConnStart_.tv_usec <<
-           ", current total response time value: " << (totalResponseTime_.tv_sec * 1000 +  totalResponseTime_.tv_usec/1000) <<
-           (force ? ", force fixing" : ""));
+    debugs(46, 5, "First connection started: " << firstConnStart_.tv_sec << "." << std::setfill('0') << std::setw(6) << firstConnStart_.tv_usec << ", current total response time value: " << (totalResponseTime_.tv_sec * 1000 + totalResponseTime_.tv_usec / 1000) << (force ? ", force fixing" : ""));
     if (!force && totalResponseTime_.tv_sec != -1)
         return;
 
@@ -321,12 +318,10 @@ HierarchyLogEntry::peerResponseTime(struct timeval &responseTime)
         return false;
 
     // accommodate read without (completed) write
-    const auto last_write = peer_last_write_.tv_sec > 0 ?
-                            peer_last_write_ : peer_last_read_;
+    const auto last_write = peer_last_write_.tv_sec > 0 ? peer_last_write_ : peer_last_read_;
 
     // accommodate write without (completed) read
-    const auto last_read = peer_last_read_.tv_sec > 0 ?
-                           peer_last_read_ : peer_last_write_;
+    const auto last_read = peer_last_read_.tv_sec > 0 ? peer_last_read_ : peer_last_write_;
 
     tvSub(responseTime, last_write, last_read);
     // The peer response time (%<pt) stopwatch is currently defined to start
@@ -384,13 +379,8 @@ accessLogInit(void)
         LogfileStatus = LOG_ENABLE;
 
 #if USE_ADAPTATION
-        for (Format::Token * curr_token = (log->logFormat?log->logFormat->format:NULL); curr_token; curr_token = curr_token->next) {
-            if (curr_token->type == Format::LFT_ADAPTATION_SUM_XACT_TIMES ||
-                    curr_token->type == Format::LFT_ADAPTATION_ALL_XACT_TIMES ||
-                    curr_token->type == Format::LFT_ADAPTATION_LAST_HEADER ||
-                    curr_token->type == Format::LFT_ADAPTATION_LAST_HEADER_ELEM ||
-                    curr_token->type == Format::LFT_ADAPTATION_LAST_ALL_HEADERS||
-                    (curr_token->type == Format::LFT_NOTE && !Adaptation::Config::metaHeaders.empty())) {
+        for (Format::Token *curr_token = (log->logFormat ? log->logFormat->format : NULL); curr_token; curr_token = curr_token->next) {
+            if (curr_token->type == Format::LFT_ADAPTATION_SUM_XACT_TIMES || curr_token->type == Format::LFT_ADAPTATION_ALL_XACT_TIMES || curr_token->type == Format::LFT_ADAPTATION_LAST_HEADER || curr_token->type == Format::LFT_ADAPTATION_LAST_HEADER_ELEM || curr_token->type == Format::LFT_ADAPTATION_LAST_ALL_HEADERS || (curr_token->type == Format::LFT_NOTE && !Adaptation::Config::metaHeaders.empty())) {
                 Log::TheConfig.hasAdaptToken = true;
             }
 #if ICAP_CLIENT
@@ -447,8 +437,8 @@ accessLogInit(void)
 static void
 fvdbInit(void)
 {
-    via_table = hash_create((HASHCMP *) strcmp, 977, hash4);
-    forw_table = hash_create((HASHCMP *) strcmp, 977, hash4);
+    via_table = hash_create((HASHCMP *)strcmp, 977, hash4);
+    forw_table = hash_create((HASHCMP *)strcmp, 977, hash4);
 }
 
 static void
@@ -460,7 +450,7 @@ fvdbRegisterWithCacheManager(void)
 }
 
 static void
-fvdbCount(hash_table * hash, const char *key)
+fvdbCount(hash_table *hash, const char *key)
 {
     fvdb_entry *fv;
 
@@ -470,12 +460,12 @@ fvdbCount(hash_table * hash, const char *key)
     fv = (fvdb_entry *)hash_lookup(hash, key);
 
     if (NULL == fv) {
-        fv = static_cast <fvdb_entry *>(xcalloc(1, sizeof(fvdb_entry)));
+        fv = static_cast<fvdb_entry *>(xcalloc(1, sizeof(fvdb_entry)));
         fv->hash.key = xstrdup(key);
         hash_join(hash, &fv->hash);
     }
 
-    ++ fv->n;
+    ++fv->n;
 }
 
 void
@@ -491,7 +481,7 @@ fvdbCountForw(const char *key)
 }
 
 static void
-fvdbDumpTable(StoreEntry * e, hash_table * hash)
+fvdbDumpTable(StoreEntry *e, hash_table *hash)
 {
     hash_link *h;
     fvdb_entry *fv;
@@ -502,28 +492,27 @@ fvdbDumpTable(StoreEntry * e, hash_table * hash)
     hash_first(hash);
 
     while ((h = hash_next(hash))) {
-        fv = (fvdb_entry *) h;
+        fv = (fvdb_entry *)h;
         storeAppendPrintf(e, "%9d %s\n", fv->n, hashKeyStr(&fv->hash));
     }
 }
 
 static void
-fvdbDumpVia(StoreEntry * e)
+fvdbDumpVia(StoreEntry *e)
 {
     fvdbDumpTable(e, via_table);
 }
 
 static void
-fvdbDumpForw(StoreEntry * e)
+fvdbDumpForw(StoreEntry *e)
 {
     fvdbDumpTable(e, forw_table);
 }
 
-static
-void
+static void
 fvdbFreeEntry(void *data)
 {
-    fvdb_entry *fv = static_cast <fvdb_entry *>(data);
+    fvdb_entry *fv = static_cast<fvdb_entry *>(data);
     xfree(fv->hash.key);
     xfree(fv);
 }
@@ -533,10 +522,10 @@ fvdbClear(void)
 {
     hashFreeItems(via_table, fvdbFreeEntry);
     hashFreeMemory(via_table);
-    via_table = hash_create((HASHCMP *) strcmp, 977, hash4);
+    via_table = hash_create((HASHCMP *)strcmp, 977, hash4);
     hashFreeItems(forw_table, fvdbFreeEntry);
     hashFreeMemory(forw_table);
-    forw_table = hash_create((HASHCMP *) strcmp, 977, hash4);
+    forw_table = hash_create((HASHCMP *)strcmp, 977, hash4);
 }
 
 #endif
@@ -584,12 +573,12 @@ mcast_encode(unsigned int *ibuf, size_t isize, const unsigned int *key)
 
 #if HEADERS_LOG
 void
-headersLog(int cs, int pq, const HttpRequestMethod& method, void *data)
+headersLog(int cs, int pq, const HttpRequestMethod &method, void *data)
 {
     HttpReply *rep;
     HttpRequest *req;
     unsigned short magic = 0;
-    unsigned char M = (unsigned char) m;
+    unsigned char M = (unsigned char)m;
     char *hmask;
     int ccmask = 0;
 
@@ -636,4 +625,3 @@ headersLog(int cs, int pq, const HttpRequestMethod& method, void *data)
 }
 
 #endif
-

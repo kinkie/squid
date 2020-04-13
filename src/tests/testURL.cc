@@ -10,14 +10,14 @@
 
 #include <cppunit/TestAssert.h>
 
-#include "anyp/Uri.h"
 #include "Debug.h"
+#include "anyp/Uri.h"
 #include "tests/testURL.h"
 #include "unitTestMain.h"
 
 #include <sstream>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testURL );
+CPPUNIT_TEST_SUITE_REGISTRATION(testURL);
 
 /* init memory pools */
 
@@ -60,4 +60,3 @@ testURL::testDefaultConstructor()
     CPPUNIT_ASSERT(urlPointer != NULL);
     delete urlPointer;
 }
-

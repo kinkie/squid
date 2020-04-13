@@ -17,13 +17,14 @@
 
 class testRock : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testRock );
-    CPPUNIT_TEST( testRockCreate );
-    CPPUNIT_TEST( testRockSwapOut );
+    CPPUNIT_TEST_SUITE(testRock);
+    CPPUNIT_TEST(testRockCreate);
+    CPPUNIT_TEST(testRockSwapOut);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-    testRock() : rr(NULL) {}
+    testRock() :
+        rr(NULL) {}
     virtual void setUp();
     virtual void tearDown();
 
@@ -44,4 +45,3 @@ private:
 };
 
 #endif /* SQUID_SRC_TEST_TESTROCK_H */
-

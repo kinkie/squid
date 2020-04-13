@@ -7,14 +7,14 @@
  */
 
 #include "squid.h"
+#include "acl/InnerNode.h"
+#include "ConfigParser.h"
+#include "Debug.h"
 #include "acl/Acl.h"
 #include "acl/BoolOps.h"
 #include "acl/Checklist.h"
 #include "acl/Gadgets.h"
-#include "acl/InnerNode.h"
 #include "cache_cf.h"
-#include "ConfigParser.h"
-#include "Debug.h"
 #include "globals.h"
 #include <algorithm>
 
@@ -92,7 +92,7 @@ Acl::InnerNode::match(ACLChecklist *checklist)
 bool
 Acl::InnerNode::resumeMatchingAt(ACLChecklist *checklist, Acl::Nodes::const_iterator pos) const
 {
-    debugs(28, 5, "checking " << name << " at " << (pos-nodes.begin()));
+    debugs(28, 5, "checking " << name << " at " << (pos - nodes.begin()));
     const int result = doMatch(checklist, pos);
     const char *extra = checklist->asyncInProgress() ? " async" : "";
     debugs(28, 3, "checked: " << name << " = " << result << extra);
@@ -100,4 +100,3 @@ Acl::InnerNode::resumeMatchingAt(ACLChecklist *checklist, Acl::Nodes::const_iter
     // merges async and failures (-1) into "not matched"
     return result == 1;
 }
-

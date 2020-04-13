@@ -51,9 +51,9 @@
 #include "sspwin32.h"
 #include "util.h"
 
-#include <windows.h>
-#include <sspi.h>
 #include <security.h>
+#include <sspi.h>
+#include <windows.h>
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -65,14 +65,24 @@ int Negotiate_packet_debug_enabled = 0;
 static int have_serverblob;
 
 /* A couple of harmless helper macros */
-#define SEND(X) debug("sending '%s' to squid\n",X); printf(X "\n");
+#define SEND(X)                          \
+    debug("sending '%s' to squid\n", X); \
+    printf(X "\n");
 #ifdef __GNUC__
-#define SEND2(X,Y...) debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);
-#define SEND3(X,Y...) debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);
+#define SEND2(X, Y...)                      \
+    debug("sending '" X "' to squid\n", Y); \
+    printf(X "\n", Y);
+#define SEND3(X, Y...)                      \
+    debug("sending '" X "' to squid\n", Y); \
+    printf(X "\n", Y);
 #else
 /* no gcc, no debugging. varargs macros are a gcc extension */
-#define SEND2(X,Y) debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);
-#define SEND3(X,Y,Z) debug("sending '" X "' to squid\n",Y,Z); printf(X "\n",Y,Z);
+#define SEND2(X, Y)                         \
+    debug("sending '" X "' to squid\n", Y); \
+    printf(X "\n", Y);
+#define SEND3(X, Y, Z)                         \
+    debug("sending '" X "' to squid\n", Y, Z); \
+    printf(X "\n", Y, Z);
 #endif
 
 char *negotiate_check_auth(SSP_blobP auth, int auth_length);
@@ -131,8 +141,7 @@ token_decode(size_t *decodedLen, uint8_t decoded[], const char *buf)
 {
     struct base64_decode_ctx ctx;
     base64_decode_init(&ctx);
-    if (!base64_decode_update(&ctx, decodedLen, decoded, strlen(buf), buf) ||
-            !base64_decode_final(&ctx)) {
+    if (!base64_decode_update(&ctx, decodedLen, decoded, strlen(buf), buf) || !base64_decode_final(&ctx)) {
         SEND("BH base64 decode failed");
         fprintf(stderr, "ERROR: base64 decoding failed for: '%s'\n", buf);
         return false;
@@ -158,7 +167,7 @@ manage_request()
         if (fgets(buf, HELPER_INPUT_BUFFER, stdin))
             return 0;
 
-        c = static_cast<char*>(memchr(buf, '\n', HELPER_INPUT_BUFFER));
+        c = static_cast<char *>(memchr(buf, '\n', HELPER_INPUT_BUFFER));
         if (c) {
             if (oversized) {
                 SEND("BH illegal request received");
@@ -173,28 +182,28 @@ manage_request()
     } while (!c);
 
     if ((strlen(buf) > 3) && Negotiate_packet_debug_enabled) {
-        if (!token_decode(&decodedLen, decoded, buf+3))
+        if (!token_decode(&decodedLen, decoded, buf + 3))
             return 1;
         strncpy(helper_command, buf, 2);
         debug("Got '%s' from Squid with data:\n", helper_command);
-        hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+        hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
     } else
         debug("Got '%s' from Squid\n", buf);
 
-    if (memcmp(buf, "YR ", 3) == 0) {   /* refresh-request */
+    if (memcmp(buf, "YR ", 3) == 0) { /* refresh-request */
         /* figure out what we got */
-        if (!decodedLen /* already decoded */ && !token_decode(&decodedLen, decoded, buf+3))
+        if (!decodedLen /* already decoded */ && !token_decode(&decodedLen, decoded, buf + 3))
             return 1;
-        if (decodedLen < sizeof(ntlmhdr)) {     /* decoding failure, return error */
+        if (decodedLen < sizeof(ntlmhdr)) { /* decoding failure, return error */
             SEND("NA * Packet format error");
             return 1;
         }
         /* Obtain server blob against SSPI */
-        c = (char *) SSP_MakeNegotiateBlob(decoded, decodedLen, &Done, &status, cred);
+        c = (char *)SSP_MakeNegotiateBlob(decoded, decodedLen, &Done, &status, cred);
 
         if (status == SSP_OK) {
             if (Done) {
-                lc(cred);   /* let's lowercase them for our convenience */
+                lc(cred); /* let's lowercase them for our convenience */
                 have_serverblob = 0;
                 Done = FALSE;
                 if (Negotiate_packet_debug_enabled) {
@@ -202,7 +211,7 @@ manage_request()
                         return 1;
                     debug("sending 'AF' %s to squid with data:\n", cred);
                     if (c != NULL)
-                        hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+                        hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
                     else
                         fprintf(stderr, "No data available.\n");
                     printf("AF %s %s\n", c, cred);
@@ -213,7 +222,7 @@ manage_request()
                     if (!token_decode(&decodedLen, decoded, c))
                         return 1;
                     debug("sending 'TT' to squid with data:\n");
-                    hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+                    hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
                     printf("TT %s\n", c);
                 } else {
                     SEND2("TT %s", c);
@@ -224,28 +233,27 @@ manage_request()
             SEND("BH can't obtain server blob");
         return 1;
     }
-    if (memcmp(buf, "KK ", 3) == 0) {   /* authenticate-request */
+    if (memcmp(buf, "KK ", 3) == 0) { /* authenticate-request */
         if (!have_serverblob) {
             SEND("BH invalid server blob");
             return 1;
         }
         /* figure out what we got */
-        if (!decodedLen /* already decoded */ && !token_decode(&decodedLen, decoded, buf+3))
+        if (!decodedLen /* already decoded */ && !token_decode(&decodedLen, decoded, buf + 3))
             return 1;
-        if (decodedLen < sizeof(ntlmhdr)) {     /* decoding failure, return error */
+        if (decodedLen < sizeof(ntlmhdr)) { /* decoding failure, return error */
             SEND("NA * Packet format error");
             return 1;
         }
         /* check against SSPI */
-        c = (char *) SSP_ValidateNegotiateCredentials(decoded, decodedLen, &Done, &status, cred);
+        c = (char *)SSP_ValidateNegotiateCredentials(decoded, decodedLen, &Done, &status, cred);
 
         if (status == SSP_ERROR) {
-            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                          FORMAT_MESSAGE_IGNORE_INSERTS,
+            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                           NULL,
                           GetLastError(),
-                          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),    /* Default language */
-                          (LPTSTR) & ErrorMessage,
+                          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+                          (LPTSTR)&ErrorMessage,
                           0,
                           NULL);
             if (ErrorMessage[strlen(ErrorMessage) - 1] == '\n')
@@ -257,7 +265,7 @@ manage_request()
             return 1;
         }
         if (Done) {
-            lc(cred);       /* let's lowercase them for our convenience */
+            lc(cred); /* let's lowercase them for our convenience */
             have_serverblob = 0;
             Done = FALSE;
             if (Negotiate_packet_debug_enabled) {
@@ -265,7 +273,7 @@ manage_request()
                     return 1;
                 debug("sending 'AF' %s to squid with data:\n", cred);
                 if (c != NULL)
-                    hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+                    hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
                 else
                     fprintf(stderr, "No data available.\n");
                 printf("AF %s %s\n", c, cred);
@@ -278,14 +286,14 @@ manage_request()
                 if (!token_decode(&decodedLen, decoded, c))
                     return 1;
                 debug("sending 'TT' to squid with data:\n");
-                hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+                hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
                 printf("TT %s\n", c);
             } else
                 SEND2("TT %s", c);
             return 1;
         }
 
-    } else {            /* not an auth-request */
+    } else { /* not an auth-request */
         SEND("BH illegal request received");
         fprintf(stderr, "Illegal request received: '%s'\n", buf);
         return 1;
@@ -321,4 +329,3 @@ main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
-

@@ -27,8 +27,7 @@
 #endif
 #include <string>
 
-namespace Ssl
-{
+namespace Ssl {
 /**
  \defgroup SslCrtdSslAPI SSL certificate generator API
  These functions must not depend on Squid runtime code such as debug()
@@ -45,66 +44,66 @@ namespace Ssl
 sk_dtor_wrapper(sk_X509, STACK_OF(X509) *, X509_free);
 typedef std::unique_ptr<STACK_OF(X509), sk_X509_free_wrapper> X509_STACK_Pointer;
 
-typedef std::unique_ptr<BIGNUM, HardFun<void, BIGNUM*, &BN_free>> BIGNUM_Pointer;
+typedef std::unique_ptr<BIGNUM, HardFun<void, BIGNUM *, &BN_free>> BIGNUM_Pointer;
 
-typedef std::unique_ptr<BIO, HardFun<void, BIO*, &BIO_vfree>> BIO_Pointer;
+typedef std::unique_ptr<BIO, HardFun<void, BIO *, &BIO_vfree>> BIO_Pointer;
 
-typedef std::unique_ptr<ASN1_INTEGER, HardFun<void, ASN1_INTEGER*, &ASN1_INTEGER_free>> ASN1_INT_Pointer;
+typedef std::unique_ptr<ASN1_INTEGER, HardFun<void, ASN1_INTEGER *, &ASN1_INTEGER_free>> ASN1_INT_Pointer;
 
-typedef std::unique_ptr<ASN1_OCTET_STRING, HardFun<void, ASN1_OCTET_STRING*, &ASN1_OCTET_STRING_free>> ASN1_OCTET_STRING_Pointer;
+typedef std::unique_ptr<ASN1_OCTET_STRING, HardFun<void, ASN1_OCTET_STRING *, &ASN1_OCTET_STRING_free>> ASN1_OCTET_STRING_Pointer;
 
-typedef std::unique_ptr<TXT_DB, HardFun<void, TXT_DB*, &TXT_DB_free>> TXT_DB_Pointer;
+typedef std::unique_ptr<TXT_DB, HardFun<void, TXT_DB *, &TXT_DB_free>> TXT_DB_Pointer;
 
-typedef std::unique_ptr<X509_NAME, HardFun<void, X509_NAME*, &X509_NAME_free>> X509_NAME_Pointer;
+typedef std::unique_ptr<X509_NAME, HardFun<void, X509_NAME *, &X509_NAME_free>> X509_NAME_Pointer;
 
-typedef std::unique_ptr<RSA, HardFun<void, RSA*, &RSA_free>> RSA_Pointer;
+typedef std::unique_ptr<RSA, HardFun<void, RSA *, &RSA_free>> RSA_Pointer;
 
-typedef std::unique_ptr<X509_REQ, HardFun<void, X509_REQ*, &X509_REQ_free>> X509_REQ_Pointer;
+typedef std::unique_ptr<X509_REQ, HardFun<void, X509_REQ *, &X509_REQ_free>> X509_REQ_Pointer;
 
-typedef std::unique_ptr<AUTHORITY_KEYID, HardFun<void, AUTHORITY_KEYID*, &AUTHORITY_KEYID_free>> AUTHORITY_KEYID_Pointer;
+typedef std::unique_ptr<AUTHORITY_KEYID, HardFun<void, AUTHORITY_KEYID *, &AUTHORITY_KEYID_free>> AUTHORITY_KEYID_Pointer;
 
 sk_dtor_wrapper(sk_GENERAL_NAME, STACK_OF(GENERAL_NAME) *, GENERAL_NAME_free);
 typedef std::unique_ptr<STACK_OF(GENERAL_NAME), sk_GENERAL_NAME_free_wrapper> GENERAL_NAME_STACK_Pointer;
 
-typedef std::unique_ptr<GENERAL_NAME, HardFun<void, GENERAL_NAME*, &GENERAL_NAME_free>> GENERAL_NAME_Pointer;
+typedef std::unique_ptr<GENERAL_NAME, HardFun<void, GENERAL_NAME *, &GENERAL_NAME_free>> GENERAL_NAME_Pointer;
 
-typedef std::unique_ptr<X509_EXTENSION, HardFun<void, X509_EXTENSION*, &X509_EXTENSION_free>> X509_EXTENSION_Pointer;
+typedef std::unique_ptr<X509_EXTENSION, HardFun<void, X509_EXTENSION *, &X509_EXTENSION_free>> X509_EXTENSION_Pointer;
 
 /**
  \ingroup SslCrtdSslAPI
  * Create 1024 bits rsa key.
  */
-EVP_PKEY * createSslPrivateKey();
+EVP_PKEY *createSslPrivateKey();
 
 /**
  \ingroup SslCrtdSslAPI
  * Write private key and SSL certificate to memory.
  */
-bool writeCertAndPrivateKeyToMemory(Security::CertPointer const & cert, Security::PrivateKeyPointer const & pkey, std::string & bufferToWrite);
+bool writeCertAndPrivateKeyToMemory(Security::CertPointer const &cert, Security::PrivateKeyPointer const &pkey, std::string &bufferToWrite);
 
 /**
  \ingroup SslCrtdSslAPI
  * Append SSL certificate to bufferToWrite.
  */
-bool appendCertToMemory(Security::CertPointer const & cert, std::string & bufferToWrite);
+bool appendCertToMemory(Security::CertPointer const &cert, std::string &bufferToWrite);
 
 /**
  \ingroup SslCrtdSslAPI
  * Write private key and SSL certificate to memory.
  */
-bool readCertAndPrivateKeyFromMemory(Security::CertPointer & cert, Security::PrivateKeyPointer & pkey, char const * bufferToRead);
+bool readCertAndPrivateKeyFromMemory(Security::CertPointer &cert, Security::PrivateKeyPointer &pkey, char const *bufferToRead);
 
 /**
  \ingroup SslCrtdSslAPI
  * Read SSL certificate from memory.
  */
-bool readCertFromMemory(Security::CertPointer & cert, char const * bufferToRead);
+bool readCertFromMemory(Security::CertPointer &cert, char const *bufferToRead);
 
 /**
  \ingroup SslCrtdSslAPI
  * Read private key from file.
  */
-void ReadPrivateKeyFromFile(char const * keyFilename, Security::PrivateKeyPointer &pkey, pem_password_cb *passwd_callback);
+void ReadPrivateKeyFromFile(char const *keyFilename, Security::PrivateKeyPointer &pkey, pem_password_cb *passwd_callback);
 
 /**
  \ingroup SslCrtdSslAPI
@@ -116,7 +115,7 @@ bool OpenCertsFileForReading(BIO_Pointer &bio, const char *filename);
  \ingroup SslCrtdSslAPI
  * Read a certificate from bio
  */
-bool ReadX509Certificate(BIO_Pointer &bio, Security::CertPointer & cert);
+bool ReadX509Certificate(BIO_Pointer &bio, Security::CertPointer &cert);
 
 /**
  \ingroup SslCrtdSslAPI
@@ -135,7 +134,7 @@ bool OpenCertsFileForWriting(BIO_Pointer &bio, const char *filename);
  \ingroup SslCrtdSslAPI
  * Write certificate to BIO.
  */
-bool WriteX509Certificate(BIO_Pointer &bio, const Security::CertPointer & cert);
+bool WriteX509Certificate(BIO_Pointer &bio, const Security::CertPointer &cert);
 
 /**
  \ingroup SslCrtdSslAPI
@@ -147,7 +146,10 @@ bool WritePrivateKey(BIO_Pointer &bio, const Security::PrivateKeyPointer &pkey);
   \ingroup SslCrtdSslAPI
  * Supported certificate signing algorithms
  */
-enum CertSignAlgorithm {algSignTrusted = 0, algSignUntrusted, algSignSelf, algSignEnd};
+enum CertSignAlgorithm { algSignTrusted = 0,
+                         algSignUntrusted,
+                         algSignSelf,
+                         algSignEnd };
 
 /**
  \ingroup SslCrtdSslAPI
@@ -160,9 +162,10 @@ extern const char *CertSignAlgorithmStr[];
  \ingroup SslCrtdSslAPI
  * Return the short name of the signing algorithm "sg"
  */
-inline const char *certSignAlgorithm(int sg)
+inline const char *
+certSignAlgorithm(int sg)
 {
-    if (sg >=0 && sg < Ssl::algSignEnd)
+    if (sg >= 0 && sg < Ssl::algSignEnd)
         return Ssl::CertSignAlgorithmStr[sg];
 
     return NULL;
@@ -172,7 +175,8 @@ inline const char *certSignAlgorithm(int sg)
  \ingroup SslCrtdSslAPI
  * Return the id of the signing algorithm "sg"
  */
-inline CertSignAlgorithm certSignAlgorithmId(const char *sg)
+inline CertSignAlgorithm
+certSignAlgorithmId(const char *sg)
 {
     for (int i = 0; i < algSignEnd && Ssl::CertSignAlgorithmStr[i] != NULL; i++)
         if (strcmp(Ssl::CertSignAlgorithmStr[i], sg) == 0)
@@ -185,7 +189,10 @@ inline CertSignAlgorithm certSignAlgorithmId(const char *sg)
  \ingroup SslCrtdSslAPI
  * Supported certificate adaptation algorithms
  */
-enum CertAdaptAlgorithm {algSetValidAfter = 0, algSetValidBefore, algSetCommonName, algSetEnd};
+enum CertAdaptAlgorithm { algSetValidAfter = 0,
+                          algSetValidBefore,
+                          algSetCommonName,
+                          algSetEnd };
 
 /**
  \ingroup SslCrtdSslAPI
@@ -197,9 +204,10 @@ extern const char *CertAdaptAlgorithmStr[];
  \ingroup SslCrtdSslAPI
  * Return the short name of the adaptation algorithm "alg"
  */
-inline const char *sslCertAdaptAlgoritm(int alg)
+inline const char *
+sslCertAdaptAlgoritm(int alg)
 {
-    if (alg >=0 && alg < Ssl::algSetEnd)
+    if (alg >= 0 && alg < Ssl::algSetEnd)
         return Ssl::CertAdaptAlgorithmStr[alg];
 
     return NULL;
@@ -213,23 +221,23 @@ class CertificateProperties
 {
 public:
     CertificateProperties();
-    Security::CertPointer mimicCert; ///< Certificate to mimic
-    Security::CertPointer signWithX509; ///< Certificate to sign the generated request
-    Security::PrivateKeyPointer signWithPkey; ///< The key of the signing certificate
-    bool setValidAfter; ///< Do not mimic "Not Valid After" field
-    bool setValidBefore; ///< Do not mimic "Not Valid Before" field
-    bool setCommonName; ///< Replace the CN field of the mimicking subject with the given
-    std::string commonName; ///< A CN to use for the generated certificate
-    CertSignAlgorithm signAlgorithm; ///< The signing algorithm to use
-    const EVP_MD *signHash; ///< The signing hash to use
+    Security::CertPointer mimicCert;           ///< Certificate to mimic
+    Security::CertPointer signWithX509;        ///< Certificate to sign the generated request
+    Security::PrivateKeyPointer signWithPkey;  ///< The key of the signing certificate
+    bool setValidAfter;                        ///< Do not mimic "Not Valid After" field
+    bool setValidBefore;                       ///< Do not mimic "Not Valid Before" field
+    bool setCommonName;                        ///< Replace the CN field of the mimicking subject with the given
+    std::string commonName;                    ///< A CN to use for the generated certificate
+    CertSignAlgorithm signAlgorithm;           ///< The signing algorithm to use
+    const EVP_MD *signHash;                    ///< The signing hash to use
 private:
     CertificateProperties(CertificateProperties &);
-    CertificateProperties &operator =(CertificateProperties const &);
+    CertificateProperties &operator=(CertificateProperties const &);
 };
 
 /// \ingroup SslCrtdSslAPI
 /// \returns certificate database key
-std::string & OnDiskCertificateDbKey(const CertificateProperties &);
+std::string &OnDiskCertificateDbKey(const CertificateProperties &);
 
 /**
  \ingroup SslCrtdSslAPI
@@ -238,14 +246,14 @@ std::string & OnDiskCertificateDbKey(const CertificateProperties &);
  * Return generated certificate and private key in resultX509 and resultPkey
  * variables.
  */
-bool generateSslCertificate(Security::CertPointer & cert, Security::PrivateKeyPointer & pkey, CertificateProperties const &properties);
+bool generateSslCertificate(Security::CertPointer &cert, Security::PrivateKeyPointer &pkey, CertificateProperties const &properties);
 
 /**
  \ingroup SslCrtdSslAPI
  * Verify date. Date format it ASN1_UTCTIME. if there is out of date error,
  * return false.
 */
-bool sslDateIsInTheFuture(char const * date);
+bool sslDateIsInTheFuture(char const *date);
 
 /**
  \ingroup SslCrtdSslAPI
@@ -277,6 +285,5 @@ bool CertificatesCmp(const Security::CertPointer &cert1, const Security::CertPoi
 /// portability issues with older OpenSSL versions
 const ASN1_BIT_STRING *X509_get_signature(const Security::CertPointer &);
 
-} // namespace Ssl
-#endif // SQUID_SSL_GADGETS_H
-
+}  // namespace Ssl
+#endif  // SQUID_SSL_GADGETS_H

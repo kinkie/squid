@@ -61,7 +61,7 @@ int log_enabled = 0;
 /* under gcc a macro define in compat/debug.h is used instead */
 
 void
-log(char *format,...)
+log(char *format, ...)
 {
     if (!log_enabled)
         return;
@@ -72,7 +72,7 @@ log(char *format,...)
 }
 
 void
-error(char *format,...)
+error(char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -81,7 +81,7 @@ error(char *format,...)
 }
 
 void
-warn(char *format,...)
+warn(char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -91,4 +91,3 @@ warn(char *format,...)
 
 #endif /* __GNUC__ */
 #endif
-

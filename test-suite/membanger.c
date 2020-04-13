@@ -78,9 +78,9 @@ memitem *mi;
 void size2id(size_t, memitem *);
 void badformat();
 void init_stats(), print_stats();
-void my_hash_insert(hash_table * h, const char *k, memitem * item);
-static void *xmemAlloc(memitem * item);
-static void xmemFree(memitem * item);
+void my_hash_insert(hash_table *h, const char *k, memitem *item);
+static void *xmemAlloc(memitem *item);
+static void xmemFree(memitem *item);
 
 int
 ptrcmp(const void *a, const void *b)
@@ -123,7 +123,6 @@ main(int argc, char **argv)
                     "Usage: %s -f file -M maxsiz -i initsiz -m minchunk", argv[0]);
             exit(1);
         }
-
     }
     if (!fp) {
         fprintf(stderr,
@@ -134,14 +133,14 @@ main(int argc, char **argv)
 #ifdef WITH_LIB
     sizeToPoolInit();
 #endif
-    mem_table = hash_create(ptrcmp, 229, hash4);    /* small hash table */
+    mem_table = hash_create(ptrcmp, 229, hash4); /* small hash table */
     init_stats();
     while (fgets(mbuf, 256, fp) != NULL) {
         if (run_stats > 0 && (++a) % run_stats == 0)
             print_stats();
         p = NULL;
         switch (mbuf[0]) {
-        case 'm':       /* malloc */
+        case 'm': /* malloc */
             p = strtok(&mbuf[2], ":");
             if (!p)
                 badformat();
@@ -153,12 +152,12 @@ main(int argc, char **argv)
             strcpy(mi->orig_ptr, p);
             mi->size = size;
             size2id(size, mi);
-            mi->my_ptr = xmemAlloc(mi);     /* (void *)xmalloc(size); */
+            mi->my_ptr = xmemAlloc(mi); /* (void *)xmalloc(size); */
             assert(mi->my_ptr);
             my_hash_insert(mem_table, mi->orig_ptr, mi);
             mstat.mallocs++;
             break;
-        case 'c':       /* calloc */
+        case 'c': /* calloc */
             p = strtok(&mbuf[2], ":");
             if (!p)
                 badformat();
@@ -174,7 +173,7 @@ main(int argc, char **argv)
             strcpy(mi->orig_ptr, p);
             size2id(size, mi);
             mi->size = amt * size;
-            mi->my_ptr = xmemAlloc(mi);     /*(void *)xmalloc(amt*size); */
+            mi->my_ptr = xmemAlloc(mi); /*(void *)xmalloc(amt*size); */
             assert(mi->my_ptr);
             my_hash_insert(mem_table, mi->orig_ptr, mi);
             mstat.callocs++;
@@ -192,16 +191,16 @@ main(int argc, char **argv)
                 fprintf(stderr, "invalid realloc (%s)!\n", p);
                 break;
             }
-            mi = (memitem *) (mem_entry->item);
+            mi = (memitem *)(mem_entry->item);
             assert(mi->pool);
             assert(mi->my_ptr);
-            xmemFree(mi);   /* xfree(mi->my_ptr); */
-            size2id(atoi(p), mi);   /* we don't need it here I guess? */
+            xmemFree(mi);         /* xfree(mi->my_ptr); */
+            size2id(atoi(p), mi); /* we don't need it here I guess? */
             strcpy(mi->orig_ptr, abuf);
             p = strtok(NULL, "\n");
             if (!p)
                 badformat();
-            mi->my_ptr = xmemAlloc(mi);     /* (char *)xmalloc(atoi(p)); */
+            mi->my_ptr = xmemAlloc(mi); /* (char *)xmalloc(atoi(p)); */
             assert(mi->my_ptr);
             mstat.reallocs++;
             break;
@@ -213,10 +212,10 @@ main(int argc, char **argv)
                     fprintf(stderr, "invalid free (%s) at line %d!\n", p, a);
                 break;
             }
-            mi = (memitem *) (mem_entry->item);
+            mi = (memitem *)(mem_entry->item);
             assert(mi->pool);
             assert(mi->my_ptr);
-            xmemFree(mi);   /* xfree(mi->my_ptr); */
+            xmemFree(mi); /* xfree(mi->my_ptr); */
             hash_unlink(mem_table, mem_entry, 1);
             free(mi);
             mstat.frees++;
@@ -225,7 +224,6 @@ main(int argc, char **argv)
             fprintf(stderr, "%s pummels %s.bad.format\n", argv[0], fn);
             exit(1);
         }
-
     }
     fclose(fp);
     print_stats();
@@ -251,7 +249,6 @@ my_xfree(void *p)
 void
 init_stats()
 {
-
 }
 
 void
@@ -266,16 +263,16 @@ print_stats()
 #if 0
     printf("types                 : %d\n", size2id_len);
 #endif
-    printf("user time used        : %d.%d\n", (int) myusage.ru_utime.tv_sec,
-           (int) myusage.ru_utime.tv_usec);
-    printf("system time used      : %d.%d\n", (int) myusage.ru_stime.tv_sec,
-           (int) myusage.ru_stime.tv_usec);
-    printf("max resident set size : %d\n", (int) myusage.ru_maxrss);
-    printf("page faults           : %d\n", (int) myusage.ru_majflt);
+    printf("user time used        : %d.%d\n", (int)myusage.ru_utime.tv_sec,
+           (int)myusage.ru_utime.tv_usec);
+    printf("system time used      : %d.%d\n", (int)myusage.ru_stime.tv_sec,
+           (int)myusage.ru_stime.tv_usec);
+    printf("max resident set size : %d\n", (int)myusage.ru_maxrss);
+    printf("page faults           : %d\n", (int)myusage.ru_majflt);
 }
 
 void
-size2id(size_t sz, memitem * mi)
+size2id(size_t sz, memitem *mi)
 {
 #ifdef WITH_LIB
     mi->pool = sizeToPool(sz);
@@ -295,13 +292,13 @@ badformat()
 const char *
 make_nam(int id, int size)
 {
-    const char *buf = malloc(30);   /* argh */
-    snprintf((char *)buf, sizeof(buf)-1, "pl:%d/%d", id, size);
+    const char *buf = malloc(30); /* argh */
+    snprintf((char *)buf, sizeof(buf) - 1, "pl:%d/%d", id, size);
     return buf;
 }
 
 void
-my_hash_insert(hash_table * h, const char *k, memitem * item)
+my_hash_insert(hash_table *h, const char *k, memitem *item)
 {
     memitem *l;
     assert(item->pool);
@@ -310,7 +307,7 @@ my_hash_insert(hash_table * h, const char *k, memitem * item)
 }
 
 static void *
-xmemAlloc(memitem * item)
+xmemAlloc(memitem *item)
 {
     extern MemPool *StringPool;
     assert(item && item->pool);
@@ -321,7 +318,7 @@ xmemAlloc(memitem * item)
 }
 
 static void
-xmemFree(memitem * item)
+xmemFree(memitem *item)
 {
     extern MemPool *StringPool;
     assert(item && item->pool);
@@ -342,4 +339,3 @@ my_free(char *file, int line, void *ptr)
     fprintf(stderr, "}\n");
 #endif
 }
-

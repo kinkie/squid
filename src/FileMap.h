@@ -57,15 +57,16 @@ public:
     sfileno allocate(sfileno suggestion);
 
     /// return the max number of slots in the FileMap
-    int capacity() const {return capacity_;}
+    int capacity() const { return capacity_; }
 
     /// return the number of used slots in the FileMap
-    int numFilesInMap() const {return usedSlots_;}
+    int numFilesInMap() const { return usedSlots_; }
+
 private:
     /// grow the FileMap (size is doubled each time, up to 2^24 bits)
     void grow();
-    FileMap(const FileMap &); //no copying
-    FileMap& operator=(const FileMap &); //no assignments
+    FileMap(const FileMap &);             //no copying
+    FileMap &operator=(const FileMap &);  //no assignments
 
     /// max number of files which can be tracked in the current store
     sfileno capacity_;
@@ -77,4 +78,3 @@ private:
 };
 
 #endif /* FILEMAP_H_ */
-

@@ -14,9 +14,9 @@
 #elif defined(NODEBUG)
 #define assert(EX) ((void)0)
 #elif STDC_HEADERS
-#define assert(EX)  ((EX)?((void)0):xassert( # EX , __FILE__, __LINE__))
+#define assert(EX) ((EX) ? ((void)0) : xassert(#EX, __FILE__, __LINE__))
 #else
-#define assert(EX)  ((EX)?((void)0):xassert("EX", __FILE__, __LINE__))
+#define assert(EX) ((EX) ? ((void)0) : xassert("EX", __FILE__, __LINE__))
 #endif
 
 #ifdef __cplusplus
@@ -27,4 +27,3 @@ extern void
 xassert(const char *, const char *, int);
 
 #endif /* SQUID_ASSERT_H */
-

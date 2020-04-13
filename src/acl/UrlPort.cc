@@ -7,13 +7,12 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/UrlPort.h"
 #include "HttpRequest.h"
+#include "acl/FilledChecklist.h"
 
 int
-ACLUrlPortStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLUrlPortStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     return data->match(checklist->request->url.port());
 }
-

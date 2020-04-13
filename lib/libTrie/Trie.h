@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef   LIBTRIE_SQUID_H
-#define   LIBTRIE_SQUID_H
+#ifndef LIBTRIE_SQUID_H
+#define LIBTRIE_SQUID_H
 
 #include "TrieNode.h"
 #if HAVE_SYS_TYPES_H
@@ -26,18 +26,18 @@ class Trie
 public:
     Trie(TrieCharTransform *aTransform = 0);
     ~Trie();
-    Trie (Trie const &);
-    Trie &operator= (Trie const &);
+    Trie(Trie const &);
+    Trie &operator=(Trie const &);
 
     /* Find an exact match in the trie.
     * If found, return the private data.
     * If not found, return NULL.
     */
-    inline void *find (char const *, size_t);
+    inline void *find(char const *, size_t);
     /* find any element of the trie in the buffer from the
     * beginning thereof
     */
-    inline void *findPrefix (char const *, size_t);
+    inline void *findPrefix(char const *, size_t);
 
     /* Add a string.
     * returns false if the string is already
@@ -54,22 +54,21 @@ private:
 };
 
 void *
-Trie::find (char const *aString, size_t theLength)
+Trie::find(char const *aString, size_t theLength)
 {
     if (head)
-        return head->find (aString, theLength, transform, false);
+        return head->find(aString, theLength, transform, false);
 
     return NULL;
 }
 
 void *
-Trie::findPrefix (char const *aString, size_t theLength)
+Trie::findPrefix(char const *aString, size_t theLength)
 {
     if (head)
-        return head->find (aString, theLength, transform, true);
+        return head->find(aString, theLength, transform, true);
 
     return NULL;
 }
 
 #endif /* LIBTRIE_SQUID_H */
-

@@ -10,4 +10,3 @@
 #include "StatCounters.h"
 
 StatCounters statCounter;
-

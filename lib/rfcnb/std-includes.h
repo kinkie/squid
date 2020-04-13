@@ -48,8 +48,8 @@ typedef short int16;
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#include <signal.h>
 #include <errno.h>
+#include <signal.h>
 #include <unistd.h>
 
 #define TRUE 1
@@ -62,4 +62,3 @@ typedef short int16;
 #endif
 
 #endif /* _RFCNB_STD_INCLUDES_H */
-

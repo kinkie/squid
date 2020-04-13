@@ -22,15 +22,15 @@ public:
     MemBlobStats();
 
     /// dumps class-wide statistics
-    std::ostream& dump(std::ostream& os) const;
+    std::ostream &dump(std::ostream &os) const;
 
-    MemBlobStats& operator += (const MemBlobStats&);
+    MemBlobStats &operator+=(const MemBlobStats &);
 
 public:
-    uint64_t alloc;     ///< number of MemBlob instances created so far
-    uint64_t live;      ///< number of MemBlob instances currently alive
-    uint64_t append;    ///< number of MemBlob::append() calls
-    uint64_t liveBytes; ///< the total size of currently allocated storage
+    uint64_t alloc;      ///< number of MemBlob instances created so far
+    uint64_t live;       ///< number of MemBlob instances currently alive
+    uint64_t append;     ///< number of MemBlob::append() calls
+    uint64_t liveBytes;  ///< the total size of currently allocated storage
 };
 
 /** Refcountable, fixed-size, content-agnostic memory buffer.
@@ -42,7 +42,7 @@ public:
  * MemBlob users can cooperate to safely share the used area. However, MemBlob
  * provides weak use accounting and no sharing protections besides refcounting.
  */
-class MemBlob: public RefCountable
+class MemBlob : public RefCountable
 {
     MEMPROXY_CLASS(MemBlob);
 
@@ -51,7 +51,7 @@ public:
     typedef uint32_t size_type;
 
     /// obtain a const view of class-wide statistics
-    static const MemBlobStats& GetStats();
+    static const MemBlobStats &GetStats();
 
     /// create a new MemBlob with at least reserveSize capacity
     explicit MemBlob(const size_type reserveSize);
@@ -70,7 +70,8 @@ public:
      * \param off    the end of the blob area currently used by the caller
      * \param n      the total number of bytes the caller wants to append
      */
-    bool canAppend(const size_type off, const size_type n) const {
+    bool canAppend(const size_type off, const size_type n) const
+    {
         // TODO: ignore offset (and adjust size) when the blob is not shared?
         return (isAppendOffset(off) && willFit(n)) || !n;
     }
@@ -95,17 +96,17 @@ public:
     void clear() { size = 0; }
 
     /// dump debugging information
-    std::ostream & dump(std::ostream &os) const;
+    std::ostream &dump(std::ostream &os) const;
 
 public:
     /* MemBlob users should avoid these and must treat them as read-only */
-    char *mem;          ///< raw allocated memory block
-    size_type capacity; ///< size of the raw allocated memory block
-    size_type size;     ///< maximum allocated memory in use by callers
-    const InstanceId<MemBlob> id; ///< blob identifier
+    char *mem;                     ///< raw allocated memory block
+    size_type capacity;            ///< size of the raw allocated memory block
+    size_type size;                ///< maximum allocated memory in use by callers
+    const InstanceId<MemBlob> id;  ///< blob identifier
 
 private:
-    static MemBlobStats Stats; ///< class-wide statistics
+    static MemBlobStats Stats;  ///< class-wide statistics
 
     void memAlloc(const size_type memSize);
 
@@ -117,8 +118,7 @@ private:
 
     /* copying is not implemented */
     MemBlob(const MemBlob &);
-    MemBlob& operator =(const MemBlob &);
+    MemBlob &operator=(const MemBlob &);
 };
 
 #endif /* SQUID_MEMBLOB_H_ */
-

@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
-#include "base/PackableStream.h"
-#include "mgr/Registration.h"
 #include "ssl/context_storage.h"
 #include "Store.h"
+#include "base/PackableStream.h"
+#include "mgr/Registration.h"
 
 #include <limits>
 #if USE_OPENSSL
@@ -20,9 +20,10 @@
 #endif
 #endif
 
-Ssl::CertificateStorageAction::CertificateStorageAction(const Mgr::Command::Pointer &aCmd)
-    :   Mgr::Action(aCmd)
-{}
+Ssl::CertificateStorageAction::CertificateStorageAction(const Mgr::Command::Pointer &aCmd) :
+    Mgr::Action(aCmd)
+{
+}
 
 Ssl::CertificateStorageAction::Pointer
 Ssl::CertificateStorageAction::Create(const Mgr::Command::Pointer &aCmd)
@@ -30,7 +31,8 @@ Ssl::CertificateStorageAction::Create(const Mgr::Command::Pointer &aCmd)
     return new CertificateStorageAction(aCmd);
 }
 
-void Ssl::CertificateStorageAction::dump (StoreEntry *sentry)
+void
+Ssl::CertificateStorageAction::dump(StoreEntry *sentry)
 {
     PackableStream stream(*sentry);
     const char delimiter = '\t';
@@ -43,7 +45,7 @@ void Ssl::CertificateStorageAction::dump (StoreEntry *sentry)
     // Add info for each port.
     for (std::map<Ip::Address, LocalContextStorage *>::iterator i = TheGlobalContextStorage.storage.begin(); i != TheGlobalContextStorage.storage.end(); ++i) {
         stream << i->first << delimiter;
-        LocalContextStorage & ssl_store_policy(*(i->second));
+        LocalContextStorage &ssl_store_policy(*(i->second));
         stream << ssl_store_policy.memLimit() / 1024 << delimiter;
         stream << ssl_store_policy.entries() << delimiter;
         stream << SSL_CTX_SIZE / 1024 << delimiter;
@@ -56,8 +58,8 @@ void Ssl::CertificateStorageAction::dump (StoreEntry *sentry)
 
 ///////////////////////////////////////////////////////
 
-Ssl::GlobalContextStorage::GlobalContextStorage()
-    :   reconfiguring(true)
+Ssl::GlobalContextStorage::GlobalContextStorage() :
+    reconfiguring(true)
 {
     RegisterAction("cached_ssl_cert", "Statistic of cached generated ssl certificates", &CertificateStorageAction::Create, 0, 1);
 }
@@ -69,13 +71,15 @@ Ssl::GlobalContextStorage::~GlobalContextStorage()
     }
 }
 
-void Ssl::GlobalContextStorage::addLocalStorage(Ip::Address const & address, size_t size_of_store)
+void
+Ssl::GlobalContextStorage::addLocalStorage(Ip::Address const &address, size_t size_of_store)
 {
     assert(reconfiguring);
     configureStorage.insert(std::pair<Ip::Address, size_t>(address, size_of_store));
 }
 
-Ssl::LocalContextStorage *Ssl::GlobalContextStorage::getLocalStorage(Ip::Address const & address)
+Ssl::LocalContextStorage *
+Ssl::GlobalContextStorage::getLocalStorage(Ip::Address const &address)
 {
     reconfigureFinish();
     std::map<Ip::Address, LocalContextStorage *>::iterator i = storage.find(address);
@@ -86,13 +90,15 @@ Ssl::LocalContextStorage *Ssl::GlobalContextStorage::getLocalStorage(Ip::Address
         return i->second;
 }
 
-void Ssl::GlobalContextStorage::reconfigureStart()
+void
+Ssl::GlobalContextStorage::reconfigureStart()
 {
     configureStorage.clear();
     reconfiguring = true;
 }
 
-void Ssl::GlobalContextStorage::reconfigureFinish()
+void
+Ssl::GlobalContextStorage::reconfigureFinish()
 {
     if (reconfiguring) {
         reconfiguring = false;
@@ -110,7 +116,7 @@ void Ssl::GlobalContextStorage::reconfigureFinish()
         }
 
         // add new local storages.
-        for (std::map<Ip::Address, size_t>::iterator conf_i = configureStorage.begin(); conf_i != configureStorage.end(); ++conf_i ) {
+        for (std::map<Ip::Address, size_t>::iterator conf_i = configureStorage.begin(); conf_i != configureStorage.end(); ++conf_i) {
             if (storage.find(conf_i->first) == storage.end() && conf_i->second > 0) {
                 storage.insert(std::pair<Ip::Address, LocalContextStorage *>(conf_i->first, new LocalContextStorage(-1, conf_i->second)));
             }
@@ -119,4 +125,3 @@ void Ssl::GlobalContextStorage::reconfigureFinish()
 }
 
 Ssl::GlobalContextStorage Ssl::TheGlobalContextStorage;
-

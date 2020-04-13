@@ -9,28 +9,27 @@
 /* DEBUG: section 09    File Transfer Protocol (FTP) */
 
 #include "squid.h"
+#include "HttpHdrCc.h"
+#include "HttpRequest.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "anyp/PortCfg.h"
 #include "client_side.h"
-#include "clients/forward.h"
 #include "clients/FtpClient.h"
+#include "clients/forward.h"
 #include "ftp/Elements.h"
 #include "ftp/Parsing.h"
 #include "http/Stream.h"
-#include "HttpHdrCc.h"
-#include "HttpRequest.h"
 #include "sbuf/SBuf.h"
 #include "servers/FtpServer.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "wordlist.h"
 
-namespace Ftp
-{
+namespace Ftp {
 
 /// An FTP client receiving native FTP commands from our FTP server
 /// (Ftp::Server), forwarding them to the next FTP hop,
 /// and then relaying FTP replies back to our FTP server.
-class Relay: public Ftp::Client
+class Relay : public Ftp::Client
 {
     CBDATA_CLASS(Relay);
 
@@ -70,7 +69,7 @@ protected:
     void startDataUpload();
     bool startDirTracking();
     void stopDirTracking();
-    bool weAreTrackingDir() const {return savedReply.message != NULL;}
+    bool weAreTrackingDir() const { return savedReply.message != NULL; }
 
     typedef void (Relay::*PreliminaryCb)();
     void forwardPreliminaryReply(const PreliminaryCb cb);
@@ -95,58 +94,57 @@ protected:
     /// Inform Ftp::Server that we are done if originWaitInProgress
     void stopOriginWait(int code);
 
-    static void abort(void *d); // TODO: Capitalize this and FwdState::abort().
+    static void abort(void *d);  // TODO: Capitalize this and FwdState::abort().
 
-    bool forwardingCompleted; ///< completeForwarding() has been called
+    bool forwardingCompleted;  ///< completeForwarding() has been called
 
     /// whether we are between Ftp::Server::startWaitingForOrigin() and
     /// Ftp::Server::stopWaitingForOrigin() calls
     bool originWaitInProgress;
 
     struct {
-        wordlist *message; ///< reply message, one  wordlist entry per message line
-        char *lastCommand; ///< the command caused the reply
-        char *lastReply; ///< last line of reply: reply status plus message
-        int replyCode; ///< the reply status
-    } savedReply; ///< set and delayed while we are tracking using PWD
+        wordlist *message;  ///< reply message, one  wordlist entry per message line
+        char *lastCommand;  ///< the command caused the reply
+        char *lastReply;    ///< last line of reply: reply status plus message
+        int replyCode;      ///< the reply status
+    } savedReply;           ///< set and delayed while we are tracking using PWD
 };
 
-} // namespace Ftp
+}  // namespace Ftp
 
 CBDATA_NAMESPACED_CLASS_INIT(Ftp, Relay);
 
 const Ftp::Relay::SM_FUNC Ftp::Relay::SM_FUNCS[] = {
-    &Ftp::Relay::readGreeting, // BEGIN
-    &Ftp::Relay::readUserOrPassReply, // SENT_USER
-    &Ftp::Relay::readUserOrPassReply, // SENT_PASS
-    NULL,/* &Ftp::Relay::readReply */ // SENT_TYPE
-    NULL,/* &Ftp::Relay::readReply */ // SENT_MDTM
-    NULL,/* &Ftp::Relay::readReply */ // SENT_SIZE
-    NULL, // SENT_EPRT
-    NULL, // SENT_PORT
-    &Ftp::Relay::readEpsvReply, // SENT_EPSV_ALL
-    &Ftp::Relay::readEpsvReply, // SENT_EPSV_1
-    &Ftp::Relay::readEpsvReply, // SENT_EPSV_2
-    &Ftp::Relay::readPasvReply, // SENT_PASV
-    &Ftp::Relay::readCwdOrCdupReply,  // SENT_CWD
-    NULL,/* &Ftp::Relay::readDataReply, */ // SENT_LIST
-    NULL,/* &Ftp::Relay::readDataReply, */ // SENT_NLST
-    NULL,/* &Ftp::Relay::readReply */ // SENT_REST
-    NULL,/* &Ftp::Relay::readDataReply */ // SENT_RETR
-    NULL,/* &Ftp::Relay::readReply */ // SENT_STOR
-    NULL,/* &Ftp::Relay::readReply */ // SENT_QUIT
-    &Ftp::Relay::readTransferDoneReply, // READING_DATA
-    &Ftp::Relay::readReply, // WRITING_DATA
-    NULL,/* &Ftp::Relay::readReply */ // SENT_MKDIR
-    &Ftp::Relay::readFeatReply, // SENT_FEAT
-    NULL,/* &Ftp::Relay::readPwdReply */ // SENT_PWD
-    &Ftp::Relay::readCwdOrCdupReply, // SENT_CDUP
-    &Ftp::Relay::readDataReply,// SENT_DATA_REQUEST
-    &Ftp::Relay::readReply, // SENT_COMMAND
-    NULL
-};
+    &Ftp::Relay::readGreeting,               // BEGIN
+    &Ftp::Relay::readUserOrPassReply,        // SENT_USER
+    &Ftp::Relay::readUserOrPassReply,        // SENT_PASS
+    NULL, /* &Ftp::Relay::readReply */       // SENT_TYPE
+    NULL, /* &Ftp::Relay::readReply */       // SENT_MDTM
+    NULL, /* &Ftp::Relay::readReply */       // SENT_SIZE
+    NULL,                                    // SENT_EPRT
+    NULL,                                    // SENT_PORT
+    &Ftp::Relay::readEpsvReply,              // SENT_EPSV_ALL
+    &Ftp::Relay::readEpsvReply,              // SENT_EPSV_1
+    &Ftp::Relay::readEpsvReply,              // SENT_EPSV_2
+    &Ftp::Relay::readPasvReply,              // SENT_PASV
+    &Ftp::Relay::readCwdOrCdupReply,         // SENT_CWD
+    NULL, /* &Ftp::Relay::readDataReply, */  // SENT_LIST
+    NULL, /* &Ftp::Relay::readDataReply, */  // SENT_NLST
+    NULL, /* &Ftp::Relay::readReply */       // SENT_REST
+    NULL, /* &Ftp::Relay::readDataReply */   // SENT_RETR
+    NULL, /* &Ftp::Relay::readReply */       // SENT_STOR
+    NULL, /* &Ftp::Relay::readReply */       // SENT_QUIT
+    &Ftp::Relay::readTransferDoneReply,      // READING_DATA
+    &Ftp::Relay::readReply,                  // WRITING_DATA
+    NULL, /* &Ftp::Relay::readReply */       // SENT_MKDIR
+    &Ftp::Relay::readFeatReply,              // SENT_FEAT
+    NULL, /* &Ftp::Relay::readPwdReply */    // SENT_PWD
+    &Ftp::Relay::readCwdOrCdupReply,         // SENT_CDUP
+    &Ftp::Relay::readDataReply,              // SENT_DATA_REQUEST
+    &Ftp::Relay::readReply,                  // SENT_COMMAND
+    NULL};
 
-Ftp::Relay::Relay(FwdState *const fwdState):
+Ftp::Relay::Relay(FwdState *const fwdState) :
     AsyncJob("Ftp::Relay"),
     Ftp::Client(fwdState),
     thePreliminaryCb(NULL),
@@ -167,7 +165,7 @@ Ftp::Relay::Relay(FwdState *const fwdState):
 
 Ftp::Relay::~Relay()
 {
-    closeServer(); // TODO: move to clients/Client.cc?
+    closeServer();  // TODO: move to clients/Client.cc?
     if (savedReply.message)
         wordlistDestroy(&savedReply.message);
 
@@ -180,8 +178,7 @@ Ftp::Relay::start()
 {
     if (!master().clientReadGreeting)
         Ftp::Client::start();
-    else if (serverState() == fssHandleDataRequest ||
-             serverState() == fssHandleUploadRequest)
+    else if (serverState() == fssHandleDataRequest || serverState() == fssHandleUploadRequest)
         handleDataRequest();
     else
         sendCommand();
@@ -204,10 +201,9 @@ Ftp::Relay::serverComplete()
     CbcPointer<ConnStateData> &mgr = fwd->request->clientConnectionManager;
     if (mgr.valid()) {
         if (Comm::IsConnOpen(ctrl.conn)) {
-            debugs(9, 7, "completing FTP server " << ctrl.conn <<
-                   " after " << ctrl.replycode);
+            debugs(9, 7, "completing FTP server " << ctrl.conn << " after " << ctrl.replycode);
             fwd->unregister(ctrl.conn);
-            if (ctrl.replycode == 221) { // Server sends FTP 221 before closing
+            if (ctrl.replycode == 221) {  // Server sends FTP 221 before closing
                 mgr->unpinConnection(false);
                 ctrl.close();
             } else {
@@ -229,7 +225,7 @@ Ftp::Relay::updateMaster()
 {
     CbcPointer<ConnStateData> &mgr = fwd->request->clientConnectionManager;
     if (mgr.valid()) {
-        if (Ftp::Server *srv = dynamic_cast<Ftp::Server*>(mgr.get()))
+        if (Ftp::Server *srv = dynamic_cast<Ftp::Server *>(mgr.get()))
             return *srv->master;
     }
     // this code will not be necessary once the master is inside MasterXaction
@@ -243,7 +239,7 @@ Ftp::Relay::updateMaster()
 const Ftp::MasterState &
 Ftp::Relay::master() const
 {
-    return const_cast<Ftp::Relay*>(this)->updateMaster(); // avoid code dupe
+    return const_cast<Ftp::Relay *>(this)->updateMaster();  // avoid code dupe
 }
 
 /// Changes server state and debugs about that important event.
@@ -281,7 +277,7 @@ Ftp::Relay::failed(err_type error, int xerrno, ErrorState *ftpErr)
 
     // TODO: we need to customize ErrorState instead
     if (entry->isEmpty())
-        failedErrorMessage(error, xerrno); // as a reply
+        failedErrorMessage(error, xerrno);  // as a reply
 
     Ftp::Client::failed(error, xerrno, ftpErr);
 }
@@ -348,7 +344,7 @@ Ftp::Relay::handleControlReply()
 
     Ftp::Client::handleControlReply();
     if (ctrl.message == NULL)
-        return; // didn't get complete reply yet
+        return;  // didn't get complete reply yet
 
     assert(state < END);
     assert(this->SM_FUNCS[state] != NULL);
@@ -398,7 +394,7 @@ Ftp::Relay::forwardPreliminaryReply(const PreliminaryCb cb)
     // the Sink will use this to call us back after writing 1xx to the client
     typedef NullaryMemFunT<Relay> CbDialer;
     const AsyncCall::Pointer call = JobCallback(11, 3, CbDialer, this,
-                                    Ftp::Relay::proceedAfterPreliminaryReply);
+                                                Ftp::Relay::proceedAfterPreliminaryReply);
 
     CallJobHere1(9, 4, request->clientConnectionManager, ConnStateData,
                  ConnStateData::sendControlMsg, HttpControlMsg(reply, call));
@@ -445,8 +441,7 @@ Ftp::Relay::startDataDownload()
 {
     assert(Comm::IsConnOpen(data.conn));
 
-    debugs(9, 3, "begin data transfer from " << data.conn->remote <<
-           " (" << data.conn->local << ")");
+    debugs(9, 3, "begin data transfer from " << data.conn->remote << " (" << data.conn->local << ")");
 
     HttpReply *const reply = createHttpReply(Http::scOkay, -1);
     reply->sources |= Http::Message::srcFtp;
@@ -463,10 +458,9 @@ Ftp::Relay::startDataUpload()
 {
     assert(Comm::IsConnOpen(data.conn));
 
-    debugs(9, 3, "begin data transfer to " << data.conn->remote <<
-           " (" << data.conn->local << ")");
+    debugs(9, 3, "begin data transfer to " << data.conn->remote << " (" << data.conn->local << ")");
 
-    if (!startRequestBodyFlow()) { // register to receive body data
+    if (!startRequestBodyFlow()) {  // register to receive body data
         failed();
         return;
     }
@@ -521,10 +515,7 @@ Ftp::Relay::sendCommand()
     else
         debugs(9, 5, "command: " << cmd << ", no parameters");
 
-    if (serverState() == fssHandlePasv ||
-            serverState() == fssHandleEpsv ||
-            serverState() == fssHandleEprt ||
-            serverState() == fssHandlePort) {
+    if (serverState() == fssHandlePasv || serverState() == fssHandleEpsv || serverState() == fssHandleEprt || serverState() == fssHandlePort) {
         sendPassive();
         return;
     }
@@ -537,20 +528,12 @@ Ftp::Relay::sendCommand()
 
     writeCommand(buf.c_str());
 
-    state =
-        serverState() == fssHandleCdup ? SENT_CDUP :
-        serverState() == fssHandleCwd ? SENT_CWD :
-        serverState() == fssHandleFeat ? SENT_FEAT :
-        serverState() == fssHandleDataRequest ? SENT_DATA_REQUEST :
-        serverState() == fssHandleUploadRequest ? SENT_DATA_REQUEST :
-        serverState() == fssConnected ? SENT_USER :
-        serverState() == fssHandlePass ? SENT_PASS :
-        SENT_COMMAND;
+    state = serverState() == fssHandleCdup ? SENT_CDUP : serverState() == fssHandleCwd ? SENT_CWD : serverState() == fssHandleFeat ? SENT_FEAT : serverState() == fssHandleDataRequest ? SENT_DATA_REQUEST : serverState() == fssHandleUploadRequest ? SENT_DATA_REQUEST : serverState() == fssConnected ? SENT_USER : serverState() == fssHandlePass ? SENT_PASS : SENT_COMMAND;
 
     if (state == SENT_DATA_REQUEST) {
         CbcPointer<ConnStateData> &mgr = fwd->request->clientConnectionManager;
         if (mgr.valid()) {
-            if (Ftp::Server *srv = dynamic_cast<Ftp::Server*>(mgr.get())) {
+            if (Ftp::Server *srv = dynamic_cast<Ftp::Server *>(mgr.get())) {
                 typedef NullaryMemFunT<Ftp::Server> CbDialer;
                 AsyncCall::Pointer call = JobCallback(11, 3, CbDialer, srv,
                                                       Ftp::Server::startWaitingForOrigin);
@@ -564,8 +547,7 @@ Ftp::Relay::sendCommand()
 void
 Ftp::Relay::readReply()
 {
-    assert(serverState() == fssConnected ||
-           serverState() == fssHandleUploadRequest);
+    assert(serverState() == fssConnected || serverState() == fssHandleUploadRequest);
 
     if (Is1xx(ctrl.replycode))
         forwardPreliminaryReply(&Ftp::Relay::scheduleReadControlReply);
@@ -579,7 +561,7 @@ Ftp::Relay::readFeatReply()
     assert(serverState() == fssHandleFeat);
 
     if (Is1xx(ctrl.replycode))
-        return; // ignore preliminary replies
+        return;  // ignore preliminary replies
 
     forwardReply();
 }
@@ -590,7 +572,7 @@ Ftp::Relay::readPasvReply()
     assert(serverState() == fssHandlePasv || serverState() == fssHandleEpsv || serverState() == fssHandlePort || serverState() == fssHandleEprt);
 
     if (Is1xx(ctrl.replycode))
-        return; // ignore preliminary replies
+        return;  // ignore preliminary replies
 
     if (handlePasvReply(updateMaster().clientDataAddr))
         forwardReply();
@@ -602,11 +584,11 @@ void
 Ftp::Relay::readEpsvReply()
 {
     if (Is1xx(ctrl.replycode))
-        return; // ignore preliminary replies
+        return;  // ignore preliminary replies
 
     if (handleEpsvReply(updateMaster().clientDataAddr)) {
         if (ctrl.message == NULL)
-            return; // didn't get complete reply yet
+            return;  // didn't get complete reply yet
 
         forwardReply();
     } else
@@ -616,15 +598,14 @@ Ftp::Relay::readEpsvReply()
 void
 Ftp::Relay::readDataReply()
 {
-    assert(serverState() == fssHandleDataRequest ||
-           serverState() == fssHandleUploadRequest);
+    assert(serverState() == fssHandleDataRequest || serverState() == fssHandleUploadRequest);
 
     if (ctrl.replycode == 125 || ctrl.replycode == 150) {
         if (serverState() == fssHandleDataRequest)
             forwardPreliminaryReply(&Ftp::Relay::startDataDownload);
         else if (fwd->request->forcedBodyContinuation /*&& serverState() == fssHandleUploadRequest*/)
             startDataUpload();
-        else // serverState() == fssHandleUploadRequest
+        else  // serverState() == fssHandleUploadRequest
             forwardPreliminaryReply(&Ftp::Relay::startDataUpload);
     } else
         forwardReply();
@@ -675,16 +656,15 @@ Ftp::Relay::stopDirTracking()
 void
 Ftp::Relay::readCwdOrCdupReply()
 {
-    assert(serverState() == fssHandleCwd ||
-           serverState() == fssHandleCdup);
+    assert(serverState() == fssHandleCwd || serverState() == fssHandleCdup);
 
     debugs(9, 5, "got code " << ctrl.replycode << ", msg: " << ctrl.last_reply);
 
     if (Is1xx(ctrl.replycode))
         return;
 
-    if (weAreTrackingDir()) { // we are tracking
-        stopDirTracking(); // and forward the delayed response below
+    if (weAreTrackingDir()) {  // we are tracking
+        stopDirTracking();     // and forward the delayed response below
     } else if (startDirTracking())
         return;
 
@@ -695,11 +675,11 @@ void
 Ftp::Relay::readUserOrPassReply()
 {
     if (Is1xx(ctrl.replycode))
-        return; //Just ignore
+        return;  //Just ignore
 
-    if (weAreTrackingDir()) { // we are tracking
-        stopDirTracking(); // and forward the delayed response below
-    } else if (ctrl.replycode == 230) { // successful login
+    if (weAreTrackingDir()) {            // we are tracking
+        stopDirTracking();               // and forward the delayed response below
+    } else if (ctrl.replycode == 230) {  // successful login
         if (startDirTracking())
             return;
     }
@@ -713,8 +693,7 @@ Ftp::Relay::readTransferDoneReply()
     debugs(9, 3, status());
 
     if (ctrl.replycode != 226 && ctrl.replycode != 250) {
-        debugs(9, DBG_IMPORTANT, "got FTP code " << ctrl.replycode <<
-               " after reading response data");
+        debugs(9, DBG_IMPORTANT, "got FTP code " << ctrl.replycode << " after reading response data");
     }
 
     debugs(9, 2, "Complete data downloading");
@@ -750,8 +729,7 @@ Ftp::Relay::scheduleReadControlReply()
 bool
 Ftp::Relay::abortOnData(const char *reason)
 {
-    debugs(9, 3, "aborting transaction for " << reason <<
-           "; FD " << (ctrl.conn != NULL ? ctrl.conn->fd : -1) << ", Data FD " << (data.conn != NULL ? data.conn->fd : -1) << ", this " << this);
+    debugs(9, 3, "aborting transaction for " << reason << "; FD " << (ctrl.conn != NULL ? ctrl.conn->fd : -1) << ", Data FD " << (data.conn != NULL ? data.conn->fd : -1) << ", this " << this);
     // this method is only called to handle data connection problems
     // the control connection should keep going
 
@@ -772,7 +750,7 @@ Ftp::Relay::stopOriginWait(int code)
     if (originWaitInProgress) {
         CbcPointer<ConnStateData> &mgr = fwd->request->clientConnectionManager;
         if (mgr.valid()) {
-            if (Ftp::Server *srv = dynamic_cast<Ftp::Server*>(mgr.get())) {
+            if (Ftp::Server *srv = dynamic_cast<Ftp::Server *>(mgr.get())) {
                 typedef UnaryMemFunT<Ftp::Server, int> CbDialer;
                 AsyncCall::Pointer call = asyncCall(11, 3, "Ftp::Server::stopWaitingForOrigin",
                                                     CbDialer(srv, &Ftp::Server::stopWaitingForOrigin, code));
@@ -799,4 +777,3 @@ Ftp::StartRelay(FwdState *const fwdState)
 {
     return AsyncJob::Start(new Ftp::Relay(fwdState));
 }
-

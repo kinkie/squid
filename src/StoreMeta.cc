@@ -9,16 +9,16 @@
 /* DEBUG: section 20    Storage Manager Swapfile Metadata */
 
 #include "squid.h"
-#include "base/Range.h"
+#include "StoreMeta.h"
 #include "MemObject.h"
 #include "Store.h"
-#include "StoreMeta.h"
 #include "StoreMetaMD5.h"
 #include "StoreMetaObjSize.h"
 #include "StoreMetaSTD.h"
 #include "StoreMetaSTDLFS.h"
 #include "StoreMetaURL.h"
 #include "StoreMetaVary.h"
+#include "base/Range.h"
 
 bool
 StoreMeta::validType(char type)
@@ -30,18 +30,13 @@ StoreMeta::validType(char type)
     }
 
     /* Not yet implemented */
-    if (type >= STORE_META_END ||
-            type == STORE_META_STOREURL ||
-            type == STORE_META_VARY_ID) {
+    if (type >= STORE_META_END || type == STORE_META_STOREURL || type == STORE_META_VARY_ID) {
         debugs(20, 3, "storeSwapMetaUnpack: Not yet implemented (" << type << ") in disk metadata");
         return false;
     }
 
     /* Unused in any current squid code */
-    if (type == STORE_META_KEY_URL ||
-            type == STORE_META_KEY_SHA ||
-            type == STORE_META_HITMETERING ||
-            type == STORE_META_VALID) {
+    if (type == STORE_META_KEY_URL || type == STORE_META_KEY_SHA || type == STORE_META_HITMETERING || type == STORE_META_VALID) {
         debugs(20, DBG_CRITICAL, "Obsolete and unused type (" << type << ") in disk metadata");
         return false;
     }
@@ -65,7 +60,7 @@ StoreMeta::validLength(int aLength) const
 }
 
 StoreMeta *
-StoreMeta::Factory (char type, size_t len, void const *value)
+StoreMeta::Factory(char type, size_t len, void const *value)
 {
     if (!validType(type))
         return NULL;
@@ -129,9 +124,9 @@ StoreMeta::FreeList(StoreMeta **head)
 StoreMeta **
 StoreMeta::Add(StoreMeta **tail, StoreMeta *aNode)
 {
-    assert (*tail == NULL);
+    assert(*tail == NULL);
     *tail = aNode;
-    return &aNode->next;        /* return new tail pointer */
+    return &aNode->next; /* return new tail pointer */
 }
 
 bool
@@ -168,13 +163,14 @@ StoreMeta::StoreMeta(const StoreMeta &s) :
     length(s.length),
     value(s.value),
     next(s.next)
-{}
-
-StoreMeta& StoreMeta::operator=(const StoreMeta &s)
 {
-    length=s.length;
-    value=s.value;
-    next=s.next;
-    return *this;
 }
 
+StoreMeta &
+StoreMeta::operator=(const StoreMeta &s)
+{
+    length = s.length;
+    value = s.value;
+    next = s.next;
+    return *this;
+}

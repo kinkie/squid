@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "Debug.h"
-#include "sbuf/DetailedStats.h"
 #include "sbuf/MemBlob.h"
+#include "Debug.h"
+#include "base/TextException.h"
+#include "sbuf/DetailedStats.h"
 
 #include <iostream>
 
@@ -19,51 +19,42 @@ InstanceIdDefinitions(MemBlob, "blob");
 
 /* MemBlobStats */
 
-MemBlobStats::MemBlobStats(): alloc(0), live(0), append(0), liveBytes(0)
-{}
-
-MemBlobStats&
-MemBlobStats::operator += (const MemBlobStats& s)
+MemBlobStats::MemBlobStats() :
+    alloc(0), live(0), append(0), liveBytes(0)
 {
-    alloc+=s.alloc;
-    live+=s.live;
-    append+=s.append;
-    liveBytes+=s.liveBytes;
+}
+
+MemBlobStats &
+MemBlobStats::operator+=(const MemBlobStats &s)
+{
+    alloc += s.alloc;
+    live += s.live;
+    append += s.append;
+    liveBytes += s.liveBytes;
 
     return *this;
 }
 
-std::ostream&
+std::ostream &
 MemBlobStats::dump(std::ostream &os) const
 {
-    os <<
-       "MemBlob created: " << alloc <<
-       "\nMemBlob alive: " << live <<
-       "\nMemBlob append calls: " << append <<
-       "\nMemBlob currently allocated size: " << liveBytes <<
-       "\nlive MemBlob mean current allocation size: " <<
-       (static_cast<double>(liveBytes)/(live?live:1)) << std::endl;
+    os << "MemBlob created: " << alloc << "\nMemBlob alive: " << live << "\nMemBlob append calls: " << append << "\nMemBlob currently allocated size: " << liveBytes << "\nlive MemBlob mean current allocation size: " << (static_cast<double>(liveBytes) / (live ? live : 1)) << std::endl;
     return os;
 }
 
 /* MemBlob */
 
 MemBlob::MemBlob(const MemBlob::size_type reserveSize) :
-    mem(NULL), capacity(0), size(0) // will be set by memAlloc
+    mem(NULL), capacity(0), size(0)  // will be set by memAlloc
 {
-    debugs(MEMBLOB_DEBUGSECTION,9, HERE << "constructed, this="
-           << static_cast<void*>(this) << " id=" << id
-           << " reserveSize=" << reserveSize);
+    debugs(MEMBLOB_DEBUGSECTION, 9, HERE << "constructed, this=" << static_cast<void *>(this) << " id=" << id << " reserveSize=" << reserveSize);
     memAlloc(reserveSize);
 }
 
 MemBlob::MemBlob(const char *buffer, const MemBlob::size_type bufSize) :
-    mem(NULL), capacity(0), size(0) // will be set by memAlloc
+    mem(NULL), capacity(0), size(0)  // will be set by memAlloc
 {
-    debugs(MEMBLOB_DEBUGSECTION,9, HERE << "constructed, this="
-           << static_cast<void*>(this) << " id=" << id
-           << " buffer=" << static_cast<const void*>(buffer)
-           << " bufSize=" << bufSize);
+    debugs(MEMBLOB_DEBUGSECTION, 9, HERE << "constructed, this=" << static_cast<void *>(this) << " id=" << id << " buffer=" << static_cast<const void *>(buffer) << " bufSize=" << bufSize);
     memAlloc(bufSize);
     append(buffer, bufSize);
 }
@@ -71,15 +62,12 @@ MemBlob::MemBlob(const char *buffer, const MemBlob::size_type bufSize) :
 MemBlob::~MemBlob()
 {
     if (mem || capacity)
-        memFreeString(capacity,mem);
+        memFreeString(capacity, mem);
     Stats.liveBytes -= capacity;
     --Stats.live;
     recordMemBlobSizeAtDestruct(capacity);
 
-    debugs(MEMBLOB_DEBUGSECTION,9, HERE << "destructed, this="
-           << static_cast<void*>(this) << " id=" << id
-           << " capacity=" << capacity
-           << " size=" << size);
+    debugs(MEMBLOB_DEBUGSECTION, 9, HERE << "destructed, this=" << static_cast<void *>(this) << " id=" << id << " capacity=" << capacity << " size=" << size);
 }
 
 /** Allocate an available space area of at least minSize bytes in size.
@@ -91,14 +79,13 @@ MemBlob::memAlloc(const size_type minSize)
     size_t actualAlloc = minSize;
 
     Must(!mem);
-    mem = static_cast<char*>(memAllocString(actualAlloc, &actualAlloc));
+    mem = static_cast<char *>(memAllocString(actualAlloc, &actualAlloc));
     Must(mem);
 
     capacity = actualAlloc;
     size = 0;
     debugs(MEMBLOB_DEBUGSECTION, 8,
-           id << " memAlloc: requested=" << minSize <<
-           ", received=" << capacity);
+           id << " memAlloc: requested=" << minSize << ", received=" << capacity);
     ++Stats.live;
     ++Stats.alloc;
     Stats.liveBytes += capacity;
@@ -115,7 +102,7 @@ MemBlob::appended(const size_type n)
 void
 MemBlob::append(const char *source, const size_type n)
 {
-    if (n > 0) { // appending zero bytes is allowed but only affects the stats
+    if (n > 0) {  // appending zero bytes is allowed but only affects the stats
         Must(willFit(n));
         Must(source);
         memmove(mem + size, source, n);
@@ -124,20 +111,19 @@ MemBlob::append(const char *source, const size_type n)
     ++Stats.append;
 }
 
-const MemBlobStats&
+const MemBlobStats &
 MemBlob::GetStats()
 {
     return Stats;
 }
 
-std::ostream&
+std::ostream &
 MemBlob::dump(std::ostream &os) const
 {
     os << "id @" << (void *)this
-       << "mem:" << static_cast<void*>(mem)
+       << "mem:" << static_cast<void *>(mem)
        << ",capacity:" << capacity
        << ",size:" << size
        << ",refs:" << LockCount() << "; ";
     return os;
 }
-

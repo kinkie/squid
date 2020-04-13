@@ -9,11 +9,11 @@
 #ifndef SQUID_NOTES_H
 #define SQUID_NOTES_H
 
+#include "SquidString.h"
 #include "acl/forward.h"
 #include "base/RefCount.h"
 #include "format/Format.h"
 #include "mem/forward.h"
-#include "SquidString.h"
 
 #include <string>
 #include <vector>
@@ -32,37 +32,38 @@ typedef RefCount<NotePairs> NotePairsPointer;
  * custom transaction-state related meta information to squid
  * internal subsystems or to adaptation services.
  */
-class Note: public RefCountable
+class Note : public RefCountable
 {
 public:
     typedef RefCount<Note> Pointer;
 
     /// Stores a value for the note.
-    class Value: public RefCountable
+    class Value : public RefCountable
     {
     public:
         typedef RefCount<Value> Pointer;
         friend class Note;
 
-        enum Method { mhReplace, mhAppend };
+        enum Method { mhReplace,
+                      mhAppend };
 
         Value(const char *aVal, const bool quoted, const char *descr, const Method method = mhReplace);
         ~Value();
-        Value(const Value&) = delete;
-        Value &operator=(const Value&) = delete;
+        Value(const Value &) = delete;
+        Value &operator=(const Value &) = delete;
 
         Method method() const { return theMethod; }
         const SBuf &value() const { return theValue; }
 
-        ACLList *aclList; ///< The access list used to determine if this value is valid for a request
+        ACLList *aclList;  ///< The access list used to determine if this value is valid for a request
 
     private:
         /// \return the formatted value with expanded logformat %macros (quoted values).
         /// \return the original value (non-quoted values).
         const SBuf &format(const AccessLogEntryPointer &al);
 
-        Format::Format *valueFormat; ///< Compiled annotation value format.
-        SBuf theValue; ///< Configured annotation value, possibly with %macros.
+        Format::Format *valueFormat;  ///< Compiled annotation value format.
+        SBuf theValue;                ///< Configured annotation value, possibly with %macros.
         /// The expanded value produced by format(), empty for non-quoted values.
         SBuf theFormattedValue;
         /// Specifies how theValue will be applied to the existing annotation
@@ -72,10 +73,12 @@ public:
     };
     typedef std::vector<Value::Pointer> Values;
 
-    Note(const char *aKey, const size_t keyLen): theKey(aKey, keyLen) {}
-    explicit Note(const SBuf aKey): theKey(aKey) {}
-    Note(const Note&) = delete;
-    Note &operator=(const Note&) = delete;
+    Note(const char *aKey, const size_t keyLen) :
+        theKey(aKey, keyLen) {}
+    explicit Note(const SBuf aKey) :
+        theKey(aKey) {}
+    Note(const Note &) = delete;
+    Note &operator=(const Note &) = delete;
 
     /// Adds a value to the note and returns a pointer to the
     /// related Value object.
@@ -96,8 +99,8 @@ public:
     SBuf toString(const char *sep) const;
 
 private:
-    SBuf theKey; ///< The note key
-    Values values; ///< The possible values list for the note
+    SBuf theKey;    ///< The note key
+    Values values;  ///< The possible values list for the note
 };
 
 class ConfigParser;
@@ -109,16 +112,16 @@ class Notes : public RefCountable
 {
 public:
     typedef RefCount<Notes> Pointer;
-    typedef std::vector<SBuf> Keys; ///< unordered annotation names
+    typedef std::vector<SBuf> Keys;  ///< unordered annotation names
     typedef std::vector<Note::Pointer> NotesList;
-    typedef NotesList::iterator iterator; ///< iterates over the notes list
-    typedef NotesList::const_iterator const_iterator; ///< iterates over the notes list
+    typedef NotesList::iterator iterator;              ///< iterates over the notes list
+    typedef NotesList::const_iterator const_iterator;  ///< iterates over the notes list
 
     explicit Notes(const char *aDescr, const Keys *extraBlacklist = nullptr, bool allowFormatted = true);
     Notes() = default;
     ~Notes() { notes.clear(); }
-    Notes(const Notes&) = delete;
-    Notes &operator=(const Notes&) = delete;
+    Notes(const Notes &) = delete;
+    Notes &operator=(const Notes &) = delete;
 
     /// Parses a notes line and returns a pointer to the parsed Note object.
     Note::Pointer parse(ConfigParser &parser);
@@ -142,6 +145,7 @@ public:
     const char *toString(const char *sep = "\r\n") const;
     void updateNotePairs(NotePairsPointer pairs, const CharacterSet *delimiters,
                          const AccessLogEntryPointer &al);
+
 private:
     /// Makes sure the given key is not on the given list of banned names.
     void banReservedKey(const SBuf &key, const Keys &banned) const;
@@ -157,19 +161,19 @@ private:
     Note::Pointer add(const SBuf &noteKey);
     Note::Pointer find(const SBuf &noteKey);
 
-    NotesList notes; ///< The Note::Pointer objects array list
-    const char *descr = nullptr; ///< identifies note source in error messages
+    NotesList notes;              ///< The Note::Pointer objects array list
+    const char *descr = nullptr;  ///< identifies note source in error messages
 
-    Keys blacklist; ///< a list of additional prohibited key names
-    bool formattedValues = false; ///< whether to expand quoted logformat %codes
+    Keys blacklist;                ///< a list of additional prohibited key names
+    bool formattedValues = false;  ///< whether to expand quoted logformat %codes
 
-    static const Notes::Keys &BlackList(); ///< always prohibited key names
+    static const Notes::Keys &BlackList();  ///< always prohibited key names
 };
 
 /**
  * Used to store list of notes
  */
-class NotePairs: public RefCountable
+class NotePairs : public RefCountable
 {
 public:
     typedef RefCount<NotePairs> Pointer;
@@ -178,13 +182,14 @@ public:
     class Entry : public RefCountable
     {
         MEMPROXY_CLASS(Entry);
+
     public:
         typedef RefCount<Entry> Pointer;
 
-        Entry(const SBuf &aKey, const SBuf &aValue)
-            : theName(aKey), theValue(aValue) {}
-        Entry(const char *aKey, const char *aValue)
-            : theName(aKey), theValue(aValue) {}
+        Entry(const SBuf &aKey, const SBuf &aValue) :
+            theName(aKey), theValue(aValue) {}
+        Entry(const char *aKey, const char *aValue) :
+            theName(aKey), theValue(aValue) {}
         Entry(const Entry &) = delete;
         Entry &operator=(const Entry &) = delete;
 
@@ -195,7 +200,7 @@ public:
         SBuf theName;
         SBuf theValue;
     };
-    typedef std::vector<Entry::Pointer> Entries;      ///< The key/value pair entries
+    typedef std::vector<Entry::Pointer> Entries;  ///< The key/value pair entries
     typedef std::vector<SBuf> Names;
 
     NotePairs() {}
@@ -250,7 +255,7 @@ public:
     const char *toString(const char *sep = "\r\n") const;
 
     /// \returns true if there are not entries in the list
-    bool empty() const {return entries.empty();}
+    bool empty() const { return entries.empty(); }
 
     void clear() { entries.clear(); }
 
@@ -259,8 +264,7 @@ public:
     const Entries &expandListEntries(const CharacterSet *delimiters) const;
 
 private:
-    Entries entries; ///< The key/value pair entries
+    Entries entries;  ///< The key/value pair entries
 };
 
 #endif
-

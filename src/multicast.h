@@ -17,4 +17,3 @@ int mcastSetTtl(int, int);
 extern IPH mcastJoinGroups;
 
 #endif /* SQUID_MULTICAST_H_ */
-

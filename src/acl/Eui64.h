@@ -13,8 +13,7 @@
 
 #include <set>
 
-namespace Eui
-{
+namespace Eui {
 class Eui64;
 };
 
@@ -26,14 +25,14 @@ public:
     ACLEui64(char const *);
     ACLEui64(ACLEui64 const &);
     ~ACLEui64() {}
-    ACLEui64&operator=(ACLEui64 const &);
+    ACLEui64 &operator=(ACLEui64 const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
+    virtual bool empty() const;
 
 protected:
     typedef std::set<Eui::Eui64> Eui64Data_t;
@@ -42,4 +41,3 @@ protected:
 };
 
 #endif /* SQUID_ACLEUI64_H */
-

@@ -16,28 +16,27 @@
 namespace Http {
 namespace One {
 
-class Tokenizer;
+    class Tokenizer;
 
-class Parser;
-typedef RefCount<Http::One::Parser> ParserPointer;
+    class Parser;
+    typedef RefCount<Http::One::Parser> ParserPointer;
 
-class TeChunkedParser;
+    class TeChunkedParser;
 
-class RequestParser;
-typedef RefCount<Http::One::RequestParser> RequestParserPointer;
+    class RequestParser;
+    typedef RefCount<Http::One::RequestParser> RequestParserPointer;
 
-class ResponseParser;
-typedef RefCount<Http::One::ResponseParser> ResponseParserPointer;
+    class ResponseParser;
+    typedef RefCount<Http::One::ResponseParser> ResponseParserPointer;
 
-/// CRLF textual representation
-const SBuf &CrLf();
+    /// CRLF textual representation
+    const SBuf &CrLf();
 
-using ::Parser::InsufficientInput;
+    using ::Parser::InsufficientInput;
 
-} // namespace One
-} // namespace Http
+}  // namespace One
+}  // namespace Http
 
 namespace Http1 = Http::One;
 
 #endif /* SQUID_SRC_HTTP_ONE_FORWARD_H */
-

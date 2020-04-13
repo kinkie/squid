@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
+#include "tools/squidclient/Transport.h"
 #include "ip/Address.h"
 #include "ip/tools.h"
 #include "tools/squidclient/Ping.h"
-#include "tools/squidclient/Transport.h"
 
 #if HAVE_GETOPT_H
 #include <getopt.h>
@@ -57,19 +57,18 @@ Transport::TheConfig::parseCommandOpts(int argc, char *argv[], int c, int &optIn
 
     // options for controlling squidclient transport connection
     static struct option longOptions[] = {
-        {"anonymous-tls",no_argument, 0, '\1'},
-        {"https",        no_argument, 0, '\3'},
-        {"trusted-ca",   required_argument, 0, 'A'},
-        {"cert",         required_argument, 0, 'C'},
-        {"host",         required_argument, 0, 'h'},
-        {"local",        required_argument, 0, 'l'},
-        {"port",         required_argument, 0, 'p'},
-        {"params",       required_argument, 0, 'P'},
-        {0, 0, 0, 0}
-    };
+        {"anonymous-tls", no_argument, 0, '\1'},
+        {"https", no_argument, 0, '\3'},
+        {"trusted-ca", required_argument, 0, 'A'},
+        {"cert", required_argument, 0, 'C'},
+        {"host", required_argument, 0, 'h'},
+        {"local", required_argument, 0, 'l'},
+        {"port", required_argument, 0, 'p'},
+        {"params", required_argument, 0, 'P'},
+        {0, 0, 0, 0}};
 
     int saved_opterr = opterr;
-    opterr = 0; // suppress errors from getopt
+    opterr = 0;  // suppress errors from getopt
     do {
         switch (c) {
         case '\1':
@@ -100,10 +99,10 @@ Transport::TheConfig::parseCommandOpts(int argc, char *argv[], int c, int &optIn
             localHost = optarg;
             break;
 
-        case 'p':           /* port number */
+        case 'p': /* port number */
             sscanf(optarg, "%hd", &port);
             if (port < 1)
-                port = CACHE_HTTP_PORT;     /* default */
+                port = CACHE_HTTP_PORT; /* default */
             break;
 
         case 'P':
@@ -149,15 +148,12 @@ resolveDestination(Ip::Address &iaddr)
 {
     struct addrinfo *AI = NULL;
 
-    debugVerbose(2, "Transport detected: IPv4" <<
-                 ((Ip::EnableIpv6 & IPV6_SPECIAL_V4MAPPING) ? "-mapped " : "") <<
-                 (Ip::EnableIpv6 == IPV6_OFF ? "-only" : " and IPv6") <<
-                 ((Ip::EnableIpv6 & IPV6_SPECIAL_SPLITSTACK) ? " split-stack" : ""));
+    debugVerbose(2, "Transport detected: IPv4" << ((Ip::EnableIpv6 & IPV6_SPECIAL_V4MAPPING) ? "-mapped " : "") << (Ip::EnableIpv6 == IPV6_OFF ? "-only" : " and IPv6") << ((Ip::EnableIpv6 & IPV6_SPECIAL_SPLITSTACK) ? " split-stack" : ""));
 
     if (Transport::Config.localHost) {
         debugVerbose(2, "Resolving " << Transport::Config.localHost << " ...");
 
-        if ( !iaddr.GetHostByName(Transport::Config.localHost) ) {
+        if (!iaddr.GetHostByName(Transport::Config.localHost)) {
             std::cerr << "ERROR: Cannot resolve " << Transport::Config.localHost << ": Host unknown." << std::endl;
             exit(1);
         }
@@ -165,7 +161,7 @@ resolveDestination(Ip::Address &iaddr)
         debugVerbose(2, "Resolving " << Transport::Config.hostname << " ...");
         /* Process the remote host name to locate the Protocol required
            in case we are being asked to link to another version of squid */
-        if ( !iaddr.GetHostByName(Transport::Config.hostname) ) {
+        if (!iaddr.GetHostByName(Transport::Config.hostname)) {
             std::cerr << "ERROR: Cannot resolve " << Transport::Config.hostname << ": Host unknown." << std::endl;
             exit(1);
         }
@@ -189,7 +185,7 @@ resolveDestination(Ip::Address &iaddr)
 
         debugVerbose(2, "Resolving... " << Transport::Config.hostname);
 
-        if ( !iaddr.GetHostByName(Transport::Config.hostname) ) {
+        if (!iaddr.GetHostByName(Transport::Config.hostname)) {
             std::cerr << "ERROR: Cannot resolve " << Transport::Config.hostname << ": Host unknown." << std::endl;
             exit(1);
         }
@@ -222,7 +218,7 @@ Transport::Connect()
         char hostnameBuf[MAX_IPSTRLEN];
         iaddr.toUrl(hostnameBuf, MAX_IPSTRLEN);
         std::cerr << "ERROR: Cannot connect to " << hostnameBuf
-                  << (!errno ?": Host unknown." : "") << std::endl;
+                  << (!errno ? ": Host unknown." : "") << std::endl;
         exit(1);
     }
     debugVerbose(2, "Connected to: " << Config.hostname << " (" << iaddr << ")");
@@ -284,7 +280,7 @@ Transport::Read(void *buf, size_t len)
 void
 Transport::CloseConnection()
 {
-    (void) close(conn);
+    (void)close(conn);
     conn = -1;
 }
 
@@ -296,7 +292,7 @@ static int
 verifyByCA(gnutls_session_t session)
 {
     /* read hostname */
-    const char *hostname = static_cast<const char*>(gnutls_session_get_ptr(session));
+    const char *hostname = static_cast<const char *>(gnutls_session_get_ptr(session));
 
     /* This verification function uses the trusted CAs in the credentials
      * structure. So you must have installed one or more CA certificates.
@@ -317,7 +313,7 @@ verifyByCA(gnutls_session_t session)
     std::cerr << "VERIFY DATUM: " << out.data << std::endl;
     gnutls_free(out.data);
 
-    if (status != 0)        /* Certificate is not trusted */
+    if (status != 0) /* Certificate is not trusted */
         return GNUTLS_E_CERTIFICATE_ERROR;
 
     /* notify gnutls to continue handshake normally */
@@ -423,7 +419,8 @@ doTlsHandshake(const char *type)
     }
 
     char *desc = gnutls_session_get_desc(Transport::Config.session);
-    debugVerbose(3, "TLS Session info: " << std::endl << desc << std::endl);
+    debugVerbose(3, "TLS Session info: " << std::endl
+                                         << desc << std::endl);
     gnutls_free(desc);
     return true;
 }
@@ -467,7 +464,7 @@ tryTlsAnonymous()
 static bool
 tryTlsCertificate(const char *hostname)
 {
-    gnutls_session_set_ptr(Transport::Config.session, (void *) hostname);
+    gnutls_session_set_ptr(Transport::Config.session, (void *)hostname);
     gnutls_server_name_set(Transport::Config.session, GNUTLS_NAME_DNS, hostname, strlen(hostname));
 
     if (!loadTlsParameters())
@@ -526,4 +523,3 @@ Transport::ShutdownTls()
     Config.tlsEnabled = false;
 #endif
 }
-

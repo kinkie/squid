@@ -9,8 +9,7 @@
 #ifndef SQUID_EUI_CONFIG_H
 #define SQUID_EUI_CONFIG_H
 
-namespace Eui
-{
+namespace Eui {
 
 class EuiConfig
 {
@@ -20,7 +19,6 @@ public:
 
 extern EuiConfig TheConfig;
 
-} // namespace Eui
+}  // namespace Eui
 
 #endif /* SQUID_EUI_CONFIG_H */
-

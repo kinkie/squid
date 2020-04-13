@@ -17,4 +17,3 @@ Acl::Address::~Address()
     aclDestroyAclList(&aclList);
     delete next;
 }
-

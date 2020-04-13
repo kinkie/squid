@@ -14,15 +14,14 @@
 #include "IoStats.h"
 #include "mgr/Action.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// store size histograms of network read() from peer server
 class IoActionData
 {
 public:
     IoActionData();
-    IoActionData& operator += (const IoActionData& stats);
+    IoActionData &operator+=(const IoActionData &stats);
 
 public:
     double http_reads;
@@ -34,7 +33,7 @@ public:
 };
 
 /// implement aggregated 'io' action
-class IoAction: public Action
+class IoAction : public Action
 {
 protected:
     IoAction(const CommandPointer &cmd);
@@ -42,20 +41,19 @@ protected:
 public:
     static Pointer Create(const CommandPointer &cmd);
     /* Action API */
-    virtual void add(const Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     IoActionData data;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_IO_ACTION_H */
-

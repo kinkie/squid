@@ -9,18 +9,19 @@
 /* DEBUG: section 93    ICAP (RFC 3507) Client */
 
 #include "squid.h"
-#include "base/AsyncCall.h"
 #include "base/AsyncJob.h"
+#include "MemBuf.h"
+#include "base/AsyncCall.h"
 #include "base/AsyncJobCalls.h"
 #include "base/TextException.h"
 #include "cbdata.h"
-#include "MemBuf.h"
 
 #include <ostream>
 
 InstanceIdDefinitions(AsyncJob, "job");
 
-AsyncJob::Pointer AsyncJob::Start(AsyncJob *j)
+AsyncJob::Pointer
+AsyncJob::Start(AsyncJob *j)
 {
     AsyncJob::Pointer job(j);
     CallJobHere(93, 5, job, AsyncJob, start);
@@ -30,23 +31,23 @@ AsyncJob::Pointer AsyncJob::Start(AsyncJob *j)
 AsyncJob::AsyncJob(const char *aTypeName) :
     stopReason(NULL), typeName(aTypeName), inCall(NULL)
 {
-    debugs(93,5, "AsyncJob constructed, this=" << this <<
-           " type=" << typeName << " [" << id << ']');
+    debugs(93, 5, "AsyncJob constructed, this=" << this << " type=" << typeName << " [" << id << ']');
 }
 
 AsyncJob::~AsyncJob()
 {
-    debugs(93,5, "AsyncJob destructed, this=" << this <<
-           " type=" << typeName << " [" << id << ']');
+    debugs(93, 5, "AsyncJob destructed, this=" << this << " type=" << typeName << " [" << id << ']');
 }
 
-void AsyncJob::start()
+void
+AsyncJob::start()
 {
 }
 
 // XXX: temporary code to replace calls to "delete this" in jobs-in-transition.
 // Will be replaced with calls to mustStop() when transition is complete.
-void AsyncJob::deleteThis(const char *aReason)
+void
+AsyncJob::deleteThis(const char *aReason)
 {
     Must(aReason);
     stopReason = aReason;
@@ -59,14 +60,15 @@ void AsyncJob::deleteThis(const char *aReason)
     // there is no call wrapper waiting for our return, so we fake it
     debugs(93, 5, typeName << " will delete this, reason: " << stopReason);
     CbcPointer<AsyncJob> self(this);
-    AsyncCall::Pointer fakeCall = asyncCall(93,4, "FAKE-deleteThis",
+    AsyncCall::Pointer fakeCall = asyncCall(93, 4, "FAKE-deleteThis",
                                             JobMemFun(self, &AsyncJob::deleteThis, aReason));
     inCall = fakeCall;
     callEnd();
-//    delete fakeCall;
+    //    delete fakeCall;
 }
 
-void AsyncJob::mustStop(const char *aReason)
+void
+AsyncJob::mustStop(const char *aReason)
 {
     // XXX: temporary code to catch cases where mustStop is called outside
     // of an async call context. Will be removed when that becomes impossible.
@@ -77,7 +79,7 @@ void AsyncJob::mustStop(const char *aReason)
         return;
     }
 
-    Must(inCall != NULL); // otherwise nobody will delete us if we are done()
+    Must(inCall != NULL);  // otherwise nobody will delete us if we are done()
     Must(aReason);
     if (!stopReason) {
         stopReason = aReason;
@@ -87,38 +89,41 @@ void AsyncJob::mustStop(const char *aReason)
     }
 }
 
-bool AsyncJob::done() const
+bool
+AsyncJob::done() const
 {
     // stopReason, set in mustStop(), overwrites all other conditions
     return stopReason != NULL || doneAll();
 }
 
-bool AsyncJob::doneAll() const
+bool
+AsyncJob::doneAll() const
 {
-    return true; // so that it is safe for kids to use
+    return true;  // so that it is safe for kids to use
 }
 
-bool AsyncJob::canBeCalled(AsyncCall &call) const
+bool
+AsyncJob::canBeCalled(AsyncCall &call) const
 {
     if (inCall != NULL) {
         // This may happen when we have bugs or some module is not calling
         // us asynchronously (comm used to do that).
-        debugs(93, 5, HERE << inCall << " is in progress; " <<
-               call << " cannot reenter the job.");
+        debugs(93, 5, HERE << inCall << " is in progress; " << call << " cannot reenter the job.");
         return call.cancel("reentrant job call");
     }
 
     return true;
 }
 
-void AsyncJob::callStart(AsyncCall &call)
+void
+AsyncJob::callStart(AsyncCall &call)
 {
     // we must be called asynchronously and hence, the caller must lock us
     Must(cbdataReferenceValid(toCbdata()));
 
-    Must(!inCall); // see AsyncJob::canBeCalled
+    Must(!inCall);  // see AsyncJob::canBeCalled
 
-    inCall = &call; // XXX: ugly, but safe if callStart/callEnd,Ex are paired
+    inCall = &call;  // XXX: ugly, but safe if callStart/callEnd,Ex are paired
     debugs(inCall->debugSection, inCall->debugLevel,
            typeName << " status in:" << status());
 }
@@ -133,7 +138,8 @@ AsyncJob::callException(const std::exception &ex)
     mustStop("exception");
 }
 
-void AsyncJob::callEnd()
+void
+AsyncJob::callEnd()
 {
     if (done()) {
         debugs(93, 5, *inCall << " ends job" << status());
@@ -143,7 +149,7 @@ void AsyncJob::callEnd()
 
         swanSong();
 
-        delete this; // this is the only place where the object is deleted
+        delete this;  // this is the only place where the object is deleted
 
         // careful: this object does not exist any more
         debugs(93, 6, HERE << *inCallSaved << " ended " << thisSaved);
@@ -156,7 +162,8 @@ void AsyncJob::callEnd()
 }
 
 // returns a temporary string depicting transaction status, for debugging
-const char *AsyncJob::status() const
+const char *
+AsyncJob::status() const
 {
     static MemBuf buf;
     buf.reset();
@@ -170,4 +177,3 @@ const char *AsyncJob::status() const
 
     return buf.content();
 }
-

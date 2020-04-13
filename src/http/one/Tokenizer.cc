@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
+#include "http/one/Tokenizer.h"
 #include "Debug.h"
 #include "http/one/Parser.h"
-#include "http/one/Tokenizer.h"
 #include "parser/Tokenizer.h"
 #include "sbuf/Stream.h"
 
@@ -26,20 +26,14 @@ parseQuotedStringSuffix(Parser::Tokenizer &tok, const bool http1p0)
      *   exclusive of 0x80-0xFF
      *   includes 0x5C ('\') as just a regular character
      */
-    static const CharacterSet qdtext1p0 = CharacterSet("qdtext (HTTP/1.0)", 0x23, 0x7E) +
-                                          CharacterSet("", "!") +
-                                          CharacterSet::CR + CharacterSet::LF + CharacterSet::HTAB + CharacterSet::SP;
+    static const CharacterSet qdtext1p0 = CharacterSet("qdtext (HTTP/1.0)", 0x23, 0x7E) + CharacterSet("", "!") + CharacterSet::CR + CharacterSet::LF + CharacterSet::HTAB + CharacterSet::SP;
     /*
      * RFC 7230 - defines qdtext:
      *   exclusive of CR and LF
      *   inclusive of 0x80-0xFF
      *   includes 0x5C ('\') but only when part of quoted-pair
      */
-    static const CharacterSet qdtext1p1 = CharacterSet("qdtext (HTTP/1.1)", 0x23, 0x5B) +
-                                          CharacterSet("", "!") +
-                                          CharacterSet("", 0x5D, 0x7E) +
-                                          CharacterSet::HTAB + CharacterSet::SP +
-                                          CharacterSet::OBSTEXT;
+    static const CharacterSet qdtext1p1 = CharacterSet("qdtext (HTTP/1.1)", 0x23, 0x5B) + CharacterSet("", "!") + CharacterSet("", 0x5D, 0x7E) + CharacterSet::HTAB + CharacterSet::SP + CharacterSet::OBSTEXT;
 
     // best we can do is a conditional reference since http1p0 value may change per-client
     const CharacterSet &tokenChars = (http1p0 ? qdtext1p0 : qdtext1p1);
@@ -51,7 +45,7 @@ parseQuotedStringSuffix(Parser::Tokenizer &tok, const bool http1p0)
         if (tok.prefix(qdText, tokenChars))
             parsedToken.append(qdText);
 
-        if (!http1p0 && tok.skip('\\')) { // HTTP/1.1 allows quoted-pair, HTTP/1.0 does not
+        if (!http1p0 && tok.skip('\\')) {  // HTTP/1.1 allows quoted-pair, HTTP/1.0 does not
             if (tok.atEnd())
                 break;
 
@@ -74,7 +68,7 @@ parseQuotedStringSuffix(Parser::Tokenizer &tok, const bool http1p0)
         }
 
         if (tok.skip('"'))
-            return parsedToken; // may be empty
+            return parsedToken;  // may be empty
 
         if (tok.atEnd())
             break;
@@ -104,4 +98,3 @@ Http::One::tokenOrQuotedString(Parser::Tokenizer &tok, const bool http1p0)
     // got the complete token
     return parsedToken;
 }
-

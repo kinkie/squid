@@ -10,8 +10,8 @@
 #define SQUID_ACLANNOTATIONDATA_H
 
 #include "AccessLogEntry.h"
-#include "acl/Data.h"
 #include "Notes.h"
+#include "acl/Data.h"
 
 /// \ingroup ACLAPI
 class ACLAnnotationData : public ACLData<NotePairs::Entry *>
@@ -36,4 +36,3 @@ private:
 };
 
 #endif /* SQUID_ACLANNOTATIONDATA_H */
-

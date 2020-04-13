@@ -13,13 +13,13 @@
 
 class testTokenizer : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testTokenizer );
-    CPPUNIT_TEST ( testCharacterSet );
-    CPPUNIT_TEST ( testTokenizerPrefix );
-    CPPUNIT_TEST ( testTokenizerSuffix );
-    CPPUNIT_TEST ( testTokenizerSkip );
-    CPPUNIT_TEST ( testTokenizerToken );
-    CPPUNIT_TEST ( testTokenizerInt64 );
+    CPPUNIT_TEST_SUITE(testTokenizer);
+    CPPUNIT_TEST(testCharacterSet);
+    CPPUNIT_TEST(testTokenizerPrefix);
+    CPPUNIT_TEST(testTokenizerSuffix);
+    CPPUNIT_TEST(testTokenizerSkip);
+    CPPUNIT_TEST(testTokenizerToken);
+    CPPUNIT_TEST(testTokenizerInt64);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -32,4 +32,3 @@ protected:
 };
 
 #endif /* SQUID_TESTTOKENIZER_H_ */
-

@@ -7,18 +7,18 @@
  */
 
 #include "squid.h"
+#include "adaptation/ServiceGroups.h"
+#include "ConfigParser.h"
+#include "Debug.h"
+#include "StrList.h"
 #include "adaptation/AccessRule.h"
 #include "adaptation/Config.h"
 #include "adaptation/DynamicGroupCfg.h"
 #include "adaptation/Service.h"
 #include "adaptation/ServiceFilter.h"
-#include "adaptation/ServiceGroups.h"
-#include "ConfigParser.h"
-#include "Debug.h"
-#include "StrList.h"
 #include "wordlist.h"
 
-Adaptation::ServiceGroup::ServiceGroup(const String &aKind, bool allSame):
+Adaptation::ServiceGroup::ServiceGroup(const String &aKind, bool allSame) :
     kind(aKind), method(methodNone), point(pointNone),
     allServicesSame(allSame)
 {
@@ -84,16 +84,14 @@ Adaptation::ServiceGroup::finalize()
                     baselineKey = service->cfg().key;
                     baselineBypass = service->cfg().bypass;
                 } else if (baselineBypass != service->cfg().bypass) {
-                    debugs(93, DBG_CRITICAL, "WARNING: Inconsistent bypass in " << kind <<
-                           ' ' << id << " may produce surprising results: " <<
-                           baselineKey << " vs. " << serviceId);
+                    debugs(93, DBG_CRITICAL, "WARNING: Inconsistent bypass in " << kind << ' ' << id << " may produce surprising results: " << baselineKey << " vs. " << serviceId);
                 }
             }
         } else {
             finalizeMsg("ERROR: Unknown adaptation name", serviceId, true);
         }
     }
-    debugs(93,7, HERE << "finalized " << kind << ": " << id);
+    debugs(93, 7, HERE << "finalized " << kind << ": " << id);
 }
 
 /// checks that the service name or URI is not repeated later in the group
@@ -101,7 +99,7 @@ void
 Adaptation::ServiceGroup::checkUniqueness(const Pos checkedPos) const
 {
     ServicePointer checkedService = at(checkedPos);
-    if (!checkedService) // should not happen but be robust
+    if (!checkedService)  // should not happen but be robust
         return;
 
     for (Pos p = checkedPos + 1; has(p); ++p) {
@@ -118,13 +116,13 @@ void
 Adaptation::ServiceGroup::finalizeMsg(const char *msg, const String &culprit,
                                       bool error) const
 {
-    const int level = error ? DBG_CRITICAL :DBG_IMPORTANT;
+    const int level = error ? DBG_CRITICAL : DBG_IMPORTANT;
     const char *pfx = error ? "ERROR: " : "WARNING: ";
-    debugs(93,level, pfx << msg << ' ' << culprit << " in " << kind << " '" <<
-           id << "'");
+    debugs(93, level, pfx << msg << ' ' << culprit << " in " << kind << " '" << id << "'");
 }
 
-Adaptation::ServicePointer Adaptation::ServiceGroup::at(const Pos pos) const
+Adaptation::ServicePointer
+Adaptation::ServiceGroup::at(const Pos pos) const
 {
     return FindService(services[pos]);
 }
@@ -141,52 +139,52 @@ bool
 Adaptation::ServiceGroup::findService(const ServiceFilter &filter, Pos &pos) const
 {
     if (method != filter.method || point != filter.point) {
-        debugs(93,5,HERE << id << " serves another location");
-        return false; // assume other services have the same wrong location
+        debugs(93, 5, HERE << id << " serves another location");
+        return false;  // assume other services have the same wrong location
     }
 
     // find the next interested service, skipping problematic ones if possible
     bool foundEssential = false;
     Pos essPos = 0;
     for (; has(pos); ++pos) {
-        debugs(93,9,HERE << id << " checks service at " << pos);
+        debugs(93, 9, HERE << id << " checks service at " << pos);
         ServicePointer service = at(pos);
 
         if (!service)
-            continue; // the service was lost due to reconfiguration
+            continue;  // the service was lost due to reconfiguration
 
         if (!service->wants(filter))
-            continue; // the service is not interested
+            continue;  // the service is not interested
 
         if (service->up() || !service->probed()) {
-            debugs(93,9,HERE << id << " has matching service at " << pos);
+            debugs(93, 9, HERE << id << " has matching service at " << pos);
             return true;
         }
 
-        if (service->cfg().bypass) { // we can safely ignore bypassable downers
-            debugs(93,9,HERE << id << " has bypassable service at " << pos);
+        if (service->cfg().bypass) {  // we can safely ignore bypassable downers
+            debugs(93, 9, HERE << id << " has bypassable service at " << pos);
             continue;
         }
 
-        if (!allServicesSame) { // cannot skip (i.e., find best) service
-            debugs(93,9,HERE << id << " has essential service at " << pos);
+        if (!allServicesSame) {  // cannot skip (i.e., find best) service
+            debugs(93, 9, HERE << id << " has essential service at " << pos);
             return true;
         }
 
         if (!foundEssential) {
-            debugs(93,9,HERE << id << " searches for best essential service from " << pos);
+            debugs(93, 9, HERE << id << " searches for best essential service from " << pos);
             foundEssential = true;
             essPos = pos;
         }
     }
 
     if (foundEssential) {
-        debugs(93,9,HERE << id << " has best essential service at " << essPos);
+        debugs(93, 9, HERE << id << " has best essential service at " << essPos);
         pos = essPos;
         return true;
     }
 
-    debugs(93,5,HERE << id << " has no matching services");
+    debugs(93, 5, HERE << id << " has no matching services");
     return false;
 }
 
@@ -204,13 +202,14 @@ Adaptation::ServiceGroup::findLink(const ServiceFilter &filter, Pos &pos) const
 
 /* ServiceSet */
 
-Adaptation::ServiceSet::ServiceSet(): ServiceGroup("adaptation set", true)
+Adaptation::ServiceSet::ServiceSet() :
+    ServiceGroup("adaptation set", true)
 {
 }
 
 /* SingleService */
 
-Adaptation::SingleService::SingleService(const String &aServiceId):
+Adaptation::SingleService::SingleService(const String &aServiceId) :
     ServiceGroup("single-service group", false)
 {
     id = aServiceId;
@@ -219,7 +218,8 @@ Adaptation::SingleService::SingleService(const String &aServiceId):
 
 /* ServiceChain */
 
-Adaptation::ServiceChain::ServiceChain(): ServiceGroup("adaptation chain", false)
+Adaptation::ServiceChain::ServiceChain() :
+    ServiceGroup("adaptation chain", false)
 {
 }
 
@@ -228,15 +228,15 @@ Adaptation::ServiceChain::ServiceChain(): ServiceGroup("adaptation chain", false
 Adaptation::DynamicServiceChain::DynamicServiceChain(
     const DynamicGroupCfg &cfg, const ServiceFilter &filter)
 {
-    kind = "dynamic adaptation chain"; // TODO: optimize by using String const
-    id = cfg.id; // use services ids as the dynamic group ID
+    kind = "dynamic adaptation chain";  // TODO: optimize by using String const
+    id = cfg.id;                        // use services ids as the dynamic group ID
     services = cfg.services;
 
     // initialize cache to improve consistency checks in finalize()
     method = filter.method;
     point = filter.point;
 
-    finalize(); // will report [dynamic] config errors
+    finalize();  // will report [dynamic] config errors
 }
 
 void
@@ -255,9 +255,8 @@ Adaptation::DynamicServiceChain::Split(const ServiceFilter &filter,
         id.assign(item, ilen);
         ServicePointer service = FindService(id);
         if (doingCurrent) {
-            if (!service || // cannot tell or matches current location
-                    (service->cfg().method == filter.method &&
-                     service->cfg().point == filter.point)) {
+            if (!service ||  // cannot tell or matches current location
+                (service->cfg().method == filter.method && service->cfg().point == filter.point)) {
                 current.add(id);
                 continue;
             } else {
@@ -272,13 +271,15 @@ Adaptation::DynamicServiceChain::Split(const ServiceFilter &filter,
 
 /* ServicePlan */
 
-Adaptation::ServicePlan::ServicePlan(): pos(0), atEof(true)
+Adaptation::ServicePlan::ServicePlan() :
+    pos(0), atEof(true)
 {
 }
 
 Adaptation::ServicePlan::ServicePlan(const ServiceGroupPointer &g,
-                                     const ServiceFilter &filter):
-    group(g), pos(0), atEof(!g || !g->has(pos))
+                                     const ServiceFilter &filter) :
+    group(g),
+    pos(0), atEof(!g || !g->has(pos))
 {
     // this will find the first service because starting pos is zero
     if (!atEof && !group->findService(filter, pos))
@@ -314,8 +315,7 @@ Adaptation::ServicePlan::print(std::ostream &os) const
     if (!group)
         return os << "[nil]";
 
-    return os << group->id << '[' << pos << ".." << group->services.size() <<
-           (atEof ? ".]" : "]");
+    return os << group->id << '[' << pos << ".." << group->services.size() << (atEof ? ".]" : "]");
 }
 
 /* globals */
@@ -338,4 +338,3 @@ Adaptation::FindGroup(const ServiceGroup::Id &id)
 
     return NULL;
 }
-

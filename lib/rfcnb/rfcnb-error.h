@@ -39,7 +39,7 @@ extern "C" {
 
 /* Error responses */
 
-#define RFCNBE_Bad -1           /* Bad response */
+#define RFCNBE_Bad -1 /* Bad response */
 #define RFCNBE_OK 0
 
 /* these should follow the spec ... is there one ? */
@@ -55,11 +55,11 @@ extern "C" {
 #define RFCNBE_ConnectFailed 9  /* Connect failed                        */
 #define RFCNBE_CallRejNLOCN 10  /* Call rejected, not listening on CN    */
 #define RFCNBE_CallRejNLFCN 11  /* Call rejected, not listening for CN   */
-#define RFCNBE_CallRejCNNP  12  /* Call rejected, called name not present */
+#define RFCNBE_CallRejCNNP 12   /* Call rejected, called name not present */
 #define RFCNBE_CallRejInfRes 13 /* Call rejetced, name ok, no resources   */
 #define RFCNBE_CallRejUnSpec 14 /* Call rejected, unspecified error      */
-#define RFCNBE_BadParam      15 /* Bad parameters passed ...             */
-#define RFCNBE_Timeout       16 /* IO Timed out                          */
+#define RFCNBE_BadParam 15      /* Bad parameters passed ...             */
+#define RFCNBE_Timeout 16       /* IO Timed out                          */
 
 /* Text strings for the error responses                                 */
 
@@ -69,5 +69,4 @@ extern const char *RFCNB_Error_Strings[];
 }
 
 #endif
-#endif                          /* _RFCNB_ERROR_H_ */
-
+#endif /* _RFCNB_ERROR_H_ */

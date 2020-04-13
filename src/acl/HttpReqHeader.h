@@ -9,17 +9,16 @@
 #ifndef SQUID_ACLHTTPREQHEADER_H
 #define SQUID_ACLHTTPREQHEADER_H
 
-#include "acl/Strategy.h"
 #include "HttpHeader.h"
+#include "acl/Strategy.h"
 
 /// \ingroup ACLAPI
-class ACLHTTPReqHeaderStrategy : public ACLStrategy<HttpHeader*>
+class ACLHTTPReqHeaderStrategy : public ACLStrategy<HttpHeader *>
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *);
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
     virtual bool requiresRequest() const { return true; }
 };
 
 #endif /* SQUID_ACLHTTPREQHEADER_H */
-

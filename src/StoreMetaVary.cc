@@ -9,14 +9,14 @@
 /* DEBUG: section 20    Storage Manager Swapfile Metadata */
 
 #include "squid.h"
+#include "StoreMetaVary.h"
 #include "MemObject.h"
 #include "Store.h"
-#include "StoreMetaVary.h"
 
 bool
 StoreMetaVary::checkConsistency(StoreEntry *e) const
 {
-    assert (getType() == STORE_META_VARY_HEADERS);
+    assert(getType() == STORE_META_VARY_HEADERS);
 
     if (e->mem_obj->vary_headers.isEmpty()) {
         /* XXX separate this mutator from the query */
@@ -33,4 +33,3 @@ StoreMetaVary::checkConsistency(StoreEntry *e) const
 
     return true;
 }
-

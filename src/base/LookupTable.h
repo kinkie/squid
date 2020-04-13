@@ -24,8 +24,7 @@
  * template parameter to LookupTable.
  */
 template <typename EnumType>
-struct LookupTableRecord
-{
+struct LookupTableRecord {
     const char *name;
     EnumType id;
 };
@@ -47,7 +46,7 @@ struct LookupTableRecord
  *
  */
 
-template<typename EnumType, typename RecordType = LookupTableRecord<EnumType>, typename Hasher = CaseInsensitiveSBufHash >
+template <typename EnumType, typename RecordType = LookupTableRecord<EnumType>, typename Hasher = CaseInsensitiveSBufHash>
 class LookupTable
 {
 public:
@@ -62,7 +61,8 @@ public:
         }
     }
 
-    EnumType lookup(const SBuf &key) const {
+    EnumType lookup(const SBuf &key) const
+    {
         auto r = lookupTable.find(key);
         if (r == lookupTable.end())
             return invalidValue;
@@ -76,4 +76,3 @@ private:
 };
 
 #endif /* SQUID_LOOKUPTABLE_H_ */
-

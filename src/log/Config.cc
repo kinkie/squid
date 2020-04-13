@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
-#include "cache_cf.h"
+#include "log/Config.h"
 #include "ConfigParser.h"
 #include "Debug.h"
-#include "log/Config.h"
+#include "cache_cf.h"
 
 Log::LogConfig Log::TheConfig;
 
@@ -26,17 +26,13 @@ Log::LogConfig::parseFormats()
     }
 
     // check for re-definition of built-in formats
-    if (strcmp(name, "squid") == 0 ||
-            strcmp(name, "common") == 0 ||
-            strcmp(name, "combined") == 0 ||
-            strcmp(name, "useragent") == 0 ||
-            strcmp(name, "referrer") == 0) {
+    if (strcmp(name, "squid") == 0 || strcmp(name, "common") == 0 || strcmp(name, "combined") == 0 || strcmp(name, "useragent") == 0 || strcmp(name, "referrer") == 0) {
         debugs(3, DBG_PARSE_NOTE(DBG_IMPORTANT), "ERROR: logformat " << name << " is already defined. Ignoring.");
         return;
     }
 
     // check for re-definition of custom formats
-    for (auto i = logformats; i ; i = i->next) {
+    for (auto i = logformats; i; i = i->next) {
         if (strcmp(i->name, name) == 0) {
             debugs(3, DBG_PARSE_NOTE(DBG_IMPORTANT), "ERROR: logformat " << name << " is already defined. Ignoring.");
             return;
@@ -65,4 +61,3 @@ Log::LogConfig::parseFormats()
     nlf->next = logformats;
     logformats = nlf;
 }
-

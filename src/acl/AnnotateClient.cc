@@ -8,17 +8,17 @@
 
 #include "squid.h"
 #include "acl/AnnotateClient.h"
+#include "Notes.h"
 #include "acl/AnnotationData.h"
 #include "acl/FilledChecklist.h"
 #include "client_side.h"
 #include "http/Stream.h"
-#include "Notes.h"
 
 int
-ACLAnnotateClientStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLAnnotateClientStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     if (const auto conn = checklist->conn()) {
-        ACLAnnotationData *tdata = dynamic_cast<ACLAnnotationData*>(data);
+        ACLAnnotationData *tdata = dynamic_cast<ACLAnnotationData *>(data);
         assert(tdata);
         tdata->annotate(conn->notes(), &delimiters.value, checklist->al);
         if (const auto request = checklist->request)
@@ -27,4 +27,3 @@ ACLAnnotateClientStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist 
     }
     return 0;
 }
-

@@ -28,7 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.  */
 
 /* AIX requires this to be the first thing in the file. */
-#if defined (_AIX) && !defined(REGEX_MALLOC)
+#if defined(_AIX) && !defined(REGEX_MALLOC)
 #pragma alloca
 #endif
 
@@ -104,27 +104,27 @@ init_syntax_once(void)
 /* Compile a fastmap for the compiled pattern in BUFFER; used to
  * accelerate searches.  Return 0 if successful and -2 if was an
  * internal error.  */
-static int re_compile_fastmap(struct re_pattern_buffer * buffer);
+static int re_compile_fastmap(struct re_pattern_buffer *buffer);
 
 /* Search in the string STRING (with length LENGTH) for the pattern
  * compiled into BUFFER.  Start searching at position START, for RANGE
  * characters.  Return the starting position of the match, -1 for no
  * match, or -2 for an internal error.  Also return register
  * information in REGS (if REGS and BUFFER->no_sub are nonzero).  */
-static int re_search(struct re_pattern_buffer * buffer, const char *string,
-                     int length, int start, int range, struct re_registers * regs);
+static int re_search(struct re_pattern_buffer *buffer, const char *string,
+                     int length, int start, int range, struct re_registers *regs);
 
 /* Like `re_search', but search in the concatenation of STRING1 and
  * STRING2.  Also, stop searching at index START + STOP.  */
-static int re_search_2(struct re_pattern_buffer * buffer, const char *string1,
+static int re_search_2(struct re_pattern_buffer *buffer, const char *string1,
                        int length1, const char *string2, int length2,
-                       int start, int range, struct re_registers * regs, int stop);
+                       int start, int range, struct re_registers *regs, int stop);
 
 /* Like `re_search_2', but return how many characters in STRING the regexp
  * in BUFFER matched, starting at position START.  */
-static int re_match_2(struct re_pattern_buffer * buffer, const char *string1,
+static int re_match_2(struct re_pattern_buffer *buffer, const char *string1,
                       int length1, const char *string2, int length2,
-                      int start, struct re_registers * regs, int stop);
+                      int start, struct re_registers *regs, int stop);
 
 /* isalpha etc. are used for the character classes.  */
 #include <ctype.h>
@@ -134,26 +134,26 @@ static int re_match_2(struct re_pattern_buffer * buffer, const char *string1,
 #endif
 
 #ifdef isblank
-#define ISBLANK(c) (isascii ((unsigned char)c) && isblank ((unsigned char)c))
+#define ISBLANK(c) (isascii((unsigned char)c) && isblank((unsigned char)c))
 #else
 #define ISBLANK(c) ((c) == ' ' || (c) == '\t')
 #endif
 #ifdef isgraph
-#define ISGRAPH(c) (isascii ((unsigned char)c) && isgraph ((unsigned char)c))
+#define ISGRAPH(c) (isascii((unsigned char)c) && isgraph((unsigned char)c))
 #else
-#define ISGRAPH(c) (isascii ((unsigned char)c) && isprint ((unsigned char)c) && !isspace ((unsigned char)c))
+#define ISGRAPH(c) (isascii((unsigned char)c) && isprint((unsigned char)c) && !isspace((unsigned char)c))
 #endif
 
-#define ISPRINT(c) (isascii ((unsigned char)c) && isprint ((unsigned char)c))
-#define ISDIGIT(c) (isascii ((unsigned char)c) && isdigit ((unsigned char)c))
-#define ISALNUM(c) (isascii ((unsigned char)c) && isalnum ((unsigned char)c))
-#define ISALPHA(c) (isascii ((unsigned char)c) && isalpha ((unsigned char)c))
-#define ISCNTRL(c) (isascii ((unsigned char)c) && iscntrl ((unsigned char)c))
-#define ISLOWER(c) (isascii ((unsigned char)c) && islower ((unsigned char)c))
-#define ISPUNCT(c) (isascii ((unsigned char)c) && ispunct ((unsigned char)c))
-#define ISSPACE(c) (isascii ((unsigned char)c) && isspace ((unsigned char)c))
-#define ISUPPER(c) (isascii ((unsigned char)c) && isupper ((unsigned char)c))
-#define ISXDIGIT(c) (isascii ((unsigned char)c) && isxdigit ((unsigned char)c))
+#define ISPRINT(c) (isascii((unsigned char)c) && isprint((unsigned char)c))
+#define ISDIGIT(c) (isascii((unsigned char)c) && isdigit((unsigned char)c))
+#define ISALNUM(c) (isascii((unsigned char)c) && isalnum((unsigned char)c))
+#define ISALPHA(c) (isascii((unsigned char)c) && isalpha((unsigned char)c))
+#define ISCNTRL(c) (isascii((unsigned char)c) && iscntrl((unsigned char)c))
+#define ISLOWER(c) (isascii((unsigned char)c) && islower((unsigned char)c))
+#define ISPUNCT(c) (isascii((unsigned char)c) && ispunct((unsigned char)c))
+#define ISSPACE(c) (isascii((unsigned char)c) && isspace((unsigned char)c))
+#define ISUPPER(c) (isascii((unsigned char)c) && isupper((unsigned char)c))
+#define ISXDIGIT(c) (isascii((unsigned char)c) && isxdigit((unsigned char)c))
 
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
  * since ours (we hope) works properly with all combinations of
@@ -161,12 +161,12 @@ static int re_match_2(struct re_pattern_buffer * buffer, const char *string1,
  * (Per Bothner suggested the basic approach.)  */
 #undef SIGN_EXTEND_CHAR
 #ifdef __STDC__
-#define SIGN_EXTEND_CHAR(c) ((signed char) (c))
+#define SIGN_EXTEND_CHAR(c) ((signed char)(c))
 #else /* not __STDC__ */
 /* As in Harbison and Steele.  */
-#define SIGN_EXTEND_CHAR(c) ((((unsigned char) (c)) ^ 128) - 128)
+#define SIGN_EXTEND_CHAR(c) ((((unsigned char)(c)) ^ 128) - 128)
 #endif
-
+
 /* Should we use malloc or alloca?  If REGEX_MALLOC is not defined, we
  * use `alloca' instead of `malloc'.  This is because using malloc in
  * re_search* or re_match* could cause memory leaks when C-g is used in
@@ -180,7 +180,7 @@ static int re_match_2(struct re_pattern_buffer * buffer, const char *string1,
 #ifdef REGEX_MALLOC
 
 #define REGEX_ALLOCATE malloc
-#define REGEX_REALLOCATE(source, osize, nsize) realloc (source, nsize)
+#define REGEX_REALLOCATE(source, osize, nsize) realloc(source, nsize)
 
 #else /* not REGEX_MALLOC  */
 
@@ -193,46 +193,46 @@ static int re_match_2(struct re_pattern_buffer * buffer, const char *string1,
 #else /* not __GNUC__ */
 #if HAVE_ALLOCA_H
 #include <alloca.h>
-#else /* not __GNUC__ or HAVE_ALLOCA_H */
-#ifndef _AIX            /* Already did AIX, up at the top.  */
+#else        /* not __GNUC__ or HAVE_ALLOCA_H */
+#ifndef _AIX /* Already did AIX, up at the top.  */
 char *alloca();
-#endif /* not _AIX */
-#endif /* not HAVE_ALLOCA_H */
-#endif /* not __GNUC__ */
+#endif       /* not _AIX */
+#endif       /* not HAVE_ALLOCA_H */
+#endif       /* not __GNUC__ */
 
 #endif /* not alloca */
 
 #define REGEX_ALLOCATE alloca
 
 /* Assumes a `char *destination' variable.  */
-#define REGEX_REALLOCATE(source, osize, nsize)              \
-  (destination = (char *) alloca (nsize),               \
-   memcpy (destination, source, osize),             \
-   destination)
+#define REGEX_REALLOCATE(source, osize, nsize) \
+    (destination = (char *)alloca(nsize),      \
+     memcpy(destination, source, osize),       \
+     destination)
 
 #endif /* not REGEX_MALLOC */
 
 /* True if `size1' is non-NULL and PTR is pointing anywhere inside
  * `string1' or just past its end.  This works if PTR is NULL, which is
  * a good thing.  */
-#define FIRST_STRING_P(ptr)                     \
-  (size1 && string1 <= (ptr) && (ptr) <= string1 + size1)
+#define FIRST_STRING_P(ptr) \
+    (size1 && string1 <= (ptr) && (ptr) <= string1 + size1)
 
 /* (Re)Allocate N items of type T using malloc, or fail.  */
-#define TALLOC(n, t) ((t *) malloc ((n) * sizeof (t)))
-#define RETALLOC(addr, n, t) ((addr) = (t *) realloc (addr, (n) * sizeof (t)))
-#define REGEX_TALLOC(n, t) ((t *) REGEX_ALLOCATE ((n) * sizeof (t)))
+#define TALLOC(n, t) ((t *)malloc((n) * sizeof(t)))
+#define RETALLOC(addr, n, t) ((addr) = (t *)realloc(addr, (n) * sizeof(t)))
+#define REGEX_TALLOC(n, t) ((t *)REGEX_ALLOCATE((n) * sizeof(t)))
 
-#define BYTEWIDTH 8     /* In bits.  */
+#define BYTEWIDTH 8 /* In bits.  */
 
-#define STREQ(s1, s2) ((strcmp (s1, s2) == 0))
+#define STREQ(s1, s2) ((strcmp(s1, s2) == 0))
 
-#if !defined(__MINGW32__)   /* MinGW defines boolean */
+#if !defined(__MINGW32__) /* MinGW defines boolean */
 typedef char boolean;
 #endif
 #define false 0
 #define true 1
-
+
 /* These are the command codes that appear in compiled regular
  * expressions.  Some opcodes are followed by argument bytes.  A
  * command code can specify any interpretation whatsoever for its
@@ -348,50 +348,49 @@ typedef enum {
      * bytes of number.  */
     set_number_at,
 
-    wordchar,           /* Matches any word-constituent character.  */
-    notwordchar,        /* Matches any char that is not a word-constituent.  */
+    wordchar,    /* Matches any word-constituent character.  */
+    notwordchar, /* Matches any char that is not a word-constituent.  */
 
-    wordbeg,            /* Succeeds if at word beginning.  */
-    wordend,            /* Succeeds if at word end.  */
+    wordbeg, /* Succeeds if at word beginning.  */
+    wordend, /* Succeeds if at word end.  */
 
-    wordbound,          /* Succeeds if at a word boundary.  */
-    notwordbound        /* Succeeds if not at a word boundary.  */
+    wordbound,   /* Succeeds if at a word boundary.  */
+    notwordbound /* Succeeds if not at a word boundary.  */
 
 } re_opcode_t;
-
+
 /* Common operations on the compiled pattern.  */
 
 /* Store NUMBER in two contiguous bytes starting at DESTINATION.  */
 
-#define STORE_NUMBER(destination, number)               \
-  do {                                  \
-    (destination)[0] = (number) & 0377;                 \
-    (destination)[1] = (number) >> 8;                   \
-  } while (0)
+#define STORE_NUMBER(destination, number) \
+    do {                                  \
+        (destination)[0] = (number)&0377; \
+        (destination)[1] = (number) >> 8; \
+    } while (0)
 
 /* Same as STORE_NUMBER, except increment DESTINATION to
  * the byte after where the number is stored.  Therefore, DESTINATION
  * must be an lvalue.  */
 
-#define STORE_NUMBER_AND_INCR(destination, number)          \
-  do {                                  \
-    STORE_NUMBER (destination, number);                 \
-    (destination) += 2;                         \
-  } while (0)
+#define STORE_NUMBER_AND_INCR(destination, number) \
+    do {                                           \
+        STORE_NUMBER(destination, number);         \
+        (destination) += 2;                        \
+    } while (0)
 
 /* Put into DESTINATION a number stored in two contiguous bytes starting
  * at SOURCE.  */
 
-#define EXTRACT_NUMBER(destination, source)             \
-  do {                                  \
-    (destination) = *(source) & 0377;                   \
-    (destination) += SIGN_EXTEND_CHAR (*((source) + 1)) << 8;       \
-  } while (0)
+#define EXTRACT_NUMBER(destination, source)                      \
+    do {                                                         \
+        (destination) = *(source)&0377;                          \
+        (destination) += SIGN_EXTEND_CHAR(*((source) + 1)) << 8; \
+    } while (0)
 
 #ifdef DEBUG
 static void
-extract_number(dest, source)
-int *dest;
+    extract_number(dest, source) int *dest;
 unsigned char *source;
 {
     int temp = SIGN_EXTEND_CHAR(*(source + 1));
@@ -399,9 +398,9 @@ unsigned char *source;
     *dest += temp << 8;
 }
 
-#ifndef EXTRACT_MACROS      /* To debug the macros.  */
+#ifndef EXTRACT_MACROS /* To debug the macros.  */
 #undef EXTRACT_NUMBER
-#define EXTRACT_NUMBER(dest, src) extract_number (&dest, src)
+#define EXTRACT_NUMBER(dest, src) extract_number(&dest, src)
 #endif /* not EXTRACT_MACROS */
 
 #endif /* DEBUG */
@@ -409,16 +408,15 @@ unsigned char *source;
 /* Same as EXTRACT_NUMBER, except increment SOURCE to after the number.
  * SOURCE must be an lvalue.  */
 
-#define EXTRACT_NUMBER_AND_INCR(destination, source)            \
-  do {                                  \
-    EXTRACT_NUMBER (destination, source);               \
-    (source) += 2;                          \
-  } while (0)
+#define EXTRACT_NUMBER_AND_INCR(destination, source) \
+    do {                                             \
+        EXTRACT_NUMBER(destination, source);         \
+        (source) += 2;                               \
+    } while (0)
 
 #ifdef DEBUG
 static void
-extract_number_and_incr(destination, source)
-int *destination;
+    extract_number_and_incr(destination, source) int *destination;
 unsigned char **source;
 {
     extract_number(destination, *source);
@@ -428,11 +426,11 @@ unsigned char **source;
 #ifndef EXTRACT_MACROS
 #undef EXTRACT_NUMBER_AND_INCR
 #define EXTRACT_NUMBER_AND_INCR(dest, src) \
-  extract_number_and_incr (&dest, &src)
+    extract_number_and_incr(&dest, &src)
 #endif /* not EXTRACT_MACROS */
 
 #endif /* DEBUG */
-
+
 /* If DEBUG is defined, Regex prints many voluminous messages about what
  * it is doing (if the variable `debug' is nonzero).  If linked with the
  * main program in `iregex.c', you can enter patterns and strings
@@ -444,22 +442,31 @@ unsigned char **source;
 static int debug = 0;
 
 #define DEBUG_STATEMENT(e) e
-#define DEBUG_PRINT1(x) if (debug) printf (x)
-#define DEBUG_PRINT2(x1, x2) if (debug) printf (x1, x2)
-#define DEBUG_PRINT3(x1, x2, x3) if (debug) printf (x1, x2, x3)
-#define DEBUG_PRINT4(x1, x2, x3, x4) if (debug) printf (x1, x2, x3, x4)
-#define DEBUG_PRINT_COMPILED_PATTERN(p, s, e)               \
-  if (debug) print_partial_compiled_pattern (s, e)
-#define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)          \
-  if (debug) print_double_string (w, s1, sz1, s2, sz2)
+#define DEBUG_PRINT1(x) \
+    if (debug)          \
+    printf(x)
+#define DEBUG_PRINT2(x1, x2) \
+    if (debug)               \
+    printf(x1, x2)
+#define DEBUG_PRINT3(x1, x2, x3) \
+    if (debug)                   \
+    printf(x1, x2, x3)
+#define DEBUG_PRINT4(x1, x2, x3, x4) \
+    if (debug)                       \
+    printf(x1, x2, x3, x4)
+#define DEBUG_PRINT_COMPILED_PATTERN(p, s, e) \
+    if (debug)                                \
+    print_partial_compiled_pattern(s, e)
+#define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2) \
+    if (debug)                                         \
+    print_double_string(w, s1, sz1, s2, sz2)
 
 extern void printchar();
 
 /* Print the fastmap in human-readable form.  */
 
 void
-print_fastmap(fastmap)
-char *fastmap;
+    print_fastmap(fastmap) char *fastmap;
 {
     unsigned was_a_range = 0;
     unsigned i = 0;
@@ -485,8 +492,7 @@ char *fastmap;
  * the START pointer into it and ending just before the pointer END.  */
 
 void
-print_partial_compiled_pattern(start, end)
-unsigned char *start;
+    print_partial_compiled_pattern(start, end) unsigned char *start;
 unsigned char *end;
 {
     int mcnt, mcnt2;
@@ -499,7 +505,7 @@ unsigned char *end;
     }
     /* Loop over pattern commands.  */
     while (p < pend) {
-        switch ((re_opcode_t) * p++) {
+        switch ((re_opcode_t)*p++) {
         case no_op:
             printf("/no_op");
             break;
@@ -658,8 +664,7 @@ unsigned char *end;
 }
 
 void
-print_compiled_pattern(bufp)
-struct re_pattern_buffer *bufp;
+    print_compiled_pattern(bufp) struct re_pattern_buffer *bufp;
 {
     unsigned char *buffer = bufp->buffer;
 
@@ -682,8 +687,8 @@ struct re_pattern_buffer *bufp;
 }
 
 void
-print_double_string(where, string1, size1, string2, size2)
-const char *where;
+    print_double_string(where, string1, size1, string2, size2)
+        const char *where;
 const char *string1;
 const char *string2;
 int size1;
@@ -719,47 +724,53 @@ int size2;
 #define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)
 
 #endif /* not DEBUG */
-
+
 /* This table gives an error message for each of the error codes listed
  * in regex.h.  Obviously the order here has to be same as there.  */
 
-static const char *re_error_msg[] = {NULL,              /* REG_NOERROR */
-                                     "No match",            /* REG_NOMATCH */
-                                     "Invalid regular expression",  /* REG_BADPAT */
-                                     "Invalid collation character", /* REG_ECOLLATE */
-                                     "Invalid character class name",    /* REG_ECTYPE */
-                                     "Trailing backslash",  /* REG_EESCAPE */
-                                     "Invalid back reference",  /* REG_ESUBREG */
-                                     "Unmatched [ or [^",   /* REG_EBRACK */
-                                     "Unmatched ( or \\(",  /* REG_EPAREN */
-                                     "Unmatched \\{",       /* REG_EBRACE */
-                                     "Invalid content of \\{\\}",   /* REG_BADBR */
-                                     "Invalid range end",   /* REG_ERANGE */
-                                     "Memory exhausted",        /* REG_ESPACE */
-                                     "Invalid preceding regular expression",    /* REG_BADRPT */
-                                     "Premature end of regular expression", /* REG_EEND */
-                                     "Regular expression too big",  /* REG_ESIZE */
-                                     "Unmatched ) or \\)",  /* REG_ERPAREN */
-                                    };
-
+static const char *re_error_msg[] = {
+    NULL,                                   /* REG_NOERROR */
+    "No match",                             /* REG_NOMATCH */
+    "Invalid regular expression",           /* REG_BADPAT */
+    "Invalid collation character",          /* REG_ECOLLATE */
+    "Invalid character class name",         /* REG_ECTYPE */
+    "Trailing backslash",                   /* REG_EESCAPE */
+    "Invalid back reference",               /* REG_ESUBREG */
+    "Unmatched [ or [^",                    /* REG_EBRACK */
+    "Unmatched ( or \\(",                   /* REG_EPAREN */
+    "Unmatched \\{",                        /* REG_EBRACE */
+    "Invalid content of \\{\\}",            /* REG_BADBR */
+    "Invalid range end",                    /* REG_ERANGE */
+    "Memory exhausted",                     /* REG_ESPACE */
+    "Invalid preceding regular expression", /* REG_BADRPT */
+    "Premature end of regular expression",  /* REG_EEND */
+    "Regular expression too big",           /* REG_ESIZE */
+    "Unmatched ) or \\)",                   /* REG_ERPAREN */
+};
+
 /* Subroutine declarations and macros for regex_compile.  */
 
 /* Fetch the next character in the uncompiled pattern---translating it
  * if necessary.  Also cast from a signed character in the constant
  * string passed to us by the user to an unsigned char that we can use
  * as an array index (in, e.g., `translate').  */
-#define PATFETCH(c)                         \
-  do {if (p == pend) return REG_EEND;                   \
-    c = (unsigned char) *p++;                       \
-    if (translate) c = translate[c];                    \
-  } while (0)
+#define PATFETCH(c)              \
+    do {                         \
+        if (p == pend)           \
+            return REG_EEND;     \
+        c = (unsigned char)*p++; \
+        if (translate)           \
+            c = translate[c];    \
+    } while (0)
 
 /* Fetch the next character in the uncompiled pattern, with no
  * translation.  */
-#define PATFETCH_RAW(c)                         \
-  do {if (p == pend) return REG_EEND;                   \
-    c = (unsigned char) *p++;                       \
-  } while (0)
+#define PATFETCH_RAW(c)          \
+    do {                         \
+        if (p == pend)           \
+            return REG_EEND;     \
+        c = (unsigned char)*p++; \
+    } while (0)
 
 /* Go backwards one character in the pattern.  */
 #define PATUNFETCH p--
@@ -768,58 +779,58 @@ static const char *re_error_msg[] = {NULL,              /* REG_NOERROR */
  * cast the subscript to translate because some data is declared as
  * `char *', to avoid warnings when a string constant is passed.  But
  * when we use a character as a subscript we must make it unsigned.  */
-#define TRANSLATE(d) (translate ? translate[(unsigned char) (d)] : (d))
+#define TRANSLATE(d) (translate ? translate[(unsigned char)(d)] : (d))
 
 /* Macros for outputting the compiled pattern into `buffer'.  */
 
 /* If the buffer isn't allocated when it comes in, use this.  */
-#define INIT_BUF_SIZE  32
+#define INIT_BUF_SIZE 32
 
 /* Make sure we have at least N more bytes of space in buffer.  */
-#define GET_BUFFER_SPACE(n)                     \
-    while (b - bufp->buffer + (n) > bufp->allocated)            \
-      EXTEND_BUFFER ()
+#define GET_BUFFER_SPACE(n)                          \
+    while (b - bufp->buffer + (n) > bufp->allocated) \
+    EXTEND_BUFFER()
 
 /* Make sure we have one more byte of buffer space and then add C to it.  */
-#define BUF_PUSH(c)                         \
-  do {                                  \
-    GET_BUFFER_SPACE (1);                       \
-    *b++ = (unsigned char) (c);                     \
-  } while (0)
+#define BUF_PUSH(c)                \
+    do {                           \
+        GET_BUFFER_SPACE(1);       \
+        *b++ = (unsigned char)(c); \
+    } while (0)
 
 /* Ensure we have two more bytes of buffer space and then append C1 and C2.  */
-#define BUF_PUSH_2(c1, c2)                      \
-  do {                                  \
-    GET_BUFFER_SPACE (2);                       \
-    *b++ = (unsigned char) (c1);                    \
-    *b++ = (unsigned char) (c2);                    \
-  } while (0)
+#define BUF_PUSH_2(c1, c2)          \
+    do {                            \
+        GET_BUFFER_SPACE(2);        \
+        *b++ = (unsigned char)(c1); \
+        *b++ = (unsigned char)(c2); \
+    } while (0)
 
 /* As with BUF_PUSH_2, except for three bytes.  */
-#define BUF_PUSH_3(c1, c2, c3)                      \
-  do {                                  \
-    GET_BUFFER_SPACE (3);                       \
-    *b++ = (unsigned char) (c1);                    \
-    *b++ = (unsigned char) (c2);                    \
-    *b++ = (unsigned char) (c3);                    \
-  } while (0)
+#define BUF_PUSH_3(c1, c2, c3)      \
+    do {                            \
+        GET_BUFFER_SPACE(3);        \
+        *b++ = (unsigned char)(c1); \
+        *b++ = (unsigned char)(c2); \
+        *b++ = (unsigned char)(c3); \
+    } while (0)
 
 /* Store a jump with opcode OP at LOC to location TO.  We store a
  * relative address offset by the three bytes the jump itself occupies.  */
 #define STORE_JUMP(op, loc, to) \
-  store_op1 (op, loc, (to) - (loc) - 3)
+    store_op1(op, loc, (to) - (loc)-3)
 
 /* Likewise, for a two-argument jump.  */
 #define STORE_JUMP2(op, loc, to, arg) \
-  store_op2 (op, loc, (to) - (loc) - 3, arg)
+    store_op2(op, loc, (to) - (loc)-3, arg)
 
 /* Like `STORE_JUMP', but for inserting.  Assume `b' is the buffer end.  */
 #define INSERT_JUMP(op, loc, to) \
-  insert_op1 (op, loc, (to) - (loc) - 3, b)
+    insert_op1(op, loc, (to) - (loc)-3, b)
 
 /* Like `STORE_JUMP2', but for inserting.  Assume `b' is the buffer end.  */
 #define INSERT_JUMP2(op, loc, to, arg) \
-  insert_op2 (op, loc, (to) - (loc) - 3, arg, b)
+    insert_op2(op, loc, (to) - (loc)-3, arg, b)
 
 /* This is not an arbitrary limit: the arguments which represent offsets
  * into the pattern are two bytes long.  So if 2^16 bytes turns out to
@@ -830,30 +841,29 @@ static const char *re_error_msg[] = {NULL,              /* REG_NOERROR */
  * reset the pointers that pointed into the old block to point to the
  * correct places in the new one.  If extending the buffer results in it
  * being larger than MAX_BUF_SIZE, then flag memory exhausted.  */
-#define EXTEND_BUFFER()                         \
-  do {                                  \
-    unsigned char *old_buffer = bufp->buffer;               \
-    if (bufp->allocated == MAX_BUF_SIZE)                \
-      return REG_ESIZE;                         \
-    bufp->allocated <<= 1;                      \
-    if (bufp->allocated > MAX_BUF_SIZE)                 \
-      bufp->allocated = MAX_BUF_SIZE;                   \
-    bufp->buffer = (unsigned char *) realloc (bufp->buffer, bufp->allocated);\
-    if (bufp->buffer == NULL)                       \
-      return REG_ESPACE;                        \
-    /* If the buffer moved, move all the pointers into it.  */      \
-    if (old_buffer != bufp->buffer)                 \
-      {                                 \
-        b = (b - old_buffer) + bufp->buffer;                \
-        begalt = (begalt - old_buffer) + bufp->buffer;          \
-        if (fixup_alt_jump)                     \
-          fixup_alt_jump = (fixup_alt_jump - old_buffer) + bufp->buffer;\
-        if (laststart)                          \
-          laststart = (laststart - old_buffer) + bufp->buffer;      \
-        if (pending_exact)                      \
-          pending_exact = (pending_exact - old_buffer) + bufp->buffer;  \
-      }                                 \
-  } while (0)
+#define EXTEND_BUFFER()                                                         \
+    do {                                                                        \
+        unsigned char *old_buffer = bufp->buffer;                               \
+        if (bufp->allocated == MAX_BUF_SIZE)                                    \
+            return REG_ESIZE;                                                   \
+        bufp->allocated <<= 1;                                                  \
+        if (bufp->allocated > MAX_BUF_SIZE)                                     \
+            bufp->allocated = MAX_BUF_SIZE;                                     \
+        bufp->buffer = (unsigned char *)realloc(bufp->buffer, bufp->allocated); \
+        if (bufp->buffer == NULL)                                               \
+            return REG_ESPACE;                                                  \
+        /* If the buffer moved, move all the pointers into it.  */              \
+        if (old_buffer != bufp->buffer) {                                       \
+            b = (b - old_buffer) + bufp->buffer;                                \
+            begalt = (begalt - old_buffer) + bufp->buffer;                      \
+            if (fixup_alt_jump)                                                 \
+                fixup_alt_jump = (fixup_alt_jump - old_buffer) + bufp->buffer;  \
+            if (laststart)                                                      \
+                laststart = (laststart - old_buffer) + bufp->buffer;            \
+            if (pending_exact)                                                  \
+                pending_exact = (pending_exact - old_buffer) + bufp->buffer;    \
+        }                                                                       \
+    } while (0)
 
 /* Since we have one byte reserved for the register number argument to
  * {start,stop}_memory, the maximum number of groups we can report
@@ -881,14 +891,14 @@ typedef struct {
 typedef struct {
     compile_stack_elt_t *stack;
     unsigned size;
-    unsigned avail;     /* Offset of next open position.  */
+    unsigned avail; /* Offset of next open position.  */
 } compile_stack_type;
 
 static void store_op1(re_opcode_t op, unsigned char *loc, int arg);
-static void store_op2( re_opcode_t op, unsigned char *loc, int arg1, int arg2);
+static void store_op2(re_opcode_t op, unsigned char *loc, int arg1, int arg2);
 static void insert_op1(re_opcode_t op, unsigned char *loc, int arg, unsigned char *end);
 static void insert_op2(re_opcode_t op, unsigned char *loc, int arg1, int arg2, unsigned char *end);
-static boolean at_begline_loc_p(const char * pattern, const char *p, reg_syntax_t syntax);
+static boolean at_begline_loc_p(const char *pattern, const char *p, reg_syntax_t syntax);
 static boolean at_endline_loc_p(const char *p, const char *pend, int syntax);
 static boolean group_in_compile_stack(compile_stack_type compile_stack, regnum_t regnum);
 static reg_errcode_t compile_range(const char **p_ptr, const char *pend, char *translate, reg_syntax_t syntax, unsigned char *b);
@@ -899,37 +909,36 @@ static reg_errcode_t compile_range(const char **p_ptr, const char *pend, char *t
 #define COMPILE_STACK_TOP (compile_stack.stack[compile_stack.avail])
 
 /* Set the bit for character C in a list.  */
-#define SET_LIST_BIT(c)                               \
-  (b[((unsigned char) (c)) / BYTEWIDTH]               \
-   |= 1 << (((unsigned char) c) % BYTEWIDTH))
+#define SET_LIST_BIT(c)                  \
+    (b[((unsigned char)(c)) / BYTEWIDTH] \
+     |= 1 << (((unsigned char)c) % BYTEWIDTH))
 
 /* Get the next unsigned number in the uncompiled pattern.  */
-#define GET_UNSIGNED_NUMBER(num)                    \
-  { if (p != pend)                          \
-     {                                  \
-       PATFETCH (c);                            \
-       while (ISDIGIT (c))                      \
-         {                              \
-           if (num < 0)                         \
-              num = 0;                          \
-           num = num * 10 + c - '0';                    \
-           if (p == pend)                       \
-              break;                            \
-           PATFETCH (c);                        \
-         }                              \
-       }                                \
+#define GET_UNSIGNED_NUMBER(num)          \
+    {                                     \
+        if (p != pend) {                  \
+            PATFETCH(c);                  \
+            while (ISDIGIT(c)) {          \
+                if (num < 0)              \
+                    num = 0;              \
+                num = num * 10 + c - '0'; \
+                if (p == pend)            \
+                    break;                \
+                PATFETCH(c);              \
+            }                             \
+        }                                 \
     }
 
-#define CHAR_CLASS_MAX_LENGTH  6    /* Namely, `xdigit'.  */
+#define CHAR_CLASS_MAX_LENGTH 6 /* Namely, `xdigit'.  */
 
-#define IS_CHAR_CLASS(string)                       \
-   (STREQ (string, "alpha") || STREQ (string, "upper")          \
-    || STREQ (string, "lower") || STREQ (string, "digit")       \
-    || STREQ (string, "alnum") || STREQ (string, "xdigit")      \
-    || STREQ (string, "space") || STREQ (string, "print")       \
-    || STREQ (string, "punct") || STREQ (string, "graph")       \
-    || STREQ (string, "cntrl") || STREQ (string, "blank"))
-
+#define IS_CHAR_CLASS(string)                             \
+    (STREQ(string, "alpha") || STREQ(string, "upper")     \
+     || STREQ(string, "lower") || STREQ(string, "digit")  \
+     || STREQ(string, "alnum") || STREQ(string, "xdigit") \
+     || STREQ(string, "space") || STREQ(string, "print")  \
+     || STREQ(string, "punct") || STREQ(string, "graph")  \
+     || STREQ(string, "cntrl") || STREQ(string, "blank"))
+
 /* `regex_compile' compiles PATTERN (of length SIZE) according to SYNTAX.
  * Returns one of error codes defined in `regex.h', or zero for success.
  *
@@ -1032,7 +1041,7 @@ regex_compile(const char *pattern, int size, reg_syntax_t syntax, struct re_patt
     /* Always count groups, whether or not bufp->no_sub is set.  */
     bufp->re_nsub = 0;
 
-#if !defined (SYNTAX_TABLE)
+#if !defined(SYNTAX_TABLE)
     /* Initialize the syntax table.  */
     init_syntax_once();
 #endif
@@ -1043,7 +1052,7 @@ regex_compile(const char *pattern, int size, reg_syntax_t syntax, struct re_patt
                      * enough space.  This loses if buffer's address is bogus, but
                      * that is the user's responsibility.  */
             RETALLOC(bufp->buffer, INIT_BUF_SIZE, unsigned char);
-        } else {        /* Caller did not allocate a buffer.  Do it for them.  */
+        } else { /* Caller did not allocate a buffer.  Do it for them.  */
             bufp->buffer = TALLOC(INIT_BUF_SIZE, unsigned char);
         }
         if (!bufp->buffer)
@@ -1059,7 +1068,7 @@ regex_compile(const char *pattern, int size, reg_syntax_t syntax, struct re_patt
 
         switch (c) {
         case '^': {
-            if (        /* If at start of pattern, it's an operator.  */
+            if (/* If at start of pattern, it's an operator.  */
                 p == pattern + 1
                 /* If context independent, it's an operator.  */
                 || syntax & RE_CONTEXT_INDEP_ANCHORS
@@ -1068,11 +1077,10 @@ regex_compile(const char *pattern, int size, reg_syntax_t syntax, struct re_patt
                 BUF_PUSH(begline);
             else
                 goto normal_char;
-        }
-        break;
+        } break;
 
         case '$': {
-            if (        /* If at end of pattern, it's an operator.  */
+            if (/* If at end of pattern, it's an operator.  */
                 p == pend
                 /* If context independent, it's an operator.  */
                 || syntax & RE_CONTEXT_INDEP_ANCHORS
@@ -1081,15 +1089,14 @@ regex_compile(const char *pattern, int size, reg_syntax_t syntax, struct re_patt
                 BUF_PUSH(endline);
             else
                 goto normal_char;
-        }
-        break;
+        } break;
 
         case '+':
         case '?':
             if ((syntax & RE_BK_PLUS_QM)
-                    || (syntax & RE_LIMITED_OPS))
+                || (syntax & RE_LIMITED_OPS))
                 goto normal_char;
-handle_plus:
+        handle_plus:
         case '*':
             /* If there is no previous pattern... */
             if (!laststart) {
@@ -1097,7 +1104,8 @@ handle_plus:
                     return REG_BADRPT;
                 else if (!(syntax & RE_CONTEXT_INDEP_OPS))
                     goto normal_char;
-            } {
+            }
+            {
                 /* Are we optimizing this jump?  */
                 boolean keep_string_p = false;
 
@@ -1119,7 +1127,8 @@ handle_plus:
                     PATFETCH(c);
 
                     if (c == '*'
-                            || (!(syntax & RE_BK_PLUS_QM) && (c == '+' || c == '?')));
+                        || (!(syntax & RE_BK_PLUS_QM) && (c == '+' || c == '?')))
+                        ;
 
                     else if (syntax & RE_BK_PLUS_QM && c == '\\') {
                         if (p == pend)
@@ -1169,9 +1178,9 @@ handle_plus:
                      * the `*'.  Do we have to do something analogous here
                      * for null bytes, because of RE_DOT_NOT_NULL?  */
                     if (TRANSLATE(*(p - 2)) == TRANSLATE('.')
-                            && zero_times_ok
-                            && p < pend && TRANSLATE(*p) == TRANSLATE('\n')
-                            && !(syntax & RE_DOT_NEWLINE)) {    /* We have .*\n.  */
+                        && zero_times_ok
+                        && p < pend && TRANSLATE(*p) == TRANSLATE('\n')
+                        && !(syntax & RE_DOT_NEWLINE)) { /* We have .*\n.  */
                         STORE_JUMP(jump, b, laststart);
                         keep_string_p = true;
                     } else
@@ -1185,7 +1194,7 @@ handle_plus:
                  * end of the buffer after this jump is inserted.  */
                 GET_BUFFER_SPACE(3);
                 INSERT_JUMP(keep_string_p ? on_failure_keep_string_jump
-                            : on_failure_jump,
+                                          : on_failure_jump,
                             laststart, b + 3);
                 pending_exact = 0;
                 b += 3;
@@ -1236,8 +1245,8 @@ handle_plus:
             memset(b, 0, (1 << BYTEWIDTH) / BYTEWIDTH);
 
             /* charset_not matches newline according to a syntax bit.  */
-            if ((re_opcode_t) b[-2] == charset_not
-                    && (syntax & RE_HAT_LISTS_NOT_NEWLINE))
+            if ((re_opcode_t)b[-2] == charset_not
+                && (syntax & RE_HAT_LISTS_NOT_NEWLINE))
                 SET_LIST_BIT('\n');
 
             /* Read in characters and ranges, setting map bits.  */
@@ -1272,14 +1281,14 @@ handle_plus:
                  * beginning or the end of a list, then it's the range
                  * operator.  */
                 if (c == '-'
-                        && !(p - 2 >= pattern && p[-2] == '[')
-                        && !(p - 3 >= pattern && p[-3] == '[' && p[-2] == '^')
-                        && *p != ']') {
+                    && !(p - 2 >= pattern && p[-2] == '[')
+                    && !(p - 3 >= pattern && p[-3] == '[' && p[-2] == '^')
+                    && *p != ']') {
                     reg_errcode_t ret
                         = compile_range(&p, pend, translate, syntax, b);
                     if (ret != REG_NOERROR)
                         return ret;
-                } else if (p[0] == '-' && p[1] != ']') {    /* This handles ranges made up of characters only.  */
+                } else if (p[0] == '-' && p[1] != ']') { /* This handles ranges made up of characters only.  */
                     reg_errcode_t ret;
 
                     /* Move past the `-'.  */
@@ -1292,7 +1301,7 @@ handle_plus:
                 /* See if we're at the beginning of a possible character
                  * class.  */
 
-                else if (syntax & RE_CHAR_CLASSES && c == '[' && *p == ':') {   /* Leave room for the null.  */
+                else if (syntax & RE_CHAR_CLASSES && c == '[' && *p == ':') { /* Leave room for the null.  */
                     char str[CHAR_CLASS_MAX_LENGTH + 1];
 
                     PATFETCH(c);
@@ -1305,7 +1314,7 @@ handle_plus:
                     for (;;) {
                         PATFETCH(c);
                         if (c == ':' || c == ']' || p == pend
-                                || c1 == CHAR_CLASS_MAX_LENGTH)
+                            || c1 == CHAR_CLASS_MAX_LENGTH)
                             break;
                         str[c1++] = c;
                     }
@@ -1341,17 +1350,17 @@ handle_plus:
 
                         for (ch = 0; ch < 1 << BYTEWIDTH; ch++) {
                             if ((is_alnum && ISALNUM(ch))
-                                    || (is_alpha && ISALPHA(ch))
-                                    || (is_blank && ISBLANK(ch))
-                                    || (is_cntrl && ISCNTRL(ch))
-                                    || (is_digit && ISDIGIT(ch))
-                                    || (is_graph && ISGRAPH(ch))
-                                    || (is_lower && ISLOWER(ch))
-                                    || (is_print && ISPRINT(ch))
-                                    || (is_punct && ISPUNCT(ch))
-                                    || (is_space && ISSPACE(ch))
-                                    || (is_upper && ISUPPER(ch))
-                                    || (is_xdigit && ISXDIGIT(ch)))
+                                || (is_alpha && ISALPHA(ch))
+                                || (is_blank && ISBLANK(ch))
+                                || (is_cntrl && ISCNTRL(ch))
+                                || (is_digit && ISDIGIT(ch))
+                                || (is_graph && ISGRAPH(ch))
+                                || (is_lower && ISLOWER(ch))
+                                || (is_print && ISPRINT(ch))
+                                || (is_punct && ISPUNCT(ch))
+                                || (is_space && ISSPACE(ch))
+                                || (is_upper && ISUPPER(ch))
+                                || (is_xdigit && ISXDIGIT(ch)))
                                 SET_LIST_BIT(ch);
                         }
                         had_char_class = true;
@@ -1371,11 +1380,10 @@ handle_plus:
 
             /* Discard any (non)matching list bytes that are all 0 at the
              * end of the map.  Decrease the map-length byte too.  */
-            while ((int) b[-1] > 0 && b[b[-1] - 1] == 0)
+            while ((int)b[-1] > 0 && b[b[-1] - 1] == 0)
                 b[-1]--;
             b += b[-1];
-        }
-        break;
+        } break;
 
         case '(':
             if (syntax & RE_NO_BK_PARENS)
@@ -1421,7 +1429,7 @@ handle_plus:
                 if (syntax & RE_NO_BK_PARENS)
                     goto normal_backslash;
 
-handle_open:
+            handle_open:
                 bufp->re_nsub++;
                 regnum++;
 
@@ -1472,7 +1480,7 @@ handle_open:
                     else
                         return REG_ERPAREN;
                 }
-handle_close:
+            handle_close:
                 if (fixup_alt_jump) {
                     /* Push a dummy failure point at the end of the
                          * alternative for a possible future
@@ -1504,8 +1512,8 @@ handle_close:
                     begalt = bufp->buffer + COMPILE_STACK_TOP.begalt_offset;
                     fixup_alt_jump
                         = COMPILE_STACK_TOP.fixup_alt_jump
-                          ? bufp->buffer + COMPILE_STACK_TOP.fixup_alt_jump - 1
-                          : 0;
+                        ? bufp->buffer + COMPILE_STACK_TOP.fixup_alt_jump - 1
+                        : 0;
                     laststart = bufp->buffer + COMPILE_STACK_TOP.laststart_offset;
                     this_group_regnum = COMPILE_STACK_TOP.regnum;
                     /* If we've reached MAX_REGNUM groups, then this open
@@ -1526,10 +1534,10 @@ handle_close:
                 }
                 break;
 
-            case '|':       /* `\|'.  */
+            case '|': /* `\|'.  */
                 if (syntax & RE_LIMITED_OPS || syntax & RE_NO_BK_VBAR)
                     goto normal_backslash;
-handle_alt:
+            handle_alt:
                 if (syntax & RE_LIMITED_OPS)
                     goto normal_char;
 
@@ -1573,75 +1581,75 @@ handle_alt:
             case '{':
                 /* If \{ is a literal.  */
                 if (!(syntax & RE_INTERVALS)
-                        /* If we're at `\{' and it's not the open-interval
+                    /* If we're at `\{' and it's not the open-interval
                          * operator.  */
-                        || ((syntax & RE_INTERVALS) && (syntax & RE_NO_BK_BRACES))
-                        || (p - 2 == pattern && p == pend))
+                    || ((syntax & RE_INTERVALS) && (syntax & RE_NO_BK_BRACES))
+                    || (p - 2 == pattern && p == pend))
                     goto normal_backslash;
 
-handle_interval: {
-                    /* If got here, then the syntax allows intervals.  */
+            handle_interval : {
+                /* If got here, then the syntax allows intervals.  */
 
-                    /* At least (most) this many matches must be made.  */
-                    int lower_bound = -1, upper_bound = -1;
+                /* At least (most) this many matches must be made.  */
+                int lower_bound = -1, upper_bound = -1;
 
-                    beg_interval = p - 1;
+                beg_interval = p - 1;
 
-                    if (p == pend) {
-                        if (syntax & RE_NO_BK_BRACES)
-                            goto unfetch_interval;
-                        else
-                            return REG_EBRACE;
-                    }
-                    GET_UNSIGNED_NUMBER(lower_bound);
+                if (p == pend) {
+                    if (syntax & RE_NO_BK_BRACES)
+                        goto unfetch_interval;
+                    else
+                        return REG_EBRACE;
+                }
+                GET_UNSIGNED_NUMBER(lower_bound);
 
-                    if (c == ',') {
-                        GET_UNSIGNED_NUMBER(upper_bound);
-                        if (upper_bound < 0)
-                            upper_bound = RE_DUP_MAX;
-                    } else
-                        /* Interval such as `{1}' => match exactly once. */
-                        upper_bound = lower_bound;
+                if (c == ',') {
+                    GET_UNSIGNED_NUMBER(upper_bound);
+                    if (upper_bound < 0)
+                        upper_bound = RE_DUP_MAX;
+                } else
+                    /* Interval such as `{1}' => match exactly once. */
+                    upper_bound = lower_bound;
 
-                    if (lower_bound < 0 || upper_bound > RE_DUP_MAX
-                            || lower_bound > upper_bound) {
-                        if (syntax & RE_NO_BK_BRACES)
-                            goto unfetch_interval;
-                        else
-                            return REG_BADBR;
-                    }
-                    if (!(syntax & RE_NO_BK_BRACES)) {
-                        if (c != '\\')
-                            return REG_EBRACE;
+                if (lower_bound < 0 || upper_bound > RE_DUP_MAX
+                    || lower_bound > upper_bound) {
+                    if (syntax & RE_NO_BK_BRACES)
+                        goto unfetch_interval;
+                    else
+                        return REG_BADBR;
+                }
+                if (!(syntax & RE_NO_BK_BRACES)) {
+                    if (c != '\\')
+                        return REG_EBRACE;
 
-                        PATFETCH(c);
-                    }
-                    if (c != '}') {
-                        if (syntax & RE_NO_BK_BRACES)
-                            goto unfetch_interval;
-                        else
-                            return REG_BADBR;
-                    }
-                    /* We just parsed a valid interval.  */
+                    PATFETCH(c);
+                }
+                if (c != '}') {
+                    if (syntax & RE_NO_BK_BRACES)
+                        goto unfetch_interval;
+                    else
+                        return REG_BADBR;
+                }
+                /* We just parsed a valid interval.  */
 
-                    /* If it's invalid to have no preceding re.  */
-                    if (!laststart) {
-                        if (syntax & RE_CONTEXT_INVALID_OPS)
-                            return REG_BADRPT;
-                        else if (syntax & RE_CONTEXT_INDEP_OPS)
-                            laststart = b;
-                        else
-                            goto unfetch_interval;
-                    }
-                    /* If the upper bound is zero, don't want to succeed at
+                /* If it's invalid to have no preceding re.  */
+                if (!laststart) {
+                    if (syntax & RE_CONTEXT_INVALID_OPS)
+                        return REG_BADRPT;
+                    else if (syntax & RE_CONTEXT_INDEP_OPS)
+                        laststart = b;
+                    else
+                        goto unfetch_interval;
+                }
+                /* If the upper bound is zero, don't want to succeed at
                      * all; jump from `laststart' to `b + 3', which will be
                      * the end of the buffer after we insert the jump.  */
-                    if (upper_bound == 0) {
-                        GET_BUFFER_SPACE(3);
-                        INSERT_JUMP(jump, laststart, b + 3);
-                        b += 3;
-                    }
-                    /* Otherwise, we have a nontrivial interval.  When
+                if (upper_bound == 0) {
+                    GET_BUFFER_SPACE(3);
+                    INSERT_JUMP(jump, laststart, b + 3);
+                    b += 3;
+                }
+                /* Otherwise, we have a nontrivial interval.  When
                      * we're all done, the pattern will look like:
                      * set_number_at <jump count> <upper bound>
                      * set_number_at <succeed_n count> <lower bound>
@@ -1650,43 +1658,43 @@ handle_interval: {
                      * jump_n <succeed_n addr> <jump count>
                      * (The upper bound and `jump_n' are omitted if
                      * `upper_bound' is 1, though.)  */
-                    else {
-                        /* If the upper bound is > 1, we need to insert
+                else {
+                    /* If the upper bound is > 1, we need to insert
                         * more at the end of the loop.  */
-                        unsigned nbytes = 10 + (upper_bound > 1) * 10;
+                    unsigned nbytes = 10 + (upper_bound > 1) * 10;
 
-                        GET_BUFFER_SPACE(nbytes);
+                    GET_BUFFER_SPACE(nbytes);
 
-                        /* Initialize lower bound of the `succeed_n', even
+                    /* Initialize lower bound of the `succeed_n', even
                          * though it will be set during matching by its
                          * attendant `set_number_at' (inserted next),
                          * because `re_compile_fastmap' needs to know.
                          * Jump to the `jump_n' we might insert below.  */
-                        INSERT_JUMP2(succeed_n, laststart,
-                                     b + 5 + (upper_bound > 1) * 5,
-                                     lower_bound);
-                        b += 5;
+                    INSERT_JUMP2(succeed_n, laststart,
+                                 b + 5 + (upper_bound > 1) * 5,
+                                 lower_bound);
+                    b += 5;
 
-                        /* Code to initialize the lower bound.  Insert
+                    /* Code to initialize the lower bound.  Insert
                          * before the `succeed_n'.  The `5' is the last two
                          * bytes of this `set_number_at', plus 3 bytes of
                          * the following `succeed_n'.  */
-                        insert_op2(set_number_at, laststart, 5, lower_bound, b);
-                        b += 5;
+                    insert_op2(set_number_at, laststart, 5, lower_bound, b);
+                    b += 5;
 
-                        if (upper_bound > 1) {
-                            /* More than one repetition is allowed, so
+                    if (upper_bound > 1) {
+                        /* More than one repetition is allowed, so
                              * append a backward jump to the `succeed_n'
                              * that starts this interval.
                              *
                              * When we've reached this during matching,
                              * we'll have matched the interval once, so
                              * jump back only `upper_bound - 1' times.  */
-                            STORE_JUMP2(jump_n, b, laststart + 5,
-                                        upper_bound - 1);
-                            b += 5;
+                        STORE_JUMP2(jump_n, b, laststart + 5,
+                                    upper_bound - 1);
+                        b += 5;
 
-                            /* The location we want to set is the second
+                        /* The location we want to set is the second
                              * parameter of the `jump_n'; that is `b-2' as
                              * an absolute address.  `laststart' will be
                              * the `set_number_at' we're about to insert;
@@ -1700,17 +1708,16 @@ handle_interval: {
                              * We insert this at the beginning of the loop
                              * so that if we fail during matching, we'll
                              * reinitialize the bounds.  */
-                            insert_op2(set_number_at, laststart, b - laststart,
-                                       upper_bound - 1, b);
-                            b += 5;
-                        }
+                        insert_op2(set_number_at, laststart, b - laststart,
+                                   upper_bound - 1, b);
+                        b += 5;
                     }
-                    pending_exact = 0;
-                    beg_interval = NULL;
                 }
-                break;
+                pending_exact = 0;
+                beg_interval = NULL;
+            } break;
 
-unfetch_interval:
+            unfetch_interval:
                 /* If an invalid interval, match the characters as literals.  */
                 assert(beg_interval);
                 p = beg_interval;
@@ -1792,7 +1799,7 @@ unfetch_interval:
                     goto normal_backslash;
 
             default:
-normal_backslash:
+            normal_backslash:
                 /* You might think it would be useful for \ to mean
                  * not to translate; but if we don't translate it
                  * it will never match anything.  */
@@ -1803,23 +1810,23 @@ normal_backslash:
 
         default:
             /* Expects the character in `c'.  */
-normal_char:
+        normal_char:
             /* If no exactn currently being built.  */
             if (!pending_exact
 
-                    /* If last exactn not at current position.  */
-                    || pending_exact + *pending_exact + 1 != b
+                /* If last exactn not at current position.  */
+                || pending_exact + *pending_exact + 1 != b
 
-                    /* We have only one byte following the exactn for the count.  */
-                    || *pending_exact == (1 << BYTEWIDTH) - 1
+                /* We have only one byte following the exactn for the count.  */
+                || *pending_exact == (1 << BYTEWIDTH) - 1
 
-                    /* If followed by a repetition operator.  */
-                    || *p == '*' || *p == '^'
-                    || ((syntax & RE_BK_PLUS_QM)
+                /* If followed by a repetition operator.  */
+                || *p == '*' || *p == '^'
+                || ((syntax & RE_BK_PLUS_QM)
                         ? *p == '\\' && (p[1] == '+' || p[1] == '?')
                         : (*p == '+' || *p == '?'))
-                    || ((syntax & RE_INTERVALS)
-                        && ((syntax & RE_NO_BK_BRACES)
+                || ((syntax & RE_INTERVALS)
+                    && ((syntax & RE_NO_BK_BRACES)
                             ? *p == '{'
                             : (p[0] == '\\' && p[1] == '{')))) {
                 /* Start building a new exactn.  */
@@ -1832,8 +1839,8 @@ normal_char:
             BUF_PUSH(c);
             (*pending_exact)++;
             break;
-        }           /* switch (c) */
-    }               /* while p != pend */
+        } /* switch (c) */
+    }     /* while p != pend */
 
     /* Through the pattern now.  */
 
@@ -1856,24 +1863,25 @@ normal_char:
 #endif /* DEBUG */
 
     return REG_NOERROR;
-}               /* regex_compile */
-
+} /* regex_compile */
+
 /* Subroutines for `regex_compile'.  */
 
 /* Store OP at LOC followed by two-byte integer parameter ARG.  */
 
-void store_op1(re_opcode_t op, unsigned char *loc, int arg)
+void
+store_op1(re_opcode_t op, unsigned char *loc, int arg)
 {
-    *loc = (unsigned char) op;
+    *loc = (unsigned char)op;
     STORE_NUMBER(loc + 1, arg);
 }
 
 /* Like `store_op1', but for two two-byte parameters ARG1 and ARG2.  */
 
 void
-store_op2( re_opcode_t op, unsigned char *loc, int arg1, int arg2)
+store_op2(re_opcode_t op, unsigned char *loc, int arg1, int arg2)
 {
-    *loc = (unsigned char) op;
+    *loc = (unsigned char)op;
     STORE_NUMBER(loc + 1, arg1);
     STORE_NUMBER(loc + 3, arg2);
 }
@@ -1912,7 +1920,7 @@ insert_op2(re_opcode_t op, unsigned char *loc, int arg1, int arg2, unsigned char
  * least one character before the ^.  */
 
 boolean
-at_begline_loc_p(const char * pattern, const char *p, reg_syntax_t syntax)
+at_begline_loc_p(const char *pattern, const char *p, reg_syntax_t syntax)
 {
     const char *prev = p - 2;
     boolean prev_prev_backslash = prev > pattern && prev[-1] == '\\';
@@ -1937,10 +1945,10 @@ at_endline_loc_p(const char *p, const char *pend, int syntax)
     return
         /* Before a subexpression?  */
         (syntax & RE_NO_BK_PARENS ? *next == ')'
-         : next_backslash && next_next && *next_next == ')')
+                                  : next_backslash && next_next && *next_next == ')')
         /* Before an alternative?  */
         || (syntax & RE_NO_BK_VBAR ? *next == '|'
-            : next_backslash && next_next && *next_next == '|');
+                                   : next_backslash && next_next && *next_next == '|');
 }
 
 /* Returns true if REGNUM is in one of COMPILE_STACK's elements and
@@ -1952,8 +1960,8 @@ group_in_compile_stack(compile_stack_type compile_stack, regnum_t regnum)
     int this_element;
 
     for (this_element = compile_stack.avail - 1;
-            this_element >= 0;
-            this_element--)
+         this_element >= 0;
+         this_element--)
         if (compile_stack.stack[this_element].regnum == regnum)
             return true;
 
@@ -1989,8 +1997,8 @@ compile_range(const char **p_ptr, const char *pend, char *translate, reg_syntax_
      *
      * We also want to fetch the endpoints without translating them; the
      * appropriate translation is done in the bit-setting loop below.  */
-    range_start = ((unsigned char *) p)[-2];
-    range_end = ((unsigned char *) p)[0];
+    range_start = ((unsigned char *)p)[-2];
+    range_end = ((unsigned char *)p)[0];
 
     /* Have to increment the pointer into the pattern string, so the
      * caller isn't still at the ending character.  */
@@ -2010,7 +2018,7 @@ compile_range(const char **p_ptr, const char *pend, char *translate, reg_syntax_
 
     return REG_NOERROR;
 }
-
+
 /* Failure stack declarations and macros; both re_compile_fastmap and
  * re_match_2 use a failure stack.  These have to be macros because of
  * REGEX_ALLOCATE.  */
@@ -2033,27 +2041,27 @@ typedef const unsigned char *fail_stack_elt_t;
 typedef struct {
     fail_stack_elt_t *stack;
     unsigned size;
-    unsigned avail;     /* Offset of next open position.  */
+    unsigned avail; /* Offset of next open position.  */
 } fail_stack_type;
 
-#define FAIL_STACK_EMPTY()     (fail_stack.avail == 0)
+#define FAIL_STACK_EMPTY() (fail_stack.avail == 0)
 #define FAIL_STACK_PTR_EMPTY() (fail_stack_ptr->avail == 0)
-#define FAIL_STACK_FULL()      (fail_stack.avail == fail_stack.size)
-#define FAIL_STACK_TOP()       (fail_stack.stack[fail_stack.avail])
+#define FAIL_STACK_FULL() (fail_stack.avail == fail_stack.size)
+#define FAIL_STACK_TOP() (fail_stack.stack[fail_stack.avail])
 
 /* Initialize `fail_stack'.  Do `return -2' if the alloc fails.  */
 
-#define INIT_FAIL_STACK()                       \
-  do {                                  \
-    fail_stack.stack = (fail_stack_elt_t *)             \
-      REGEX_ALLOCATE (INIT_FAILURE_ALLOC * sizeof (fail_stack_elt_t));  \
-                                    \
-    if (fail_stack.stack == NULL)                   \
-      return -2;                            \
-                                    \
-    fail_stack.size = INIT_FAILURE_ALLOC;               \
-    fail_stack.avail = 0;                       \
-  } while (0)
+#define INIT_FAIL_STACK()                                                  \
+    do {                                                                   \
+        fail_stack.stack = (fail_stack_elt_t *)                            \
+            REGEX_ALLOCATE(INIT_FAILURE_ALLOC * sizeof(fail_stack_elt_t)); \
+                                                                           \
+        if (fail_stack.stack == NULL)                                      \
+            return -2;                                                     \
+                                                                           \
+        fail_stack.size = INIT_FAILURE_ALLOC;                              \
+        fail_stack.avail = 0;                                              \
+    } while (0)
 
 /* Double the size of FAIL_STACK, up to approximately `re_max_failures' items.
  *
@@ -2062,35 +2070,35 @@ typedef struct {
  *
  * REGEX_REALLOCATE requires `destination' be declared.   */
 
-#define DOUBLE_FAIL_STACK(fail_stack)                   \
-  ((fail_stack).size > re_max_failures * MAX_FAILURE_ITEMS      \
-   ? 0                                  \
-   : ((fail_stack).stack = (fail_stack_elt_t *)             \
-        REGEX_REALLOCATE ((fail_stack).stack,               \
-          (fail_stack).size * sizeof (fail_stack_elt_t),        \
-          ((fail_stack).size << 1) * sizeof (fail_stack_elt_t)),    \
-                                    \
-      (fail_stack).stack == NULL                    \
-      ? 0                               \
-      : ((fail_stack).size <<= 1,                   \
-         1)))
+#define DOUBLE_FAIL_STACK(fail_stack)                                                  \
+    ((fail_stack).size > re_max_failures * MAX_FAILURE_ITEMS                           \
+         ? 0                                                                           \
+         : ((fail_stack).stack = (fail_stack_elt_t *)                                  \
+                REGEX_REALLOCATE((fail_stack).stack,                                   \
+                                 (fail_stack).size * sizeof(fail_stack_elt_t),         \
+                                 ((fail_stack).size << 1) * sizeof(fail_stack_elt_t)), \
+                                                                                       \
+            (fail_stack).stack == NULL                                                 \
+                ? 0                                                                    \
+                : ((fail_stack).size <<= 1,                                            \
+                   1)))
 
 /* Push PATTERN_OP on FAIL_STACK.
  *
  * Return 1 if was able to do so and 0 if ran out of memory allocating
  * space to do so.  */
-#define PUSH_PATTERN_OP(pattern_op, fail_stack)             \
-  ((FAIL_STACK_FULL ()                          \
-    && !DOUBLE_FAIL_STACK (fail_stack))                 \
-    ? 0                                 \
-    : ((fail_stack).stack[(fail_stack).avail++] = pattern_op,       \
-       1))
+#define PUSH_PATTERN_OP(pattern_op, fail_stack)                    \
+    ((FAIL_STACK_FULL()                                            \
+      && !DOUBLE_FAIL_STACK(fail_stack))                           \
+         ? 0                                                       \
+         : ((fail_stack).stack[(fail_stack).avail++] = pattern_op, \
+            1))
 
 /* This pushes an item onto the failure stack.  Must be a four-byte
  * value.  Assumes the variable `fail_stack'.  Probably should only
  * be called from within `PUSH_FAILURE_POINT'.  */
-#define PUSH_FAILURE_ITEM(item)                     \
-  fail_stack.stack[fail_stack.avail++] = (fail_stack_elt_t) item
+#define PUSH_FAILURE_ITEM(item) \
+    fail_stack.stack[fail_stack.avail++] = (fail_stack_elt_t)item
 
 /* The complement operation.  Assumes `fail_stack' is nonempty.  */
 #define POP_FAILURE_ITEM() fail_stack.stack[--fail_stack.avail]
@@ -2098,7 +2106,7 @@ typedef struct {
 /* Used to omit pushing failure point id's when we're not debugging.  */
 #ifdef DEBUG
 #define DEBUG_PUSH PUSH_FAILURE_ITEM
-#define DEBUG_POP(item_addr) *(item_addr) = POP_FAILURE_ITEM ()
+#define DEBUG_POP(item_addr) *(item_addr) = POP_FAILURE_ITEM()
 #else
 #define DEBUG_PUSH(item)
 #define DEBUG_POP(item_addr)
@@ -2113,87 +2121,85 @@ typedef struct {
  *
  * Does `return FAILURE_CODE' if runs out of memory.  */
 
-#define PUSH_FAILURE_POINT(pattern_place, string_place, failure_code)   \
-  do {                                  \
-    char *destination;                          \
-    /* Must be int, so when we don't save any registers, the arithmetic \
-       of 0 + -1 isn't done as unsigned.  */                \
-    int this_reg;                           \
-                                        \
-    DEBUG_STATEMENT (failure_id++);                 \
-    DEBUG_STATEMENT (nfailure_points_pushed++);             \
-    DEBUG_PRINT2 ("\nPUSH_FAILURE_POINT #%u:\n", failure_id);       \
-    DEBUG_PRINT2 ("  Before push, next avail: %d\n", (fail_stack).avail);\
-    DEBUG_PRINT2 ("                     size: %d\n", (fail_stack).size);\
-                                    \
-    DEBUG_PRINT2 ("  slots needed: %d\n", NUM_FAILURE_ITEMS);       \
-    DEBUG_PRINT2 ("     available: %d\n", REMAINING_AVAIL_SLOTS);   \
-                                    \
-    /* Ensure we have enough space allocated for what we will push.  */ \
-    while (REMAINING_AVAIL_SLOTS < NUM_FAILURE_ITEMS)           \
-      {                                 \
-        if (!DOUBLE_FAIL_STACK (fail_stack))            \
-          return failure_code;                      \
-                                    \
-        DEBUG_PRINT2 ("\n  Doubled stack; size now: %d\n",      \
-               (fail_stack).size);              \
-        DEBUG_PRINT2 ("  slots available: %d\n", REMAINING_AVAIL_SLOTS);\
-      }                                 \
-                                    \
-    /* Push the info, starting with the registers.  */          \
-    DEBUG_PRINT1 ("\n");                        \
-                                    \
-    for (this_reg = lowest_active_reg; this_reg <= highest_active_reg;  \
-         this_reg++)                            \
-      {                                 \
-    DEBUG_PRINT2 ("  Pushing reg: %d\n", this_reg);         \
-        DEBUG_STATEMENT (num_regs_pushed++);                \
-                                    \
-    DEBUG_PRINT2 ("    start: 0x%x\n", regstart[this_reg]);     \
-        PUSH_FAILURE_ITEM (regstart[this_reg]);             \
-                                                                        \
-    DEBUG_PRINT2 ("    end: 0x%x\n", regend[this_reg]);     \
-        PUSH_FAILURE_ITEM (regend[this_reg]);               \
-                                    \
-    DEBUG_PRINT2 ("    info: 0x%x\n      ", reg_info[this_reg]);    \
-        DEBUG_PRINT2 (" match_null=%d",                 \
-                      REG_MATCH_NULL_STRING_P (reg_info[this_reg]));    \
-        DEBUG_PRINT2 (" active=%d", IS_ACTIVE (reg_info[this_reg]));    \
-        DEBUG_PRINT2 (" matched_something=%d",              \
-                      MATCHED_SOMETHING (reg_info[this_reg]));      \
-        DEBUG_PRINT2 (" ever_matched=%d",               \
-                      EVER_MATCHED_SOMETHING (reg_info[this_reg])); \
-    DEBUG_PRINT1 ("\n");                        \
-        PUSH_FAILURE_ITEM (reg_info[this_reg].word);            \
-      }                                 \
-                                    \
-    DEBUG_PRINT2 ("  Pushing  low active reg: %d\n", lowest_active_reg);\
-    PUSH_FAILURE_ITEM (lowest_active_reg);              \
-                                    \
-    DEBUG_PRINT2 ("  Pushing high active reg: %d\n", highest_active_reg);\
-    PUSH_FAILURE_ITEM (highest_active_reg);             \
-                                    \
-    DEBUG_PRINT2 ("  Pushing pattern 0x%x: ", pattern_place);       \
-    DEBUG_PRINT_COMPILED_PATTERN (bufp, pattern_place, pend);       \
-    PUSH_FAILURE_ITEM (pattern_place);                  \
-                                    \
-    DEBUG_PRINT2 ("  Pushing string 0x%x: `", string_place);        \
-    DEBUG_PRINT_DOUBLE_STRING (string_place, string1, size1, string2,   \
-                 size2);                \
-    DEBUG_PRINT1 ("'\n");                       \
-    PUSH_FAILURE_ITEM (string_place);                   \
-                                    \
-    DEBUG_PRINT2 ("  Pushing failure id: %u\n", failure_id);        \
-    DEBUG_PUSH (failure_id);                        \
-  } while (0)
+#define PUSH_FAILURE_POINT(pattern_place, string_place, failure_code)        \
+    do {                                                                     \
+        char *destination;                                                   \
+        /* Must be int, so when we don't save any registers, the arithmetic  \
+           of 0 + -1 isn't done as unsigned.  */                             \
+        int this_reg;                                                        \
+                                                                             \
+        DEBUG_STATEMENT(failure_id++);                                       \
+        DEBUG_STATEMENT(nfailure_points_pushed++);                           \
+        DEBUG_PRINT2("\nPUSH_FAILURE_POINT #%u:\n", failure_id);             \
+        DEBUG_PRINT2("  Before push, next avail: %d\n", (fail_stack).avail); \
+        DEBUG_PRINT2("                     size: %d\n", (fail_stack).size);  \
+                                                                             \
+        DEBUG_PRINT2("  slots needed: %d\n", NUM_FAILURE_ITEMS);             \
+        DEBUG_PRINT2("     available: %d\n", REMAINING_AVAIL_SLOTS);         \
+                                                                             \
+        /* Ensure we have enough space allocated for what we will push.  */  \
+        while (REMAINING_AVAIL_SLOTS < NUM_FAILURE_ITEMS) {                  \
+            if (!DOUBLE_FAIL_STACK(fail_stack))                              \
+                return failure_code;                                         \
+                                                                             \
+            DEBUG_PRINT2("\n  Doubled stack; size now: %d\n",                \
+                         (fail_stack).size);                                 \
+            DEBUG_PRINT2("  slots available: %d\n", REMAINING_AVAIL_SLOTS);  \
+        }                                                                    \
+                                                                             \
+        /* Push the info, starting with the registers.  */                   \
+        DEBUG_PRINT1("\n");                                                  \
+                                                                             \
+        for (this_reg = lowest_active_reg; this_reg <= highest_active_reg;   \
+             this_reg++) {                                                   \
+            DEBUG_PRINT2("  Pushing reg: %d\n", this_reg);                   \
+            DEBUG_STATEMENT(num_regs_pushed++);                              \
+                                                                             \
+            DEBUG_PRINT2("    start: 0x%x\n", regstart[this_reg]);           \
+            PUSH_FAILURE_ITEM(regstart[this_reg]);                           \
+                                                                             \
+            DEBUG_PRINT2("    end: 0x%x\n", regend[this_reg]);               \
+            PUSH_FAILURE_ITEM(regend[this_reg]);                             \
+                                                                             \
+            DEBUG_PRINT2("    info: 0x%x\n      ", reg_info[this_reg]);      \
+            DEBUG_PRINT2(" match_null=%d",                                   \
+                         REG_MATCH_NULL_STRING_P(reg_info[this_reg]));       \
+            DEBUG_PRINT2(" active=%d", IS_ACTIVE(reg_info[this_reg]));       \
+            DEBUG_PRINT2(" matched_something=%d",                            \
+                         MATCHED_SOMETHING(reg_info[this_reg]));             \
+            DEBUG_PRINT2(" ever_matched=%d",                                 \
+                         EVER_MATCHED_SOMETHING(reg_info[this_reg]));        \
+            DEBUG_PRINT1("\n");                                              \
+            PUSH_FAILURE_ITEM(reg_info[this_reg].word);                      \
+        }                                                                    \
+                                                                             \
+        DEBUG_PRINT2("  Pushing  low active reg: %d\n", lowest_active_reg);  \
+        PUSH_FAILURE_ITEM(lowest_active_reg);                                \
+                                                                             \
+        DEBUG_PRINT2("  Pushing high active reg: %d\n", highest_active_reg); \
+        PUSH_FAILURE_ITEM(highest_active_reg);                               \
+                                                                             \
+        DEBUG_PRINT2("  Pushing pattern 0x%x: ", pattern_place);             \
+        DEBUG_PRINT_COMPILED_PATTERN(bufp, pattern_place, pend);             \
+        PUSH_FAILURE_ITEM(pattern_place);                                    \
+                                                                             \
+        DEBUG_PRINT2("  Pushing string 0x%x: `", string_place);              \
+        DEBUG_PRINT_DOUBLE_STRING(string_place, string1, size1, string2,     \
+                                  size2);                                    \
+        DEBUG_PRINT1("'\n");                                                 \
+        PUSH_FAILURE_ITEM(string_place);                                     \
+                                                                             \
+        DEBUG_PRINT2("  Pushing failure id: %u\n", failure_id);              \
+        DEBUG_PUSH(failure_id);                                              \
+    } while (0)
 
 /* This is the number of items that are pushed and popped on the stack
  * for each register.  */
-#define NUM_REG_ITEMS  3
+#define NUM_REG_ITEMS 3
 
 /* Individual items aside from the registers.  */
 #ifdef DEBUG
-#define NUM_NONREG_ITEMS 5  /* Includes failure point id.  */
+#define NUM_NONREG_ITEMS 5 /* Includes failure point id.  */
 #else
 #define NUM_NONREG_ITEMS 4
 #endif
@@ -2202,9 +2208,9 @@ typedef struct {
 #define MAX_FAILURE_ITEMS ((num_regs - 1) * NUM_REG_ITEMS + NUM_NONREG_ITEMS)
 
 /* We actually push this many items.  */
-#define NUM_FAILURE_ITEMS                       \
-  ((highest_active_reg - lowest_active_reg + 1) * NUM_REG_ITEMS     \
-    + NUM_NONREG_ITEMS)
+#define NUM_FAILURE_ITEMS                                         \
+    ((highest_active_reg - lowest_active_reg + 1) * NUM_REG_ITEMS \
+     + NUM_NONREG_ITEMS)
 
 /* How many items can still be added to the stack without overflowing it.  */
 #define REMAINING_AVAIL_SLOTS ((fail_stack).size - (fail_stack).avail)
@@ -2221,63 +2227,62 @@ typedef struct {
  * Also assumes the variables `fail_stack' and (if debugging), `bufp',
  * `pend', `string1', `size1', `string2', and `size2'.  */
 
-#define POP_FAILURE_POINT(str, pat, low_reg, high_reg, regstart, regend, reg_info)\
-{                                   \
-  DEBUG_STATEMENT (fail_stack_elt_t failure_id;)            \
-  int this_reg;                             \
-  const unsigned char *string_temp;                 \
-                                    \
-  assert (!FAIL_STACK_EMPTY ());                    \
-                                    \
-  /* Remove failure points and point to how many regs pushed.  */   \
-  DEBUG_PRINT1 ("POP_FAILURE_POINT:\n");                \
-  DEBUG_PRINT2 ("  Before pop, next avail: %d\n", fail_stack.avail);    \
-  DEBUG_PRINT2 ("                    size: %d\n", fail_stack.size); \
-                                    \
-  assert (fail_stack.avail >= NUM_NONREG_ITEMS);            \
-                                    \
-  DEBUG_POP (&failure_id);                      \
-  DEBUG_PRINT2 ("  Popping failure id: %u\n", failure_id);      \
-                                    \
-  /* If the saved string location is NULL, it came from an      \
-     on_failure_keep_string_jump opcode, and we want to throw away the  \
-     saved NULL, thus retaining our current position in the string.  */ \
-  string_temp = POP_FAILURE_ITEM ();                    \
-  if (string_temp != NULL)                      \
-    str = (const char *) string_temp;                   \
-                                    \
-  DEBUG_PRINT2 ("  Popping string 0x%x: `", str);           \
-  DEBUG_PRINT_DOUBLE_STRING (str, string1, size1, string2, size2);  \
-  DEBUG_PRINT1 ("'\n");                         \
-                                    \
-  pat = (unsigned char *) POP_FAILURE_ITEM ();              \
-  DEBUG_PRINT2 ("  Popping pattern 0x%x: ", pat);           \
-  DEBUG_PRINT_COMPILED_PATTERN (bufp, pat, pend);           \
-                                    \
-  /* Restore register info.  */                     \
-  high_reg = (unsigned long) POP_FAILURE_ITEM ();           \
-  DEBUG_PRINT2 ("  Popping high active reg: %d\n", high_reg);       \
-                                    \
-  low_reg = (unsigned long) POP_FAILURE_ITEM ();            \
-  DEBUG_PRINT2 ("  Popping  low active reg: %d\n", low_reg);        \
-                                    \
-  for (this_reg = high_reg; this_reg >= low_reg; this_reg--)        \
-    {                                   \
-      DEBUG_PRINT2 ("    Popping reg: %d\n", this_reg);         \
-                                    \
-      reg_info[this_reg].word = POP_FAILURE_ITEM ();            \
-      DEBUG_PRINT2 ("      info: 0x%x\n", reg_info[this_reg]);      \
-                                    \
-      regend[this_reg] = (const char *) POP_FAILURE_ITEM ();        \
-      DEBUG_PRINT2 ("      end: 0x%x\n", regend[this_reg]);     \
-                                    \
-      regstart[this_reg] = (const char *) POP_FAILURE_ITEM ();      \
-      DEBUG_PRINT2 ("      start: 0x%x\n", regstart[this_reg]);     \
-    }                                   \
-                                    \
-  DEBUG_STATEMENT (nfailure_points_popped++);               \
-}               /* POP_FAILURE_POINT */
-
+#define POP_FAILURE_POINT(str, pat, low_reg, high_reg, regstart, regend, reg_info) \
+    {                                                                              \
+        DEBUG_STATEMENT(fail_stack_elt_t failure_id;)                              \
+        int this_reg;                                                              \
+        const unsigned char *string_temp;                                          \
+                                                                                   \
+        assert(!FAIL_STACK_EMPTY());                                               \
+                                                                                   \
+        /* Remove failure points and point to how many regs pushed.  */            \
+        DEBUG_PRINT1("POP_FAILURE_POINT:\n");                                      \
+        DEBUG_PRINT2("  Before pop, next avail: %d\n", fail_stack.avail);          \
+        DEBUG_PRINT2("                    size: %d\n", fail_stack.size);           \
+                                                                                   \
+        assert(fail_stack.avail >= NUM_NONREG_ITEMS);                              \
+                                                                                   \
+        DEBUG_POP(&failure_id);                                                    \
+        DEBUG_PRINT2("  Popping failure id: %u\n", failure_id);                    \
+                                                                                   \
+        /* If the saved string location is NULL, it came from an                   \
+           on_failure_keep_string_jump opcode, and we want to throw away the       \
+           saved NULL, thus retaining our current position in the string.  */      \
+        string_temp = POP_FAILURE_ITEM();                                          \
+        if (string_temp != NULL)                                                   \
+            str = (const char *)string_temp;                                       \
+                                                                                   \
+        DEBUG_PRINT2("  Popping string 0x%x: `", str);                             \
+        DEBUG_PRINT_DOUBLE_STRING(str, string1, size1, string2, size2);            \
+        DEBUG_PRINT1("'\n");                                                       \
+                                                                                   \
+        pat = (unsigned char *)POP_FAILURE_ITEM();                                 \
+        DEBUG_PRINT2("  Popping pattern 0x%x: ", pat);                             \
+        DEBUG_PRINT_COMPILED_PATTERN(bufp, pat, pend);                             \
+                                                                                   \
+        /* Restore register info.  */                                              \
+        high_reg = (unsigned long)POP_FAILURE_ITEM();                              \
+        DEBUG_PRINT2("  Popping high active reg: %d\n", high_reg);                 \
+                                                                                   \
+        low_reg = (unsigned long)POP_FAILURE_ITEM();                               \
+        DEBUG_PRINT2("  Popping  low active reg: %d\n", low_reg);                  \
+                                                                                   \
+        for (this_reg = high_reg; this_reg >= low_reg; this_reg--) {               \
+            DEBUG_PRINT2("    Popping reg: %d\n", this_reg);                       \
+                                                                                   \
+            reg_info[this_reg].word = POP_FAILURE_ITEM();                          \
+            DEBUG_PRINT2("      info: 0x%x\n", reg_info[this_reg]);                \
+                                                                                   \
+            regend[this_reg] = (const char *)POP_FAILURE_ITEM();                   \
+            DEBUG_PRINT2("      end: 0x%x\n", regend[this_reg]);                   \
+                                                                                   \
+            regstart[this_reg] = (const char *)POP_FAILURE_ITEM();                 \
+            DEBUG_PRINT2("      start: 0x%x\n", regstart[this_reg]);               \
+        }                                                                          \
+                                                                                   \
+        DEBUG_STATEMENT(nfailure_points_popped++);                                 \
+    } /* POP_FAILURE_POINT */
+
 /* re_compile_fastmap computes a ``fastmap'' for the compiled pattern in
  * BUFP.  A fastmap records which of the (1 << BYTEWIDTH) possible
  * characters can start a string that matches the pattern.  This fastmap
@@ -2295,8 +2300,7 @@ int
 re_compile_fastmap(struct re_pattern_buffer *bufp)
 #else
 int
-re_compile_fastmap(bufp)
-struct re_pattern_buffer *bufp;
+    re_compile_fastmap(bufp) struct re_pattern_buffer *bufp;
 #endif
 {
     int j, k;
@@ -2325,8 +2329,8 @@ struct re_pattern_buffer *bufp;
     assert(fastmap != NULL && p != NULL);
 
     INIT_FAIL_STACK();
-    memset(fastmap, 0, 1 << BYTEWIDTH);     /* Assume nothing's valid.  */
-    bufp->fastmap_accurate = 1; /* It will be when we're done.  */
+    memset(fastmap, 0, 1 << BYTEWIDTH); /* Assume nothing's valid.  */
+    bufp->fastmap_accurate = 1;         /* It will be when we're done.  */
     bufp->can_be_null = 0;
 
     while (p != pend || !FAIL_STACK_EMPTY()) {
@@ -2342,9 +2346,9 @@ struct re_pattern_buffer *bufp;
         assert(p < pend);
 
 #ifdef SWITCH_ENUM_BUG
-        switch ((int) ((re_opcode_t) * p++))
+        switch ((int)((re_opcode_t)*p++))
 #else
-        switch ((re_opcode_t) * p++)
+        switch ((re_opcode_t)*p++)
 #endif
         {
 
@@ -2357,7 +2361,7 @@ struct re_pattern_buffer *bufp;
             bufp->can_be_null = 1;
             return 0;
 
-        /* Following are the cases which match a character.  These end
+            /* Following are the cases which match a character.  These end
          * with `break'.  */
 
         case exactn:
@@ -2437,8 +2441,8 @@ struct re_pattern_buffer *bufp;
              * `on_failure_jump' or `succeed_n'.  Just treat it like an
              * ordinary jump.  For a * loop, it has pushed its failure
              * point already; if so, discard that as redundant.  */
-            if ((re_opcode_t) * p != on_failure_jump
-                    && (re_opcode_t) * p != succeed_n)
+            if ((re_opcode_t)*p != on_failure_jump
+                && (re_opcode_t)*p != succeed_n)
                 continue;
 
             p++;
@@ -2447,14 +2451,14 @@ struct re_pattern_buffer *bufp;
 
             /* If what's on the stack is where we are now, pop it.  */
             if (!FAIL_STACK_EMPTY()
-                    && fail_stack.stack[fail_stack.avail - 1] == p)
+                && fail_stack.stack[fail_stack.avail - 1] == p)
                 fail_stack.avail--;
 
             continue;
 
         case on_failure_jump:
         case on_failure_keep_string_jump:
-handle_on_failure_jump:
+        handle_on_failure_jump:
             EXTRACT_NUMBER_AND_INCR(j, p);
 
             /* For some patterns, e.g., `(a?)?', `p+j' here points to the
@@ -2471,7 +2475,7 @@ handle_on_failure_jump:
                 bufp->can_be_null = 1;
 
             if (succeed_n_p) {
-                EXTRACT_NUMBER_AND_INCR(k, p);  /* Skip the n.  */
+                EXTRACT_NUMBER_AND_INCR(k, p); /* Skip the n.  */
                 succeed_n_p = false;
             }
             continue;
@@ -2499,8 +2503,8 @@ handle_on_failure_jump:
             continue;
 
         default:
-            abort();        /* We have listed all the cases.  */
-        }           /* switch *p++ */
+            abort(); /* We have listed all the cases.  */
+        }            /* switch *p++ */
 
         /* Getting here means we have found the possible starting
          * characters for one path of the pattern -- and that the empty
@@ -2510,22 +2514,21 @@ handle_on_failure_jump:
          * does these things.  */
         path_can_be_null = false;
         p = pend;
-    }               /* while p */
+    } /* while p */
 
     /* Set `can_be_null' for the last path (also the first path, if the
      * pattern is empty).  */
     bufp->can_be_null |= path_can_be_null;
     return 0;
-}               /* re_compile_fastmap */
-
+} /* re_compile_fastmap */
+
 /* Searching routines.  */
 
 /* Like re_search_2, below, but only one string is specified, and
  * doesn't let you say where to stop matching. */
 
 static int
-re_search(bufp, string, size, startpos, range, regs)
-struct re_pattern_buffer *bufp;
+    re_search(bufp, string, size, startpos, range, regs) struct re_pattern_buffer *bufp;
 const char *string;
 int size, startpos, range;
 struct re_registers *regs;
@@ -2556,8 +2559,7 @@ struct re_registers *regs;
  * stack overflow).  */
 
 static int
-re_search_2(bufp, string1, size1, string2, size2, startpos, range, regs, stop)
-struct re_pattern_buffer *bufp;
+    re_search_2(bufp, string1, size1, string2, size2, startpos, range, regs, stop) struct re_pattern_buffer *bufp;
 const char *string1, *string2;
 int size1, size2;
 int startpos;
@@ -2584,7 +2586,7 @@ int stop;
 
     /* If the search isn't to be a backwards one, don't waste time in a
      * search for a pattern that must be anchored.  */
-    if (bufp->used > 0 && (re_opcode_t) bufp->buffer[0] == begbuf && range > 0) {
+    if (bufp->used > 0 && (re_opcode_t)bufp->buffer[0] == begbuf && range > 0) {
         if (startpos > 0)
             return -1;
         else
@@ -2602,7 +2604,7 @@ int stop;
          * null string, however, we don't need to skip characters; we want
          * the first null string.  */
         if (fastmap && startpos < total_size && !bufp->can_be_null) {
-            if (range > 0) {    /* Searching forwards.  */
+            if (range > 0) { /* Searching forwards.  */
                 register const char *d;
                 register int lim = 0;
                 int irange = range;
@@ -2616,26 +2618,26 @@ int stop;
                  * inside the loop.  */
                 if (translate)
                     while (range > lim
-                            && !fastmap[(unsigned char)
-                                        translate[(unsigned char) *d++]])
+                           && !fastmap[(unsigned char)
+                                           translate[(unsigned char)*d++]])
                         range--;
                 else
-                    while (range > lim && !fastmap[(unsigned char) *d++])
+                    while (range > lim && !fastmap[(unsigned char)*d++])
                         range--;
 
                 startpos += irange - range;
-            } else {        /* Searching backwards.  */
+            } else { /* Searching backwards.  */
                 register char c = (size1 == 0 || startpos >= size1
-                                   ? string2[startpos - size1]
-                                   : string1[startpos]);
+                                       ? string2[startpos - size1]
+                                       : string1[startpos]);
 
-                if (!fastmap[(unsigned char) TRANSLATE(c)])
+                if (!fastmap[(unsigned char)TRANSLATE(c)])
                     goto advance;
             }
         }
         /* If can't match the null string, and that's all we have left, fail.  */
         if (range >= 0 && startpos == total_size && fastmap
-                && !bufp->can_be_null)
+            && !bufp->can_be_null)
             return -1;
 
         val = re_match_2(bufp, string1, size1, string2, size2,
@@ -2646,7 +2648,7 @@ int stop;
         if (val == -2)
             return -2;
 
-advance:
+    advance:
         if (!range)
             break;
         else if (range > 0) {
@@ -2658,8 +2660,8 @@ advance:
         }
     }
     return -1;
-}               /* re_search_2 */
-
+} /* re_search_2 */
+
 /* Declarations and macros for re_match_2.  */
 
 /* Structure for per-register (a.k.a. per-group) information.
@@ -2679,68 +2681,65 @@ typedef union {
         /* This field is one if this group can match the empty string,
          * zero if not.  If not yet determined,  `MATCH_NULL_UNSET_VALUE'.  */
 #define MATCH_NULL_UNSET_VALUE 3
-        unsigned match_null_string_p:2;
-        unsigned is_active:1;
-        unsigned matched_something:1;
-        unsigned ever_matched_something:1;
+        unsigned match_null_string_p : 2;
+        unsigned is_active : 1;
+        unsigned matched_something : 1;
+        unsigned ever_matched_something : 1;
     } bits;
 } register_info_type;
 static boolean alt_match_null_string_p(unsigned char *p, unsigned char *end, register_info_type *reg_info);
-static boolean common_op_match_null_string_p( unsigned char **p, unsigned char *end, register_info_type *reg_info);
+static boolean common_op_match_null_string_p(unsigned char **p, unsigned char *end, register_info_type *reg_info);
 static int bcmp_translate(unsigned char const *s1, unsigned char const *s2, register int len, char *translate);
 static boolean group_match_null_string_p(unsigned char **p, unsigned char *end, register_info_type *reg_info);
 
-#define REG_MATCH_NULL_STRING_P(R)  ((R).bits.match_null_string_p)
-#define IS_ACTIVE(R)  ((R).bits.is_active)
-#define MATCHED_SOMETHING(R)  ((R).bits.matched_something)
-#define EVER_MATCHED_SOMETHING(R)  ((R).bits.ever_matched_something)
+#define REG_MATCH_NULL_STRING_P(R) ((R).bits.match_null_string_p)
+#define IS_ACTIVE(R) ((R).bits.is_active)
+#define MATCHED_SOMETHING(R) ((R).bits.matched_something)
+#define EVER_MATCHED_SOMETHING(R) ((R).bits.ever_matched_something)
 
 /* Call this when have matched a real character; it sets `matched' flags
  * for the subexpressions which we are currently inside.  Also records
  * that those subexprs have matched.  */
-#define SET_REGS_MATCHED()                      \
-  do                                    \
-    {                                   \
-      unsigned r;                           \
-      for (r = lowest_active_reg; r <= highest_active_reg; r++)     \
-        {                               \
-          MATCHED_SOMETHING (reg_info[r])               \
-            = EVER_MATCHED_SOMETHING (reg_info[r])          \
-            = 1;                            \
-        }                               \
-    }                                   \
-  while (0)
+#define SET_REGS_MATCHED()                                          \
+    do {                                                            \
+        unsigned r;                                                 \
+        for (r = lowest_active_reg; r <= highest_active_reg; r++) { \
+            MATCHED_SOMETHING(reg_info[r])                          \
+                = EVER_MATCHED_SOMETHING(reg_info[r])               \
+                = 1;                                                \
+        }                                                           \
+    } while (0)
 
 /* This converts PTR, a pointer into one of the search strings `string1'
  * and `string2' into an offset from the beginning of that string.  */
-#define POINTER_TO_OFFSET(ptr)                      \
-  (FIRST_STRING_P (ptr) ? (ptr) - string1 : (ptr) - string2 + size1)
+#define POINTER_TO_OFFSET(ptr) \
+    (FIRST_STRING_P(ptr) ? (ptr)-string1 : (ptr)-string2 + size1)
 
 /* Registers are set to a sentinel when they haven't yet matched.  */
-#define REG_UNSET_VALUE ((char *) -1)
+#define REG_UNSET_VALUE ((char *)-1)
 #define REG_UNSET(e) ((e) == REG_UNSET_VALUE)
 
 /* Macros for dealing with the split strings in re_match_2.  */
 
-#define MATCHING_IN_FIRST_STRING  (dend == end_match_1)
+#define MATCHING_IN_FIRST_STRING (dend == end_match_1)
 
 /* Call before fetching a character with *d.  This switches over to
  * string2 if necessary.  */
-#define PREFETCH()                          \
-  while (d == dend)                             \
-    {                                   \
-      /* End of string2 => fail.  */                    \
-      if (dend == end_match_2)                      \
-        goto fail;                          \
-      /* End of string1 => advance to string2.  */          \
-      d = string2;                              \
-      dend = end_match_2;                       \
+#define PREFETCH()                                   \
+    while (d == dend) {                              \
+        /* End of string2 => fail.  */               \
+        if (dend == end_match_2)                     \
+            goto fail;                               \
+        /* End of string1 => advance to string2.  */ \
+        d = string2;                                 \
+        dend = end_match_2;                          \
     }
 
 /* Test if at very beginning or at very end of the virtual concatenation
  * of `string1' and `string2'.  If only one string, it's `string2'.  */
 #define AT_STRINGS_BEG(d) ((d) == (size1 ? string1 : string2) || !size2)
-static int at_strings_end(const char *d, const char *end2)
+static int
+at_strings_end(const char *d, const char *end2)
 {
     return d == end2;
 }
@@ -2749,43 +2748,46 @@ static int at_strings_end(const char *d, const char *end2)
  * two special cases to check for: if past the end of string1, look at
  * the first character in string2; and if before the beginning of
  * string2, look at the last character in string1.  */
-#define WORDCHAR_P(d)                           \
-  (re_syntax_table[(d) == end1 ? *string2                   \
-           : (d) == string2 - 1 ? *(end1 - 1) : *(d)]           \
-   == Sword)
+#define WORDCHAR_P(d)                                                       \
+    (re_syntax_table[(d) == end1 ? *string2                                 \
+                                 : (d) == string2 - 1 ? *(end1 - 1) : *(d)] \
+     == Sword)
 static int
 wordchar_p(const char *d, const char *end1, const char *string2)
 {
     return re_syntax_table[(d) == end1 ? *string2
-                           : (d) == string2 - 1 ? *(end1 - 1) : *(d)]
-           == Sword;
+                                       : (d) == string2 - 1 ? *(end1 - 1) : *(d)]
+        == Sword;
 }
 
 /* Test if the character before D and the one at D differ with respect
  * to being word-constituent.  */
-#define AT_WORD_BOUNDARY(d)                     \
-  (AT_STRINGS_BEG (d) || at_strings_end(d,end2)             \
-   || WORDCHAR_P (d - 1) != WORDCHAR_P (d))
+#define AT_WORD_BOUNDARY(d)                       \
+    (AT_STRINGS_BEG(d) || at_strings_end(d, end2) \
+     || WORDCHAR_P(d - 1) != WORDCHAR_P(d))
 
 /* Free everything we malloc.  */
 #ifdef REGEX_MALLOC
-#define FREE_VAR(var) if (var) free (var); var = NULL
-#define FREE_VARIABLES()                        \
-  do {                                  \
-    FREE_VAR (fail_stack.stack);                    \
-    FREE_VAR (regstart);                        \
-    FREE_VAR (regend);                          \
-    FREE_VAR (old_regstart);                        \
-    FREE_VAR (old_regend);                      \
-    FREE_VAR (best_regstart);                       \
-    FREE_VAR (best_regend);                     \
-    FREE_VAR (reg_info);                        \
-    FREE_VAR (reg_dummy);                       \
-    FREE_VAR (reg_info_dummy);                      \
-  } while (0)
+#define FREE_VAR(var) \
+    if (var)          \
+        free(var);    \
+    var = NULL
+#define FREE_VARIABLES()            \
+    do {                            \
+        FREE_VAR(fail_stack.stack); \
+        FREE_VAR(regstart);         \
+        FREE_VAR(regend);           \
+        FREE_VAR(old_regstart);     \
+        FREE_VAR(old_regend);       \
+        FREE_VAR(best_regstart);    \
+        FREE_VAR(best_regend);      \
+        FREE_VAR(reg_info);         \
+        FREE_VAR(reg_dummy);        \
+        FREE_VAR(reg_info_dummy);   \
+    } while (0)
 #else /* not REGEX_MALLOC */
 /* Some MIPS systems (at least) want this to free alloca'd storage.  */
-#define FREE_VARIABLES() alloca (0)
+#define FREE_VARIABLES() alloca(0)
 #endif /* not REGEX_MALLOC */
 
 /* These values must meet several constraints.  They must not be valid
@@ -2797,7 +2799,7 @@ wordchar_p(const char *d, const char *end1, const char *string2)
  * to actually save any registers when none are active.  */
 #define NO_HIGHEST_ACTIVE_REG (1 << BYTEWIDTH)
 #define NO_LOWEST_ACTIVE_REG (NO_HIGHEST_ACTIVE_REG + 1)
-
+
 /* Matching routines.  */
 
 /* re_match_2 matches the compiled pattern in BUFP against the
@@ -2814,8 +2816,7 @@ wordchar_p(const char *d, const char *end1, const char *string2)
  * matched substring.  */
 
 int
-re_match_2(bufp, string1, size1, string2, size2, pos, regs, stop)
-struct re_pattern_buffer *bufp;
+    re_match_2(bufp, string1, size1, string2, size2, pos, regs, stop) struct re_pattern_buffer *bufp;
 const char *string1, *string2;
 int size1, size2;
 int pos;
@@ -2938,7 +2939,7 @@ int stop;
         reg_info_dummy = REGEX_TALLOC(num_regs, register_info_type);
 
         if (!(regstart && regend && old_regstart && old_regend && reg_info
-                && best_regstart && best_regend && reg_dummy && reg_info_dummy)) {
+              && best_regstart && best_regend && reg_dummy && reg_info_dummy)) {
             FREE_VARIABLES();
             return -2;
         }
@@ -2948,8 +2949,8 @@ int stop;
         /* We must initialize all our variables to NULL, so that
          * `FREE_VARIABLES' doesn't try to free them.  */
         regstart = regend = old_regstart = old_regend = best_regstart
-                                           = best_regend = reg_dummy = NULL;
-        reg_info = reg_info_dummy = (register_info_type *) NULL;
+            = best_regend = reg_dummy = NULL;
+        reg_info = reg_info_dummy = (register_info_type *)NULL;
     }
 #endif /* REGEX_MALLOC */
 
@@ -2963,7 +2964,7 @@ int stop;
      * register information struct.  */
     for (mcnt = 1; mcnt < num_regs; mcnt++) {
         regstart[mcnt] = regend[mcnt]
-                         = old_regstart[mcnt] = old_regend[mcnt] = REG_UNSET_VALUE;
+            = old_regstart[mcnt] = old_regend[mcnt] = REG_UNSET_VALUE;
 
         REG_MATCH_NULL_STRING_P(reg_info[mcnt]) = MATCH_NULL_UNSET_VALUE;
         IS_ACTIVE(reg_info[mcnt]) = 0;
@@ -3017,7 +3018,7 @@ int stop;
     for (;;) {
         DEBUG_PRINT2("\n0x%x: ", p);
 
-        if (p == pend) {    /* End of pattern means we might have succeeded.  */
+        if (p == pend) { /* End of pattern means we might have succeeded.  */
             DEBUG_PRINT1("end of pattern ... ");
 
             /* If we haven't matched the entire string, and we want the
@@ -3025,14 +3026,14 @@ int stop;
             if (d != end_match_2) {
                 DEBUG_PRINT1("backtracking.\n");
 
-                if (!FAIL_STACK_EMPTY()) {  /* More failure points to try.  */
+                if (!FAIL_STACK_EMPTY()) { /* More failure points to try.  */
                     boolean same_str_p = (FIRST_STRING_P(match_end)
                                           == MATCHING_IN_FIRST_STRING);
 
                     /* If exceeds best match so far, save it.  */
                     if (!best_regs_set
-                            || (same_str_p && d > match_end)
-                            || (!same_str_p && !MATCHING_IN_FIRST_STRING)) {
+                        || (same_str_p && d > match_end)
+                        || (!same_str_p && !MATCHING_IN_FIRST_STRING)) {
                         best_regs_set = true;
                         match_end = d;
 
@@ -3047,7 +3048,7 @@ int stop;
                 }
                 /* If no failure points, don't restore garbage.  */
                 else if (best_regs_set) {
-restore_best_regs:
+                restore_best_regs:
                     /* Restore best match.  It may happen that `dend ==
                      * end_match_1' while the restored d is in string2.
                      * For example, the pattern `x.*y.*z' against the
@@ -3057,14 +3058,15 @@ restore_best_regs:
 
                     d = match_end;
                     dend = ((d >= string1 && d <= end1)
-                            ? end_match_1 : end_match_2);
+                                ? end_match_1
+                                : end_match_2);
 
                     for (mcnt = 1; mcnt < num_regs; mcnt++) {
                         regstart[mcnt] = best_regstart[mcnt];
                         regend[mcnt] = best_regend[mcnt];
                     }
                 }
-            }           /* d != end_match_2 */
+            } /* d != end_match_2 */
             DEBUG_PRINT1("Accepting match.\n");
 
             /* If caller wants register contents data back, do it.  */
@@ -3100,7 +3102,7 @@ restore_best_regs:
                 if (regs->num_regs > 0) {
                     regs->start[0] = pos;
                     regs->end[0] = (MATCHING_IN_FIRST_STRING ? d - string1
-                                    : d - string2 + size1);
+                                                             : d - string2 + size1);
                 }
                 /* Go through the first `min (num_regs, regs->num_regs)'
                  * registers, since that is all we initialized.  */
@@ -3120,16 +3122,14 @@ restore_best_regs:
                  * -1 at the end.  */
                 for (mcnt = num_regs; mcnt < regs->num_regs; mcnt++)
                     regs->start[mcnt] = regs->end[mcnt] = -1;
-            }           /* regs && !bufp->no_sub */
+            } /* regs && !bufp->no_sub */
             FREE_VARIABLES();
             DEBUG_PRINT4("%u failure points pushed, %u popped (%u remain).\n",
                          nfailure_points_pushed, nfailure_points_popped,
                          nfailure_points_pushed - nfailure_points_popped);
             DEBUG_PRINT2("%u registers pushed.\n", num_regs_pushed);
 
-            mcnt = d - pos - (MATCHING_IN_FIRST_STRING
-                              ? string1
-                              : string2 - size1);
+            mcnt = d - pos - (MATCHING_IN_FIRST_STRING ? string1 : string2 - size1);
 
             DEBUG_PRINT2("Returning %d from re_match_2.\n", mcnt);
 
@@ -3137,9 +3137,9 @@ restore_best_regs:
         }
         /* Otherwise match next pattern command.  */
 #ifdef SWITCH_ENUM_BUG
-        switch ((int) ((re_opcode_t) * p++))
+        switch ((int)((re_opcode_t)*p++))
 #else
-        switch ((re_opcode_t) * p++)
+        switch ((re_opcode_t)*p++)
 #endif
         {
         /* Ignore these.  Used to ignore the n of succeed_n's which
@@ -3160,13 +3160,13 @@ restore_best_regs:
             if (translate) {
                 do {
                     PREFETCH();
-                    if (translate[(unsigned char) *d++] != (char) *p++)
+                    if (translate[(unsigned char)*d++] != (char)*p++)
                         goto fail;
                 } while (--mcnt);
             } else {
                 do {
                     PREFETCH();
-                    if (*d++ != (char) *p++)
+                    if (*d++ != (char)*p++)
                         goto fail;
                 } while (--mcnt);
             }
@@ -3180,7 +3180,7 @@ restore_best_regs:
             PREFETCH();
 
             if ((!(bufp->syntax & RE_DOT_NEWLINE) && TRANSLATE(*d) == '\n')
-                    || (bufp->syntax & RE_DOT_NOT_NULL && TRANSLATE(*d) == '\000'))
+                || (bufp->syntax & RE_DOT_NOT_NULL && TRANSLATE(*d) == '\000'))
                 goto fail;
 
             SET_REGS_MATCHED();
@@ -3193,15 +3193,15 @@ restore_best_regs:
             register unsigned char c;
             boolean not = (re_opcode_t) * (p - 1) == charset_not;
 
-            DEBUG_PRINT2("EXECUTING charset%s.\n", not ? "_not" : "");
+            DEBUG_PRINT2("EXECUTING charset%s.\n", not? "_not" : "");
 
             PREFETCH();
-            c = TRANSLATE(*d);  /* The character to match.  */
+            c = TRANSLATE(*d); /* The character to match.  */
 
             /* Cast to `unsigned' instead of `unsigned char' in case the
              * bit list is a full 32 bytes long.  */
-            if (c < (unsigned) (*p * BYTEWIDTH)
-                    && p[1 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
+            if (c < (unsigned)(*p * BYTEWIDTH)
+                && p[1 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
                 not = !not;
 
             p += 1 + *p;
@@ -3223,7 +3223,7 @@ restore_best_regs:
             DEBUG_PRINT3("EXECUTING start_memory %d (%d):\n", *p, p[1]);
 
             /* Find out if this group can match the empty string.  */
-            p1 = p;     /* To send to group_match_null_string_p.  */
+            p1 = p; /* To send to group_match_null_string_p.  */
 
             if (REG_MATCH_NULL_STRING_P(reg_info[*p]) == MATCH_NULL_UNSET_VALUE)
                 REG_MATCH_NULL_STRING_P(reg_info[*p])
@@ -3235,8 +3235,8 @@ restore_best_regs:
              * against `ab'; then we want to ignore where we are now in
              * the string in case this attempt to match fails.  */
             old_regstart[*p] = REG_MATCH_NULL_STRING_P(reg_info[*p])
-                               ? REG_UNSET(regstart[*p]) ? d : regstart[*p]
-                               : regstart[*p];
+                ? REG_UNSET(regstart[*p]) ? d : regstart[*p]
+                : regstart[*p];
             DEBUG_PRINT2("  old_regstart: %d\n",
                          POINTER_TO_OFFSET(old_regstart[*p]));
 
@@ -3270,8 +3270,8 @@ restore_best_regs:
              * against `aba'; then we want to ignore where we are now in
              * the string in case this attempt to match fails.  */
             old_regend[*p] = REG_MATCH_NULL_STRING_P(reg_info[*p])
-                             ? REG_UNSET(regend[*p]) ? d : regend[*p]
-                             : regend[*p];
+                ? REG_UNSET(regend[*p]) ? d : regend[*p]
+                : regend[*p];
             DEBUG_PRINT2("      old_regend: %d\n",
                          POINTER_TO_OFFSET(old_regend[*p]));
 
@@ -3315,13 +3315,13 @@ restore_best_regs:
              * information for this group that we had before trying this
              * last match.  */
             if ((!MATCHED_SOMETHING(reg_info[*p])
-                    || (re_opcode_t) p[-3] == start_memory)
-                    && (p + 2) < pend) {
+                 || (re_opcode_t)p[-3] == start_memory)
+                && (p + 2) < pend) {
                 boolean is_a_jump_n = false;
 
                 p1 = p + 2;
                 mcnt = 0;
-                switch ((re_opcode_t) * p1++) {
+                switch ((re_opcode_t)*p1++) {
                 case jump_n:
                     is_a_jump_n = true;
                 case pop_failure_jump:
@@ -3344,8 +3344,8 @@ restore_best_regs:
                  * corresponding to this stop_memory, exit from the loop
                  * by forcing a failure after pushing on the stack the
                  * on_failure_jump's jump in the pattern, and d.  */
-                if (mcnt < 0 && (re_opcode_t) * p1 == on_failure_jump
-                        && (re_opcode_t) p1[3] == start_memory && p1[4] == *p) {
+                if (mcnt < 0 && (re_opcode_t)*p1 == on_failure_jump
+                    && (re_opcode_t)p1[3] == start_memory && p1[4] == *p) {
                     /* If this group ever matched anything, then restore
                      * what its registers were before trying this last
                      * failed match, e.g., with `(a*)*b' against `ab' for
@@ -3366,7 +3366,7 @@ restore_best_regs:
                             regstart[r] = old_regstart[r];
 
                             /* xx why this test?  */
-                            if ((long) old_regend[r] >= (long) regstart[r])
+                            if ((long)old_regend[r] >= (long)regstart[r])
                                 regend[r] = old_regend[r];
                         }
                     }
@@ -3385,7 +3385,7 @@ restore_best_regs:
          * followed by the numeric value of <digit> as the register number.  */
         case duplicate: {
             register const char *d2, *dend2;
-            int regno = *p++;   /* Get which register to match against.  */
+            int regno = *p++; /* Get which register to match against.  */
             DEBUG_PRINT2("EXECUTING duplicate %d.\n", regno);
 
             /* Can't back reference a group which we've never matched.  */
@@ -3402,7 +3402,8 @@ restore_best_regs:
 
             dend2 = ((FIRST_STRING_P(regstart[regno])
                       == FIRST_STRING_P(regend[regno]))
-                     ? regend[regno] : end_match_1);
+                         ? regend[regno]
+                         : end_match_1);
             for (;;) {
                 /* If necessary, advance to next segment in register
                  * contents.  */
@@ -3439,8 +3440,7 @@ restore_best_regs:
                     goto fail;
                 d += mcnt, d2 += mcnt;
             }
-        }
-        break;
+        } break;
 
         /* begline matches the empty string at the beginning of the string
          * (unless `not_bol' is set in `bufp'), and, if
@@ -3461,7 +3461,7 @@ restore_best_regs:
         case endline:
             DEBUG_PRINT1("EXECUTING endline.\n");
 
-            if (at_strings_end(d,end2)) {
+            if (at_strings_end(d, end2)) {
                 if (!bufp->not_eol)
                     break;
             }
@@ -3482,7 +3482,7 @@ restore_best_regs:
         /* Match at the very end of the data.  */
         case endbuf:
             DEBUG_PRINT1("EXECUTING endbuf.\n");
-            if (at_strings_end(d,end2))
+            if (at_strings_end(d, end2))
                 break;
             goto fail;
 
@@ -3524,7 +3524,7 @@ restore_best_regs:
          * the repetition text and either the following jump or
          * pop_failure_jump back to this on_failure_jump.  */
         case on_failure_jump:
-on_failure:
+        on_failure:
             DEBUG_PRINT1("EXECUTING on_failure_jump");
 
             EXTRACT_NUMBER_AND_INCR(mcnt, p);
@@ -3545,10 +3545,10 @@ on_failure:
              * start_memory in case this on_failure_jump is happening as
              * the result of a completed succeed_n, as in \(a\)\{1,3\}b\1
              * against aba.  */
-            while (p1 < pend && (re_opcode_t) * p1 == no_op)
+            while (p1 < pend && (re_opcode_t)*p1 == no_op)
                 p1++;
 
-            if (p1 < pend && (re_opcode_t) * p1 == start_memory) {
+            if (p1 < pend && (re_opcode_t)*p1 == start_memory) {
                 /* We have a new highest active register now.  This will
                  * get reset at the start_memory we are about to get to,
                  * but we will have saved all the registers relevant to
@@ -3584,51 +3584,50 @@ on_failure:
 
                 /* Skip over open/close-group commands.  */
                 while (p2 + 2 < pend
-                        && ((re_opcode_t) * p2 == stop_memory
-                            || (re_opcode_t) * p2 == start_memory))
-                    p2 += 3;    /* Skip over args, too.  */
+                       && ((re_opcode_t)*p2 == stop_memory
+                           || (re_opcode_t)*p2 == start_memory))
+                    p2 += 3; /* Skip over args, too.  */
 
                 /* If we're at the end of the pattern, we can change.  */
                 if (p2 == pend) {
                     /* Consider what happens when matching ":\(.*\)"
                      * against ":/".  I don't really understand this code
                      * yet.  */
-                    p[-3] = (unsigned char) pop_failure_jump;
-                    DEBUG_PRINT1
-                    ("  End of pattern: change to `pop_failure_jump'.\n");
-                } else if ((re_opcode_t) * p2 == exactn
-                           || (bufp->newline_anchor && (re_opcode_t) * p2 == endline)) {
+                    p[-3] = (unsigned char)pop_failure_jump;
+                    DEBUG_PRINT1("  End of pattern: change to `pop_failure_jump'.\n");
+                } else if ((re_opcode_t)*p2 == exactn
+                           || (bufp->newline_anchor && (re_opcode_t)*p2 == endline)) {
                     register unsigned char c
-                        = *p2 == (unsigned char) endline ? '\n' : p2[2];
+                        = *p2 == (unsigned char)endline ? '\n' : p2[2];
                     p1 = p + mcnt;
 
                     /* p1[0] ... p1[2] are the `on_failure_jump' corresponding
                      * to the `maybe_finalize_jump' of this case.  Examine what
                      * follows.  */
-                    if ((re_opcode_t) p1[3] == exactn && p1[5] != c) {
-                        p[-3] = (unsigned char) pop_failure_jump;
+                    if ((re_opcode_t)p1[3] == exactn && p1[5] != c) {
+                        p[-3] = (unsigned char)pop_failure_jump;
                         DEBUG_PRINT3("  %c != %c => pop_failure_jump.\n",
                                      c, p1[5]);
-                    } else if ((re_opcode_t) p1[3] == charset
-                               || (re_opcode_t) p1[3] == charset_not) {
-                        int not = (re_opcode_t) p1[3] == charset_not;
+                    } else if ((re_opcode_t)p1[3] == charset
+                               || (re_opcode_t)p1[3] == charset_not) {
+                        int not = (re_opcode_t)p1[3] == charset_not;
 
-                        if (c < (unsigned char) (p1[4] * BYTEWIDTH)
-                                && p1[5 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
+                        if (c < (unsigned char)(p1[4] * BYTEWIDTH)
+                            && p1[5 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
                             not = !not;
 
                         /* `not' is equal to 1 if c would match, which means
                          * that we can't change to pop_failure_jump.  */
                         if (!not) {
-                            p[-3] = (unsigned char) pop_failure_jump;
+                            p[-3] = (unsigned char)pop_failure_jump;
                             DEBUG_PRINT1("  No match => pop_failure_jump.\n");
                         }
                     }
                 }
             }
-            p -= 2;     /* Point at relative address again.  */
-            if ((re_opcode_t) p[-1] != pop_failure_jump) {
-                p[-1] = (unsigned char) jump;
+            p -= 2; /* Point at relative address again.  */
+            if ((re_opcode_t)p[-1] != pop_failure_jump) {
+                p[-1] = (unsigned char)jump;
                 DEBUG_PRINT1("  Match => jump.\n");
                 goto unconditional_jump;
             }
@@ -3662,10 +3661,10 @@ on_failure:
 
         /* Unconditionally jump (without popping any failure points).  */
         case jump:
-unconditional_jump:
-            EXTRACT_NUMBER_AND_INCR(mcnt, p);   /* Get the amount to jump.  */
+        unconditional_jump:
+            EXTRACT_NUMBER_AND_INCR(mcnt, p); /* Get the amount to jump.  */
             DEBUG_PRINT2("EXECUTING jump %d ", mcnt);
-            p += mcnt;      /* Do the jump.  */
+            p += mcnt; /* Do the jump.  */
             DEBUG_PRINT2("(to 0x%x).\n", p);
             break;
 
@@ -3714,8 +3713,8 @@ unconditional_jump:
                 DEBUG_PRINT3("  Setting 0x%x to %d.\n", p, mcnt);
             } else if (mcnt == 0) {
                 DEBUG_PRINT2("  Setting two bytes from 0x%x to no_op.\n", p + 2);
-                p[2] = (unsigned char) no_op;
-                p[3] = (unsigned char) no_op;
+                p[2] = (unsigned char)no_op;
+                p[3] = (unsigned char)no_op;
                 goto on_failure;
             }
             break;
@@ -3760,21 +3759,21 @@ unconditional_jump:
 
         case wordbeg:
             DEBUG_PRINT1("EXECUTING wordbeg.\n");
-            if (wordchar_p(d,end1,string2) && (AT_STRINGS_BEG(d) || !WORDCHAR_P(d - 1)))
+            if (wordchar_p(d, end1, string2) && (AT_STRINGS_BEG(d) || !WORDCHAR_P(d - 1)))
                 break;
             goto fail;
 
         case wordend:
             DEBUG_PRINT1("EXECUTING wordend.\n");
             if (!AT_STRINGS_BEG(d) && WORDCHAR_P(d - 1)
-                    && (!wordchar_p(d,end1,string2) || at_strings_end(d,end2)))
+                && (!wordchar_p(d, end1, string2) || at_strings_end(d, end2)))
                 break;
             goto fail;
 
         case wordchar:
             DEBUG_PRINT1("EXECUTING non-Emacs wordchar.\n");
             PREFETCH();
-            if (!wordchar_p(d,end1,string2))
+            if (!wordchar_p(d, end1, string2))
                 goto fail;
             SET_REGS_MATCHED();
             d++;
@@ -3783,7 +3782,7 @@ unconditional_jump:
         case notwordchar:
             DEBUG_PRINT1("EXECUTING non-Emacs notwordchar.\n");
             PREFETCH();
-            if (wordchar_p(d,end1,string2))
+            if (wordchar_p(d, end1, string2))
                 goto fail;
             SET_REGS_MATCHED();
             d++;
@@ -3792,11 +3791,11 @@ unconditional_jump:
         default:
             abort();
         }
-        continue;       /* Successfully executed one pattern command; keep going.  */
+        continue; /* Successfully executed one pattern command; keep going.  */
 
         /* We goto here if a matching operation fails. */
-fail:
-        if (!FAIL_STACK_EMPTY()) {  /* A restart point is known.  Restore to that state.  */
+    fail:
+        if (!FAIL_STACK_EMPTY()) { /* A restart point is known.  Restore to that state.  */
             DEBUG_PRINT1("\nFAIL:\n");
             POP_FAILURE_POINT(d, p,
                               lowest_active_reg, highest_active_reg,
@@ -3813,7 +3812,7 @@ fail:
 
                 /* If failed to a backwards jump that's part of a repetition
                  * loop, need to pop this failure point and use the next one.  */
-                switch ((re_opcode_t) * p) {
+                switch ((re_opcode_t)*p) {
                 case jump_n:
                     is_a_jump_n = true;
                 case maybe_pop_jump:
@@ -3823,9 +3822,9 @@ fail:
                     EXTRACT_NUMBER_AND_INCR(mcnt, p1);
                     p1 += mcnt;
 
-                    if ((is_a_jump_n && (re_opcode_t) * p1 == succeed_n)
-                            || (!is_a_jump_n
-                                && (re_opcode_t) * p1 == on_failure_jump))
+                    if ((is_a_jump_n && (re_opcode_t)*p1 == succeed_n)
+                        || (!is_a_jump_n
+                            && (re_opcode_t)*p1 == on_failure_jump))
                         goto fail;
                     break;
                 default:
@@ -3836,17 +3835,17 @@ fail:
             if (d >= string1 && d <= end1)
                 dend = end_match_1;
         } else
-            break;      /* Matching at this starting point really fails.  */
-    }               /* for (;;) */
+            break; /* Matching at this starting point really fails.  */
+    }              /* for (;;) */
 
     if (best_regs_set)
         goto restore_best_regs;
 
     FREE_VARIABLES();
 
-    return -1;          /* Failure to match.  */
-}               /* re_match_2 */
-
+    return -1; /* Failure to match.  */
+} /* re_match_2 */
+
 /* Subroutine definitions for re_match_2.  */
 
 /* We are passed P pointing to a register number after a start_memory.
@@ -3871,7 +3870,7 @@ group_match_null_string_p(unsigned char **p, unsigned char *end, register_info_t
          * false, as appropriate, when we get to one that can't, or to the
          * matching stop_memory.  */
 
-        switch ((re_opcode_t) * p1) {
+        switch ((re_opcode_t)*p1) {
         /* Could be either a loop or a series of alternatives.  */
         case on_failure_jump:
             p1++;
@@ -3898,7 +3897,7 @@ group_match_null_string_p(unsigned char **p, unsigned char *end, register_info_t
                  * with an on_failure_jump (see above) that jumps to right
                  * past a jump_past_alt.  */
 
-                while ((re_opcode_t) p1[mcnt - 3] == jump_past_alt) {
+                while ((re_opcode_t)p1[mcnt - 3] == jump_past_alt) {
                     /* `mcnt' holds how many bytes long the alternative
                      * is, including the ending `jump_past_alt' and
                      * its number.  */
@@ -3913,14 +3912,14 @@ group_match_null_string_p(unsigned char **p, unsigned char *end, register_info_t
 
                     /* Break if it's the beginning of an n-th alternative
                      * that doesn't begin with an on_failure_jump.  */
-                    if ((re_opcode_t) * p1 != on_failure_jump)
+                    if ((re_opcode_t)*p1 != on_failure_jump)
                         break;
 
                     /* Still have to check that it's not an n-th
                      * alternative that starts with an on_failure_jump.  */
                     p1++;
                     EXTRACT_NUMBER_AND_INCR(mcnt, p1);
-                    if ((re_opcode_t) p1[mcnt - 3] != jump_past_alt) {
+                    if ((re_opcode_t)p1[mcnt - 3] != jump_past_alt) {
                         /* Get to the beginning of the n-th alternative.  */
                         p1 -= 3;
                         break;
@@ -3936,7 +3935,7 @@ group_match_null_string_p(unsigned char **p, unsigned char *end, register_info_t
                     return false;
 
                 p1 += mcnt; /* Get past the n-th alternative.  */
-            }           /* if mcnt > 0 */
+            }               /* if mcnt > 0 */
             break;
 
         case stop_memory:
@@ -3948,10 +3947,10 @@ group_match_null_string_p(unsigned char **p, unsigned char *end, register_info_t
             if (!common_op_match_null_string_p(&p1, end, reg_info))
                 return false;
         }
-    }               /* while p1 < end */
+    } /* while p1 < end */
 
     return false;
-}               /* group_match_null_string_p */
+} /* group_match_null_string_p */
 
 /* Similar to group_match_null_string_p, but doesn't deal with alternatives:
  * It expects P to be the first byte of a single alternative and END one
@@ -3967,7 +3966,7 @@ alt_match_null_string_p(unsigned char *p, unsigned char *end, register_info_type
         /* Skip over opcodes that can match nothing, and break when we get
          * to one that can't.  */
 
-        switch ((re_opcode_t) * p1) {
+        switch ((re_opcode_t)*p1) {
         /* It's a loop.  */
         case on_failure_jump:
             p1++;
@@ -3979,10 +3978,10 @@ alt_match_null_string_p(unsigned char *p, unsigned char *end, register_info_type
             if (!common_op_match_null_string_p(&p1, end, reg_info))
                 return false;
         }
-    }               /* while p1 < end */
+    } /* while p1 < end */
 
     return true;
-}               /* alt_match_null_string_p */
+} /* alt_match_null_string_p */
 
 /* Deals with the ops common to group_match_null_string_p and
  * alt_match_null_string_p.
@@ -3990,14 +3989,14 @@ alt_match_null_string_p(unsigned char *p, unsigned char *end, register_info_type
  * Sets P to one after the op and its arguments, if any.  */
 
 boolean
-common_op_match_null_string_p( unsigned char **p, unsigned char *end, register_info_type *reg_info)
+common_op_match_null_string_p(unsigned char **p, unsigned char *end, register_info_type *reg_info)
 {
     int mcnt;
     boolean ret;
     int reg_no;
     unsigned char *p1 = *p;
 
-    switch ((re_opcode_t) * p1++) {
+    switch ((re_opcode_t)*p1++) {
     case no_op:
     case begline:
     case endline:
@@ -4061,13 +4060,13 @@ common_op_match_null_string_p( unsigned char **p, unsigned char *end, register_i
 
     *p = p1;
     return true;
-}               /* common_op_match_null_string_p */
+} /* common_op_match_null_string_p */
 
 /* Return zero if TRANSLATE[S1] and TRANSLATE[S2] are identical for LEN
  * bytes; nonzero otherwise.  */
 
 int
-bcmp_translate(unsigned char const *s1, unsigned char const*s2, register int len, char *translate)
+bcmp_translate(unsigned char const *s1, unsigned char const *s2, register int len, char *translate)
 {
     register unsigned char const *p1 = s1, *p2 = s2;
     while (len) {
@@ -4077,7 +4076,7 @@ bcmp_translate(unsigned char const *s1, unsigned char const*s2, register int len
     }
     return 0;
 }
-
+
 /* Entry points for GNU code.  */
 
 /* POSIX.2 functions */
@@ -4117,15 +4116,14 @@ bcmp_translate(unsigned char const *s1, unsigned char const*s2, register int len
  * the return codes and their meanings.)  */
 
 int
-regcomp(preg, pattern, cflags)
-regex_t *preg;
+    regcomp(preg, pattern, cflags)
+        regex_t *preg;
 const char *pattern;
 int cflags;
 {
     reg_errcode_t ret;
     unsigned syntax
-        = (cflags & REG_EXTENDED) ?
-          RE_SYNTAX_POSIX_EXTENDED : RE_SYNTAX_POSIX_BASIC;
+        = (cflags & REG_EXTENDED) ? RE_SYNTAX_POSIX_EXTENDED : RE_SYNTAX_POSIX_BASIC;
 
     /* regex_compile will allocate the space for the compiled pattern.  */
     preg->buffer = 0;
@@ -4140,9 +4138,9 @@ int cflags;
     if (cflags & REG_ICASE) {
         unsigned i;
 
-        preg->translate = (char *) malloc(CHAR_SET_SIZE);
+        preg->translate = (char *)malloc(CHAR_SET_SIZE);
         if (preg->translate == NULL)
-            return (int) REG_ESPACE;
+            return (int)REG_ESPACE;
 
         /* Map uppercase characters to corresponding lowercase ones.  */
         for (i = 0; i < CHAR_SET_SIZE; i++)
@@ -4170,7 +4168,7 @@ int cflags;
     if (ret == REG_ERPAREN)
         ret = REG_EPAREN;
 
-    return (int) ret;
+    return (int)ret;
 }
 
 /* regexec searches for a given pattern, specified by PREG, in the
@@ -4188,8 +4186,8 @@ int cflags;
  * We return 0 if we find a match and REG_NOMATCH if not.  */
 
 int
-regexec(preg, string, nmatch, pmatch, eflags)
-const regex_t *preg;
+    regexec(preg, string, nmatch, pmatch, eflags)
+        const regex_t *preg;
 const char *string;
 size_t nmatch;
 regmatch_t pmatch[];
@@ -4216,12 +4214,12 @@ int eflags;
         regs.start = TALLOC(nmatch, regoff_t);
         regs.end = TALLOC(nmatch, regoff_t);
         if (regs.start == NULL || regs.end == NULL)
-            return (int) REG_NOMATCH;
+            return (int)REG_NOMATCH;
     }
     /* Perform the searching operation.  */
     ret = re_search(&private_preg, string, len,
                     /* start: */ 0, /* range: */ len,
-                    want_reg_info ? &regs : (struct re_registers *) 0);
+                    want_reg_info ? &regs : (struct re_registers *)0);
 
     /* Copy the register information to the POSIX structure.  */
     if (want_reg_info) {
@@ -4238,7 +4236,7 @@ int eflags;
         free(regs.end);
     }
     /* We want zero return to mean success, unlike `re_search'.  */
-    return ret >= 0 ? (int) REG_NOERROR : (int) REG_NOMATCH;
+    return ret >= 0 ? (int)REG_NOERROR : (int)REG_NOMATCH;
 }
 
 /* Returns a message corresponding to an error code, ERRCODE, returned
@@ -4251,7 +4249,7 @@ regerror(int errcode, const regex_t *preg, char *errbuf, size_t errbuf_size)
     size_t msg_size;
 
     if (errcode < 0
-            || errcode >= (sizeof(re_error_msg) / sizeof(re_error_msg[0])))
+        || errcode >= (sizeof(re_error_msg) / sizeof(re_error_msg[0])))
         /* Only error codes returned by the rest of the code should be passed
          * to this routine.  If we are given anything else, or if other regex
          * code generates an invalid error code, then the program has a bug.
@@ -4280,8 +4278,8 @@ regerror(int errcode, const regex_t *preg, char *errbuf, size_t errbuf_size)
 /* Free dynamically allocated space used by PREG.  */
 
 void
-regfree(preg)
-regex_t *preg;
+    regfree(preg)
+        regex_t *preg;
 {
     if (preg->buffer != NULL)
         free(preg->buffer);
@@ -4308,4 +4306,3 @@ regex_t *preg;
  * trim-versions-without-asking: nil
  * End:
  */
-

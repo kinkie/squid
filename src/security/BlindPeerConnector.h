@@ -13,12 +13,13 @@
 
 class ErrorState;
 
-namespace Security
-{
+namespace Security {
 
 /// A simple PeerConnector for SSL/TLS cache_peers. No SslBump capabilities.
-class BlindPeerConnector: public Security::PeerConnector {
+class BlindPeerConnector : public Security::PeerConnector
+{
     CBDATA_CLASS(BlindPeerConnector);
+
 public:
     BlindPeerConnector(HttpRequestPointer &aRequest,
                        const Comm::ConnectionPointer &aServerConn,
@@ -47,7 +48,6 @@ public:
     virtual void noteNegotiationDone(ErrorState *);
 };
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_BLINDPEERCONNECTOR_H */
-

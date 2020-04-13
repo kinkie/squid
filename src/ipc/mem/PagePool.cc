@@ -9,9 +9,9 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/mem/PagePool.h"
 #include "base/TextException.h"
 #include "ipc/mem/Page.h"
-#include "ipc/mem/PagePool.h"
 
 // Ipc::Mem::PagePool
 
@@ -21,11 +21,10 @@ Ipc::Mem::PagePool::Init(const char *const shmId, const Ipc::Mem::PoolId stackId
     return shm_new(PageStack)(shmId, stackId, capacity, pageSize);
 }
 
-Ipc::Mem::PagePool::PagePool(const char *const id):
+Ipc::Mem::PagePool::PagePool(const char *const id) :
     pageIndex(shm_old(PageStack)(id)),
     theLevels(reinterpret_cast<Levels_t *>(
-                  reinterpret_cast<char *>(pageIndex.getRaw()) +
-                  pageIndex->stackSize() + pageIndex->levelsPaddingSize())),
+        reinterpret_cast<char *>(pageIndex.getRaw()) + pageIndex->stackSize() + pageIndex->levelsPaddingSize())),
     theBuf(reinterpret_cast<char *>(theLevels + PageId::maxPurpose))
 {
 }
@@ -67,4 +66,3 @@ Ipc::Mem::PagePool::pagePointer(const PageId &page)
     Must(pageIndex->pageIdIsValid(page));
     return theBuf + pageSize() * (page.number - 1);
 }
-

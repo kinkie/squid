@@ -37,10 +37,9 @@ enum icp_opcode {
     ICP_DENIED,
     ICP_HIT_OBJ,
     ICP_END,
-    enumEnd_ = ICP_END // We misuse ICP_END in stats. Do not do this elsewhere.
+    enumEnd_ = ICP_END  // We misuse ICP_END in stats. Do not do this elsewhere.
 };
 
 extern const char *icp_opcode_str[];
 
 #endif /* _SQUID_ICP_OPCODE_H */
-

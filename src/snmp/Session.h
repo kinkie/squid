@@ -15,26 +15,24 @@
 #include "snmp.h"
 #include "snmp_session.h"
 
-namespace Snmp
-{
+namespace Snmp {
 
 /// snmp_session wrapper add pack/unpack feature
-class Session: public snmp_session
+class Session : public snmp_session
 {
 public:
     Session();
-    Session(const Session& session);
-    Session& operator = (const Session& session);
+    Session(const Session &session);
+    Session &operator=(const Session &session);
     ~Session() { reset(); }
 
-    void pack(Ipc::TypedMsgHdr& msg) const; ///< prepare for sendmsg()
-    void unpack(const Ipc::TypedMsgHdr& msg); ///< restore struct from the message
+    void pack(Ipc::TypedMsgHdr &msg) const;    ///< prepare for sendmsg()
+    void unpack(const Ipc::TypedMsgHdr &msg);  ///< restore struct from the message
 
 private:
-    void reset(); ///< free internal members
+    void reset();  ///< free internal members
 };
 
-} // namespace Snmp
+}  // namespace Snmp
 
 #endif /* SQUID_SNMPX_SESSION_H */
-

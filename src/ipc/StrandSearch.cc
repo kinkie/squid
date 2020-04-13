@@ -9,15 +9,16 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "ipc/Messages.h"
 #include "ipc/StrandSearch.h"
+#include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
 
-Ipc::StrandSearchRequest::StrandSearchRequest(): requestorId(-1)
+Ipc::StrandSearchRequest::StrandSearchRequest() :
+    requestorId(-1)
 {
 }
 
-Ipc::StrandSearchRequest::StrandSearchRequest(const TypedMsgHdr &hdrMsg):
+Ipc::StrandSearchRequest::StrandSearchRequest(const TypedMsgHdr &hdrMsg) :
     requestorId(-1)
 {
     hdrMsg.checkType(mtStrandSearchRequest);
@@ -25,7 +26,8 @@ Ipc::StrandSearchRequest::StrandSearchRequest(const TypedMsgHdr &hdrMsg):
     hdrMsg.getString(tag);
 }
 
-void Ipc::StrandSearchRequest::pack(TypedMsgHdr &hdrMsg) const
+void
+Ipc::StrandSearchRequest::pack(TypedMsgHdr &hdrMsg) const
 {
     hdrMsg.setType(mtStrandSearchRequest);
     hdrMsg.putPod(requestorId);
@@ -34,7 +36,7 @@ void Ipc::StrandSearchRequest::pack(TypedMsgHdr &hdrMsg) const
 
 /* StrandSearchResponse */
 
-Ipc::StrandSearchResponse::StrandSearchResponse(const Ipc::StrandCoord &aStrand):
+Ipc::StrandSearchResponse::StrandSearchResponse(const Ipc::StrandCoord &aStrand) :
     strand(aStrand)
 {
 }
@@ -45,9 +47,9 @@ Ipc::StrandSearchResponse::StrandSearchResponse(const TypedMsgHdr &hdrMsg)
     strand.unpack(hdrMsg);
 }
 
-void Ipc::StrandSearchResponse::pack(TypedMsgHdr &hdrMsg) const
+void
+Ipc::StrandSearchResponse::pack(TypedMsgHdr &hdrMsg) const
 {
     hdrMsg.setType(mtStrandSearchResponse);
     strand.pack(hdrMsg);
 }
-

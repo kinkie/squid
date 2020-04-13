@@ -8,12 +8,13 @@
 
 #include "squid.h"
 #include "DiskDaemonDiskIOModule.h"
-#include "DiskdIOStrategy.h"
 #include "DiskIO/DiskDaemon/DiskdAction.h"
-#include "mgr/Registration.h"
+#include "DiskdIOStrategy.h"
 #include "Store.h"
+#include "mgr/Registration.h"
 
-DiskDaemonDiskIOModule::DiskDaemonDiskIOModule() : initialised(false)
+DiskDaemonDiskIOModule::DiskDaemonDiskIOModule() :
+    initialised(false)
 {
     ModuleAdd(*this);
 }
@@ -70,8 +71,7 @@ DiskDaemonDiskIOModule::createStrategy()
 DiskDaemonDiskIOModule DiskDaemonDiskIOModule::Instance;
 
 char const *
-DiskDaemonDiskIOModule::type () const
+DiskDaemonDiskIOModule::type() const
 {
     return "DiskDaemon";
 }
-

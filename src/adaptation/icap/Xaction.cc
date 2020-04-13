@@ -9,71 +9,73 @@
 /* DEBUG: section 93    ICAP (RFC 3507) Client */
 
 #include "squid.h"
+#include "adaptation/icap/Xaction.h"
+#include "CommCalls.h"
+#include "FwdState.h"
+#include "HttpReply.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
 #include "acl/FilledChecklist.h"
 #include "adaptation/icap/Config.h"
 #include "adaptation/icap/Launcher.h"
-#include "adaptation/icap/Xaction.h"
 #include "base/TextException.h"
 #include "comm.h"
-#include "comm/Connection.h"
 #include "comm/ConnOpener.h"
+#include "comm/Connection.h"
 #include "comm/Read.h"
 #include "comm/Write.h"
-#include "CommCalls.h"
 #include "err_detail_type.h"
 #include "fde.h"
-#include "FwdState.h"
 #include "globals.h"
-#include "HttpReply.h"
 #include "icap_log.h"
 #include "ipcache.h"
 #include "pconn.h"
 #include "security/PeerConnector.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
 
 /// Gives Security::PeerConnector access to Answer in the PeerPoolMgr callback dialer.
-class MyIcapAnswerDialer: public UnaryMemFunT<Adaptation::Icap::Xaction, Security::EncryptorAnswer, Security::EncryptorAnswer&>,
-    public Security::PeerConnector::CbDialer
+class MyIcapAnswerDialer : public UnaryMemFunT<Adaptation::Icap::Xaction, Security::EncryptorAnswer, Security::EncryptorAnswer &>,
+                           public Security::PeerConnector::CbDialer
 {
 public:
-    MyIcapAnswerDialer(const JobPointer &aJob, Method aMethod):
-        UnaryMemFunT<Adaptation::Icap::Xaction, Security::EncryptorAnswer, Security::EncryptorAnswer&>(aJob, aMethod, Security::EncryptorAnswer()) {}
+    MyIcapAnswerDialer(const JobPointer &aJob, Method aMethod) :
+        UnaryMemFunT<Adaptation::Icap::Xaction, Security::EncryptorAnswer, Security::EncryptorAnswer &>(aJob, aMethod, Security::EncryptorAnswer()) {}
 
     /* Security::PeerConnector::CbDialer API */
     virtual Security::EncryptorAnswer &answer() { return arg1; }
 };
 
-namespace Ssl
-{
+namespace Ssl {
 /// A simple PeerConnector for Secure ICAP services. No SslBump capabilities.
-class IcapPeerConnector: public Security::PeerConnector {
+class IcapPeerConnector : public Security::PeerConnector
+{
     CBDATA_CLASS(IcapPeerConnector);
+
 public:
     IcapPeerConnector(
         Adaptation::Icap::ServiceRep::Pointer &service,
         const Comm::ConnectionPointer &aServerConn,
         AsyncCall::Pointer &aCallback,
         AccessLogEntry::Pointer const &alp,
-        const time_t timeout = 0):
+        const time_t timeout = 0) :
         AsyncJob("Ssl::IcapPeerConnector"),
         Security::PeerConnector(aServerConn, aCallback, alp, timeout), icapService(service) {}
 
     /* Security::PeerConnector API */
     virtual bool initialize(Security::SessionPointer &);
     virtual void noteNegotiationDone(ErrorState *error);
-    virtual Security::ContextPointer getTlsContext() {
+    virtual Security::ContextPointer getTlsContext()
+    {
         return icapService->sslContext;
     }
 
 private:
     Adaptation::Icap::ServiceRep::Pointer icapService;
 };
-} // namespace Ssl
+}  // namespace Ssl
 
 CBDATA_NAMESPACED_CLASS_INIT(Ssl, IcapPeerConnector);
 
-Adaptation::Icap::Xaction::Xaction(const char *aTypeName, Adaptation::Icap::ServiceRep::Pointer &aService):
+Adaptation::Icap::Xaction::Xaction(const char *aTypeName, Adaptation::Icap::ServiceRep::Pointer &aService) :
     AsyncJob(aTypeName),
     Adaptation::Initiate(aTypeName),
     icapRequest(NULL),
@@ -95,8 +97,7 @@ Adaptation::Icap::Xaction::Xaction(const char *aTypeName, Adaptation::Icap::Serv
     al(*alep),
     cs(NULL)
 {
-    debugs(93,3, typeName << " constructed, this=" << this <<
-           " [icapx" << id << ']'); // we should not call virtual status() here
+    debugs(93, 3, typeName << " constructed, this=" << this << " [icapx" << id << ']');  // we should not call virtual status() here
     const MasterXaction::Pointer mx = new MasterXaction(XactionInitiator::initAdaptation);
     icapRequest = new HttpRequest(mx);
     HTTPMSGLOCK(icapRequest);
@@ -107,8 +108,7 @@ Adaptation::Icap::Xaction::Xaction(const char *aTypeName, Adaptation::Icap::Serv
 
 Adaptation::Icap::Xaction::~Xaction()
 {
-    debugs(93,3, typeName << " destructed, this=" << this <<
-           " [icapx" << id << ']'); // we should not call virtual status() here
+    debugs(93, 3, typeName << " destructed, this=" << this << " [icapx" << id << ']');  // we should not call virtual status() here
     HTTPMSGUNLOCK(icapRequest);
 }
 
@@ -126,21 +126,22 @@ Adaptation::Icap::Xaction::service()
     return *theService;
 }
 
-void Adaptation::Icap::Xaction::disableRetries()
+void
+Adaptation::Icap::Xaction::disableRetries()
 {
-    debugs(93,5, typeName << (isRetriable ? " from now on" : " still") <<
-           " cannot be retried " << status());
+    debugs(93, 5, typeName << (isRetriable ? " from now on" : " still") << " cannot be retried " << status());
     isRetriable = false;
 }
 
-void Adaptation::Icap::Xaction::disableRepeats(const char *reason)
+void
+Adaptation::Icap::Xaction::disableRepeats(const char *reason)
 {
-    debugs(93,5, typeName << (isRepeatable ? " from now on" : " still") <<
-           " cannot be repeated because " << reason << status());
+    debugs(93, 5, typeName << (isRepeatable ? " from now on" : " still") << " cannot be repeated because " << reason << status());
     isRepeatable = false;
 }
 
-void Adaptation::Icap::Xaction::start()
+void
+Adaptation::Icap::Xaction::start()
 {
     Adaptation::Initiate::start();
 }
@@ -161,7 +162,7 @@ Adaptation::Icap::Xaction::openConnection()
     Adaptation::Icap::ServiceRep &s = service();
 
     if (!TheConfig.reuse_connections)
-        disableRetries(); // this will also safely drain pconn pool
+        disableRetries();  // this will also safely drain pconn pool
 
     bool wasReused = false;
     connection = s.getConnection(isRetriable, wasReused);
@@ -176,15 +177,15 @@ Adaptation::Icap::Xaction::openConnection()
         dialer.params.conn = connection;
         dialer.params.flag = Comm::OK;
         // fake other parameters by copying from the existing connection
-        connector = asyncCall(93,3, "Adaptation::Icap::Xaction::noteCommConnected", dialer);
+        connector = asyncCall(93, 3, "Adaptation::Icap::Xaction::noteCommConnected", dialer);
         ScheduleCallHere(connector);
         return;
     }
 
-    disableRetries(); // we only retry pconn failures
+    disableRetries();  // we only retry pconn failures
 
     // Attempt to open a new connection...
-    debugs(93,3, typeName << " opens connection to " << s.cfg().host.termedBuf() << ":" << s.cfg().port);
+    debugs(93, 3, typeName << " opens connection to " << s.cfg().host.termedBuf() << ":" << s.cfg().port);
 
     // Locate the Service IP(s) to open
     ipcache_nbgethostbyname(s.cfg().host.termedBuf(), icapLookupDnsResults, this);
@@ -199,16 +200,16 @@ Adaptation::Icap::Xaction::dnsLookupDone(const ipcache_addrs *ia)
         debugs(44, DBG_IMPORTANT, "ICAP: Unknown service host: " << s.cfg().host);
 
 #if WHEN_IPCACHE_NBGETHOSTBYNAME_USES_ASYNC_CALLS
-        dieOnConnectionFailure(); // throws
-#else // take a step back into protected Async call dialing.
-        // fake the connect callback
+        dieOnConnectionFailure();  // throws
+#else                              // take a step back into protected Async call dialing. \
+                                   // fake the connect callback
         typedef CommCbMemFunT<Adaptation::Icap::Xaction, CommConnectCbParams> Dialer;
         CbcPointer<Xaction> self(this);
         Dialer dialer(self, &Adaptation::Icap::Xaction::noteCommConnected);
         dialer.params.conn = connection;
         dialer.params.flag = Comm::COMM_ERROR;
         // fake other parameters by copying from the existing connection
-        connector = asyncCall(93,3, "Adaptation::Icap::Xaction::noteCommConnected", dialer);
+        connector = asyncCall(93, 3, "Adaptation::Icap::Xaction::noteCommConnected", dialer);
         ScheduleCallHere(connector);
 #endif
         return;
@@ -221,7 +222,7 @@ Adaptation::Icap::Xaction::dnsLookupDone(const ipcache_addrs *ia)
 
     // TODO: service bypass status may differ from that of a transaction
     typedef CommCbMemFunT<Adaptation::Icap::Xaction, CommConnectCbParams> ConnectDialer;
-    connector = JobCallback(93,3, ConnectDialer, this, Adaptation::Icap::Xaction::noteCommConnected);
+    connector = JobCallback(93, 3, ConnectDialer, this, Adaptation::Icap::Xaction::noteCommConnected);
     cs = new Comm::ConnOpener(connection, connector, TheConfig.connect_timeout(service().cfg().bypass));
     cs->setHost(s.cfg().host.termedBuf());
     AsyncJob::Start(cs.get());
@@ -241,7 +242,8 @@ Adaptation::Icap::Xaction::reusedConnection(void *data)
 }
 #endif
 
-void Adaptation::Icap::Xaction::closeConnection()
+void
+Adaptation::Icap::Xaction::closeConnection()
 {
     if (haveConnection()) {
 
@@ -250,19 +252,18 @@ void Adaptation::Icap::Xaction::closeConnection()
             closer = NULL;
         }
 
-        cancelRead(); // may not work
+        cancelRead();  // may not work
 
         if (reuseConnection && !doneWithIo()) {
             //status() adds leading spaces.
-            debugs(93,5, HERE << "not reusing pconn due to pending I/O" << status());
+            debugs(93, 5, HERE << "not reusing pconn due to pending I/O" << status());
             reuseConnection = false;
         }
 
         if (reuseConnection)
             disableRetries();
 
-        const bool reset = !reuseConnection &&
-                           (al.icap.outcome == xoGone || al.icap.outcome == xoError);
+        const bool reset = !reuseConnection && (al.icap.outcome == xoGone || al.icap.outcome == xoError);
 
         Adaptation::Icap::ServiceRep &s = service();
         s.putConnection(connection, reuseConnection, reset, status());
@@ -275,7 +276,8 @@ void Adaptation::Icap::Xaction::closeConnection()
 }
 
 // connection with the ICAP service established
-void Adaptation::Icap::Xaction::noteCommConnected(const CommConnectCbParams &io)
+void
+Adaptation::Icap::Xaction::noteCommConnected(const CommConnectCbParams &io)
 {
     cs = NULL;
 
@@ -288,16 +290,16 @@ void Adaptation::Icap::Xaction::noteCommConnected(const CommConnectCbParams &io)
     connector = NULL;
 
     if (io.flag != Comm::OK)
-        dieOnConnectionFailure(); // throws
+        dieOnConnectionFailure();  // throws
 
     typedef CommCbMemFunT<Adaptation::Icap::Xaction, CommTimeoutCbParams> TimeoutDialer;
-    AsyncCall::Pointer timeoutCall =  asyncCall(93, 5, "Adaptation::Icap::Xaction::noteCommTimedout",
-                                      TimeoutDialer(this,&Adaptation::Icap::Xaction::noteCommTimedout));
+    AsyncCall::Pointer timeoutCall = asyncCall(93, 5, "Adaptation::Icap::Xaction::noteCommTimedout",
+                                               TimeoutDialer(this, &Adaptation::Icap::Xaction::noteCommTimedout));
     commSetConnTimeout(io.conn, TheConfig.connect_timeout(service().cfg().bypass), timeoutCall);
 
     typedef CommCbMemFunT<Adaptation::Icap::Xaction, CommCloseCbParams> CloseDialer;
-    closer =  asyncCall(93, 5, "Adaptation::Icap::Xaction::noteCommClosed",
-                        CloseDialer(this,&Adaptation::Icap::Xaction::noteCommClosed));
+    closer = asyncCall(93, 5, "Adaptation::Icap::Xaction::noteCommClosed",
+                       CloseDialer(this, &Adaptation::Icap::Xaction::noteCommClosed));
     comm_add_close_handler(io.conn->fd, closer);
 
     // If it is a reused connection and the TLS object is built
@@ -309,26 +311,27 @@ void Adaptation::Icap::Xaction::noteCommConnected(const CommConnectCbParams &io)
                             MyIcapAnswerDialer(me, &Adaptation::Icap::Xaction::handleSecuredPeer));
 
         auto *sslConnector = new Ssl::IcapPeerConnector(theService, io.conn, securer, masterLogEntry(), TheConfig.connect_timeout(service().cfg().bypass));
-        AsyncJob::Start(sslConnector); // will call our callback
+        AsyncJob::Start(sslConnector);  // will call our callback
         return;
     }
 
-// ??    fd_table[io.conn->fd].noteUse(icapPconnPool);
+    // ??    fd_table[io.conn->fd].noteUse(icapPconnPool);
     service().noteConnectionUse(connection);
 
     handleCommConnected();
 }
 
-void Adaptation::Icap::Xaction::dieOnConnectionFailure()
+void
+Adaptation::Icap::Xaction::dieOnConnectionFailure()
 {
-    debugs(93, 2, HERE << typeName <<
-           " failed to connect to " << service().cfg().uri);
+    debugs(93, 2, HERE << typeName << " failed to connect to " << service().cfg().uri);
     service().noteConnectionFailed("failure");
     detailError(ERR_DETAIL_ICAP_XACT_START);
     throw TexcHere("cannot connect to the ICAP service");
 }
 
-void Adaptation::Icap::Xaction::scheduleWrite(MemBuf &buf)
+void
+Adaptation::Icap::Xaction::scheduleWrite(MemBuf &buf)
 {
     Must(haveConnection());
 
@@ -341,7 +344,8 @@ void Adaptation::Icap::Xaction::scheduleWrite(MemBuf &buf)
     updateTimeout();
 }
 
-void Adaptation::Icap::Xaction::noteCommWrote(const CommIoCbParams &io)
+void
+Adaptation::Icap::Xaction::noteCommWrote(const CommIoCbParams &io)
 {
     Must(writer != NULL);
     writer = NULL;
@@ -359,30 +363,29 @@ void Adaptation::Icap::Xaction::noteCommWrote(const CommIoCbParams &io)
 }
 
 // communication timeout with the ICAP service
-void Adaptation::Icap::Xaction::noteCommTimedout(const CommTimeoutCbParams &)
+void
+Adaptation::Icap::Xaction::noteCommTimedout(const CommTimeoutCbParams &)
 {
     handleCommTimedout();
 }
 
-void Adaptation::Icap::Xaction::handleCommTimedout()
+void
+Adaptation::Icap::Xaction::handleCommTimedout()
 {
-    debugs(93, 2, HERE << typeName << " failed: timeout with " <<
-           theService->cfg().methodStr() << " " <<
-           theService->cfg().uri << status());
+    debugs(93, 2, HERE << typeName << " failed: timeout with " << theService->cfg().methodStr() << " " << theService->cfg().uri << status());
     reuseConnection = false;
     const bool whileConnecting = connector != NULL;
     if (whileConnecting) {
         assert(!haveConnection());
         theService->noteConnectionFailed("timedout");
     } else
-        closeConnection(); // so that late Comm callbacks do not disturb bypass
-    throw TexcHere(whileConnecting ?
-                   "timed out while connecting to the ICAP service" :
-                   "timed out while talking to the ICAP service");
+        closeConnection();  // so that late Comm callbacks do not disturb bypass
+    throw TexcHere(whileConnecting ? "timed out while connecting to the ICAP service" : "timed out while talking to the ICAP service");
 }
 
 // unexpected connection close while talking to the ICAP service
-void Adaptation::Icap::Xaction::noteCommClosed(const CommCloseCbParams &)
+void
+Adaptation::Icap::Xaction::noteCommClosed(const CommCloseCbParams &)
 {
     if (securer != NULL) {
         securer->cancel("Connection closed before SSL negotiation finished");
@@ -392,34 +395,39 @@ void Adaptation::Icap::Xaction::noteCommClosed(const CommCloseCbParams &)
     handleCommClosed();
 }
 
-void Adaptation::Icap::Xaction::handleCommClosed()
+void
+Adaptation::Icap::Xaction::handleCommClosed()
 {
     detailError(ERR_DETAIL_ICAP_XACT_CLOSE);
     mustStop("ICAP service connection externally closed");
 }
 
-void Adaptation::Icap::Xaction::callException(const std::exception  &e)
+void
+Adaptation::Icap::Xaction::callException(const std::exception &e)
 {
     setOutcome(xoError);
     service().noteFailure();
     Adaptation::Initiate::callException(e);
 }
 
-void Adaptation::Icap::Xaction::callEnd()
+void
+Adaptation::Icap::Xaction::callEnd()
 {
     if (doneWithIo()) {
         debugs(93, 5, HERE << typeName << " done with I/O" << status());
         closeConnection();
     }
-    Adaptation::Initiate::callEnd(); // may destroy us
+    Adaptation::Initiate::callEnd();  // may destroy us
 }
 
-bool Adaptation::Icap::Xaction::doneAll() const
+bool
+Adaptation::Icap::Xaction::doneAll() const
 {
     return !connector && !securer && !reader && !writer && Adaptation::Initiate::doneAll();
 }
 
-void Adaptation::Icap::Xaction::updateTimeout()
+void
+Adaptation::Icap::Xaction::updateTimeout()
 {
     Must(haveConnection());
 
@@ -437,11 +445,12 @@ void Adaptation::Icap::Xaction::updateTimeout()
     }
 }
 
-void Adaptation::Icap::Xaction::scheduleRead()
+void
+Adaptation::Icap::Xaction::scheduleRead()
 {
     Must(haveConnection());
     Must(!reader);
-    Must(readBuf.length() < SQUID_TCP_SO_RCVBUF); // will expand later if needed
+    Must(readBuf.length() < SQUID_TCP_SO_RCVBUF);  // will expand later if needed
 
     typedef CommCbMemFunT<Adaptation::Icap::Xaction, CommIoCbParams> Dialer;
     reader = JobCallback(93, 3, Dialer, this, Adaptation::Icap::Xaction::noteCommRead);
@@ -450,7 +459,8 @@ void Adaptation::Icap::Xaction::scheduleRead()
 }
 
 // comm module read a portion of the ICAP response for us
-void Adaptation::Icap::Xaction::noteCommRead(const CommIoCbParams &io)
+void
+Adaptation::Icap::Xaction::noteCommRead(const CommIoCbParams &io)
 {
     Must(reader != NULL);
     reader = NULL;
@@ -465,7 +475,7 @@ void Adaptation::Icap::Xaction::noteCommRead(const CommIoCbParams &io)
     // even if readBuf.spaceSize() currently returns zero.
     readBuf.rawAppendStart(1);
 
-    CommIoCbParams rd(this); // will be expanded with ReadNow results
+    CommIoCbParams rd(this);  // will be expanded with ReadNow results
     rd.conn = io.conn;
 
     switch (Comm::ReadNow(rd, readBuf)) {
@@ -482,12 +492,12 @@ void Adaptation::Icap::Xaction::noteCommRead(const CommIoCbParams &io)
 
         debugs(93, 3, "read " << rd.size << " bytes");
 
-        disableRetries(); // because pconn did not fail
+        disableRetries();  // because pconn did not fail
 
         /* Continue to process previously read data */
         break;
 
-    case Comm::ENDFILE: // close detected by 0-byte read
+    case Comm::ENDFILE:  // close detected by 0-byte read
         commEof = true;
         reuseConnection = false;
 
@@ -501,7 +511,7 @@ void Adaptation::Icap::Xaction::noteCommRead(const CommIoCbParams &io)
         break;
 
     // case Comm::COMM_ERROR:
-    default: // no other flags should ever occur
+    default:  // no other flags should ever occur
         debugs(11, 2, io.conn << ": read failure: " << xstrerr(rd.xerrno));
         mustStop("unknown ICAP I/O read error");
         return;
@@ -510,7 +520,8 @@ void Adaptation::Icap::Xaction::noteCommRead(const CommIoCbParams &io)
     handleCommRead(io.size);
 }
 
-void Adaptation::Icap::Xaction::cancelRead()
+void
+Adaptation::Icap::Xaction::cancelRead()
 {
     if (reader != NULL) {
         Must(haveConnection());
@@ -528,7 +539,7 @@ Adaptation::Icap::Xaction::parseHttpMsg(Http::Message *msg)
     // XXX: performance regression c_str() data copies
     const char *buf = readBuf.c_str();
     const bool parsed = msg->parse(buf, readBuf.length(), commEof, &error);
-    Must(parsed || !error); // success or need more data
+    Must(parsed || !error);  // success or need more data
 
     if (!parsed) {  // need more data
         Must(mayReadMore());
@@ -540,49 +551,54 @@ Adaptation::Icap::Xaction::parseHttpMsg(Http::Message *msg)
     return true;
 }
 
-bool Adaptation::Icap::Xaction::mayReadMore() const
+bool
+Adaptation::Icap::Xaction::mayReadMore() const
 {
-    return !doneReading() && // will read more data
-           readBuf.length() < SQUID_TCP_SO_RCVBUF;  // have space for more data
+    return !doneReading() &&                     // will read more data
+        readBuf.length() < SQUID_TCP_SO_RCVBUF;  // have space for more data
 }
 
-bool Adaptation::Icap::Xaction::doneReading() const
+bool
+Adaptation::Icap::Xaction::doneReading() const
 {
     return commEof;
 }
 
-bool Adaptation::Icap::Xaction::doneWriting() const
+bool
+Adaptation::Icap::Xaction::doneWriting() const
 {
     return !writer;
 }
 
-bool Adaptation::Icap::Xaction::doneWithIo() const
+bool
+Adaptation::Icap::Xaction::doneWithIo() const
 {
-    return haveConnection() &&
-           !connector && !reader && !writer && // fast checks, some redundant
-           doneReading() && doneWriting();
+    return haveConnection() && !connector && !reader && !writer &&  // fast checks, some redundant
+        doneReading() && doneWriting();
 }
 
-bool Adaptation::Icap::Xaction::haveConnection() const
+bool
+Adaptation::Icap::Xaction::haveConnection() const
 {
     return connection != NULL && connection->isOpen();
 }
 
 // initiator aborted
-void Adaptation::Icap::Xaction::noteInitiatorAborted()
+void
+Adaptation::Icap::Xaction::noteInitiatorAborted()
 {
 
     if (theInitiator.set()) {
-        debugs(93,4, HERE << "Initiator gone before ICAP transaction ended");
+        debugs(93, 4, HERE << "Initiator gone before ICAP transaction ended");
         clearInitiator();
         detailError(ERR_DETAIL_ICAP_INIT_GONE);
         setOutcome(xoGone);
         mustStop("initiator aborted");
     }
-
 }
 
-void Adaptation::Icap::Xaction::setOutcome(const Adaptation::Icap::XactOutcome &xo)
+void
+Adaptation::Icap::Xaction::setOutcome(const Adaptation::Icap::XactOutcome &xo)
 {
     if (al.icap.outcome != xoUnknown) {
         debugs(93, 3, "WARNING: resetting outcome: from " << al.icap.outcome << " to " << xo);
@@ -595,17 +611,18 @@ void Adaptation::Icap::Xaction::setOutcome(const Adaptation::Icap::XactOutcome &
 // This 'last chance' method is called before a 'done' transaction is deleted.
 // It is wrong to call virtual methods from a destructor. Besides, this call
 // indicates that the transaction will terminate as planned.
-void Adaptation::Icap::Xaction::swanSong()
+void
+Adaptation::Icap::Xaction::swanSong()
 {
     // kids should sing first and then call the parent method.
     if (cs.valid()) {
-        debugs(93,6, HERE << id << " about to notify ConnOpener!");
+        debugs(93, 6, HERE << id << " about to notify ConnOpener!");
         CallJobHere(93, 3, cs, Comm::ConnOpener, noteAbort);
         cs = NULL;
         service().noteConnectionFailed("abort");
     }
 
-    closeConnection(); // TODO: rename because we do not always close
+    closeConnection();  // TODO: rename because we do not always close
 
     readBuf.clear();
 
@@ -616,20 +633,22 @@ void Adaptation::Icap::Xaction::swanSong()
     Adaptation::Initiate::swanSong();
 }
 
-void Adaptation::Icap::Xaction::tellQueryAborted()
+void
+Adaptation::Icap::Xaction::tellQueryAborted()
 {
     if (theInitiator.set()) {
         Adaptation::Icap::XactAbortInfo abortInfo(icapRequest, icapReply.getRaw(),
-                retriable(), repeatable());
-        Launcher *launcher = dynamic_cast<Launcher*>(theInitiator.get());
+                                                  retriable(), repeatable());
+        Launcher *launcher = dynamic_cast<Launcher *>(theInitiator.get());
         // launcher may be nil if initiator is invalid
-        CallJobHere1(91,5, CbcPointer<Launcher>(launcher),
+        CallJobHere1(91, 5, CbcPointer<Launcher>(launcher),
                      Launcher, noteXactAbort, abortInfo);
         clearInitiator();
     }
 }
 
-void Adaptation::Icap::Xaction::maybeLog()
+void
+Adaptation::Icap::Xaction::maybeLog()
 {
     if (IcapLogfileStatus == LOG_ENABLE) {
         finalizeLogInfo();
@@ -637,7 +656,8 @@ void Adaptation::Icap::Xaction::maybeLog()
     }
 }
 
-void Adaptation::Icap::Xaction::finalizeLogInfo()
+void
+Adaptation::Icap::Xaction::finalizeLogInfo()
 {
     //prepare log data
     al.icp.opcode = ICP_INVALID;
@@ -660,7 +680,8 @@ void Adaptation::Icap::Xaction::finalizeLogInfo()
 }
 
 // returns a temporary string depicting transaction status, for debugging
-const char *Adaptation::Icap::Xaction::status() const
+const char *
+Adaptation::Icap::Xaction::status() const
 {
     static MemBuf buf;
     buf.reset();
@@ -674,7 +695,8 @@ const char *Adaptation::Icap::Xaction::status() const
     return buf.content();
 }
 
-void Adaptation::Icap::Xaction::fillPendingStatus(MemBuf &buf) const
+void
+Adaptation::Icap::Xaction::fillPendingStatus(MemBuf &buf) const
 {
     if (haveConnection()) {
         buf.appendf("FD %d", connection->fd);
@@ -689,7 +711,8 @@ void Adaptation::Icap::Xaction::fillPendingStatus(MemBuf &buf) const
     }
 }
 
-void Adaptation::Icap::Xaction::fillDoneStatus(MemBuf &buf) const
+void
+Adaptation::Icap::Xaction::fillDoneStatus(MemBuf &buf) const
 {
     if (haveConnection() && commEof)
         buf.appendf("Comm(%d)", connection->fd);
@@ -698,7 +721,8 @@ void Adaptation::Icap::Xaction::fillDoneStatus(MemBuf &buf) const
         buf.append("Stopped", 7);
 }
 
-bool Adaptation::Icap::Xaction::fillVirginHttpHeader(MemBuf &) const
+bool
+Adaptation::Icap::Xaction::fillVirginHttpHeader(MemBuf &) const
 {
     return false;
 }
@@ -751,8 +775,7 @@ Adaptation::Icap::Xaction::handleSecuredPeer(Security::EncryptorAnswer &answer)
     if (answer.error.get()) {
         if (answer.conn != NULL)
             answer.conn->close();
-        debugs(93, 2, typeName <<
-               " TLS negotiation to " << service().cfg().uri << " failed");
+        debugs(93, 2, typeName << " TLS negotiation to " << service().cfg().uri << " failed");
         service().noteConnectionFailed("failure");
         detailError(ERR_DETAIL_ICAP_XACT_SSL_START);
         throw TexcHere("cannot connect to the TLS ICAP service");
@@ -764,4 +787,3 @@ Adaptation::Icap::Xaction::handleSecuredPeer(Security::EncryptorAnswer &answer)
 
     handleCommConnected();
 }
-

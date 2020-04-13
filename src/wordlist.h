@@ -23,9 +23,11 @@ class wordlist
     friend char *wordlistChopHead(wordlist **);
 
 public:
-    wordlist() : key(nullptr), next(nullptr) {}
+    wordlist() :
+        key(nullptr), next(nullptr) {}
     // create a new wordlist node, with a copy of k as key
-    explicit wordlist(const char *k) : key(xstrdup(k)), next(nullptr) {}
+    explicit wordlist(const char *k) :
+        key(xstrdup(k)), next(nullptr) {}
 
     wordlist(const wordlist &) = delete;
     wordlist &operator=(const wordlist &) = delete;
@@ -67,4 +69,3 @@ char *wordlistChopHead(wordlist **);
 SBufList ToSBufList(wordlist *);
 
 #endif /* SQUID_WORDLIST_H */
-

@@ -9,8 +9,8 @@
 /* DEBUG: section 29    Authenticator */
 
 #include "squid.h"
-#include "auth/Gadgets.h"
 #include "auth/Scheme.h"
+#include "auth/Gadgets.h"
 #include "auth/SchemeConfig.h"
 #include "globals.h"
 
@@ -67,4 +67,3 @@ Auth::Scheme::FreeAll()
         scheme->shutdownCleanup();
     }
 }
-

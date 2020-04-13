@@ -11,8 +11,7 @@
 
 #include "base/RefCount.h"
 
-namespace ProxyProtocol
-{
+namespace ProxyProtocol {
 
 class Header;
 
@@ -21,4 +20,3 @@ typedef RefCount<Header> HeaderPointer;
 }
 
 #endif /* _SQUID_SRC_PROXYP_FORWARD_H */
-

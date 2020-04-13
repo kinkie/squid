@@ -20,8 +20,7 @@ public:
     virtual int load();
     virtual RefCount<DiskFile> newFile(char const *path);
     virtual bool unlinkdUseful() const;
-    virtual void unlinkFile (char const *);
+    virtual void unlinkFile(char const *);
 };
 
 #endif /* SQUID_BLOCKINGIOSTRATEGY_H */
-

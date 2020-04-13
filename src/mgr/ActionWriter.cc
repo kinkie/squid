@@ -9,14 +9,14 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "comm/Connection.h"
 #include "mgr/ActionWriter.h"
 #include "Store.h"
+#include "base/TextException.h"
+#include "comm/Connection.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Mgr, ActionWriter);
 
-Mgr::ActionWriter::ActionWriter(const Action::Pointer &anAction, const Comm::ConnectionPointer &conn):
+Mgr::ActionWriter::ActionWriter(const Action::Pointer &anAction, const Comm::ConnectionPointer &conn) :
     StoreToCommWriter(conn, anAction->createStoreEntry()),
     action(anAction)
 {
@@ -32,4 +32,3 @@ Mgr::ActionWriter::start()
     StoreToCommWriter::start();
     action->fillEntry(entry, false);
 }
-

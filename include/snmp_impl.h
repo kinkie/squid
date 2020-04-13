@@ -39,7 +39,7 @@ SOFTWARE.
 ******************************************************************/
 
 #if 0
-#if (defined vax) || (defined (mips))
+#if (defined vax) || (defined(mips))
 /*
  * This is a fairly bogus thing to do, but there seems to be no better way for
  * compilers that don't understand void pointers.
@@ -52,17 +52,17 @@ SOFTWARE.
 
 #define SID_MAX_LEN 64
 
-#define READ        1
-#define WRITE       0
+#define READ 1
+#define WRITE 0
 
-#define SNMP_RESERVE1    0
-#define SNMP_RESERVE2    1
-#define SNMP_COMMIT      2
-#define SNMP_FREE        3
+#define SNMP_RESERVE1 0
+#define SNMP_RESERVE2 1
+#define SNMP_COMMIT 2
+#define SNMP_FREE 3
 
-#define RONLY   0xAAAA      /* read access for everyone */
-#define RWRITE  0xAABA      /* add write access for community private */
-#define NOACCESS 0x0000     /* no access for anybody */
+#define RONLY 0xAAAA    /* read access for everyone */
+#define RWRITE 0xAABA   /* add write access for community private */
+#define NOACCESS 0x0000 /* no access for anybody */
 
 struct trapVar {
     oid *varName;
@@ -74,4 +74,3 @@ struct trapVar {
 };
 
 #endif /* SQUID_SNMP_IMPL_H */
-

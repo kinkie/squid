@@ -7,16 +7,16 @@
  */
 
 #include "squid.h"
+#include "testStoreController.h"
 #include "MemObject.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "Store.h"
-#include "store/Disks.h"
 #include "StoreSearch.h"
-#include "testStoreController.h"
 #include "TestSwapDir.h"
+#include "store/Disks.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testStoreController );
+CPPUNIT_TEST_SUITE_REGISTRATION(testStoreController);
 
 static void
 addSwapDir(TestSwapDirPointer aStore)
@@ -33,8 +33,8 @@ testStoreController::testStats()
     StoreEntry *logEntry = new StoreEntry;
     logEntry->createMemObject("dummy_storeId", NULL, HttpRequestMethod());
     logEntry->store_status = STORE_PENDING;
-    TestSwapDirPointer aStore (new TestSwapDir);
-    TestSwapDirPointer aStore2 (new TestSwapDir);
+    TestSwapDirPointer aStore(new TestSwapDir);
+    TestSwapDirPointer aStore2(new TestSwapDir);
     addSwapDir(aStore);
     addSwapDir(aStore2);
     CPPUNIT_ASSERT_EQUAL(false, aStore->statsCalled);
@@ -75,8 +75,8 @@ testStoreController::testMaxSize()
     logEntry->createMemObject("dummy_storeId", NULL, HttpRequestMethod());
     logEntry->store_status = STORE_PENDING;
     Store::Init();
-    TestSwapDirPointer aStore (new TestSwapDir);
-    TestSwapDirPointer aStore2 (new TestSwapDir);
+    TestSwapDirPointer aStore(new TestSwapDir);
+    TestSwapDirPointer aStore2(new TestSwapDir);
     addSwapDir(aStore);
     addSwapDir(aStore2);
     CPPUNIT_ASSERT_EQUAL(static_cast<uint64_t>(6), Store::Root().maxSize());
@@ -90,21 +90,21 @@ addedEntry(Store::Disk *aStore,
            String varySpec,
            String varyKey
 
-          )
+)
 {
     StoreEntry *e = new StoreEntry();
     e->store_status = STORE_OK;
     e->setMemStatus(NOT_IN_MEMORY);
     e->swap_status = SWAPOUT_DONE; /* bogus haha */
-    e->swap_filen = 0; /* garh - lower level*/
+    e->swap_filen = 0;             /* garh - lower level*/
     e->swap_dirn = -1;
 
-    for (int i=0; i < Config.cacheSwap.n_configured; ++i) {
+    for (int i = 0; i < Config.cacheSwap.n_configured; ++i) {
         if (INDEXSD(i) == aStore)
             e->swap_dirn = i;
     }
 
-    CPPUNIT_ASSERT (e->swap_dirn != -1);
+    CPPUNIT_ASSERT(e->swap_dirn != -1);
     e->swap_file_sz = 0; /* garh lower level */
     e->lastref = squid_curtime;
     e->timestamp = squid_curtime;
@@ -132,13 +132,13 @@ testStoreController::testSearch()
 {
     commonInit();
     Store::Init();
-    TestSwapDirPointer aStore (new TestSwapDir);
-    TestSwapDirPointer aStore2 (new TestSwapDir);
+    TestSwapDirPointer aStore(new TestSwapDir);
+    TestSwapDirPointer aStore2(new TestSwapDir);
     addSwapDir(aStore);
     addSwapDir(aStore2);
     Store::Root().init();
-    StoreEntry * entry1 = addedEntry(aStore.getRaw(), "name", NULL, NULL);
-    StoreEntry * entry2 = addedEntry(aStore2.getRaw(), "name2", NULL, NULL);
+    StoreEntry *entry1 = addedEntry(aStore.getRaw(), "name", NULL, NULL);
+    StoreEntry *entry2 = addedEntry(aStore2.getRaw(), "name2", NULL, NULL);
     StoreSearchPointer search = Store::Root().search(); /* search for everything in the store */
 
     /* nothing should be immediately available */
@@ -186,4 +186,3 @@ testStoreController::testSearch()
 
     Store::FreeMemory();
 }
-

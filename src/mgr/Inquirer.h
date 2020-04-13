@@ -18,12 +18,11 @@
 class CommIoCbParams;
 class CommCloseCbParams;
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// Coordinator's job that sends a cache manage request to each strand,
 /// aggregating individual strand responses and dumping the result if needed
-class Inquirer: public Ipc::Inquirer
+class Inquirer : public Ipc::Inquirer
 {
     CBDATA_CLASS(Inquirer);
 
@@ -42,21 +41,21 @@ protected:
     virtual bool aggregate(Ipc::Response::Pointer aResponse);
 
 private:
-    void noteWroteHeader(const CommIoCbParams& params);
-    void noteCommClosed(const CommCloseCbParams& params);
+    void noteWroteHeader(const CommIoCbParams &params);
+    void noteCommClosed(const CommCloseCbParams &params);
     void removeCloseHandler();
-    Ipc::StrandCoords applyQueryParams(const Ipc::StrandCoords& aStrands,
-                                       const QueryParams& aParams);
+    Ipc::StrandCoords applyQueryParams(const Ipc::StrandCoords &aStrands,
+                                       const QueryParams &aParams);
+
 private:
-    Action::Pointer aggrAction; //< action to aggregate
+    Action::Pointer aggrAction;  //< action to aggregate
 
-    Comm::ConnectionPointer conn; ///< HTTP client socket descriptor
+    Comm::ConnectionPointer conn;  ///< HTTP client socket descriptor
 
-    AsyncCall::Pointer writer; ///< comm_write callback
-    AsyncCall::Pointer closer; ///< comm_close handler
+    AsyncCall::Pointer writer;  ///< comm_write callback
+    AsyncCall::Pointer closer;  ///< comm_close handler
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_INQUIRER_H */
-

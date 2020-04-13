@@ -16,9 +16,9 @@ class StoreMetaUnpacker
 {
 
 public:
-    StoreMetaUnpacker (const char *buf, ssize_t bufferLength, int *hdrlen);
+    StoreMetaUnpacker(const char *buf, ssize_t bufferLength, int *hdrlen);
     StoreMeta *createStoreMeta();
-    bool isBufferZero(); ///< all-zeros buffer, checkBuffer() would throw
+    bool isBufferZero();  ///< all-zeros buffer, checkBuffer() would throw
     /// validates buffer sanity and throws if validation fails
     void checkBuffer();
 
@@ -32,7 +32,7 @@ private:
     bool doOneEntry();
     bool moreToProcess() const;
 
-    char const * const buf;
+    char const *const buf;
     ssize_t buflen;
     int *hdr_len;
     int position;
@@ -42,4 +42,3 @@ private:
 };
 
 #endif /* SQUID_TYPELENGTHVALUEUNPACKER_H */
-

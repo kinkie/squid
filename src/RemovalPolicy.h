@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef   SQUID_REMOVALPOLICY_H
-#define   SQUID_REMOVALPOLICY_H
+#ifndef SQUID_REMOVALPOLICY_H
+#define SQUID_REMOVALPOLICY_H
 
 #include "cbdata.h"
 
@@ -20,7 +20,8 @@ class RemovalPolicySettings
 {
 
 public:
-    RemovalPolicySettings() : type(NULL), args(NULL) {};
+    RemovalPolicySettings() :
+        type(NULL), args(NULL) {};
 
     char *type;
     wordlist *args;
@@ -30,7 +31,8 @@ class RemovalPolicyNode
 {
 
 public:
-    RemovalPolicyNode() : data(NULL) {}
+    RemovalPolicyNode() :
+        data(NULL) {}
 
     void *data;
 };
@@ -42,14 +44,14 @@ class RemovalPolicy
 public:
     const char *_type;
     void *_data;
-    void (*Free) (RemovalPolicy * policy);
-    void (*Add) (RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node);
-    void (*Remove) (RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node);
-    void (*Referenced) (RemovalPolicy * policy, const StoreEntry * entry, RemovalPolicyNode * node);
-    void (*Dereferenced) (RemovalPolicy * policy, const StoreEntry * entry, RemovalPolicyNode * node);
-    RemovalPolicyWalker *(*WalkInit) (RemovalPolicy * policy);
-    RemovalPurgeWalker *(*PurgeInit) (RemovalPolicy * policy, int max_scan);
-    void (*Stats) (RemovalPolicy * policy, StoreEntry * entry);
+    void (*Free)(RemovalPolicy *policy);
+    void (*Add)(RemovalPolicy *policy, StoreEntry *entry, RemovalPolicyNode *node);
+    void (*Remove)(RemovalPolicy *policy, StoreEntry *entry, RemovalPolicyNode *node);
+    void (*Referenced)(RemovalPolicy *policy, const StoreEntry *entry, RemovalPolicyNode *node);
+    void (*Dereferenced)(RemovalPolicy *policy, const StoreEntry *entry, RemovalPolicyNode *node);
+    RemovalPolicyWalker *(*WalkInit)(RemovalPolicy *policy);
+    RemovalPurgeWalker *(*PurgeInit)(RemovalPolicy *policy, int max_scan);
+    void (*Stats)(RemovalPolicy *policy, StoreEntry *entry);
 };
 
 class RemovalPolicyWalker
@@ -59,8 +61,8 @@ class RemovalPolicyWalker
 public:
     RemovalPolicy *_policy;
     void *_data;
-    const StoreEntry *(*Next) (RemovalPolicyWalker * walker);
-    void (*Done) (RemovalPolicyWalker * walker);
+    const StoreEntry *(*Next)(RemovalPolicyWalker *walker);
+    void (*Done)(RemovalPolicyWalker *walker);
 };
 
 class RemovalPurgeWalker
@@ -71,13 +73,12 @@ public:
     RemovalPolicy *_policy;
     void *_data;
     int scanned, max_scan, locked;
-    StoreEntry *(*Next) (RemovalPurgeWalker * walker);
-    void (*Done) (RemovalPurgeWalker * walker);
+    StoreEntry *(*Next)(RemovalPurgeWalker *walker);
+    void (*Done)(RemovalPurgeWalker *walker);
 };
 
-RemovalPolicy *createRemovalPolicy(RemovalPolicySettings * settings);
+RemovalPolicy *createRemovalPolicy(RemovalPolicySettings *settings);
 
-typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist * args);
+typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist *args);
 
 #endif /* SQUID_REMOVALPOLICY_H */
-

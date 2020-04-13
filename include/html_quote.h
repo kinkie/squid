@@ -15,7 +15,7 @@ extern "C"
 extern
 #endif
 
-char *html_quote(const char *);
+    char *
+    html_quote(const char *);
 
 #endif /* _SQUID_HTML_QUOTE_H */
-

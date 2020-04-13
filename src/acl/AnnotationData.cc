@@ -7,17 +7,17 @@
  */
 
 #include "squid.h"
-#include "acl/Acl.h"
 #include "acl/AnnotationData.h"
-#include "acl/Checklist.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Acl.h"
+#include "acl/Checklist.h"
+#include "cache_cf.h"
 #include "format/Format.h"
 #include "sbuf/Algorithms.h"
 
-ACLAnnotationData::ACLAnnotationData()
-    : notes(new Notes("annotation_data")) {}
+ACLAnnotationData::ACLAnnotationData() :
+    notes(new Notes("annotation_data")) {}
 
 SBufList
 ACLAnnotationData::dump() const
@@ -50,4 +50,3 @@ ACLAnnotationData::clone() const
 {
     return new ACLAnnotationData;
 }
-

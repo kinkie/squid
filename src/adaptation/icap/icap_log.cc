@@ -7,15 +7,15 @@
  */
 
 #include "squid.h"
+#include "icap_log.h"
 #include "AccessLogEntry.h"
+#include "HttpReply.h"
+#include "SquidConfig.h"
 #include "acl/FilledChecklist.h"
 #include "globals.h"
-#include "HttpReply.h"
-#include "icap_log.h"
 #include "log/CustomLog.h"
 #include "log/File.h"
 #include "log/Formats.h"
-#include "SquidConfig.h"
 
 int IcapLogfileStatus = LOG_DISABLE;
 
@@ -50,14 +50,15 @@ icapLogClose()
 void
 icapLogRotate()
 {
-    for (CustomLog* log = Config.Log.icaplogs; log; log = log->next) {
+    for (CustomLog *log = Config.Log.icaplogs; log; log = log->next) {
         if (log->logfile) {
             logfileRotate(log->logfile, Config.Log.rotateNumber);
         }
     }
 }
 
-void icapLogLog(AccessLogEntry::Pointer &al)
+void
+icapLogLog(AccessLogEntry::Pointer &al)
 {
     if (IcapLogfileStatus == LOG_ENABLE) {
         ACLFilledChecklist checklist(NULL, al->adapted_request, NULL);
@@ -68,4 +69,3 @@ void icapLogLog(AccessLogEntry::Pointer &al)
         accessLogLogTo(Config.Log.icaplogs, al, &checklist);
     }
 }
-

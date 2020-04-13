@@ -11,13 +11,14 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS
-#include "acl/Acl.h"
-#include "acl/Gadgets.h"
 #include "CommonPool.h"
 #include "DelayPool.h"
 #include "Store.h"
+#include "acl/Acl.h"
+#include "acl/Gadgets.h"
 
-DelayPool::DelayPool() : pool (NULL), access (NULL)
+DelayPool::DelayPool() :
+    pool(NULL), access(NULL)
 {
     pool = CommonPool::Factory(0, theComposite_);
 }
@@ -54,7 +55,7 @@ DelayPool::dump(StoreEntry *entry, unsigned int i) const
 
     storeAppendPrintf(entry, "delay_parameters %d", i + 1);
 
-    theComposite()->dump (entry);
+    theComposite()->dump(entry);
 
     storeAppendPrintf(entry, "\n");
 }
@@ -91,4 +92,3 @@ CompositePoolNode::kickReads()
 }
 
 #endif /* USE_DELAY_POOLS */
-

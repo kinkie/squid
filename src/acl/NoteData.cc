@@ -7,17 +7,19 @@
  */
 
 #include "squid.h"
-#include "acl/Acl.h"
-#include "acl/Checklist.h"
 #include "acl/NoteData.h"
-#include "acl/StringData.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Acl.h"
+#include "acl/Checklist.h"
+#include "acl/StringData.h"
 #include "sbuf/StringConvert.h"
 #include "wordlist.h"
 
-ACLNoteData::ACLNoteData() : values(new ACLStringData)
-{}
+ACLNoteData::ACLNoteData() :
+    values(new ACLStringData)
+{
+}
 
 ACLNoteData::~ACLNoteData()
 {
@@ -28,11 +30,10 @@ bool
 ACLNoteData::match(NotePairs::Entry *entry)
 {
     if (entry->name().cmp(name) != 0)
-        return false; // name mismatch
+        return false;  // name mismatch
 
     // a name-only note ACL matches any value; others require a values match
-    return values->empty() ||
-           values->match(entry->value());
+    return values->empty() || values->match(entry->value());
 }
 
 SBufList
@@ -47,8 +48,8 @@ ACLNoteData::dump() const
 void
 ACLNoteData::parse()
 {
-    char* t = ConfigParser::strtokFile();
-    assert (t != NULL);
+    char *t = ConfigParser::strtokFile();
+    assert(t != NULL);
     name = t;
     values->parse();
 }
@@ -62,10 +63,9 @@ ACLNoteData::empty() const
 ACLData<NotePairs::Entry *> *
 ACLNoteData::clone() const
 {
-    ACLNoteData * result = new ACLNoteData;
-    result->values = dynamic_cast<ACLStringData*>(values->clone());
+    ACLNoteData *result = new ACLNoteData;
+    result->values = dynamic_cast<ACLStringData *>(values->clone());
     assert(result->values);
     result->name = name;
     return result;
 }
-

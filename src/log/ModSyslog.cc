@@ -79,8 +79,7 @@ syslog_ntoa(const char *s)
 #ifdef LOG_DEBUG
         {syslog_symbol(LOG_DEBUG)},
 #endif
-        {NULL, 0}
-    };
+        {NULL, 0}};
     syslog_symbol_t *p;
 
     for (p = symbols; p->name != NULL; ++p)
@@ -98,10 +97,10 @@ typedef struct {
 #define PRIORITY_MASK (LOG_ERR | LOG_WARNING | LOG_NOTICE | LOG_INFO | LOG_DEBUG)
 
 static void
-logfile_mod_syslog_writeline(Logfile * lf, const char *buf, size_t)
+logfile_mod_syslog_writeline(Logfile *lf, const char *buf, size_t)
 {
-    l_syslog_t *ll = (l_syslog_t *) lf->data;
-    syslog(ll->syslog_priority, "%s", (char *) buf);
+    l_syslog_t *ll = (l_syslog_t *)lf->data;
+    syslog(ll->syslog_priority, "%s", (char *)buf);
 }
 
 static void
@@ -135,7 +134,7 @@ logfile_mod_syslog_close(Logfile *lf)
  * This code expects the path to be syslog:<priority>
  */
 int
-logfile_mod_syslog_open(Logfile * lf, const char *path, size_t, int)
+logfile_mod_syslog_open(Logfile *lf, const char *path, size_t, int)
 {
     lf->f_close = logfile_mod_syslog_close;
     lf->f_linewrite = logfile_mod_syslog_writeline;
@@ -144,16 +143,16 @@ logfile_mod_syslog_open(Logfile * lf, const char *path, size_t, int)
     lf->f_flush = logfile_mod_syslog_flush;
     lf->f_rotate = logfile_mod_syslog_rotate;
 
-    l_syslog_t *ll = static_cast<l_syslog_t*>(xcalloc(1, sizeof(*ll)));
+    l_syslog_t *ll = static_cast<l_syslog_t *>(xcalloc(1, sizeof(*ll)));
     lf->data = ll;
 
     ll->syslog_priority = LOG_INFO;
 
     if (path[6] != '\0') {
         char *priority = xstrdup(path);
-        char *facility = (char *) strchr(priority, '.');
+        char *facility = (char *)strchr(priority, '.');
         if (!facility)
-            facility = (char *) strchr(priority, '|');
+            facility = (char *)strchr(priority, '|');
         if (facility) {
             *facility = '\0';
             ++facility;
@@ -168,4 +167,3 @@ logfile_mod_syslog_open(Logfile * lf, const char *path, size_t, int)
     return 1;
 }
 #endif
-

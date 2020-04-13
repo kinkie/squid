@@ -13,15 +13,14 @@
 
 #include "mgr/Action.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// Store IO interface data
 class StoreIoActionData
 {
 public:
     StoreIoActionData();
-    StoreIoActionData& operator += (const StoreIoActionData& stats);
+    StoreIoActionData &operator+=(const StoreIoActionData &stats);
 
 public:
     double create_calls;
@@ -31,7 +30,7 @@ public:
 };
 
 /// implement aggregated 'store_io' action
-class StoreIoAction: public Action
+class StoreIoAction : public Action
 {
 protected:
     StoreIoAction(const CommandPointer &cmd);
@@ -39,20 +38,19 @@ protected:
 public:
     static Pointer Create(const CommandPointer &cmd);
     /* Action API */
-    virtual void add(const Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     StoreIoActionData data;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_STORE_IO_ACTION_H */
-

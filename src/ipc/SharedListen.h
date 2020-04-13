@@ -14,8 +14,7 @@
 #include "base/AsyncCall.h"
 #include "base/Subscription.h"
 
-namespace Ipc
-{
+namespace Ipc {
 
 /// "shared listen" is when concurrent processes are listening on the same fd
 
@@ -24,15 +23,15 @@ namespace Ipc
 class OpenListenerParams
 {
 public:
-    bool operator <(const OpenListenerParams &p) const; ///< useful for map<>
+    bool operator<(const OpenListenerParams &p) const;  ///< useful for map<>
 
     // bits to re-create the fde entry
     int sock_type = 0;
     int proto = 0;
-    int fdNote = 0; ///< index into fd_note() comment strings
+    int fdNote = 0;  ///< index into fd_note() comment strings
 
     // bits to re-create the listener Comm::Connection descriptor
-    Ip::Address addr; ///< will be memset and memcopied
+    Ip::Address addr;  ///< will be memset and memcopied
     int flags = 0;
 
     /// handler to subscribe to Comm::ConnAcceptor when we get the response
@@ -45,16 +44,16 @@ class TypedMsgHdr;
 class SharedListenRequest
 {
 public:
-    SharedListenRequest(); ///< from OpenSharedListen() which then sets public data
-    explicit SharedListenRequest(const TypedMsgHdr &hdrMsg); ///< from recvmsg()
-    void pack(TypedMsgHdr &hdrMsg) const; ///< prepare for sendmsg()
+    SharedListenRequest();                                    ///< from OpenSharedListen() which then sets public data
+    explicit SharedListenRequest(const TypedMsgHdr &hdrMsg);  ///< from recvmsg()
+    void pack(TypedMsgHdr &hdrMsg) const;                     ///< prepare for sendmsg()
 
 public:
-    int requestorId; ///< kidId of the requestor
+    int requestorId;  ///< kidId of the requestor
 
-    OpenListenerParams params; ///< actual comm_open_sharedListen() parameters
+    OpenListenerParams params;  ///< actual comm_open_sharedListen() parameters
 
-    int mapId; ///< to map future response to the requestor's callback
+    int mapId;  ///< to map future response to the requestor's callback
 };
 
 /// a response to SharedListenRequest
@@ -62,13 +61,13 @@ class SharedListenResponse
 {
 public:
     SharedListenResponse(int fd, int errNo, int mapId);
-    explicit SharedListenResponse(const TypedMsgHdr &hdrMsg); ///< from recvmsg()
-    void pack(TypedMsgHdr &hdrMsg) const; ///< prepare for sendmsg()
+    explicit SharedListenResponse(const TypedMsgHdr &hdrMsg);  ///< from recvmsg()
+    void pack(TypedMsgHdr &hdrMsg) const;                      ///< prepare for sendmsg()
 
 public:
-    int fd; ///< opened listening socket or -1
-    int errNo; ///< errno value from comm_open_sharedListen() call
-    int mapId; ///< to map future response to the requestor's callback
+    int fd;     ///< opened listening socket or -1
+    int errNo;  ///< errno value from comm_open_sharedListen() call
+    int mapId;  ///< to map future response to the requestor's callback
 };
 
 /// prepare and send SharedListenRequest to Coordinator
@@ -77,7 +76,6 @@ void JoinSharedListen(const OpenListenerParams &, AsyncCall::Pointer &);
 /// process Coordinator response to SharedListenRequest
 void SharedListenJoined(const SharedListenResponse &response);
 
-} // namespace Ipc;
+}  // namespace Ipc;
 
 #endif /* SQUID_IPC_SHARED_LISTEN_H */
-

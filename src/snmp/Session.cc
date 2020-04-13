@@ -9,9 +9,9 @@
 /* DEBUG: section 49    SNMP Interface */
 
 #include "squid.h"
+#include "snmp/Session.h"
 #include "base/TextException.h"
 #include "ipc/TypedMsgHdr.h"
-#include "snmp/Session.h"
 #include "tools.h"
 
 Snmp::Session::Session()
@@ -19,13 +19,14 @@ Snmp::Session::Session()
     memset(static_cast<snmp_session *>(this), 0, sizeof(snmp_session));
 }
 
-Snmp::Session::Session(const Snmp::Session& session) : Session()
+Snmp::Session::Session(const Snmp::Session &session) :
+    Session()
 {
-    operator =(session);
+    operator=(session);
 }
 
-Snmp::Session&
-Snmp::Session::operator = (const Session& session)
+Snmp::Session &
+Snmp::Session::operator=(const Session &session)
 {
     if (&session == this)
         return *this;
@@ -34,7 +35,7 @@ Snmp::Session::operator = (const Session& session)
     memcpy(static_cast<snmp_session *>(this), &session, sizeof(snmp_session));
     // memcpy did a shallow copy, make sure we have our own allocations
     if (session.community) {
-        community = (u_char*)xstrdup((char*)session.community);
+        community = (u_char *)xstrdup((char *)session.community);
     }
     if (session.peername) {
         peername = xstrdup(session.peername);
@@ -54,7 +55,7 @@ Snmp::Session::reset()
 }
 
 void
-Snmp::Session::pack(Ipc::TypedMsgHdr& msg) const
+Snmp::Session::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.putPod(Version);
     msg.putInt(community_len);
@@ -73,13 +74,13 @@ Snmp::Session::pack(Ipc::TypedMsgHdr& msg) const
 }
 
 void
-Snmp::Session::unpack(const Ipc::TypedMsgHdr& msg)
+Snmp::Session::unpack(const Ipc::TypedMsgHdr &msg)
 {
     reset();
     msg.getPod(Version);
     community_len = msg.getInt();
     if (community_len > 0) {
-        community = static_cast<u_char*>(xmalloc(community_len + 1));
+        community = static_cast<u_char *>(xmalloc(community_len + 1));
         Must(community != NULL);
         msg.getFixed(community, community_len);
         community[community_len] = 0;
@@ -88,7 +89,7 @@ Snmp::Session::unpack(const Ipc::TypedMsgHdr& msg)
     msg.getPod(timeout);
     int len = msg.getInt();
     if (len > 0) {
-        peername = static_cast<char*>(xmalloc(len + 1));
+        peername = static_cast<char *>(xmalloc(len + 1));
         Must(peername != NULL);
         msg.getFixed(peername, len);
         peername[len] = 0;
@@ -96,4 +97,3 @@ Snmp::Session::unpack(const Ipc::TypedMsgHdr& msg)
     msg.getPod(remote_port);
     msg.getPod(local_port);
 }
-

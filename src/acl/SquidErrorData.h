@@ -18,7 +18,8 @@ class ACLSquidErrorData : public ACLData<err_type>
 {
 
 public:
-    ACLSquidErrorData(): ACLData<err_type>() {};
+    ACLSquidErrorData() :
+        ACLData<err_type>() {};
 
     virtual ~ACLSquidErrorData() {}
     virtual bool match(err_type err);
@@ -28,8 +29,7 @@ public:
     virtual ACLData<err_type> *clone() const;
 
 private:
-    CbDataListContainer <err_type> errors;
+    CbDataListContainer<err_type> errors;
 };
 
-#endif //SQUID_ACLSQUIDERRORDATA_H
-
+#endif  //SQUID_ACLSQUIDERRORDATA_H

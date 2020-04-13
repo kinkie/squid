@@ -13,30 +13,29 @@
 
 #include "base/AsyncJob.h"
 #include "base/AsyncJobCalls.h"
-#include "ipc/forward.h"
 #include "ipc/Request.h"
 #include "ipc/Response.h"
 #include "ipc/StrandCoords.h"
+#include "ipc/forward.h"
 #include <map>
 
-namespace Ipc
-{
+namespace Ipc {
 
 /// Coordinator's job that sends a cache manage request to each strand,
 /// aggregating individual strand responses and dumping the result if needed
-class Inquirer: public AsyncJob
+class Inquirer : public AsyncJob
 {
     CBDATA_CLASS(Inquirer);
 
 public:
-    Inquirer(Request::Pointer aRequest, const Ipc::StrandCoords& coords, double aTimeout);
+    Inquirer(Request::Pointer aRequest, const Ipc::StrandCoords &coords, double aTimeout);
     virtual ~Inquirer();
 
     /// finds and calls the right Inquirer upon strand's response
-    static void HandleRemoteAck(const Response& response);
+    static void HandleRemoteAck(const Response &response);
 
     /* has-to-be-public AsyncJob API */
-    virtual void callException(const std::exception& e);
+    virtual void callException(const std::exception &e);
 
 protected:
     /* AsyncJob API */
@@ -50,7 +49,7 @@ protected:
     /// perform cleanup actions on completion of job
     virtual void cleanup();
     /// do specific exception handling
-    virtual void handleException(const std::exception& e);
+    virtual void handleException(const std::exception &e);
     /// send response to client
     virtual void sendResponse() = 0;
     /// perform aggregating of responses and returns true if need to continue
@@ -63,26 +62,25 @@ private:
 
     static AsyncCall::Pointer DequeueRequest(unsigned int requestId);
 
-    static void RequestTimedOut(void* param);
+    static void RequestTimedOut(void *param);
     void requestTimedOut();
     void removeTimeoutEvent();
 
 protected:
-    Request::Pointer request; ///< cache manager request received from client
+    Request::Pointer request;  ///< cache manager request received from client
 
-    Ipc::StrandCoords strands; ///< all strands we want to query, in order
-    Ipc::StrandCoords::const_iterator pos; ///< strand we should query now
+    Ipc::StrandCoords strands;              ///< all strands we want to query, in order
+    Ipc::StrandCoords::const_iterator pos;  ///< strand we should query now
 
-    const double timeout; ///< number of seconds to wait for strand response
+    const double timeout;  ///< number of seconds to wait for strand response
 
     /// maps request->id to Inquirer::handleRemoteAck callback
     typedef std::map<unsigned int, AsyncCall::Pointer> RequestsMap;
-    static RequestsMap TheRequestsMap; ///< pending strand requests
+    static RequestsMap TheRequestsMap;  ///< pending strand requests
 
-    static unsigned int LastRequestId; ///< last requestId used
+    static unsigned int LastRequestId;  ///< last requestId used
 };
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_INQUIRER_H */
-

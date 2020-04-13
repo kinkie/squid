@@ -16,14 +16,14 @@
 class StoreRebuildData
 {
 public:
-    int objcount = 0;       /* # objects successfully reloaded */
-    int expcount = 0;       /* # objects expired */
-    int scancount = 0;      /* # entries scanned or read from state file */
-    int clashcount = 0;     /* # swapfile clashes avoided */
-    int dupcount = 0;       /* # duplicates purged */
-    int cancelcount = 0;    /* # SWAP_LOG_DEL objects purged */
-    int invalid = 0;        /* # bad lines */
-    int badflags = 0;       /* # bad e->flags */
+    int objcount = 0;    /* # objects successfully reloaded */
+    int expcount = 0;    /* # objects expired */
+    int scancount = 0;   /* # entries scanned or read from state file */
+    int clashcount = 0;  /* # swapfile clashes avoided */
+    int dupcount = 0;    /* # duplicates purged */
+    int cancelcount = 0; /* # SWAP_LOG_DEL objects purged */
+    int invalid = 0;     /* # bad lines */
+    int badflags = 0;    /* # bad e->flags */
     int bad_log_op = 0;
     int zero_object_sz = 0;
 };
@@ -38,4 +38,3 @@ bool storeRebuildLoadEntry(int fd, int diskIndex, MemBuf &buf, StoreRebuildData 
 bool storeRebuildParseEntry(MemBuf &buf, StoreEntry &e, cache_key *key, StoreRebuildData &counts, uint64_t expectedSize);
 
 #endif /* SQUID_STORE_REBUILD_H_ */
-

@@ -11,8 +11,7 @@
 
 #include "sbuf/SBuf.h"
 
-namespace Http
-{
+namespace Http {
 
 /*
  * The IANA registry for HTTP status codes can be found at:
@@ -104,7 +103,6 @@ MethodStr(const MethodType m)
     return MethodType_sb[m];
 }
 
-}; // namespace Http
+};  // namespace Http
 
 #endif /* SQUID_SRC_HTTP_METHODTYPE_H */
-

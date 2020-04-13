@@ -7,31 +7,32 @@
  */
 
 #include "squid.h"
-#include "base/EnumIterator.h"
-#include "proxyp/Elements.h"
 #include "proxyp/Header.h"
-#include "sbuf/Stream.h"
-#include "sbuf/StringConvert.h"
 #include "SquidConfig.h"
 #include "StrList.h"
+#include "base/EnumIterator.h"
+#include "proxyp/Elements.h"
+#include "sbuf/Stream.h"
+#include "sbuf/StringConvert.h"
 
-ProxyProtocol::Header::Header(const SBuf &ver, const Two::Command cmd):
+ProxyProtocol::Header::Header(const SBuf &ver, const Two::Command cmd) :
     version_(ver),
     command_(cmd),
     ignoreAddresses_(false)
-{}
+{
+}
 
 SBuf
 ProxyProtocol::Header::toMime() const
 {
     SBufStream result;
-    for (const auto fieldType: EnumRange(Two::htPseudoBegin, Two::htPseudoEnd)) {
+    for (const auto fieldType : EnumRange(Two::htPseudoBegin, Two::htPseudoEnd)) {
         const auto value = getValues(fieldType);
         if (!value.isEmpty())
             result << PseudoFieldTypeToFieldName(fieldType) << ": " << value << "\r\n";
     }
     // cannot reuse Header::getValues(): need the original TLVs layout
-    for (const auto &tlv: tlvs)
+    for (const auto &tlv : tlvs)
         result << tlv.type << ": " << tlv.value << "\r\n";
     return result.buf();
 }
@@ -73,7 +74,7 @@ ProxyProtocol::Header::getValues(const uint32_t headerType, const char sep) cons
 
     default: {
         SBufStream result;
-        for (const auto &m: tlvs) {
+        for (const auto &m : tlvs) {
             if (m.type == headerType) {
                 // XXX: result.tellp() always returns -1
                 if (!result.buf().isEmpty())
@@ -99,9 +100,5 @@ ProxyProtocol::Header::addressFamily() const
     static const SBuf v4("4");
     static const SBuf v6("6");
     static const SBuf vMix("mix");
-    return
-        (sourceAddress.isIPv6() && destinationAddress.isIPv6()) ? v6 :
-        (sourceAddress.isIPv4() && destinationAddress.isIPv4()) ? v4 :
-        vMix;
+    return (sourceAddress.isIPv6() && destinationAddress.isIPv6()) ? v6 : (sourceAddress.isIPv4() && destinationAddress.isIPv4()) ? v4 : vMix;
 }
-

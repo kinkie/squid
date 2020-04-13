@@ -76,33 +76,31 @@
 /* IP Header */
 typedef struct iphdr {
 
-uint8_t  ip_vhl:
-    4;          /* Length of the header in dwords */
+    uint8_t ip_vhl : 4; /* Length of the header in dwords */
 
-uint8_t  version:
-    4;  /* Version of IP                  */
-    uint8_t  tos;              /* Type of service                */
-    uint16_t total_len;        /* Length of the packet in dwords */
-    uint16_t ident;            /* unique identifier              */
-    uint16_t flags;            /* Flags                          */
-    uint8_t  ip_ttl;           /* Time to live                   */
-    uint8_t  proto;            /* Protocol number (TCP, UDP etc) */
-    uint16_t checksum;         /* IP checksum                    */
+    uint8_t version : 4; /* Version of IP                  */
+    uint8_t tos;         /* Type of service                */
+    uint16_t total_len;  /* Length of the packet in dwords */
+    uint16_t ident;      /* unique identifier              */
+    uint16_t flags;      /* Flags                          */
+    uint8_t ip_ttl;      /* Time to live                   */
+    uint8_t proto;       /* Protocol number (TCP, UDP etc) */
+    uint16_t checksum;   /* IP checksum                    */
     uint32_t source_ip;
     uint32_t dest_ip;
 } iphdr;
 
 /* ICMP header */
 typedef struct icmphdr {
-    uint8_t  icmp_type;        /* ICMP packet type                 */
-    uint8_t  icmp_code;        /* Type sub code                    */
+    uint8_t icmp_type; /* ICMP packet type                 */
+    uint8_t icmp_code; /* Type sub code                    */
     uint16_t icmp_cksum;
     uint16_t icmp_id;
     uint16_t icmp_seq;
-    uint32_t timestamp;        /* not part of ICMP, but we need it */
+    uint32_t timestamp; /* not part of ICMP, but we need it */
 } icmphdr;
 
-#endif  /* _SQUID_WINDOWS_ */
+#endif /* _SQUID_WINDOWS_ */
 
 #ifndef ICMP_ECHO
 #define ICMP_ECHO 8
@@ -139,7 +137,7 @@ public:
     virtual int Open();
 
 #if USE_ICMP
-    virtual void SendEcho(Ip::Address &, int, const char*, int);
+    virtual void SendEcho(Ip::Address &, int, const char *, int);
     virtual void Recv(void);
 #endif
 };
@@ -152,4 +150,3 @@ extern Icmp4 icmp4;
 #endif /* USE_ICMP && SQUID_HELPER */
 
 #endif
-

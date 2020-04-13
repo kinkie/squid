@@ -11,25 +11,25 @@
 #define CLEAN_BUF_SZ 16384
 
 #include "squid.h"
-#include "cache_cf.h"
+#include "UFSSwapDir.h"
 #include "ConfigOption.h"
 #include "DiskIO/DiskIOModule.h"
 #include "DiskIO/DiskIOStrategy.h"
-#include "fde.h"
 #include "FileMap.h"
-#include "fs_io.h"
-#include "globals.h"
 #include "Parsing.h"
 #include "RebuildState.h"
 #include "SquidConfig.h"
 #include "SquidMath.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
-#include "store_key_md5.h"
 #include "StoreSearchUFS.h"
 #include "StoreSwapLogData.h"
+#include "cache_cf.h"
+#include "fde.h"
+#include "fs_io.h"
+#include "globals.h"
+#include "store_key_md5.h"
 #include "tools.h"
-#include "UFSSwapDir.h"
 
 #include <cerrno>
 #include <cmath>
@@ -45,7 +45,8 @@ class UFSCleanLog : public SwapDir::CleanLog
 {
 
 public:
-    UFSCleanLog(SwapDir *aSwapDir) : sd(aSwapDir) {}
+    UFSCleanLog(SwapDir *aSwapDir) :
+        sd(aSwapDir) {}
 
     /// Get the next entry that is a candidate for clean log writing
     virtual const StoreEntry *nextEntry();
@@ -79,7 +80,7 @@ UFSCleanLog::write(StoreEntry const &e)
 {
     StoreSwapLogData s;
     static size_t ss = sizeof(StoreSwapLogData);
-    s.op = (char) SWAP_LOG_ADD;
+    s.op = (char)SWAP_LOG_ADD;
     s.swap_filen = e.swap_filen;
     s.timestamp = e.timestamp;
     s.lastref = e.lastref;
@@ -128,7 +129,7 @@ Fs::Ufs::UFSSwapDir::canStore(const StoreEntry &e, int64_t diskSpaceNeeded, int 
 static void
 FreeObject(void *address)
 {
-    StoreSwapLogData *anObject = static_cast <StoreSwapLogData *>(address);
+    StoreSwapLogData *anObject = static_cast<StoreSwapLogData *>(address);
     delete anObject;
 }
 
@@ -147,7 +148,7 @@ Fs::Ufs::UFSSwapDir::parseSizeL1L2()
     if (i <= 0)
         fatal("UFSSwapDir::parseSizeL1L2: invalid size value");
 
-    const uint64_t size = static_cast<uint64_t>(i) << 20; // MBytes to Bytes
+    const uint64_t size = static_cast<uint64_t>(i) << 20;  // MBytes to Bytes
 
     /* just reconfigure it */
     if (reconfiguring) {
@@ -178,7 +179,7 @@ Fs::Ufs::UFSSwapDir::reconfigure()
 }
 
 void
-Fs::Ufs::UFSSwapDir::parse (int anIndex, char *aPath)
+Fs::Ufs::UFSSwapDir::parse(int anIndex, char *aPath)
 {
     index = anIndex;
     path = xstrdup(aPath);
@@ -242,7 +243,7 @@ Fs::Ufs::UFSSwapDir::optionIOParse(char const *option, const char *value, int is
 }
 
 void
-Fs::Ufs::UFSSwapDir::optionIODump(StoreEntry * e) const
+Fs::Ufs::UFSSwapDir::optionIODump(StoreEntry *e) const
 {
     storeAppendPrintf(e, " IOEngine=%s", ioType);
 }
@@ -262,7 +263,7 @@ Fs::Ufs::UFSSwapDir::getOptionTree() const
     if (ConfigOption *ioOptions = IO->io->getOptionTree())
         currentIOOptions->options.push_back(ioOptions);
 
-    ConfigOption* result = currentIOOptions;
+    ConfigOption *result = currentIOOptions;
 
     currentIOOptions = NULL;
 
@@ -276,10 +277,9 @@ Fs::Ufs::UFSSwapDir::init()
     /* Parsing must be finished by now - force to NULL, don't delete */
     currentIOOptions = NULL;
     static int started_clean_event = 0;
-    static const char *errmsg =
-        "\tFailed to verify one of the swap directories, Check cache.log\n"
-        "\tfor details.  Run 'squid -z' to create swap directories\n"
-        "\tif needed, or if running Squid for the first time.";
+    static const char *errmsg = "\tFailed to verify one of the swap directories, Check cache.log\n"
+                                "\tfor details.  Run 'squid -z' to create swap directories\n"
+                                "\tif needed, or if running Squid for the first time.";
     IO->init();
 
     if (verifyCacheDirs())
@@ -294,7 +294,7 @@ Fs::Ufs::UFSSwapDir::init()
         started_clean_event = 1;
     }
 
-    (void) fsBlockSize(path, &fs.blksize);
+    (void)fsBlockSize(path, &fs.blksize);
 }
 
 void
@@ -341,13 +341,13 @@ Fs::Ufs::UFSSwapDir::~UFSSwapDir()
 void
 Fs::Ufs::UFSSwapDir::dumpEntry(StoreEntry &e) const
 {
-    debugs(47, DBG_CRITICAL, HERE << "FILENO "<< std::setfill('0') << std::hex << std::uppercase << std::setw(8) << e.swap_filen);
-    debugs(47, DBG_CRITICAL, HERE << "PATH " << fullPath(e.swap_filen, NULL)   );
+    debugs(47, DBG_CRITICAL, HERE << "FILENO " << std::setfill('0') << std::hex << std::uppercase << std::setw(8) << e.swap_filen);
+    debugs(47, DBG_CRITICAL, HERE << "PATH " << fullPath(e.swap_filen, NULL));
     e.dump(0);
 }
 
 bool
-Fs::Ufs::UFSSwapDir::doubleCheck(StoreEntry & e)
+Fs::Ufs::UFSSwapDir::doubleCheck(StoreEntry &e)
 {
 
     struct stat sb;
@@ -359,8 +359,7 @@ Fs::Ufs::UFSSwapDir::doubleCheck(StoreEntry & e)
     }
 
     if ((off_t)e.swap_file_sz != sb.st_size) {
-        debugs(47, DBG_CRITICAL, HERE << "WARNING: Size Mismatch. Entry size: "
-               << e.swap_file_sz << ", file size: " << sb.st_size);
+        debugs(47, DBG_CRITICAL, HERE << "WARNING: Size Mismatch. Entry size: " << e.swap_file_sz << ", file size: " << sb.st_size);
         dumpEntry(e);
         return true;
     }
@@ -369,7 +368,7 @@ Fs::Ufs::UFSSwapDir::doubleCheck(StoreEntry & e)
 }
 
 void
-Fs::Ufs::UFSSwapDir::statfs(StoreEntry & sentry) const
+Fs::Ufs::UFSSwapDir::statfs(StoreEntry &sentry) const
 {
     int totl_kb = 0;
     int free_kb = 0;
@@ -456,7 +455,7 @@ Fs::Ufs::UFSSwapDir::maintain()
         // suppress the warnings, except once each minute
         static int64_t lastWarn = 0;
         int warnLevel = 3;
-        if (lastWarn+60 < squid_curtime) {
+        if (lastWarn + 60 < squid_curtime) {
             lastWarn = squid_curtime;
             warnLevel = DBG_IMPORTANT;
         }
@@ -474,14 +473,14 @@ Fs::Ufs::UFSSwapDir::maintain()
     double f = 1.0;
     if (highWaterSz > lowWaterSz) {
         // might be equal. n/0 is bad.
-        f = (double) (currentSize() - lowWaterSz) / (highWaterSz - lowWaterSz);
+        f = (double)(currentSize() - lowWaterSz) / (highWaterSz - lowWaterSz);
     }
 
     // how deep to look for a single object that can be removed
-    int max_scan = (int) (f * 400.0 + 100.0);
+    int max_scan = (int)(f * 400.0 + 100.0);
 
     // try to purge only this many objects this cycle.
-    int max_remove = (int) (f * 300.0 + 20.0);
+    int max_remove = (int)(f * 300.0 + 20.0);
 
     /*
      * This is kinda cheap, but so we need this priority hack?
@@ -505,7 +504,7 @@ Fs::Ufs::UFSSwapDir::maintain()
         // stop if all objects are locked / in-use,
         // or the cache is empty
         if (!e)
-            break;      /* no more objects */
+            break; /* no more objects */
 
         ++removed;
 
@@ -513,9 +512,7 @@ Fs::Ufs::UFSSwapDir::maintain()
     }
 
     walker->Done(walker);
-    debugs(47, (removed ? 2 : 3), path <<
-           " removed " << removed << "/" << max_remove << " f=" <<
-           std::setprecision(4) << f << " max_scan=" << max_scan);
+    debugs(47, (removed ? 2 : 3), path << " removed " << removed << "/" << max_remove << " f=" << std::setprecision(4) << f << " max_scan=" << max_scan);
 
     // what if cache is still over the high watermark ?
     // Store::Maintain() schedules another purge in 1 second.
@@ -524,35 +521,33 @@ Fs::Ufs::UFSSwapDir::maintain()
 void
 Fs::Ufs::UFSSwapDir::reference(StoreEntry &e)
 {
-    debugs(47, 3, HERE << "referencing " << &e << " " <<
-           e.swap_dirn << "/" << e.swap_filen);
+    debugs(47, 3, HERE << "referencing " << &e << " " << e.swap_dirn << "/" << e.swap_filen);
 
     if (repl->Referenced)
         repl->Referenced(repl, &e, &e.repl);
 }
 
 bool
-Fs::Ufs::UFSSwapDir::dereference(StoreEntry & e)
+Fs::Ufs::UFSSwapDir::dereference(StoreEntry &e)
 {
-    debugs(47, 3, HERE << "dereferencing " << &e << " " <<
-           e.swap_dirn << "/" << e.swap_filen);
+    debugs(47, 3, HERE << "dereferencing " << &e << " " << e.swap_dirn << "/" << e.swap_filen);
 
     if (repl->Dereferenced)
         repl->Dereferenced(repl, &e, &e.repl);
 
-    return true; // keep e in the global store_table
+    return true;  // keep e in the global store_table
 }
 
 StoreIOState::Pointer
-Fs::Ufs::UFSSwapDir::createStoreIO(StoreEntry &e, StoreIOState::STFNCB * file_callback, StoreIOState::STIOCB * aCallback, void *callback_data)
+Fs::Ufs::UFSSwapDir::createStoreIO(StoreEntry &e, StoreIOState::STFNCB *file_callback, StoreIOState::STIOCB *aCallback, void *callback_data)
 {
-    return IO->create (this, &e, file_callback, aCallback, callback_data);
+    return IO->create(this, &e, file_callback, aCallback, callback_data);
 }
 
 StoreIOState::Pointer
-Fs::Ufs::UFSSwapDir::openStoreIO(StoreEntry &e, StoreIOState::STFNCB * file_callback, StoreIOState::STIOCB * aCallback, void *callback_data)
+Fs::Ufs::UFSSwapDir::openStoreIO(StoreEntry &e, StoreIOState::STFNCB *file_callback, StoreIOState::STIOCB *aCallback, void *callback_data)
 {
-    return IO->open (this, &e, file_callback, aCallback, callback_data);
+    return IO->open(this, &e, file_callback, aCallback, callback_data);
 }
 
 int
@@ -593,7 +588,7 @@ Fs::Ufs::UFSSwapDir::mapBitAllocate()
 }
 
 char *
-Fs::Ufs::UFSSwapDir::swapSubDir(int subdirn)const
+Fs::Ufs::UFSSwapDir::swapSubDir(int subdirn) const
 {
     LOCAL_ARRAY(char, fullfilename, MAXPATHLEN);
     assert(0 <= subdirn && subdirn < l1);
@@ -627,7 +622,7 @@ Fs::Ufs::UFSSwapDir::createDirectory(const char *aPath, int should_exist)
 }
 
 bool
-Fs::Ufs::UFSSwapDir::pathIsDirectory(const char *aPath)const
+Fs::Ufs::UFSSwapDir::pathIsDirectory(const char *aPath) const
 {
 
     struct stat sb;
@@ -701,11 +696,12 @@ Fs::Ufs::UFSSwapDir::logFile(char const *ext) const
 
         // remove any trailing '.' characters
         int pos = strlen(pathtmp);
-        while (pos && pathtmp[pos-1] == '.')
+        while (pos && pathtmp[pos - 1] == '.')
             pathtmp[--pos] = '\0';
 
         // remove any prefix '.' characters
-        for (pathtmp2 = pathtmp; *pathtmp2 == '.'; ++pathtmp2);
+        for (pathtmp2 = pathtmp; *pathtmp2 == '.'; ++pathtmp2)
+            ;
         // replace a '%s' (if any) in the config string
         // with the resulting pathtmp2 string
         lpath.appendf(Config.Log.swap, pathtmp2);
@@ -720,7 +716,7 @@ Fs::Ufs::UFSSwapDir::logFile(char const *ext) const
         lpath.append("/swap.state", 11);
     }
 
-    lpath.append(ext); // may be nil, that is okay.
+    lpath.append(ext);  // may be nil, that is okay.
 
     return lpath;
 }
@@ -735,7 +731,7 @@ Fs::Ufs::UFSSwapDir::openLog()
     ++NumberOfUFSDirs;
     assert(NumberOfUFSDirs <= Config.cacheSwap.n_configured);
 
-    if (rebuilding_) { // we did not close the temporary log used for rebuilding
+    if (rebuilding_) {  // we did not close the temporary log used for rebuilding
         assert(swaplog_fd >= 0);
         return;
     }
@@ -763,7 +759,7 @@ Fs::Ufs::UFSSwapDir::closeLog()
     if (!NumberOfUFSDirs)
         safe_free(UFSDirToGlobalDirMapping);
 
-    if (rebuilding_) // we cannot close the temporary log used for rebuilding
+    if (rebuilding_)  // we cannot close the temporary log used for rebuilding
         return;
 
     file_close(swaplog_fd);
@@ -786,7 +782,7 @@ Fs::Ufs::UFSSwapDir::validL2(int anInt) const
 }
 
 StoreEntry *
-Fs::Ufs::UFSSwapDir::addDiskRestore(const cache_key * key,
+Fs::Ufs::UFSSwapDir::addDiskRestore(const cache_key *key,
                                     sfileno file_number,
                                     uint64_t swap_file_sz,
                                     time_t expires,
@@ -798,8 +794,7 @@ Fs::Ufs::UFSSwapDir::addDiskRestore(const cache_key * key,
                                     int)
 {
     StoreEntry *e = NULL;
-    debugs(47, 5, HERE << storeKeyText(key)  <<
-           ", fileno="<< std::setfill('0') << std::hex << std::uppercase << std::setw(8) << file_number);
+    debugs(47, 5, HERE << storeKeyText(key) << ", fileno=" << std::setfill('0') << std::hex << std::uppercase << std::setw(8) << file_number);
     /* if you call this you'd better be sure file_number is not
      * already in use! */
     e = new StoreEntry();
@@ -819,7 +814,7 @@ Fs::Ufs::UFSSwapDir::addDiskRestore(const cache_key * key,
     cur_size += fs.blksize * sizeInBlocks(e->swap_file_sz);
     ++n_disk_objects;
     e->hashInsert(key);
-    replacementAdd (e);
+    replacementAdd(e);
     return e;
 }
 
@@ -836,7 +831,7 @@ Fs::Ufs::UFSSwapDir::closeTmpSwapLog()
     assert(rebuilding_);
     rebuilding_ = false;
 
-    SBuf swaplog_path(logFile()); // where the swaplog should be
+    SBuf swaplog_path(logFile());  // where the swaplog should be
     SBuf tmp_path(logFile(".new"));
 
     file_close(swaplog_fd);
@@ -896,7 +891,7 @@ Fs::Ufs::UFSSwapDir::openTmpSwapLog(int *clean_flag, int *zero_flag)
         const StoreSwapLogHeader header;
         MemBuf buf;
         buf.init(header.record_size, header.record_size);
-        buf.append(reinterpret_cast<const char*>(&header), sizeof(header));
+        buf.append(reinterpret_cast<const char *>(&header), sizeof(header));
         // Pad to keep in sync with UFSSwapDir::writeCleanStart().
         memset(buf.space(), 0, header.gapSize());
         buf.appended(header.gapSize());
@@ -1020,9 +1015,9 @@ Fs::Ufs::UFSSwapDir::writeCleanDone()
 
     /* touch a timestamp file if we're not still validating */
     if (StoreController::store_dirs_rebuilding)
-        (void) 0;
+        (void)0;
     else if (fd < 0)
-        (void) 0;
+        (void)0;
     else
         file_close(file_open(state->cln.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY));
 
@@ -1047,7 +1042,7 @@ Fs::Ufs::UFSSwapDir::HandleCleanEvent()
     int n = 0;
 
     if (!NumberOfUFSDirs)
-        return 0; // probably in the middle of reconfiguration
+        return 0;  // probably in the middle of reconfiguration
 
     if (NULL == UFSDirToGlobalDirMapping) {
         SwapDir *sd;
@@ -1059,14 +1054,14 @@ Fs::Ufs::UFSSwapDir::HandleCleanEvent()
 
         for (i = 0, n = 0; i < Config.cacheSwap.n_configured; ++i) {
             /* This is bogus, the controller should just clean each instance once */
-            sd = dynamic_cast <SwapDir *>(INDEXSD(i));
+            sd = dynamic_cast<SwapDir *>(INDEXSD(i));
 
             if (!UFSSwapDir::IsUFSDir(sd))
                 continue;
 
             UFSSwapDir *usd = dynamic_cast<UFSSwapDir *>(sd);
 
-            assert (usd);
+            assert(usd);
 
             UFSDirToGlobalDirMapping[n] = i;
             ++n;
@@ -1103,10 +1098,10 @@ Fs::Ufs::UFSSwapDir::CleanEvent(void *)
 }
 
 bool
-Fs::Ufs::UFSSwapDir::IsUFSDir(SwapDir * sd)
+Fs::Ufs::UFSSwapDir::IsUFSDir(SwapDir *sd)
 {
     UFSSwapDir *mySD = dynamic_cast<UFSSwapDir *>(sd);
-    return (mySD != 0) ;
+    return (mySD != 0);
 }
 
 /*
@@ -1121,7 +1116,7 @@ Fs::Ufs::UFSSwapDir::FilenoBelongsHere(int fn, int F0, int F1, int F2)
     int L1, L2;
     int filn = fn;
     assert(F0 < Config.cacheSwap.n_configured);
-    assert (UFSSwapDir::IsUFSDir (dynamic_cast<SwapDir *>(INDEXSD(F0))));
+    assert(UFSSwapDir::IsUFSDir(dynamic_cast<SwapDir *>(INDEXSD(F0))));
     UFSSwapDir *sd = dynamic_cast<UFSSwapDir *>(INDEXSD(F0));
 
     if (!sd)
@@ -1164,11 +1159,9 @@ Fs::Ufs::UFSSwapDir::validFileno(sfileno filn, int flag) const
 void
 Fs::Ufs::UFSSwapDir::unlinkFile(sfileno f)
 {
-    debugs(79, 3, HERE << "unlinking fileno " <<  std::setfill('0') <<
-           std::hex << std::uppercase << std::setw(8) << f << " '" <<
-           fullPath(f,NULL) << "'");
+    debugs(79, 3, HERE << "unlinking fileno " << std::setfill('0') << std::hex << std::uppercase << std::setw(8) << f << " '" << fullPath(f, NULL) << "'");
     /* commonUfsDirMapBitReset(this, f); */
-    IO->unlinkFile(fullPath(f,NULL));
+    IO->unlinkFile(fullPath(f, NULL));
 }
 
 bool
@@ -1179,14 +1172,14 @@ Fs::Ufs::UFSSwapDir::unlinkdUseful() const
 }
 
 void
-Fs::Ufs::UFSSwapDir::evictCached(StoreEntry & e)
+Fs::Ufs::UFSSwapDir::evictCached(StoreEntry &e)
 {
     debugs(79, 3, e);
-    if (e.locked()) // somebody else may still be using this file
-        return; // nothing to do: our get() always returns nil
+    if (e.locked())  // somebody else may still be using this file
+        return;      // nothing to do: our get() always returns nil
 
     if (!e.hasDisk())
-        return; // see evictIfFound()
+        return;  // see evictIfFound()
 
     // Since these fields grow only after swap out ends successfully,
     // do not decrement them for e.swappingOut() and e.swapoutFailed().
@@ -1208,20 +1201,20 @@ Fs::Ufs::UFSSwapDir::evictIfFound(const cache_key *)
 }
 
 void
-Fs::Ufs::UFSSwapDir::replacementAdd(StoreEntry * e)
+Fs::Ufs::UFSSwapDir::replacementAdd(StoreEntry *e)
 {
     debugs(47, 4, HERE << "added node " << e << " to dir " << index);
     repl->Add(repl, e, &e->repl);
 }
 
 void
-Fs::Ufs::UFSSwapDir::replacementRemove(StoreEntry * e)
+Fs::Ufs::UFSSwapDir::replacementRemove(StoreEntry *e)
 {
     assert(e->hasDisk());
 
     SwapDirPointer SD = INDEXSD(e->swap_dirn);
 
-    assert (dynamic_cast<UFSSwapDir *>(SD.getRaw()) == this);
+    assert(dynamic_cast<UFSSwapDir *>(SD.getRaw()) == this);
 
     debugs(47, 4, HERE << "remove node " << e << " from dir " << index);
 
@@ -1229,7 +1222,7 @@ Fs::Ufs::UFSSwapDir::replacementRemove(StoreEntry * e)
 }
 
 void
-Fs::Ufs::UFSSwapDir::dump(StoreEntry & entry) const
+Fs::Ufs::UFSSwapDir::dump(StoreEntry &entry) const
 {
     storeAppendPrintf(&entry, " %" PRIu64 " %d %d", maxSize() >> 20, l1, l2);
     dumpOptions(&entry);
@@ -1284,7 +1277,7 @@ Fs::Ufs::UFSSwapDir::finalizeSwapoutFailure(StoreEntry &entry)
 }
 
 void
-Fs::Ufs::UFSSwapDir::logEntry(const StoreEntry & e, int op) const
+Fs::Ufs::UFSSwapDir::logEntry(const StoreEntry &e, int op) const
 {
     if (swaplog_fd < 0) {
         debugs(36, 5, "cannot log " << e << " in the middle of reconfiguration");
@@ -1292,7 +1285,7 @@ Fs::Ufs::UFSSwapDir::logEntry(const StoreEntry & e, int op) const
     }
 
     StoreSwapLogData *s = new StoreSwapLogData;
-    s->op = (char) op;
+    s->op = (char)op;
     s->swap_filen = e.swap_filen;
     s->timestamp = e.timestamp;
     s->lastref = e.lastref;
@@ -1318,7 +1311,7 @@ Fs::Ufs::UFSSwapDir::DirClean(int swap_index)
     DIR *dir_pointer = NULL;
     int files[20];
     int swapfileno;
-    int fn;         /* same as swapfileno, but with dirn bits set */
+    int fn; /* same as swapfileno, but with dirn bits set */
     int n = 0;
     int k = 0;
     int N0, N1, N2;
@@ -1327,7 +1320,7 @@ Fs::Ufs::UFSSwapDir::DirClean(int swap_index)
     N0 = NumberOfUFSDirs;
     D0 = UFSDirToGlobalDirMapping[swap_index % N0];
     SD = dynamic_cast<UFSSwapDir *>(INDEXSD(D0));
-    assert (SD);
+    assert(SD);
     N1 = SD->l1;
     D1 = (swap_index / N0) % N1;
     N2 = SD->l2;
@@ -1356,7 +1349,7 @@ Fs::Ufs::UFSSwapDir::DirClean(int swap_index)
         if (sscanf(de->d_name, "%X", &swapfileno) != 1)
             continue;
 
-        fn = swapfileno;    /* XXX should remove this cruft ! */
+        fn = swapfileno; /* XXX should remove this cruft ! */
 
         if (SD->validFileno(fn, 1))
             if (SD->mapBitTest(fn))
@@ -1378,7 +1371,7 @@ Fs::Ufs::UFSSwapDir::DirClean(int swap_index)
         k = 10;
 
     for (n = 0; n < k; ++n) {
-        debugs(36, 3, HERE << "Cleaning file "<< std::setfill('0') << std::hex << std::uppercase << std::setw(8) << files[n]);
+        debugs(36, 3, HERE << "Cleaning file " << std::setfill('0') << std::hex << std::uppercase << std::setw(8) << files[n]);
         SBuf p2(p1);
         p2.appendf("/%08X", files[n]);
         safeunlink(p2.c_str(), 0);
@@ -1388,4 +1381,3 @@ Fs::Ufs::UFSSwapDir::DirClean(int swap_index)
     debugs(36, 3, HERE << "Cleaned " << k << " unused files from " << p1);
     return k;
 }
-

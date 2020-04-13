@@ -14,9 +14,9 @@
 #include "http/RegisteredHeaders.h"
 /* because we pass a spec by value */
 #include "HttpHeaderMask.h"
+#include "SquidString.h"
 #include "mem/PoolingAllocator.h"
 #include "sbuf/forward.h"
-#include "SquidString.h"
 
 #include <vector>
 
@@ -29,7 +29,7 @@ class Packable;
 
 /** Possible owners of http header */
 typedef enum {
-    hoNone =0,
+    hoNone = 0,
 #if USE_HTCP
     hoHtcpReply,
 #endif
@@ -77,11 +77,11 @@ public:
     HttpHeader(const HttpHeader &other);
     ~HttpHeader();
 
-    HttpHeader &operator =(const HttpHeader &other);
+    HttpHeader &operator=(const HttpHeader &other);
 
     /* Interface functions */
     void clean();
-    void append(const HttpHeader * src);
+    void append(const HttpHeader *src);
     /// replaces fields with matching names and adds fresh fields with new names
     /// also updates Http::HdrType::WARNINGs, assuming `fresh` is a 304 reply
     /// TODO: Refactor most callers to avoid special handling of WARNINGs.
@@ -95,8 +95,8 @@ public:
     /// \returns 0 when needs more data
     /// \returns -1 on error
     int parse(const char *buf, size_t buf_len, bool atEnd, size_t &hdr_sz, Http::ContentLengthInterpreter &interpreter);
-    void packInto(Packable * p, bool mask_sensitive_info=false) const;
-    HttpHeaderEntry *getEntry(HttpHeaderPos * pos) const;
+    void packInto(Packable *p, bool mask_sensitive_info = false) const;
+    HttpHeaderEntry *getEntry(HttpHeaderPos *pos) const;
     HttpHeaderEntry *findEntry(Http::HdrType id) const;
     /// deletes all fields with a given name, if any.
     /// \return #fields deleted
@@ -106,8 +106,8 @@ public:
     int delById(Http::HdrType id);
     void delAt(HttpHeaderPos pos, int &headers_deleted);
     void refreshMask();
-    void addEntry(HttpHeaderEntry * e);
-    void insertEntry(HttpHeaderEntry * e);
+    void addEntry(HttpHeaderEntry *e);
+    void insertEntry(HttpHeaderEntry *e);
     String getList(Http::HdrType id) const;
     bool getList(Http::HdrType id, String *s) const;
     bool conflictingContentLength() const { return conflictingContentLength_; }
@@ -138,11 +138,11 @@ public:
     void putTime(Http::HdrType id, time_t htime);
     void putStr(Http::HdrType id, const char *str);
     void putAuth(const char *auth_scheme, const char *realm);
-    void putCc(const HttpHdrCc * cc);
-    void putContRange(const HttpHdrContRange * cr);
-    void putRange(const HttpHdrRange * range);
+    void putCc(const HttpHdrCc *cc);
+    void putContRange(const HttpHdrContRange *cr);
+    void putRange(const HttpHdrRange *range);
     void putSc(HttpHdrSc *sc);
-    void putWarning(const int code, const char *const text); ///< add a Warning header
+    void putWarning(const int code, const char *const text);  ///< add a Warning header
     void putExt(const char *name, const char *value);
     int getInt(Http::HdrType id) const;
     int64_t getInt64(Http::HdrType id) const;
@@ -159,13 +159,13 @@ public:
     int hasListMember(Http::HdrType id, const char *member, const char separator) const;
     int hasByNameListMember(const char *name, const char *member, const char separator) const;
     void removeHopByHopEntries();
-    inline bool chunked() const; ///< whether message uses chunked Transfer-Encoding
+    inline bool chunked() const;  ///< whether message uses chunked Transfer-Encoding
 
     /* protected, do not use these, use interface functions instead */
-    std::vector<HttpHeaderEntry*, PoolingAllocator<HttpHeaderEntry*> > entries; /**< parsed fields in raw format */
-    HttpHeaderMask mask;    /**< bit set <=> entry present */
-    http_hdr_owner_type owner;  /**< request or reply */
-    int len;            /**< length when packed, not counting terminating null-byte */
+    std::vector<HttpHeaderEntry *, PoolingAllocator<HttpHeaderEntry *>> entries; /**< parsed fields in raw format */
+    HttpHeaderMask mask;                                                         /**< bit set <=> entry present */
+    http_hdr_owner_type owner;                                                   /**< request or reply */
+    int len;                                                                     /**< length when packed, not counting terminating null-byte */
 
 protected:
     /** \deprecated Public access replaced by removeHopByHopEntries() */
@@ -182,7 +182,7 @@ protected:
 
 private:
     HttpHeaderEntry *findLastEntry(Http::HdrType id) const;
-    bool conflictingContentLength_; ///< found different Content-Length fields
+    bool conflictingContentLength_;  ///< found different Content-Length fields
 };
 
 int httpHeaderParseQuotedString(const char *start, const int len, String *val);
@@ -190,16 +190,14 @@ int httpHeaderParseQuotedString(const char *start, const int len, String *val);
 /// quotes string using RFC 7230 quoted-string rules
 SBuf httpHeaderQuoteString(const char *raw);
 
-void httpHeaderCalcMask(HttpHeaderMask * mask, Http::HdrType http_hdr_type_enums[], size_t count);
+void httpHeaderCalcMask(HttpHeaderMask *mask, Http::HdrType http_hdr_type_enums[], size_t count);
 
 inline bool
 HttpHeader::chunked() const
 {
-    return has(Http::HdrType::TRANSFER_ENCODING) &&
-           hasListMember(Http::HdrType::TRANSFER_ENCODING, "chunked", ',');
+    return has(Http::HdrType::TRANSFER_ENCODING) && hasListMember(Http::HdrType::TRANSFER_ENCODING, "chunked", ',');
 }
 
 void httpHeaderInitModule(void);
 
 #endif /* SQUID_HTTPHEADER_H */
-

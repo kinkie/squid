@@ -57,7 +57,7 @@
 #define INT64_MIN LONG_MIN
 #else
 /* 32 bit system */
-#define INT64_MIN       (-9223372036854775807LL-1LL)
+#define INT64_MIN (-9223372036854775807LL - 1LL)
 #endif
 #endif
 
@@ -67,7 +67,7 @@
 #define INT64_MAX LONG_MAX
 #else
 /* 32 bit system */
-#define INT64_MAX       9223372036854775807LL
+#define INT64_MAX 9223372036854775807LL
 #endif
 #endif
 
@@ -78,7 +78,7 @@
  * alphabets and digits are each contiguous.
  */
 int64_t
-strtoll (const char *nptr, char **endptr, int base)
+strtoll(const char *nptr, char **endptr, int base)
 {
     register const char *s = nptr;
     register uint64_t acc;
@@ -124,9 +124,9 @@ strtoll (const char *nptr, char **endptr, int base)
      * Set any if any `digits' consumed; make it negative to indicate
      * overflow.
      */
-    cutoff = neg ? -(uint64_t) INT64_MIN : INT64_MAX;
-    cutlim = cutoff % (uint64_t) base;
-    cutoff /= (uint64_t) base;
+    cutoff = neg ? -(uint64_t)INT64_MIN : INT64_MAX;
+    cutlim = cutoff % (uint64_t)base;
+    cutoff /= (uint64_t)base;
     for (acc = 0, any = 0;; c = *s++) {
         if (xisdigit(c))
             c -= '0';
@@ -150,7 +150,6 @@ strtoll (const char *nptr, char **endptr, int base)
     } else if (neg)
         acc = -acc;
     if (endptr != 0)
-        *endptr = (char *) (any ? s - 1 : nptr);
+        *endptr = (char *)(any ? s - 1 : nptr);
     return acc;
 }
-

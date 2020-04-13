@@ -33,13 +33,13 @@
 #undef ldap_start_tls_s
 #if LDAP_UNICODE
 #define LDAP_START_TLS_S "ldap_start_tls_sW"
-typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
+typedef WINLDAPAPI ULONG(LDAPAPI *PFldap_start_tls_s)(IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
 #else
 #define LDAP_START_TLS_S "ldap_start_tls_sA"
-typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
+typedef WINLDAPAPI ULONG(LDAPAPI *PFldap_start_tls_s)(IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
 #endif /* LDAP_UNICODE */
 PFldap_start_tls_s Win32_ldap_start_tls_s;
-#define ldap_start_tls_s(l,s,c) Win32_ldap_start_tls_s(l,NULL,NULL,s,c)
+#define ldap_start_tls_s(l, s, c) Win32_ldap_start_tls_s(l, NULL, NULL, s, c)
 #endif /* LDAP_VERSION3 */
 
 #else
@@ -97,7 +97,7 @@ squid_ldap_set_aliasderef(int deref)
 static void
 squid_ldap_set_referrals(int referrals)
 {
-    int *value = static_cast<int*>(referrals ? LDAP_OPT_ON :LDAP_OPT_OFF);
+    int *value = static_cast<int *>(referrals ? LDAP_OPT_ON : LDAP_OPT_OFF);
     ldap_set_option(ld, LDAP_OPT_REFERRALS, value);
 }
 static void
@@ -121,7 +121,7 @@ squid_ldap_set_connect_timeout(int aTimeLimit)
 
 #else
 static int
-squid_ldap_errno(LDAP * ld)
+squid_ldap_errno(LDAP *ld)
 {
     return ld->ld_errno;
 }
@@ -177,7 +177,7 @@ ldap_escape_value(char *escaped, int size, const char *src)
             if (size > 0) {
                 *escaped = '\\';
                 ++escaped;
-                snprintf(escaped, 3, "%02x", (int) *src);
+                snprintf(escaped, 3, "%02x", (int)*src);
                 ++src;
                 escaped += 2;
             }
@@ -216,7 +216,7 @@ getpassword(char *login, char *realm)
             ldap_escape_value(escaped_login, sizeof(escaped_login), login);
             snprintf(filter, sizeof(filter), usersearchfilter, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login);
 
-retrysrch:
+        retrysrch:
             debug("user filter '%s', searchbase '%s'\n", filter, searchbase);
 
             rc = ldap_search_s(ld, searchbase, searchscope, filter, NULL, 0, &res);
@@ -245,13 +245,12 @@ retrysrch:
                         goto retrysrch;
                     }
                     return NULL;
-
                 }
             }
         } else if (userdnattr) {
             snprintf(searchbase, 8192, "%s=%s, %s", userdnattr, login, userbasedn);
 
-retrydnattr:
+        retrydnattr:
             debug("searchbase '%s'\n", searchbase);
             rc = ldap_search_s(ld, searchbase, searchscope, NULL, NULL, 0, &res);
         }
@@ -262,8 +261,8 @@ retrydnattr:
                 if (edir_universal_passwd) {
 
                     /* allocate some memory for the universal password returned by NMAS */
-                    universal_password = (char*)calloc(1, universal_password_len);
-                    values = (char**)calloc(1, sizeof(char *));
+                    universal_password = (char *)calloc(1, universal_password_len);
+                    values = (char **)calloc(1, sizeof(char *));
 
                     /* actually talk to NMAS to get a password */
                     nmas_res = nds_get_password(ld, ldap_get_dn(ld, entry), &universal_password_len, universal_password);
@@ -342,7 +341,7 @@ ldapconnect(void)
         HMODULE WLDAP32Handle;
 
         WLDAP32Handle = GetModuleHandle("wldap32");
-        if ((Win32_ldap_start_tls_s = (PFldap_start_tls_s) GetProcAddress(WLDAP32Handle, LDAP_START_TLS_S)) == NULL) {
+        if ((Win32_ldap_start_tls_s = (PFldap_start_tls_s)GetProcAddress(WLDAP32Handle, LDAP_START_TLS_S)) == NULL) {
             fprintf(stderr, PROGRAM_NAME ": ERROR: TLS (-Z) not supported on this platform.\n");
             exit(EXIT_FAILURE);
         }
@@ -360,23 +359,23 @@ ldapconnect(void)
 #endif
 #if NETSCAPE_SSL
             if (sslpath) {
-                if (!sslinit && (ldapssl_client_init(sslpath, NULL) != LDAP_SUCCESS)) {
-                    fprintf(stderr, "\nUnable to initialise SSL with cert path %s\n",
-                            sslpath);
-                    exit(EXIT_FAILURE);
-                } else {
-                    ++sslinit;
-                }
-                if ((ld = ldapssl_init(ldapServer, port, 1)) == NULL) {
-                    fprintf(stderr, "\nUnable to connect to SSL LDAP server: %s port:%d\n",
-                            ldapServer, port);
-                    exit(EXIT_FAILURE);
-                }
-            } else
+            if (!sslinit && (ldapssl_client_init(sslpath, NULL) != LDAP_SUCCESS)) {
+                fprintf(stderr, "\nUnable to initialise SSL with cert path %s\n",
+                        sslpath);
+                exit(EXIT_FAILURE);
+            } else {
+                ++sslinit;
+            }
+            if ((ld = ldapssl_init(ldapServer, port, 1)) == NULL) {
+                fprintf(stderr, "\nUnable to connect to SSL LDAP server: %s port:%d\n",
+                        ldapServer, port);
+                exit(EXIT_FAILURE);
+            }
+        } else
 #endif
-                if ((ld = ldap_init(ldapServer, port)) == NULL) {
-                    fprintf(stderr, "\nUnable to connect to LDAP server:%s port:%d\n", ldapServer, port);
-                }
+            if ((ld = ldap_init(ldapServer, port)) == NULL) {
+            fprintf(stderr, "\nUnable to connect to LDAP server:%s port:%d\n", ldapServer, port);
+        }
         if (connect_timeout)
             squid_ldap_set_connect_timeout(connect_timeout);
 
@@ -385,7 +384,7 @@ ldapconnect(void)
             version = LDAP_VERSION2;
         }
         if (ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version)
-                != LDAP_SUCCESS) {
+            != LDAP_SUCCESS) {
             fprintf(stderr, "Could not set LDAP_OPT_PROTOCOL_VERSION %d\n",
                     version);
             ldap_unbind(ld);
@@ -461,7 +460,7 @@ LDAPArguments(int argc, char **argv)
         case 'h':
             if (ldapServer) {
                 int len = strlen(ldapServer) + 1 + strlen(value) + 1;
-                char *newhost = static_cast<char*>(xmalloc(len));
+                char *newhost = static_cast<char *>(xmalloc(len));
                 snprintf(newhost, len, "%s %s", ldapServer, value);
                 free(ldapServer);
                 ldapServer = newhost;
@@ -590,7 +589,7 @@ LDAPArguments(int argc, char **argv)
         char *value = argv[1];
         if (ldapServer) {
             int len = strlen(ldapServer) + 1 + strlen(value) + 1;
-            char *newhost = static_cast<char*>(xmalloc(len));
+            char *newhost = static_cast<char *>(xmalloc(len));
             snprintf(newhost, len, "%s %s", ldapServer, value);
             free(ldapServer);
             ldapServer = newhost;
@@ -602,7 +601,7 @@ LDAPArguments(int argc, char **argv)
     }
 
     if (!ldapServer)
-        ldapServer = (char *) "localhost";
+        ldapServer = (char *)"localhost";
 
     if (!userbasedn || !((passattr != NULL) || (edir_universal_passwd && usersearchfilter && version == LDAP_VERSION3 && use_tls))) {
         fprintf(stderr, "Usage: " PROGRAM_NAME " -b basedn -f filter [options] ldap_server_name\n\n");
@@ -673,7 +672,7 @@ readSecret(const char *filename)
 }
 
 void
-LDAPHHA1(RequestData * requestData)
+LDAPHHA1(RequestData *requestData)
 {
     char *password;
     ldapconnect();
@@ -689,6 +688,4 @@ LDAPHHA1(RequestData * requestData)
     } else {
         requestData->error = -1;
     }
-
 }
-

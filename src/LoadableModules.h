@@ -16,4 +16,3 @@ class wordlist;
 void LoadableModulesConfigure(const wordlist *names);
 
 #endif /* SQUID_LOADABLE_MODULES_H */
-

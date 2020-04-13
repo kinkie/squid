@@ -35,4 +35,3 @@ public:
 #endif /* SQUID_SNMP */
 
 #endif /* SQUID_SNMPREQUEST_H_ */
-

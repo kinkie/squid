@@ -76,14 +76,14 @@ static const char rcsid[] = "inet_pton.c,v 1.2.206.2 2005/07/28 07:43:18 marka E
 #include <errno.h>
 #endif
 
-#if ! defined(NS_INADDRSZ)
-#define NS_INADDRSZ      4
+#if !defined(NS_INADDRSZ)
+#define NS_INADDRSZ 4
 #endif
-#if ! defined(NS_IN6ADDRSZ)
-#define NS_IN6ADDRSZ    16
+#if !defined(NS_IN6ADDRSZ)
+#define NS_IN6ADDRSZ 16
 #endif
-#if ! defined(NS_INT16SZ)
-#define NS_INT16SZ      2
+#if !defined(NS_INT16SZ)
+#define NS_INT16SZ 2
 #endif
 
 /*
@@ -91,8 +91,8 @@ static const char rcsid[] = "inet_pton.c,v 1.2.206.2 2005/07/28 07:43:18 marka E
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static int  inet_pton4 (const char *src, u_char *dst);
-static int  inet_pton6 (const char *src, u_char *dst);
+static int inet_pton4(const char *src, u_char *dst);
+static int inet_pton6(const char *src, u_char *dst);
 
 /* int
  * inet_pton(af, src, dst)
@@ -110,9 +110,9 @@ xinet_pton(int af, const char *src, void *dst)
 {
     switch (af) {
     case AF_INET:
-        return (inet_pton4(src, (u_char*)dst));
+        return (inet_pton4(src, (u_char *)dst));
     case AF_INET6:
-        return (inet_pton6(src, (u_char*)dst));
+        return (inet_pton6(src, (u_char *)dst));
     default:
         errno = EAFNOSUPPORT;
         return (-1);
@@ -187,7 +187,7 @@ static int
 inet_pton6(const char *src, u_char *dst)
 {
     static const char xdigits_l[] = "0123456789abcdef",
-                                    xdigits_u[] = "0123456789ABCDEF";
+                      xdigits_u[] = "0123456789ABCDEF";
     u_char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
     const char *xdigits, *curtok;
     int ch, seen_xdigits;
@@ -227,25 +227,24 @@ inet_pton6(const char *src, u_char *dst)
             }
             if (tp + NS_INT16SZ > endp)
                 return (0);
-            *tp++ = (u_char) (val >> 8) & 0xff;
-            *tp++ = (u_char) val & 0xff;
+            *tp++ = (u_char)(val >> 8) & 0xff;
+            *tp++ = (u_char)val & 0xff;
             seen_xdigits = 0;
             val = 0;
             continue;
         }
-        if (ch == '.' && ((tp + NS_INADDRSZ) <= endp) &&
-                inet_pton4(curtok, tp) > 0) {
+        if (ch == '.' && ((tp + NS_INADDRSZ) <= endp) && inet_pton4(curtok, tp) > 0) {
             tp += NS_INADDRSZ;
             seen_xdigits = 0;
-            break;  /* '\0' was seen by inet_pton4(). */
+            break; /* '\0' was seen by inet_pton4(). */
         }
         return (0);
     }
     if (seen_xdigits) {
         if (tp + NS_INT16SZ > endp)
             return (0);
-        *tp++ = (u_char) (val >> 8) & 0xff;
-        *tp++ = (u_char) val & 0xff;
+        *tp++ = (u_char)(val >> 8) & 0xff;
+        *tp++ = (u_char)val & 0xff;
     }
     if (colonp != NULL) {
         /*
@@ -258,7 +257,7 @@ inet_pton6(const char *src, u_char *dst)
         if (tp == endp)
             return (0);
         for (i = 1; i <= n; i++) {
-            endp[- i] = colonp[n - i];
+            endp[-i] = colonp[n - i];
             colonp[n - i] = 0;
         }
         tp = endp;
@@ -270,4 +269,3 @@ inet_pton6(const char *src, u_char *dst)
 }
 
 #endif /* HAVE_DECL_INET_PTON */
-

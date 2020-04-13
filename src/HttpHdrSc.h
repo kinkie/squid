@@ -9,9 +9,9 @@
 #ifndef SQUID_HTTPHDRSURROGATECONTROL_H
 #define SQUID_HTTPHDRSURROGATECONTROL_H
 
+#include "SquidString.h"
 #include "dlink.h"
 #include "mem/forward.h"
-#include "SquidString.h"
 
 class HttpHdrScTarget;
 class Packable;
@@ -38,24 +38,23 @@ public:
     ~HttpHdrSc();
 
     bool parse(const String *str);
-    void packInto(Packable * p) const;
+    void packInto(Packable *p) const;
     void updateStats(StatHist *) const;
-    HttpHdrScTarget * getMergedTarget (const char *ourtarget); //todo: make const?
+    HttpHdrScTarget *getMergedTarget(const char *ourtarget);  //todo: make const?
     void setMaxAge(char const *target, int max_age);
     void addTarget(HttpHdrScTarget *t);
     void addTargetAtTail(HttpHdrScTarget *t);
 
     dlink_list targets;
-private:
-    HttpHdrScTarget * findTarget (const char *target);
 
+private:
+    HttpHdrScTarget *findTarget(const char *target);
 };
 
 /* Http Surrogate Control Header Field */
-void httpHdrScStatDumper(StoreEntry * sentry, int idx, double val, double size, int count);
-void httpHdrScInitModule (void);
+void httpHdrScStatDumper(StoreEntry *sentry, int idx, double val, double size, int count);
+void httpHdrScInitModule(void);
 HttpHdrSc *httpHdrScParseCreate(String const &);
 void httpHdrScSetMaxAge(HttpHdrSc *, char const *, int);
 
 #endif /* SQUID_HTTPHDRSURROGATECONTROL_H */
-

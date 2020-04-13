@@ -16,11 +16,12 @@
 
 EsiParserDefinition(ESIExpatParser);
 
-ESIExpatParser::ESIExpatParser(ESIParserClient *aClient) : theClient (aClient)
+ESIExpatParser::ESIExpatParser(ESIParserClient *aClient) :
+    theClient(aClient)
 {
     /* TODO: grab the document encoding from the headers */
-    p = XML_ParserCreateNS(NULL,'|');
-    XML_SetUserData (myParser(), static_cast<void *>(this));
+    p = XML_ParserCreateNS(NULL, '|');
+    XML_SetUserData(myParser(), static_cast<void *>(this));
     XML_SetElementHandler(myParser(), Start, End);
     XML_SetDefaultHandler(myParser(), Default);
     XML_SetCommentHandler(myParser(), Comment);
@@ -29,24 +30,24 @@ ESIExpatParser::ESIExpatParser(ESIParserClient *aClient) : theClient (aClient)
 
 ESIExpatParser::~ESIExpatParser()
 {
-    XML_ParserFree (myParser());
+    XML_ParserFree(myParser());
     p = NULL;
 }
 
 void
-ESIExpatParser::Start(void *data,const XML_Char *el, const char **attr)
+ESIExpatParser::Start(void *data, const XML_Char *el, const char **attr)
 {
     XML_Parser parser = static_cast<XML_Parser>(data);
     ESIExpatParser *me = (ESIExpatParser *)XML_GetUserData(parser);
-    me->theClient->start (el, attr, XML_GetSpecifiedAttributeCount (parser));
+    me->theClient->start(el, attr, XML_GetSpecifiedAttributeCount(parser));
 }
 
 void
-ESIExpatParser::End(void *data,const XML_Char *el)
+ESIExpatParser::End(void *data, const XML_Char *el)
 {
     XML_Parser parser = static_cast<XML_Parser>(data);
     ESIExpatParser *me = (ESIExpatParser *)XML_GetUserData(parser);
-    me->theClient->end (el);
+    me->theClient->end(el);
 }
 
 void
@@ -54,7 +55,7 @@ ESIExpatParser::Default(void *data, const XML_Char *s, int len)
 {
     XML_Parser parser = static_cast<XML_Parser>(data);
     ESIExpatParser *me = (ESIExpatParser *)XML_GetUserData(parser);
-    me->theClient->parserDefault (s, len);
+    me->theClient->parserDefault(s, len);
 }
 
 void
@@ -62,7 +63,7 @@ ESIExpatParser::Comment(void *data, const XML_Char *s)
 {
     XML_Parser parser = static_cast<XML_Parser>(data);
     ESIExpatParser *me = (ESIExpatParser *)XML_GetUserData(parser);
-    me->theClient->parserComment (s);
+    me->theClient->parserComment(s);
 }
 
 bool
@@ -84,4 +85,3 @@ ESIExpatParser::errorString() const
 }
 
 #endif /* USE_SQUID_ESI */
-

@@ -52,33 +52,35 @@
 #include "squid.h"
 #include "socket.hh"
 
+#include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
 #include <netdb.h>
+#include <netinet/tcp.h>
 
 #include <unistd.h>
 
 #include "convert.hh"
 
 int
-setSocketBuffers( int sockfd, int size )
+setSocketBuffers(int sockfd, int size)
 // purpose: set socket buffers for both directions to the specified size
 // paramtr: sockfd (IN): socket file descriptor
 //          size (IN): new socket buffer size
 // returns: -1 on setsockopt() errors, 0 otherwise
 // warning: prints error message on stderr, errno will be changed
 {
-    if ( setsockopt( sockfd, SOL_SOCKET, SO_RCVBUF,
-                     (char*) &size, sizeof(size) ) == -1 ) {
-        perror( "setsockopt( SO_RCVBUF )" );
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF,
+                   (char *)&size, sizeof(size))
+        == -1) {
+        perror("setsockopt( SO_RCVBUF )");
         return -1;
     }
 
-    if ( setsockopt( sockfd, SOL_SOCKET, SO_SNDBUF,
-                     (char*) &size, sizeof(size) ) == -1 ) {
-        perror( "setsockopt( SO_SNDBUF )" );
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF,
+                   (char *)&size, sizeof(size))
+        == -1) {
+        perror("setsockopt( SO_SNDBUF )");
         return -1;
     }
 
@@ -86,7 +88,7 @@ setSocketBuffers( int sockfd, int size )
 }
 
 int
-getSocketNoDelay( int sockfd )
+getSocketNoDelay(int sockfd)
 // purpose: get state of the TCP_NODELAY of the socket
 // paramtr: sockfd (IN): socket descriptor
 // returns: 1, if TCP_NODELAY is set,
@@ -95,16 +97,17 @@ getSocketNoDelay( int sockfd )
 {
     int delay = 0;
     socklen_t len = sizeof(delay);
-    if ( getsockopt( sockfd, IPPROTO_TCP, TCP_NODELAY,
-                     (char*) &delay, &len ) == -1 ) {
-        perror( "# getsockopt( TCP_NODELAY ) failed" );
+    if (getsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+                   (char *)&delay, &len)
+        == -1) {
+        perror("# getsockopt( TCP_NODELAY ) failed");
         return -1;
     } else
-        return ( delay ? 1 : 0 );
+        return (delay ? 1 : 0);
 }
 
 int
-setSocketNoDelay( int sockfd, bool)
+setSocketNoDelay(int sockfd, bool)
 // purpose: get state of the TCP_NODELAY of the socket
 // paramtr: sockfd (IN): socket descriptor
 //          nodelay (IN): true, if TCP_NODELAY is to be set, false otherwise.
@@ -112,16 +115,17 @@ setSocketNoDelay( int sockfd, bool)
 //         -1, if an error occurred (e.g. datagram socket)
 {
     const int delay = 1;
-    if ( setsockopt( sockfd, IPPROTO_TCP, TCP_NODELAY,
-                     (const char*) &delay, sizeof(delay) ) == -1 ) {
-        perror( "setsockopt( TCP_NODELAY ) failed" );
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+                   (const char *)&delay, sizeof(delay))
+        == -1) {
+        perror("setsockopt( TCP_NODELAY ) failed");
         return -1;
     } else
         return 0;
 }
 
 int
-commonCode( int& sockfd, bool nodelay, int sendBufferSize, int recvBufferSize )
+commonCode(int &sockfd, bool nodelay, int sendBufferSize, int recvBufferSize)
 // purpose: common code in server sockets and client sockets
 // paramtr: sockfd (IO): socket filedescriptor
 //          nodelay (IN): true=set TCP_NODELAY option.
@@ -132,31 +136,34 @@ commonCode( int& sockfd, bool nodelay, int sendBufferSize, int recvBufferSize )
 {
     // set TCP_NODELAY option, if that is wanted.
     // The socket API default is unset.
-    if ( nodelay ) {
+    if (nodelay) {
         const int delay = 1;
-        if ( setsockopt( sockfd, IPPROTO_TCP, TCP_NODELAY,
-                         (const char*) &delay, sizeof(delay) ) == -1 ) {
-            perror( "setsockopt( TCP_NODELAY ) failed" );
+        if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+                       (const char *)&delay, sizeof(delay))
+            == -1) {
+            perror("setsockopt( TCP_NODELAY ) failed");
             close(sockfd);
             return -1;
         }
     }
 
     // set the socket send buffer size explicitly, or use the system default
-    if ( sendBufferSize >= 0 ) {
-        if ( setsockopt( sockfd, SOL_SOCKET, SO_SNDBUF, (char*) &sendBufferSize,
-                         sizeof(sendBufferSize) ) == -1 ) {
-            perror( "setsockopt( SO_SNDBUF )" );
+    if (sendBufferSize >= 0) {
+        if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char *)&sendBufferSize,
+                       sizeof(sendBufferSize))
+            == -1) {
+            perror("setsockopt( SO_SNDBUF )");
             close(sockfd);
             return -1;
         }
     }
 
     // set the socket recv buffer size explicitly, or use the system default
-    if ( recvBufferSize >= 0 ) {
-        if ( setsockopt( sockfd, SOL_SOCKET, SO_RCVBUF, (char*) &recvBufferSize,
-                         sizeof(recvBufferSize) ) == -1 ) {
-            perror( "setsockopt( SO_RCVBUF )" );
+    if (recvBufferSize >= 0) {
+        if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char *)&recvBufferSize,
+                       sizeof(recvBufferSize))
+            == -1) {
+            perror("setsockopt( SO_RCVBUF )");
             close(sockfd);
             return -1;
         }
@@ -165,8 +172,8 @@ commonCode( int& sockfd, bool nodelay, int sendBufferSize, int recvBufferSize )
 }
 
 int
-connectTo( struct in_addr host, unsigned short port, bool nodelay,
-           int sendBufferSize, int recvBufferSize )
+connectTo(struct in_addr host, unsigned short port, bool nodelay,
+          int sendBufferSize, int recvBufferSize)
 // purpose: connect to a server as a client
 // paramtr: host (IN): address describing the server
 //          port (IN): port to connect at the server
@@ -176,22 +183,22 @@ connectTo( struct in_addr host, unsigned short port, bool nodelay,
 // returns: >=0 is the descriptor of the opened, connected socket,
 //          -1  is an indication of an error (errno may have been reset).
 {
-    int sockfd = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
-    if ( sockfd == -1 ) {
-        perror( "socket() failed" );
+    int sockfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sockfd == -1) {
+        perror("socket() failed");
         return -1;
     }
 
-    if ( commonCode( sockfd, nodelay, sendBufferSize, recvBufferSize ) == -1 )
+    if (commonCode(sockfd, nodelay, sendBufferSize, recvBufferSize) == -1)
         return -1;
 
     struct sockaddr_in server;
-    memset( &server, 0, sizeof(server) );
+    memset(&server, 0, sizeof(server));
     server.sin_family = AF_INET;
-    server.sin_addr   = host;
-    server.sin_port   = port;
-    if ( connect( sockfd, (struct sockaddr*) &server, sizeof(server) ) == -1 ) {
-        perror( "connect() failure" );
+    server.sin_addr = host;
+    server.sin_port = port;
+    if (connect(sockfd, (struct sockaddr *)&server, sizeof(server)) == -1) {
+        perror("connect() failure");
         close(sockfd);
         return -1;
     }
@@ -200,9 +207,9 @@ connectTo( struct in_addr host, unsigned short port, bool nodelay,
 }
 
 int
-serverSocket( struct in_addr host, unsigned short port,
-              int backlog, bool reuse, bool nodelay,
-              int sendBufferSize, int recvBufferSize )
+serverSocket(struct in_addr host, unsigned short port,
+             int backlog, bool reuse, bool nodelay,
+             int sendBufferSize, int recvBufferSize)
 // purpose: open a server socket for listening
 // paramtr: host (IN): host to bind locally to, use INADDRY_ANY for *
 //          port (IN): port to bind to, use 0 for system assigned
@@ -215,44 +222,44 @@ serverSocket( struct in_addr host, unsigned short port,
 // returns: opened listening fd, or -1 on error.
 // warning: error message will be printed on stderr and errno reset.
 {
-    int sockfd = socket( AF_INET, SOCK_STREAM, 0 );
-    if ( sockfd == -1 ) {
-        perror( "socket" );
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1) {
+        perror("socket");
         return -1;
     }
 
-    if ( reuse ) {
+    if (reuse) {
         int opt = 1;
-        if ( setsockopt( sockfd, SOL_SOCKET, SO_REUSEADDR,
-                         (char*) &opt, sizeof(int) ) == -1) {
-            perror( "setsockopt( SO_REUSEADDR )" );
-            close( sockfd );
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+                       (char *)&opt, sizeof(int))
+            == -1) {
+            perror("setsockopt( SO_REUSEADDR )");
+            close(sockfd);
             return -1;
         }
     }
 
-    if ( commonCode( sockfd, nodelay, sendBufferSize, recvBufferSize ) == -1 )
+    if (commonCode(sockfd, nodelay, sendBufferSize, recvBufferSize) == -1)
         return -1;
 
     struct sockaddr_in server;
-    memset( &server, 0, sizeof(server) );
+    memset(&server, 0, sizeof(server));
     server.sin_family = AF_INET;
-    server.sin_port   = port;
-    server.sin_addr   = host;
-    if ( bind( sockfd, (SA*) &server, sizeof(server) ) == -1 ) {
+    server.sin_port = port;
+    server.sin_addr = host;
+    if (bind(sockfd, (SA *)&server, sizeof(server)) == -1) {
         SockAddress socket;
-        fprintf( stderr, "bind(%s): %s\n",
-                 my_sock_ntoa(server,socket), strerror(errno) );
+        fprintf(stderr, "bind(%s): %s\n",
+                my_sock_ntoa(server, socket), strerror(errno));
         close(sockfd);
         return -1;
     }
 
-    if ( listen( sockfd, backlog ) == -1 ) {
-        perror( "listen" );
+    if (listen(sockfd, backlog) == -1) {
+        perror("listen");
         close(sockfd);
         return -1;
     }
 
     return sockfd;
 }
-

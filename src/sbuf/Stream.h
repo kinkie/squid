@@ -22,20 +22,24 @@ class SBufStreamBuf : public std::streambuf
 {
 public:
     /// initialize streambuf; use supplied SBuf as backing store
-    explicit SBufStreamBuf(SBuf aBuf) : theBuf(aBuf) {}
+    explicit SBufStreamBuf(SBuf aBuf) :
+        theBuf(aBuf) {}
 
     /// get a copy of the stream's contents
-    SBuf getBuf() {
+    SBuf getBuf()
+    {
         return theBuf;
     }
 
     /// clear the stream's store
-    void clearBuf() {
+    void clearBuf()
+    {
         theBuf.clear();
     }
 
 protected:
-    virtual int_type overflow(int_type aChar = traits_type::eof()) {
+    virtual int_type overflow(int_type aChar = traits_type::eof())
+    {
         std::streamsize pending(pptr() - pbase());
 
         if (pending && sync())
@@ -53,7 +57,8 @@ protected:
     }
 
     /// push the streambuf to the backing SBuf
-    virtual int sync() {
+    virtual int sync()
+    {
         std::streamsize pending(pptr() - pbase());
 
         if (pending)
@@ -65,7 +70,8 @@ protected:
     /** write multiple characters to the store entry
      * \note this is an optimisation consistent with std::streambuf API
      */
-    virtual std::streamsize xsputn(const char * chars, std::streamsize number) {
+    virtual std::streamsize xsputn(const char *chars, std::streamsize number)
+    {
         if (number)
             theBuf.append(chars, number);
 
@@ -74,7 +80,7 @@ protected:
 
 private:
     SBuf theBuf;
-    SBufStreamBuf(); // no default constructor
+    SBufStreamBuf();  // no default constructor
 };
 
 /** Stream interface to write to a SBuf.
@@ -90,25 +96,31 @@ public:
      * The supplied SBuf copied: in order to retrieve the written-to contents
      * they must be later fetched using the buf() class method.
      */
-    SBufStream(SBuf aBuf): std::ostream(0), theBuffer(aBuf) {
-        rdbuf(&theBuffer); // set the buffer to now-initialized theBuffer
-        clear(); //clear badbit set by calling init(0)
+    SBufStream(SBuf aBuf) :
+        std::ostream(0), theBuffer(aBuf)
+    {
+        rdbuf(&theBuffer);  // set the buffer to now-initialized theBuffer
+        clear();            //clear badbit set by calling init(0)
     }
 
     /// Create an empty SBufStream
-    SBufStream(): std::ostream(0), theBuffer(SBuf()) {
-        rdbuf(&theBuffer); // set the buffer to now-initialized theBuffer
-        clear(); //clear badbit set by calling init(0)
+    SBufStream() :
+        std::ostream(0), theBuffer(SBuf())
+    {
+        rdbuf(&theBuffer);  // set the buffer to now-initialized theBuffer
+        clear();            //clear badbit set by calling init(0)
     }
 
     /// Retrieve a copy of the current stream status
-    SBuf buf() {
+    SBuf buf()
+    {
         flush();
         return theBuffer.getBuf();
     }
 
     /// Clear the stream's backing store
-    SBufStream& clearBuf() {
+    SBufStream &clearBuf()
+    {
         flush();
         theBuffer.clearBuf();
         return *this;
@@ -120,15 +132,14 @@ private:
 
 /// slowly stream-prints all arguments into a freshly allocated SBuf
 template <typename... Args>
-inline
-SBuf ToSBuf(Args&&... args)
+inline SBuf
+ToSBuf(Args &&... args)
 {
     // TODO: Make this code readable after requiring C++17.
     SBufStream out;
     using expander = int[];
-    (void)expander {0, (void(out << std::forward<Args>(args)),0)...};
+    (void)expander {0, (void(out << std::forward<Args>(args)), 0)...};
     return out.buf();
 }
 
 #endif /* SQUID_SBUFSTREAM_H */
-

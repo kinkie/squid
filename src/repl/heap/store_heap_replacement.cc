@@ -17,11 +17,11 @@
  */
 
 #include "squid.h"
-#include "heap.h"
+#include "store_heap_replacement.h"
 #include "MemObject.h"
 #include "SquidTime.h"
 #include "Store.h"
-#include "store_heap_replacement.h"
+#include "heap.h"
 
 #include <cmath>
 
@@ -57,18 +57,16 @@ HeapKeyGen_StoreEntry_LFUDA(void *entry, double heap_age)
     else if (squid_curtime <= e->lastref)
         tie = 0.0;
     else
-        tie = 1.0 - exp((double) (e->lastref - squid_curtime) / 86400.0);
+        tie = 1.0 - exp((double)(e->lastref - squid_curtime) / 86400.0);
 
-    key = heap_age + (double) e->refcount - tie;
+    key = heap_age + (double)e->refcount - tie;
 
-    debugs(81, 3, "HeapKeyGen_StoreEntry_LFUDA: " << e->getMD5Text() <<
-           " refcnt=" << e->refcount << " lastref=" << e->lastref <<
-           " heap_age=" << heap_age << " tie=" << tie << " -> " << key);
+    debugs(81, 3, "HeapKeyGen_StoreEntry_LFUDA: " << e->getMD5Text() << " refcnt=" << e->refcount << " lastref=" << e->lastref << " heap_age=" << heap_age << " tie=" << tie << " -> " << key);
 
     if (e->mem_obj)
         debugs(81, 3, "storeId=" << e->mem_obj->storeId());
 
-    return (double) key;
+    return (double)key;
 }
 
 /*
@@ -95,13 +93,10 @@ HeapKeyGen_StoreEntry_GDSF(void *entry, double heap_age)
 {
     StoreEntry *e = (StoreEntry *)entry;
     heap_key key;
-    double size = e->swap_file_sz ? (double) e->swap_file_sz : 1.0;
+    double size = e->swap_file_sz ? (double)e->swap_file_sz : 1.0;
     double tie = (e->lastref > 1) ? (1.0 / e->lastref) : 1.0;
-    key = heap_age + ((double) e->refcount / size) - tie;
-    debugs(81, 3, "HeapKeyGen_StoreEntry_GDSF: " << e->getMD5Text() <<
-           " size=" << size << " refcnt=" << e->refcount << " lastref=" <<
-           e->lastref << " heap_age=" << heap_age << " tie=" << tie <<
-           " -> " << key);
+    key = heap_age + ((double)e->refcount / size) - tie;
+    debugs(81, 3, "HeapKeyGen_StoreEntry_GDSF: " << e->getMD5Text() << " size=" << size << " refcnt=" << e->refcount << " lastref=" << e->lastref << " heap_age=" << heap_age << " tie=" << tie << " -> " << key);
 
     if (e->mem_obj)
         debugs(81, 3, "storeId=" << e->mem_obj->storeId());
@@ -120,13 +115,10 @@ heap_key
 HeapKeyGen_StoreEntry_LRU(void *entry, double heap_age)
 {
     StoreEntry *e = (StoreEntry *)entry;
-    debugs(81, 3, "HeapKeyGen_StoreEntry_LRU: " <<
-           e->getMD5Text() << " heap_age=" << heap_age <<
-           " lastref=" << (double) e->lastref  );
+    debugs(81, 3, "HeapKeyGen_StoreEntry_LRU: " << e->getMD5Text() << " heap_age=" << heap_age << " lastref=" << (double)e->lastref);
 
     if (e->mem_obj)
         debugs(81, 3, "storeId=" << e->mem_obj->storeId());
 
-    return (heap_key) e->lastref;
+    return (heap_key)e->lastref;
 }
-

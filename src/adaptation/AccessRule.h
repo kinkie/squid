@@ -9,16 +9,15 @@
 #ifndef SQUID_ADAPTATION__ACCESS_RULE_H
 #define SQUID_ADAPTATION__ACCESS_RULE_H
 
+#include "SquidString.h"
 #include "acl/forward.h"
 #include "adaptation/forward.h"
-#include "SquidString.h"
 
 #include <vector>
 
 class ConfigParser;
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 // manages adaptation_access configuration by associating an acl with
 // an adaptation service group
@@ -44,12 +43,11 @@ private:
     static Id LastId;
 };
 
-typedef std::vector<Adaptation::AccessRule*> AccessRules;
+typedef std::vector<Adaptation::AccessRule *> AccessRules;
 AccessRules &AllRules();
 AccessRule *FindRule(const AccessRule::Id &id);
 AccessRule *FindRuleByGroupId(const String &groupId);
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__ACCESS_RULE_H */
-

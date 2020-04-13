@@ -76,7 +76,8 @@ static const char *const B_GBYTES_STR = "GB";
 static const char *const B_BYTES_STR = "B";
 
 /// Get current time.
-time_t getCurrentTime(void)
+time_t
+getCurrentTime(void)
 {
     struct timeval current_time;
 #if GETTIMEOFDAY_NO_TZP
@@ -91,10 +92,10 @@ time_t getCurrentTime(void)
  * Parse bytes unit. It would be one of the next value: MB, GB, KB or B.
  * This function is caseinsensitive.
  */
-static size_t parseBytesUnits(const char * unit)
+static size_t
+parseBytesUnits(const char *unit)
 {
-    if (!strncasecmp(unit, B_BYTES_STR, strlen(B_BYTES_STR)) ||
-            !strncasecmp(unit, "", strlen(unit)))
+    if (!strncasecmp(unit, B_BYTES_STR, strlen(B_BYTES_STR)) || !strncasecmp(unit, "", strlen(unit)))
         return 1;
 
     if (!strncasecmp(unit, B_KBYTES_STR, strlen(B_KBYTES_STR)))
@@ -112,11 +113,12 @@ static size_t parseBytesUnits(const char * unit)
 }
 
 /// Parse uninterrapted string of bytes value. It looks like "4MB".
-static bool parseBytesOptionValue(size_t * bptr, char const * value)
+static bool
+parseBytesOptionValue(size_t *bptr, char const *value)
 {
     // Find number from string beginning.
-    char const * number_begin = value;
-    char const * number_end = value;
+    char const *number_begin = value;
+    char const *number_end = value;
 
     while ((*number_end >= '0' && *number_end <= '9')) {
         ++number_end;
@@ -141,43 +143,42 @@ static bool parseBytesOptionValue(size_t * bptr, char const * value)
 }
 
 /// Print help using response code.
-static void usage()
+static void
+usage()
 {
     std::string example_host_name = "host.dom";
     std::string request_string = Ssl::CrtdMessage::param_host + "=" + example_host_name;
     std::stringstream request_string_size_stream;
     request_string_size_stream << request_string.length();
-    std::string help_string =
-        "usage: security_file_certgen -hv -s directory -M size -b fs_block_size\n"
-        "\t-h                   Help\n"
-        "\t-v                   Version\n"
-        "\t-s directory         Directory path of SSL storage database.\n"
-        "\t-M size              Maximum size of SSL certificate disk storage.\n"
-        "\t-b fs_block_size     File system block size in bytes. Need for processing\n"
-        "\t                     natural size of certificate on disk. Default value is\n"
-        "\t                     2048 bytes.\n"
-        "\n"
-        "After running write requests in the next format:\n"
-        "<request code><whitespace><body_len><whitespace><body>\n"
-        "There are two kind of request now:\n"
-        + Ssl::CrtdMessage::code_new_certificate + " " + request_string_size_stream.str() + " " + request_string + "\n" +
-        "\tCreate new private key and selfsigned certificate for \"host.dom\".\n"
-        + Ssl::CrtdMessage::code_new_certificate + " xxx " + request_string + "\n" +
-        "-----BEGIN CERTIFICATE-----\n"
-        "...\n"
-        "-----END CERTIFICATE-----\n"
-        "-----BEGIN RSA PRIVATE KEY-----\n"
-        "...\n"
-        "-----END RSA PRIVATE KEY-----\n"
-        "\tCreate new private key and certificate request for \"host.dom\"\n"
-        "\tSign new request by received certificate and private key.\n"
-        "usage: security_file_certgen -c -s ssl_store_path\n"
-        "\t-c                   Init ssl db directories and exit.\n";
+    std::string help_string = "usage: security_file_certgen -hv -s directory -M size -b fs_block_size\n"
+                              "\t-h                   Help\n"
+                              "\t-v                   Version\n"
+                              "\t-s directory         Directory path of SSL storage database.\n"
+                              "\t-M size              Maximum size of SSL certificate disk storage.\n"
+                              "\t-b fs_block_size     File system block size in bytes. Need for processing\n"
+                              "\t                     natural size of certificate on disk. Default value is\n"
+                              "\t                     2048 bytes.\n"
+                              "\n"
+                              "After running write requests in the next format:\n"
+                              "<request code><whitespace><body_len><whitespace><body>\n"
+                              "There are two kind of request now:\n"
+        + Ssl::CrtdMessage::code_new_certificate + " " + request_string_size_stream.str() + " " + request_string + "\n" + "\tCreate new private key and selfsigned certificate for \"host.dom\".\n"
+        + Ssl::CrtdMessage::code_new_certificate + " xxx " + request_string + "\n" + "-----BEGIN CERTIFICATE-----\n"
+                                                                                     "...\n"
+                                                                                     "-----END CERTIFICATE-----\n"
+                                                                                     "-----BEGIN RSA PRIVATE KEY-----\n"
+                                                                                     "...\n"
+                                                                                     "-----END RSA PRIVATE KEY-----\n"
+                                                                                     "\tCreate new private key and certificate request for \"host.dom\"\n"
+                                                                                     "\tSign new request by received certificate and private key.\n"
+                                                                                     "usage: security_file_certgen -c -s ssl_store_path\n"
+                                                                                     "\t-c                   Init ssl db directories and exit.\n";
     std::cerr << help_string << std::endl;
 }
 
 /// Process new request message.
-static bool processNewRequest(Ssl::CrtdMessage & request_message, std::string const & db_path, size_t max_db_size, size_t fs_block_size)
+static bool
+processNewRequest(Ssl::CrtdMessage &request_message, std::string const &db_path, size_t max_db_size, size_t fs_block_size)
 {
     Ssl::CertificateProperties certProperties;
     std::string error;
@@ -229,7 +230,7 @@ static bool processNewRequest(Ssl::CrtdMessage & request_message, std::string co
     }
 
     if (dbFailed)
-        std::cerr << "security_file_certgen helper database '" << db_path  << "' failed: " << error << std::endl;
+        std::cerr << "security_file_certgen helper database '" << db_path << "' failed: " << error << std::endl;
 
     std::string bufferToWrite;
     if (!Ssl::writeCertAndPrivateKeyToMemory(cert, pkey, bufferToWrite))
@@ -246,7 +247,8 @@ static bool processNewRequest(Ssl::CrtdMessage & request_message, std::string co
 }
 
 /// This is the external security_file_certgen process.
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     try {
         size_t max_db_size = 0;
@@ -348,10 +350,9 @@ int main(int argc, char *argv[])
             }
             std::cout.flush();
         }
-    } catch (std::runtime_error & error) {
+    } catch (std::runtime_error &error) {
         std::cerr << argv[0] << ": " << error.what() << std::endl;
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }
-

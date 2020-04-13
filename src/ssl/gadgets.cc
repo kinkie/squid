@@ -9,7 +9,8 @@
 #include "squid.h"
 #include "ssl/gadgets.h"
 
-EVP_PKEY * Ssl::createSslPrivateKey()
+EVP_PKEY *
+Ssl::createSslPrivateKey()
 {
     Security::PrivateKeyPointer pkey(EVP_PKEY_new());
 
@@ -27,7 +28,7 @@ EVP_PKEY * Ssl::createSslPrivateKey()
     if (!rsa)
         return NULL;
 
-    int num = 2048; // Maybe use 4096 RSA keys, or better make it configurable?
+    int num = 2048;  // Maybe use 4096 RSA keys, or better make it configurable?
     if (!RSA_generate_key_ex(rsa.get(), num, bn.get(), NULL))
         return NULL;
 
@@ -45,7 +46,8 @@ EVP_PKEY * Ssl::createSslPrivateKey()
  \ingroup ServerProtocolSSLInternal
  * Set serial random serial number or set random serial number.
  */
-static bool setSerialNumber(ASN1_INTEGER *ai, BIGNUM const* serial)
+static bool
+setSerialNumber(ASN1_INTEGER *ai, BIGNUM const *serial)
 {
     if (!ai)
         return false;
@@ -65,7 +67,8 @@ static bool setSerialNumber(ASN1_INTEGER *ai, BIGNUM const* serial)
     return true;
 }
 
-bool Ssl::writeCertAndPrivateKeyToMemory(Security::CertPointer const & cert, Security::PrivateKeyPointer const & pkey, std::string & bufferToWrite)
+bool
+Ssl::writeCertAndPrivateKeyToMemory(Security::CertPointer const &cert, Security::PrivateKeyPointer const &pkey, std::string &bufferToWrite)
 {
     bufferToWrite.clear();
     if (!pkey || !cert)
@@ -74,7 +77,7 @@ bool Ssl::writeCertAndPrivateKeyToMemory(Security::CertPointer const & cert, Sec
     if (!bio)
         return false;
 
-    if (!PEM_write_bio_X509 (bio.get(), cert.get()))
+    if (!PEM_write_bio_X509(bio.get(), cert.get()))
         return false;
 
     if (!PEM_write_bio_PrivateKey(bio.get(), pkey.get(), NULL, NULL, 0, NULL, NULL))
@@ -89,7 +92,8 @@ bool Ssl::writeCertAndPrivateKeyToMemory(Security::CertPointer const & cert, Sec
     return true;
 }
 
-bool Ssl::appendCertToMemory(Security::CertPointer const & cert, std::string & bufferToWrite)
+bool
+Ssl::appendCertToMemory(Security::CertPointer const &cert, std::string &bufferToWrite)
 {
     if (!cert)
         return false;
@@ -98,7 +102,7 @@ bool Ssl::appendCertToMemory(Security::CertPointer const & cert, std::string & b
     if (!bio)
         return false;
 
-    if (!PEM_write_bio_X509 (bio.get(), cert.get()))
+    if (!PEM_write_bio_X509(bio.get(), cert.get()))
         return false;
 
     char *ptr = NULL;
@@ -107,23 +111,24 @@ bool Ssl::appendCertToMemory(Security::CertPointer const & cert, std::string & b
         return false;
 
     if (!bufferToWrite.empty())
-        bufferToWrite.append(" "); // add a space...
+        bufferToWrite.append(" ");  // add a space...
 
     bufferToWrite.append(ptr, len);
     return true;
 }
 
-bool Ssl::readCertAndPrivateKeyFromMemory(Security::CertPointer & cert, Security::PrivateKeyPointer & pkey, char const * bufferToRead)
+bool
+Ssl::readCertAndPrivateKeyFromMemory(Security::CertPointer &cert, Security::PrivateKeyPointer &pkey, char const *bufferToRead)
 {
     Ssl::BIO_Pointer bio(BIO_new(BIO_s_mem()));
     BIO_puts(bio.get(), bufferToRead);
 
-    X509 * certPtr = NULL;
+    X509 *certPtr = NULL;
     cert.resetWithoutLocking(PEM_read_bio_X509(bio.get(), &certPtr, 0, 0));
     if (!cert)
         return false;
 
-    EVP_PKEY * pkeyPtr = NULL;
+    EVP_PKEY *pkeyPtr = NULL;
     pkey.resetWithoutLocking(PEM_read_bio_PrivateKey(bio.get(), &pkeyPtr, 0, 0));
     if (!pkey)
         return false;
@@ -131,12 +136,13 @@ bool Ssl::readCertAndPrivateKeyFromMemory(Security::CertPointer & cert, Security
     return true;
 }
 
-bool Ssl::readCertFromMemory(Security::CertPointer & cert, char const * bufferToRead)
+bool
+Ssl::readCertFromMemory(Security::CertPointer &cert, char const *bufferToRead)
 {
     Ssl::BIO_Pointer bio(BIO_new(BIO_s_mem()));
     BIO_puts(bio.get(), bufferToRead);
 
-    X509 * certPtr = NULL;
+    X509 *certPtr = NULL;
     cert.resetWithoutLocking(PEM_read_bio_X509(bio.get(), &certPtr, 0, 0));
     if (!cert)
         return false;
@@ -149,7 +155,8 @@ bool Ssl::readCertFromMemory(Security::CertPointer & cert, char const * bufferTo
 static const size_t MaxCnLen = 64;
 
 // Replace certs common name with the given
-static bool replaceCommonName(Security::CertPointer & cert, std::string const &rawCn)
+static bool
+replaceCommonName(Security::CertPointer &cert, std::string const &rawCn)
 {
     std::string cn = rawCn;
 
@@ -174,14 +181,14 @@ static bool replaceCommonName(Security::CertPointer & cert, std::string const &r
     // Assume [] surround an IPv6 address and strip them because browsers such
     // as Firefox, Chromium, and Safari prefer bare IPv6 addresses in CNs.
     if (cn.length() > 2 && *cn.begin() == '[' && *cn.rbegin() == ']')
-        cn = cn.substr(1, cn.size()-2);
+        cn = cn.substr(1, cn.size() - 2);
 
     X509_NAME *name = X509_get_subject_name(cert.get());
     if (!name)
         return false;
     // Remove the CN part:
     int loc = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
-    if (loc >=0) {
+    if (loc >= 0) {
         X509_NAME_ENTRY *tmp = X509_NAME_get_entry(name, loc);
         X509_NAME_delete_entry(name, loc);
         X509_NAME_ENTRY_free(tmp);
@@ -196,23 +203,22 @@ const char *Ssl::CertSignAlgorithmStr[] = {
     "signTrusted",
     "signUntrusted",
     "signSelf",
-    NULL
-};
+    NULL};
 
 const char *Ssl::CertAdaptAlgorithmStr[] = {
     "setValidAfter",
     "setValidBefore",
     "setCommonName",
-    NULL
-};
+    NULL};
 
-Ssl::CertificateProperties::CertificateProperties():
+Ssl::CertificateProperties::CertificateProperties() :
     setValidAfter(false),
     setValidBefore(false),
     setCommonName(false),
     signAlgorithm(Ssl::algSignEnd),
     signHash(NULL)
-{}
+{
+}
 
 static void
 printX509Signature(const Security::CertPointer &cert, std::string &out)
@@ -287,7 +293,7 @@ mimicAuthorityKeyId(Security::CertPointer &cert, Security::CertPointer const &mi
     }
 
     if (!addKeyId && !addIssuer)
-        return false; // No need to add AuthorityKeyIdentifier
+        return false;  // No need to add AuthorityKeyIdentifier
 
     Ssl::ASN1_OCTET_STRING_Pointer issuerKeyId;
     if (addKeyId) {
@@ -354,20 +360,19 @@ mimicAuthorityKeyId(Security::CertPointer &cert, Security::CertPointer const &mi
 // mimicked. More safe to mimic extensions would be added here if users request
 // them.
 static int
-mimicExtensions(Security::CertPointer & cert, Security::CertPointer const &mimicCert, Security::CertPointer const &issuerCert)
+mimicExtensions(Security::CertPointer &cert, Security::CertPointer const &mimicCert, Security::CertPointer const &issuerCert)
 {
-    static int extensions[]= {
+    static int extensions[] = {
         NID_key_usage,
         NID_ext_key_usage,
         NID_basic_constraints,
-        0
-    };
+        0};
 
     // key usage bit names
     enum {
         DigitalSignature,
         NonRepudiation,
-        KeyEncipherment, // NSS requires for RSA but not EC
+        KeyEncipherment,  // NSS requires for RSA but not EC
         DataEncipherment,
         KeyAgreement,
         KeyCertificateSign,
@@ -444,7 +449,7 @@ addAltNameWithSubjectCn(Security::CertPointer &cert)
     if (!cn_data)
         return false;
 
-    char dnsName[1024]; // DNS names are limited to 256 characters
+    char dnsName[1024];  // DNS names are limited to 256 characters
     const int res = snprintf(dnsName, sizeof(dnsName), "DNS:%*s", cn_data->length, cn_data->data);
     if (res <= 0 || res >= static_cast<int>(sizeof(dnsName)))
         return false;
@@ -459,7 +464,8 @@ addAltNameWithSubjectCn(Security::CertPointer &cert)
     return result;
 }
 
-static bool buildCertificate(Security::CertPointer & cert, Ssl::CertificateProperties const &properties)
+static bool
+buildCertificate(Security::CertPointer &cert, Ssl::CertificateProperties const &properties)
 {
     // not an Ssl::X509_NAME_Pointer because X509_REQ_get_subject_name()
     // returns a pointer to the existing subject name. Nothing to clean here.
@@ -493,7 +499,7 @@ static bool buildCertificate(Security::CertPointer & cert, Ssl::CertificatePrope
     if (aTime) {
         if (!X509_set1_notBefore(cert.get(), aTime))
             return false;
-    } else if (!X509_gmtime_adj(X509_getm_notBefore(cert.get()), (-2)*24*60*60))
+    } else if (!X509_gmtime_adj(X509_getm_notBefore(cert.get()), (-2) * 24 * 60 * 60))
         return false;
 
     aTime = NULL;
@@ -504,7 +510,7 @@ static bool buildCertificate(Security::CertPointer & cert, Ssl::CertificatePrope
     if (aTime) {
         if (!X509_set1_notAfter(cert.get(), aTime))
             return false;
-    } else if (!X509_gmtime_adj(X509_getm_notAfter(cert.get()), 60*60*24*365*3))
+    } else if (!X509_gmtime_adj(X509_getm_notAfter(cert.get()), 60 * 60 * 24 * 365 * 3))
         return false;
 
     int addedExtensions = 0;
@@ -522,7 +528,7 @@ static bool buildCertificate(Security::CertPointer & cert, Ssl::CertificatePrope
         // certificates with CN unrelated to subjectAltNames.
         if (!properties.setCommonName) {
             int pos = X509_get_ext_by_NID(properties.mimicCert.get(), NID_subject_alt_name, -1);
-            X509_EXTENSION *ext=X509_get_ext(properties.mimicCert.get(), pos);
+            X509_EXTENSION *ext = X509_get_ext(properties.mimicCert.get(), pos);
             if (ext) {
                 if (X509_add_ext(cert.get(), ext, -1))
                     ++addedExtensions;
@@ -539,18 +545,19 @@ static bool buildCertificate(Security::CertPointer & cert, Ssl::CertificatePrope
 
     // According to RFC 5280, using extensions requires v3 certificate.
     if (addedExtensions)
-        X509_set_version(cert.get(), 2); // value 2 means v3
+        X509_set_version(cert.get(), 2);  // value 2 means v3
 
     return true;
 }
 
-static bool generateFakeSslCertificate(Security::CertPointer & certToStore, Security::PrivateKeyPointer & pkeyToStore, Ssl::CertificateProperties const &properties,  Ssl::BIGNUM_Pointer const &serial)
+static bool
+generateFakeSslCertificate(Security::CertPointer &certToStore, Security::PrivateKeyPointer &pkeyToStore, Ssl::CertificateProperties const &properties, Ssl::BIGNUM_Pointer const &serial)
 {
     Security::PrivateKeyPointer pkey;
     // Use signing certificates private key as generated certificate private key
     if (properties.signWithPkey.get())
         pkey.resetAndLock(properties.signWithPkey.get());
-    else // if not exist generate one
+    else  // if not exist generate one
         pkey.resetWithoutLocking(Ssl::createSslPrivateKey());
 
     if (!pkey)
@@ -574,17 +581,17 @@ static bool generateFakeSslCertificate(Security::CertPointer & certToStore, Secu
     // Set issuer name, from CA or our subject name for self signed cert
     if (properties.signAlgorithm != Ssl::algSignSelf && properties.signWithX509.get())
         ret = X509_set_issuer_name(cert.get(), X509_get_subject_name(properties.signWithX509.get()));
-    else // Self signed certificate, set issuer to self
+    else  // Self signed certificate, set issuer to self
         ret = X509_set_issuer_name(cert.get(), X509_get_subject_name(cert.get()));
     if (!ret)
         return false;
 
-    const  EVP_MD *hash = properties.signHash ? properties.signHash : EVP_get_digestbyname(SQUID_SSL_SIGN_HASH_IF_NONE);
+    const EVP_MD *hash = properties.signHash ? properties.signHash : EVP_get_digestbyname(SQUID_SSL_SIGN_HASH_IF_NONE);
     assert(hash);
     /*Now sign the request */
     if (properties.signAlgorithm != Ssl::algSignSelf && properties.signWithPkey.get())
         ret = X509_sign(cert.get(), properties.signWithPkey.get(), hash);
-    else //else sign with self key (self signed request)
+    else  //else sign with self key (self signed request)
         ret = X509_sign(cert.get(), pkey.get(), hash);
 
     if (!ret)
@@ -595,10 +602,11 @@ static bool generateFakeSslCertificate(Security::CertPointer & certToStore, Secu
     return true;
 }
 
-static  BIGNUM *createCertSerial(unsigned char *md, unsigned int n)
+static BIGNUM *
+createCertSerial(unsigned char *md, unsigned int n)
 {
 
-    assert(n == 20); //for sha1 n is 20 (for md5 n is 16)
+    assert(n == 20);  //for sha1 n is 20 (for md5 n is 16)
 
     BIGNUM *serial = NULL;
     serial = BN_bin2bn(md, n, NULL);
@@ -624,23 +632,25 @@ static  BIGNUM *createCertSerial(unsigned char *md, unsigned int n)
 
 /// Return the SHA1 digest of the DER encoded version of the certificate
 /// stored in a BIGNUM
-static BIGNUM *x509Digest(Security::CertPointer const & cert)
+static BIGNUM *
+x509Digest(Security::CertPointer const &cert)
 {
     unsigned int n;
     unsigned char md[EVP_MAX_MD_SIZE];
 
-    if (!X509_digest(cert.get(),EVP_sha1(),md,&n))
+    if (!X509_digest(cert.get(), EVP_sha1(), md, &n))
         return NULL;
 
     return createCertSerial(md, n);
 }
 
-static BIGNUM *x509Pubkeydigest(Security::CertPointer const & cert)
+static BIGNUM *
+x509Pubkeydigest(Security::CertPointer const &cert)
 {
     unsigned int n;
     unsigned char md[EVP_MAX_MD_SIZE];
 
-    if (!X509_pubkey_digest(cert.get(),EVP_sha1(),md,&n))
+    if (!X509_pubkey_digest(cert.get(), EVP_sha1(), md, &n))
         return NULL;
 
     return createCertSerial(md, n);
@@ -648,7 +658,8 @@ static BIGNUM *x509Pubkeydigest(Security::CertPointer const & cert)
 
 /// Generate a unique serial number based on a Ssl::CertificateProperties object
 /// for a new generated certificate
-static bool createSerial(Ssl::BIGNUM_Pointer &serial, Ssl::CertificateProperties const &properties)
+static bool
+createSerial(Ssl::BIGNUM_Pointer &serial, Ssl::CertificateProperties const &properties)
 {
     Security::PrivateKeyPointer fakePkey;
     Security::CertPointer fakeCert;
@@ -672,14 +683,15 @@ static bool createSerial(Ssl::BIGNUM_Pointer &serial, Ssl::CertificateProperties
     return true;
 }
 
-bool Ssl::generateSslCertificate(Security::CertPointer & certToStore, Security::PrivateKeyPointer & pkeyToStore, Ssl::CertificateProperties const &properties)
+bool
+Ssl::generateSslCertificate(Security::CertPointer &certToStore, Security::PrivateKeyPointer &pkeyToStore, Ssl::CertificateProperties const &properties)
 {
     Ssl::BIGNUM_Pointer serial;
 
     if (!createSerial(serial, properties))
         return false;
 
-    return  generateFakeSslCertificate(certToStore, pkeyToStore, properties, serial);
+    return generateFakeSslCertificate(certToStore, pkeyToStore, properties, serial);
 }
 
 bool
@@ -694,7 +706,7 @@ Ssl::OpenCertsFileForReading(Ssl::BIO_Pointer &bio, const char *filename)
 }
 
 bool
-Ssl::ReadX509Certificate(Ssl::BIO_Pointer &bio, Security::CertPointer & cert)
+Ssl::ReadX509Certificate(Ssl::BIO_Pointer &bio, Security::CertPointer &cert)
 {
     assert(bio);
     if (X509 *certificate = PEM_read_bio_X509(bio.get(), NULL, NULL, NULL)) {
@@ -716,7 +728,7 @@ Ssl::ReadPrivateKey(Ssl::BIO_Pointer &bio, Security::PrivateKeyPointer &pkey, pe
 }
 
 void
-Ssl::ReadPrivateKeyFromFile(char const * keyFilename, Security::PrivateKeyPointer &pkey, pem_password_cb *passwd_callback)
+Ssl::ReadPrivateKeyFromFile(char const *keyFilename, Security::PrivateKeyPointer &pkey, pem_password_cb *passwd_callback)
 {
     if (!keyFilename)
         return;
@@ -738,7 +750,7 @@ Ssl::OpenCertsFileForWriting(Ssl::BIO_Pointer &bio, const char *filename)
 }
 
 bool
-Ssl::WriteX509Certificate(Ssl::BIO_Pointer &bio, const Security::CertPointer & cert)
+Ssl::WriteX509Certificate(Ssl::BIO_Pointer &bio, const Security::CertPointer &cert)
 {
     if (!cert || !bio)
         return false;
@@ -757,7 +769,8 @@ Ssl::WritePrivateKey(Ssl::BIO_Pointer &bio, const Security::PrivateKeyPointer &p
     return true;
 }
 
-bool Ssl::sslDateIsInTheFuture(char const * date)
+bool
+Ssl::sslDateIsInTheFuture(char const *date)
 {
     ASN1_UTCTIME tm;
     tm.flags = 0;
@@ -769,7 +782,8 @@ bool Ssl::sslDateIsInTheFuture(char const * date)
 }
 
 /// Print the time represented by a ASN1_TIME struct to a string using GeneralizedTime format
-static bool asn1timeToGeneralizedTimeStr(ASN1_TIME *aTime, char *buf, int bufLen)
+static bool
+asn1timeToGeneralizedTimeStr(ASN1_TIME *aTime, char *buf, int bufLen)
 {
     // ASN1_Time  holds time to UTCTime or GeneralizedTime form.
     // UTCTime has the form YYMMDDHHMMSS[Z | [+|-]offset]
@@ -782,15 +796,15 @@ static bool asn1timeToGeneralizedTimeStr(ASN1_TIME *aTime, char *buf, int bufLen
 
     char *str;
     if (aTime->type == V_ASN1_UTCTIME) {
-        if (aTime->data[0] > '5') { // RFC 2459, section 4.1.2.5.1
+        if (aTime->data[0] > '5') {  // RFC 2459, section 4.1.2.5.1
             buf[0] = '1';
             buf[1] = '9';
         } else {
             buf[0] = '2';
             buf[1] = '0';
         }
-        str = buf +2;
-    } else // if (aTime->type == V_ASN1_GENERALIZEDTIME)
+        str = buf + 2;
+    } else  // if (aTime->type == V_ASN1_GENERALIZEDTIME)
         str = buf;
 
     memcpy(str, aTime->data, aTime->length);
@@ -798,7 +812,8 @@ static bool asn1timeToGeneralizedTimeStr(ASN1_TIME *aTime, char *buf, int bufLen
     return true;
 }
 
-static int asn1time_cmp(ASN1_TIME *asnTime1, ASN1_TIME *asnTime2)
+static int
+asn1time_cmp(ASN1_TIME *asnTime1, ASN1_TIME *asnTime2)
 {
     char strTime1[64], strTime2[64];
     if (!asn1timeToGeneralizedTimeStr(asnTime1, strTime1, sizeof(strTime1)))
@@ -809,7 +824,8 @@ static int asn1time_cmp(ASN1_TIME *asnTime1, ASN1_TIME *asnTime2)
     return strcmp(strTime1, strTime2);
 }
 
-bool Ssl::certificateMatchesProperties(X509 *cert, CertificateProperties const &properties)
+bool
+Ssl::certificateMatchesProperties(X509 *cert, CertificateProperties const &properties)
 {
     assert(cert);
 
@@ -856,16 +872,15 @@ bool Ssl::certificateMatchesProperties(X509 *cert, CertificateProperties const &
     char *alStr1;
     int alLen;
     alStr1 = (char *)X509_alias_get0(cert, &alLen);
-    char *alStr2  = (char *)X509_alias_get0(cert2, &alLen);
-    if ((!alStr1 && alStr2) || (alStr1 && !alStr2) ||
-            (alStr1 && alStr2 && strcmp(alStr1, alStr2)) != 0)
+    char *alStr2 = (char *)X509_alias_get0(cert2, &alLen);
+    if ((!alStr1 && alStr2) || (alStr1 && !alStr2) || (alStr1 && alStr2 && strcmp(alStr1, alStr2)) != 0)
         return false;
 
     // Compare subjectAltName extension
     STACK_OF(GENERAL_NAME) * cert1_altnames;
-    cert1_altnames = (STACK_OF(GENERAL_NAME)*)X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+    cert1_altnames = (STACK_OF(GENERAL_NAME) *)X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
     STACK_OF(GENERAL_NAME) * cert2_altnames;
-    cert2_altnames = (STACK_OF(GENERAL_NAME)*)X509_get_ext_d2i(cert2, NID_subject_alt_name, NULL, NULL);
+    cert2_altnames = (STACK_OF(GENERAL_NAME) *)X509_get_ext_d2i(cert2, NID_subject_alt_name, NULL, NULL);
     bool match = true;
     if (cert1_altnames) {
         int numalts = sk_GENERAL_NAME_num(cert1_altnames);
@@ -882,17 +897,18 @@ bool Ssl::certificateMatchesProperties(X509 *cert, CertificateProperties const &
     return match;
 }
 
-static const char *getSubjectEntry(X509 *x509, int nid)
+static const char *
+getSubjectEntry(X509 *x509, int nid)
 {
-    static char name[1024] = ""; // stores common name (CN)
+    static char name[1024] = "";  // stores common name (CN)
 
     if (!x509)
         return NULL;
 
     // TODO: What if the entry is a UTF8String? See X509_NAME_get_index_by_NID(3ssl).
     const int nameLen = X509_NAME_get_text_by_NID(
-                            X509_get_subject_name(x509),
-                            nid,  name, sizeof(name));
+        X509_get_subject_name(x509),
+        nid, name, sizeof(name));
 
     if (nameLen > 0)
         return name;
@@ -900,12 +916,14 @@ static const char *getSubjectEntry(X509 *x509, int nid)
     return NULL;
 }
 
-const char *Ssl::CommonHostName(X509 *x509)
+const char *
+Ssl::CommonHostName(X509 *x509)
 {
     return getSubjectEntry(x509, NID_commonName);
 }
 
-const char *Ssl::getOrganization(X509 *x509)
+const char *
+Ssl::getOrganization(X509 *x509)
 {
     return getSubjectEntry(x509, NID_organizationName);
 }
@@ -913,7 +931,7 @@ const char *Ssl::getOrganization(X509 *x509)
 bool
 Ssl::CertificatesCmp(const Security::CertPointer &cert1, const Security::CertPointer &cert2)
 {
-    if (!cert1 || ! cert2)
+    if (!cert1 || !cert2)
         return false;
 
     int cert1Len;
@@ -944,4 +962,3 @@ Ssl::X509_get_signature(const Security::CertPointer &cert)
     X509_get0_signature(&sig, &sig_alg, cert.get());
     return sig;
 }
-

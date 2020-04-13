@@ -10,14 +10,17 @@
 
 #include "squid.h"
 #include "AccessLogEntry.h"
-#include "base/TextException.h"
 #include "CacheManager.h"
-#include "comm/Connection.h"
 #include "Debug.h"
-#include "errorpage.h"
-#include "fde.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "Store.h"
+#include "base/TextException.h"
+#include "comm/Connection.h"
+#include "errorpage.h"
+#include "fde.h"
 #include "mgr/Action.h"
 #include "mgr/ActionCreator.h"
 #include "mgr/ActionPasswordList.h"
@@ -29,9 +32,6 @@
 #include "mgr/QueryParams.h"
 #include "protos.h"
 #include "sbuf/StringConvert.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "tools.h"
 #include "wordlist.h"
 
@@ -41,15 +41,17 @@
 #define MGR_PASSWD_SZ 128
 
 /// creates Action using supplied Action::Create method and command
-class ClassActionCreator: public Mgr::ActionCreator
+class ClassActionCreator : public Mgr::ActionCreator
 {
 public:
     typedef Mgr::Action::Pointer Handler(const Mgr::Command::Pointer &cmd);
 
 public:
-    ClassActionCreator(Handler *aHandler): handler(aHandler) {}
+    ClassActionCreator(Handler *aHandler) :
+        handler(aHandler) {}
 
-    virtual Mgr::Action::Pointer create(const Mgr::Command::Pointer &cmd) const {
+    virtual Mgr::Action::Pointer create(const Mgr::Command::Pointer &cmd) const
+    {
         return handler(cmd);
     }
 
@@ -77,11 +79,11 @@ CacheManager::registerProfile(const Mgr::ActionProfile::Pointer &profile)
  * Implemented via CacheManagerActionLegacy.
  */
 void
-CacheManager::registerProfile(char const * action, char const * desc, OBJH * handler, int pw_req_flag, int atomic)
+CacheManager::registerProfile(char const *action, char const *desc, OBJH *handler, int pw_req_flag, int atomic)
 {
     debugs(16, 3, HERE << "registering legacy " << action);
     const Mgr::ActionProfile::Pointer profile = new Mgr::ActionProfile(action,
-            desc, pw_req_flag, atomic, new Mgr::FunActionCreator(handler));
+                                                                       desc, pw_req_flag, atomic, new Mgr::FunActionCreator(handler));
     registerProfile(profile);
 }
 
@@ -92,12 +94,12 @@ CacheManager::registerProfile(char const * action, char const * desc, OBJH * han
  * CacheManager identifies that the user has requested the action.
  */
 void
-CacheManager::registerProfile(char const * action, char const * desc,
+CacheManager::registerProfile(char const *action, char const *desc,
                               ClassActionCreator::Handler *handler,
                               int pw_req_flag, int atomic)
 {
     const Mgr::ActionProfile::Pointer profile = new Mgr::ActionProfile(action,
-            desc, pw_req_flag, atomic, new ClassActionCreator(handler));
+                                                                       desc, pw_req_flag, atomic, new ClassActionCreator(handler));
     registerProfile(profile);
 }
 
@@ -108,7 +110,7 @@ CacheManager::registerProfile(char const * action, char const * desc,
 \retval CacheManagerAction* if the action was found
  */
 Mgr::ActionProfile::Pointer
-CacheManager::findAction(char const * action) const
+CacheManager::findAction(char const *action) const
 {
     Must(action != NULL);
     Menu::const_iterator a;
@@ -182,7 +184,7 @@ CacheManager::ParseUrl(const char *url)
         t = sscanf(url, "https://%[^/]/squid-internal-mgr/%[^?]%n?%s", host, request, &pos, params);
     }
     if (t < 2) {
-        if (strncmp("cache_object://",url,15)==0)
+        if (strncmp("cache_object://", url, 15) == 0)
             xstrncpy(request, "menu", MAX_URL);
         else
             xstrncpy(request, "index", MAX_URL);
@@ -194,15 +196,14 @@ CacheManager::ParseUrl(const char *url)
          * emx's sscanf insists of returning 2 because it sets request
          * to null
          */
-        if (strncmp("cache_object://",url,15)==0)
+        if (strncmp("cache_object://", url, 15) == 0)
             xstrncpy(request, "menu", MAX_URL);
         else
             xstrncpy(request, "index", MAX_URL);
     }
 #endif
 
-    debugs(16, 3, HERE << "MGR request: t=" << t << ", host='" << host << "', request='" << request << "', pos=" << pos <<
-           ", password='" << password << "', params='" << params << "'");
+    debugs(16, 3, HERE << "MGR request: t=" << t << ", host='" << host << "', request='" << request << "', pos=" << pos << ", password='" << password << "', params='" << params << "'");
 
     Mgr::ActionProfile::Pointer profile = findAction(request);
     if (!profile) {
@@ -234,7 +235,7 @@ CacheManager::ParseUrl(const char *url)
  * the details into the cachemgrStateData argument
  */
 void
-CacheManager::ParseHeaders(const HttpRequest * request, Mgr::ActionParams &params)
+CacheManager::ParseHeaders(const HttpRequest *request, Mgr::ActionParams &params)
 {
     assert(request);
 
@@ -258,11 +259,10 @@ CacheManager::ParseHeaders(const HttpRequest * request, Mgr::ActionParams &param
 
     /* found user:password pair, reset old values */
     params.userName = SBufToString(basic_cookie.substr(0, colonPos));
-    params.password = SBufToString(basic_cookie.substr(colonPos+1));
+    params.password = SBufToString(basic_cookie.substr(colonPos + 1));
 
     /* warning: this prints decoded password which maybe not be what you want to do @?@ @?@ */
-    debugs(16, 9, "CacheManager::ParseHeaders: got user: '" <<
-           params.userName << "' passwd: '" << params.password << "'");
+    debugs(16, 9, "CacheManager::ParseHeaders: got user: '" << params.userName << "' passwd: '" << params.password << "'");
 #endif
 }
 
@@ -306,7 +306,7 @@ CacheManager::CheckPassword(const Mgr::Command &cmd)
 void
 CacheManager::start(const Comm::ConnectionPointer &client, HttpRequest *request, StoreEntry *entry, const AccessLogEntry::Pointer &ale)
 {
-    debugs(16, 3, "CacheManager::Start: '" << entry->url() << "'" );
+    debugs(16, 3, "CacheManager::Start: '" << entry->url() << "'");
 
     Mgr::Command::Pointer cmd = ParseUrl(entry->url());
     if (!cmd) {
@@ -326,8 +326,7 @@ CacheManager::start(const Comm::ConnectionPointer &client, HttpRequest *request,
     /* get additional info from request headers */
     ParseHeaders(request, cmd->params);
 
-    const char *userName = cmd->params.userName.size() ?
-                           cmd->params.userName.termedBuf() : "unknown";
+    const char *userName = cmd->params.userName.size() ? cmd->params.userName.termedBuf() : "unknown";
 
     /* Check password */
 
@@ -337,15 +336,9 @@ CacheManager::start(const Comm::ConnectionPointer &client, HttpRequest *request,
         /* warn if user specified incorrect password */
 
         if (cmd->params.password.size()) {
-            debugs(16, DBG_IMPORTANT, "CacheManager: " <<
-                   userName << "@" <<
-                   client << ": incorrect password for '" <<
-                   actionName << "'" );
+            debugs(16, DBG_IMPORTANT, "CacheManager: " << userName << "@" << client << ": incorrect password for '" << actionName << "'");
         } else {
-            debugs(16, DBG_IMPORTANT, "CacheManager: " <<
-                   userName << "@" <<
-                   client << ": password needed for '" <<
-                   actionName << "'" );
+            debugs(16, DBG_IMPORTANT, "CacheManager: " << userName << "@" << client << ": password needed for '" << actionName << "'");
         }
 
         HttpReply *rep = errState.BuildHttpReply();
@@ -359,11 +352,11 @@ CacheManager::start(const Comm::ConnectionPointer &client, HttpRequest *request,
 #endif
         // Allow cachemgr and other XHR scripts access to our version string
         if (request->header.has(Http::HdrType::ORIGIN)) {
-            rep->header.putExt("Access-Control-Allow-Origin",request->header.getStr(Http::HdrType::ORIGIN));
+            rep->header.putExt("Access-Control-Allow-Origin", request->header.getStr(Http::HdrType::ORIGIN));
 #if HAVE_AUTH_MODULE_BASIC
-            rep->header.putExt("Access-Control-Allow-Credentials","true");
+            rep->header.putExt("Access-Control-Allow-Credentials", "true");
 #endif
-            rep->header.putExt("Access-Control-Expose-Headers","Server");
+            rep->header.putExt("Access-Control-Expose-Headers", "Server");
         }
 
         /* store the reply */
@@ -380,25 +373,22 @@ CacheManager::start(const Comm::ConnectionPointer &client, HttpRequest *request,
         cmd->params.httpOrigin = request->header.getStr(Http::HdrType::ORIGIN);
     }
 
-    debugs(16, 2, "CacheManager: " <<
-           userName << "@" <<
-           client << " requesting '" <<
-           actionName << "'" );
+    debugs(16, 2, "CacheManager: " << userName << "@" << client << " requesting '" << actionName << "'");
 
     // special case: /squid-internal-mgr/ index page
     if (!strcmp(cmd->profile->name, "index")) {
         ErrorState err(MGR_INDEX, Http::scOkay, request, ale);
         err.url = xstrdup(entry->url());
         HttpReply *rep = err.BuildHttpReply();
-        if (strncmp(rep->body.content(),"Internal Error:", 15) == 0)
-            rep->sline.set(Http::ProtocolVersion(1,1), Http::scNotFound);
+        if (strncmp(rep->body.content(), "Internal Error:", 15) == 0)
+            rep->sline.set(Http::ProtocolVersion(1, 1), Http::scNotFound);
         // Allow cachemgr and other XHR scripts access to our version string
         if (request->header.has(Http::HdrType::ORIGIN)) {
-            rep->header.putExt("Access-Control-Allow-Origin",request->header.getStr(Http::HdrType::ORIGIN));
+            rep->header.putExt("Access-Control-Allow-Origin", request->header.getStr(Http::HdrType::ORIGIN));
 #if HAVE_AUTH_MODULE_BASIC
-            rep->header.putExt("Access-Control-Allow-Credentials","true");
+            rep->header.putExt("Access-Control-Allow-Credentials", "true");
 #endif
-            rep->header.putExt("Access-Control-Expose-Headers","Server");
+            rep->header.putExt("Access-Control-Expose-Headers", "Server");
         }
         entry->replaceHttpReply(rep);
         entry->complete();
@@ -445,7 +435,7 @@ CacheManager::ActionProtection(const Mgr::ActionProfile::Pointer &profile)
  * for the action she queried
  */
 char *
-CacheManager::PasswdGet(Mgr::ActionPasswordList * a, const char *action)
+CacheManager::PasswdGet(Mgr::ActionPasswordList *a, const char *action)
 {
     while (a) {
         for (auto &w : a->actions) {
@@ -463,7 +453,7 @@ CacheManager::PasswdGet(Mgr::ActionPasswordList * a, const char *action)
     return NULL;
 }
 
-CacheManager*
+CacheManager *
 CacheManager::GetInstance()
 {
     static CacheManager *instance = nullptr;
@@ -474,4 +464,3 @@ CacheManager::GetInstance()
     }
     return instance;
 }
-

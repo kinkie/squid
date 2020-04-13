@@ -11,8 +11,8 @@
 
 #include <iostream>
 
-std::ostream&
-operator <<(std::ostream &os, const ScopedId &id)
+std::ostream &
+operator<<(std::ostream &os, const ScopedId &id)
 {
     if (id.value)
         os << id.scope << id.value;
@@ -22,4 +22,3 @@ operator <<(std::ostream &os, const ScopedId &id)
         os << "[unknown]";
     return os;
 }
-

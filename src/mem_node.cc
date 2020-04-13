@@ -9,8 +9,8 @@
 /* DEBUG: section 19    Store Memory Primitives */
 
 #include "squid.h"
-#include "mem/Pool.h"
 #include "mem_node.h"
+#include "mem/Pool.h"
 
 static ptrdiff_t makeMemNodeDataOffset();
 
@@ -34,22 +34,23 @@ makeMemNodeDataOffset()
  * buffer that we wrote.  ick.
  */
 void
-memNodeWriteComplete(void* d)
+memNodeWriteComplete(void *d)
 {
-    mem_node* n = (mem_node*)((char*)d - _mem_node_data_offset);
+    mem_node *n = (mem_node *)((char *)d - _mem_node_data_offset);
     assert(n->write_pending);
     n->write_pending = false;
 }
 
 mem_node::mem_node(int64_t offset) :
-    nodeBuffer(0,offset,data),
+    nodeBuffer(0, offset, data),
     write_pending(false)
 {
     *data = 0;
 }
 
 mem_node::~mem_node()
-{}
+{
+}
 
 size_t
 mem_node::InUseCount()
@@ -66,7 +67,7 @@ mem_node::StoreMemSize()
 int64_t
 mem_node::start() const
 {
-    assert (nodeBuffer.offset >= 0);
+    assert(nodeBuffer.offset >= 0);
     return nodeBuffer.offset;
 }
 
@@ -79,7 +80,7 @@ mem_node::end() const
 Range<int64_t>
 mem_node::dataRange() const
 {
-    return Range<int64_t> (start(), end());
+    return Range<int64_t>(start(), end());
 }
 
 size_t
@@ -89,7 +90,7 @@ mem_node::space() const
 }
 
 bool
-mem_node::contains (int64_t const &location) const
+mem_node::contains(int64_t const &location) const
 {
     if (start() <= location && end() > location)
         return true;
@@ -99,7 +100,7 @@ mem_node::contains (int64_t const &location) const
 
 /* nodes can not be sparse */
 bool
-mem_node::canAccept (int64_t const &location) const
+mem_node::canAccept(int64_t const &location) const
 {
     if (location == end() && space() > 0)
         return true;
@@ -108,8 +109,7 @@ mem_node::canAccept (int64_t const &location) const
 }
 
 bool
-mem_node::operator < (mem_node const & rhs) const
+mem_node::operator<(mem_node const &rhs) const
 {
     return start() < rhs.start();
 }
-

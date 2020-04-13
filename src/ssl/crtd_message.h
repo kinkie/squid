@@ -12,8 +12,7 @@
 #include <map>
 #include <string>
 
-namespace Ssl
-{
+namespace Ssl {
 class CertificateProperties;
 
 /**
@@ -41,14 +40,14 @@ public:
      \retval INCOMPLETE  if more data required
      \retval ERROR       if there is an error.
      */
-    ParseResult parse(const char * buffer, size_t len);
+    ParseResult parse(const char *buffer, size_t len);
     /// Current  body. If parsing is not finished the method returns incompleted body.
-    std::string const & getBody() const;
+    std::string const &getBody() const;
     /// Current response/request code. If parsing is not finished the method may return incompleted code.
-    std::string const & getCode() const;
-    void setBody(std::string const & aBody); ///< Set new body to encode.
-    void setCode(std::string const & aCode); ///< Set new request/reply code to compose.
-    std::string compose() const; ///< Compose current (request) code and body to string.
+    std::string const &getCode() const;
+    void setBody(std::string const &aBody);  ///< Set new body to encode.
+    void setCode(std::string const &aCode);  ///< Set new request/reply code to compose.
+    std::string compose() const;             ///< Compose current (request) code and body to string.
     /// Reset the class.
     void clear();
     /**
@@ -58,7 +57,7 @@ public:
          The other multistring part of body.  \endverbatim
      * The parameters of the body stored to map and the remaining part to other_part
      */
-    void parseBody(BodyParams & map, std::string & other_part) const;
+    void parseBody(BodyParams &map, std::string &other_part) const;
     /**
      *Compose parameters given by map with their values and the other part given by
      * other_part to body data. The constructed body will have the form:  \verbatim
@@ -66,11 +65,11 @@ public:
          param2=value2
          The other multistring part of body.  \endverbatim
     */
-    void composeBody(BodyParams const & map, std::string const & other_part);
+    void composeBody(BodyParams const &map, std::string const &other_part);
 
     /// orchestrates entire request parsing
     bool parseRequest(Ssl::CertificateProperties &, std::string &error);
-    void composeRequest(Ssl::CertificateProperties const &); // throws
+    void composeRequest(Ssl::CertificateProperties const &);  // throws
 
     /// String code for "new_certificate" messages
     static const std::string code_new_certificate;
@@ -86,6 +85,7 @@ public:
     static const std::string param_Sign;
     /// The signing hash to use
     static const std::string param_SignHash;
+
 protected:
     enum ParseState {
         BEFORE_CODE,
@@ -96,14 +96,13 @@ protected:
         BODY,
         END
     };
-    size_t body_size; ///< The body size if exist or 0.
-    ParseState state; ///< Parsing state.
-    std::string body; ///< Current body.
-    std::string code; ///< Current response/request code.
-    std::string current_block; ///< Current block buffer.
+    size_t body_size;           ///< The body size if exist or 0.
+    ParseState state;           ///< Parsing state.
+    std::string body;           ///< Current body.
+    std::string code;           ///< Current response/request code.
+    std::string current_block;  ///< Current block buffer.
 };
 
-} //namespace Ssl
+}  //namespace Ssl
 
-#endif // SQUID_SSL_CRTD_MESSAGE_H
-
+#endif  // SQUID_SSL_CRTD_MESSAGE_H

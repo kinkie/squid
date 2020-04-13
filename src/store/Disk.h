@@ -9,8 +9,8 @@
 #ifndef SQUID_STORE_DISK_H
 #define SQUID_STORE_DISK_H
 
-#include "store/Controlled.h"
 #include "StoreIOState.h"
+#include "store/Controlled.h"
 
 class ConfigOption;
 class RemovalPolicy;
@@ -18,7 +18,7 @@ class RemovalPolicy;
 namespace Store {
 
 /// manages a single cache_dir
-class Disk: public Controlled
+class Disk : public Controlled
 {
 
 public:
@@ -29,8 +29,8 @@ public:
     virtual void reconfigure() = 0;
     char const *type() const;
 
-    virtual bool needsDiskStrand() const; ///< needs a dedicated kid process
-    virtual bool active() const; ///< may be used in this strand
+    virtual bool needsDiskStrand() const;  ///< needs a dedicated kid process
+    virtual bool active() const;           ///< may be used in this strand
     /// whether stat should be reported by this SwapDir
     virtual bool doReportStat() const { return active(); }
     /// whether SwapDir may benefit from unlinkd
@@ -80,7 +80,7 @@ public:
 
 protected:
     void parseOptions(int reconfiguring);
-    void dumpOptions(StoreEntry * e) const;
+    void dumpOptions(StoreEntry *e) const;
     virtual ConfigOption *getOptionTree() const;
     virtual bool allowOptionReconfigure(const char *const) const { return true; }
 
@@ -88,33 +88,34 @@ protected:
 
 private:
     bool optionReadOnlyParse(char const *option, const char *value, int reconfiguring);
-    void optionReadOnlyDump(StoreEntry * e) const;
+    void optionReadOnlyDump(StoreEntry *e) const;
     bool optionObjectSizeParse(char const *option, const char *value, int reconfiguring);
-    void optionObjectSizeDump(StoreEntry * e) const;
+    void optionObjectSizeDump(StoreEntry *e) const;
     char const *theType;
 
 protected:
-    uint64_t max_size;        ///< maximum allocatable size of the storage area
-    int64_t min_objsize;      ///< minimum size of any object stored here (-1 for no limit)
-    int64_t max_objsize;      ///< maximum size of any object stored here (-1 for no limit)
+    uint64_t max_size;    ///< maximum allocatable size of the storage area
+    int64_t min_objsize;  ///< minimum size of any object stored here (-1 for no limit)
+    int64_t max_objsize;  ///< maximum size of any object stored here (-1 for no limit)
 
 public:
     char *path;
-    int index;          /* This entry's index into the swapDirs array */
-    int disker; ///< disker kid id dedicated to this SwapDir or -1
+    int index;   /* This entry's index into the swapDirs array */
+    int disker;  ///< disker kid id dedicated to this SwapDir or -1
     RemovalPolicy *repl;
     int removals;
     int scanned;
 
     struct Flags {
-        Flags() : selected(false), read_only(false) {}
+        Flags() :
+            selected(false), read_only(false) {}
         bool selected;
         bool read_only;
     } flags;
 
-    virtual void dump(StoreEntry &)const;   /* Dump fs config snippet */
-    virtual bool doubleCheck(StoreEntry &); /* Double check the obj integrity */
-    virtual void statfs(StoreEntry &) const;    /* Dump fs statistics */
+    virtual void dump(StoreEntry &) const;   /* Dump fs config snippet */
+    virtual bool doubleCheck(StoreEntry &);  /* Double check the obj integrity */
+    virtual void statfs(StoreEntry &) const; /* Dump fs statistics */
 
     /// check whether we can store the entry; if we can, report current load
     virtual bool canStore(const StoreEntry &e, int64_t diskSpaceNeeded, int &load) const = 0;
@@ -122,10 +123,10 @@ public:
     virtual StoreIOState::Pointer createStoreIO(StoreEntry &, StoreIOState::STFNCB *, StoreIOState::STIOCB *, void *) = 0;
     virtual StoreIOState::Pointer openStoreIO(StoreEntry &, StoreIOState::STFNCB *, StoreIOState::STIOCB *, void *) = 0;
 
-    bool canLog(StoreEntry const &e)const;
+    bool canLog(StoreEntry const &e) const;
     virtual void openLog();
     virtual void closeLog();
-    virtual void logEntry(const StoreEntry & e, int op) const;
+    virtual void logEntry(const StoreEntry &e, int op) const;
 
     class CleanLog
     {
@@ -147,7 +148,6 @@ public:
     } fs;
 };
 
-} // namespace Store
+}  // namespace Store
 
 #endif /* SQUID_STORE_DISK_H */
-

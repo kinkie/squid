@@ -11,26 +11,27 @@
 
 #include "base/AsyncJob.h"
 #include "cbdata.h"
-#include "fs/rock/forward.h"
 #include "fs/rock/RockSwapDir.h"
+#include "fs/rock/forward.h"
 #include "ipc/StoreMap.h"
 
-namespace Rock
-{
+namespace Rock {
 
 /// Updates HTTP headers of a single Rock store entry:
 /// * reads old body data in the same slot as the last old headers slot, if any
 /// * writes new headers (1+ slots)
 /// * writes old data (0-2 slots)
 /// * chains the new entry prefix (1+ slots) to the old entry suffix (0+ slots)
-class HeaderUpdater: public AsyncJob
+class HeaderUpdater : public AsyncJob
 {
     CBDATA_CHILD(HeaderUpdater);
 
 public:
-    class IoCbParams {
+    class IoCbParams
+    {
     public:
-        IoCbParams(const char *aBuf, ssize_t aSize) : buf(aBuf), size(aSize) {}
+        IoCbParams(const char *aBuf, ssize_t aSize) :
+            buf(aBuf), size(aSize) {}
         const char *buf;
         ssize_t size;
     };
@@ -58,29 +59,28 @@ private:
     void startWriting();
     void noteDoneWriting(int errflag);
 
-    Rock::SwapDir::Pointer store; ///< cache_dir where the entry is stored
-    Ipc::StoreMapUpdate update; ///< Ipc::StoreMap update reservation
+    Rock::SwapDir::Pointer store;  ///< cache_dir where the entry is stored
+    Ipc::StoreMapUpdate update;    ///< Ipc::StoreMap update reservation
 
-    StoreIOState::Pointer reader; ///< reads old headers and old data
-    StoreIOState::Pointer writer; ///< writes new headers and old data
+    StoreIOState::Pointer reader;  ///< reads old headers and old data
+    StoreIOState::Pointer writer;  ///< writes new headers and old data
 
-    SBuf readerBuffer; ///< I/O buffer for a single read operation
-    SBuf exchangeBuffer; ///< bytes read but not yet discarded or written
-    uint64_t bytesRead; ///< total entry bytes read from Store so far
+    SBuf readerBuffer;    ///< I/O buffer for a single read operation
+    SBuf exchangeBuffer;  ///< bytes read but not yet discarded or written
+    uint64_t bytesRead;   ///< total entry bytes read from Store so far
 
-    int staleSwapHeaderSize; ///< stored size of the stale entry metadata
+    int staleSwapHeaderSize;  ///< stored size of the stale entry metadata
 
-    SlotId staleSplicingPointNext; ///< non-updatable old HTTP body suffix start
+    SlotId staleSplicingPointNext;  ///< non-updatable old HTTP body suffix start
 };
 
-inline
-std::ostream &operator <<(std::ostream &os, const HeaderUpdater::IoCbParams &params)
+inline std::ostream &
+operator<<(std::ostream &os, const HeaderUpdater::IoCbParams &params)
 {
     os << static_cast<const void *>(params.buf) << "," << params.size;
     return os;
 }
 
-} // namespace Rock
+}  // namespace Rock
 
 #endif /* SQUID_FS_ROCK_HEADER_UPDATER_H */
-

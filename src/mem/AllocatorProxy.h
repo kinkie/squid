@@ -23,27 +23,31 @@ class MemPoolMeter;
  * responsibility of users to ensure that constructors correctly
  * initialize all data members.
  */
-#define MEMPROXY_CLASS(CLASS) \
-    private: \
-    static inline Mem::AllocatorProxy &Pool() { \
-        static Mem::AllocatorProxy thePool(#CLASS, sizeof(CLASS), false); \
-        return thePool; \
-    } \
-    public: \
-    void *operator new(size_t byteCount) { \
+#define MEMPROXY_CLASS(CLASS)                                                   \
+private:                                                                        \
+    static inline Mem::AllocatorProxy &Pool()                                   \
+    {                                                                           \
+        static Mem::AllocatorProxy thePool(#CLASS, sizeof(CLASS), false);       \
+        return thePool;                                                         \
+    }                                                                           \
+                                                                                \
+public:                                                                         \
+    void *operator new(size_t byteCount)                                        \
+    {                                                                           \
         /* derived classes with different sizes must implement their own new */ \
-        assert(byteCount == sizeof(CLASS)); \
-        return Pool().alloc(); \
-    } \
-    void operator delete(void *address) { \
-        if (address) \
-            Pool().freeOne(address); \
-    } \
-    static int UseCount() { return Pool().inUseCount(); } \
-    private:
+        assert(byteCount == sizeof(CLASS));                                     \
+        return Pool().alloc();                                                  \
+    }                                                                           \
+    void operator delete(void *address)                                         \
+    {                                                                           \
+        if (address)                                                            \
+            Pool().freeOne(address);                                            \
+    }                                                                           \
+    static int UseCount() { return Pool().inUseCount(); }                       \
+                                                                                \
+private:
 
-namespace Mem
-{
+namespace Mem {
 
 /**
  * Support late binding of pool type for allocator agnostic classes
@@ -51,12 +55,13 @@ namespace Mem
 class AllocatorProxy
 {
 public:
-    AllocatorProxy(char const *aLabel, size_t const &aSize, bool doZeroBlocks = true):
+    AllocatorProxy(char const *aLabel, size_t const &aSize, bool doZeroBlocks = true) :
         label(aLabel),
         size(aSize),
         theAllocator(nullptr),
         doZero(doZeroBlocks)
-    {}
+    {
+    }
 
     /// Allocate one element from the pool
     void *alloc();
@@ -65,8 +70,8 @@ public:
     void freeOne(void *);
 
     int inUseCount() const;
-    size_t objectSize() const {return size;}
-    char const * objectType() const {return label;}
+    size_t objectSize() const { return size; }
+    char const *objectType() const { return label; }
 
     MemPoolMeter const &getMeter() const;
 
@@ -74,7 +79,7 @@ public:
      * \param stats Object to be filled with statistical data about pool.
      * \retval      Number of objects in use, ie. allocated.
      */
-    int getStats(MemPoolStats * stats);
+    int getStats(MemPoolStats *stats);
 
     void zeroBlocks(bool doIt);
 
@@ -87,7 +92,6 @@ private:
     bool doZero;
 };
 
-} // namespace Mem
+}  // namespace Mem
 
 #endif /* _SQUID_SRC_MEM_ALLOCATORPROXY_H */
-

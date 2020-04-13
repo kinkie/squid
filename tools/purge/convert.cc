@@ -49,53 +49,53 @@
 #include "squid.h"
 #include "convert.hh"
 
+#include <arpa/inet.h>
 #include <cstdlib>
 #include <cstring>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <netdb.h>
+#include <netinet/in.h>
 
 #ifndef SA
 #define SA struct sockaddr
 #endif
 
-const char*
-my_inet_ntoa( const struct in_addr& a, HostAddress output )
+const char *
+my_inet_ntoa(const struct in_addr &a, HostAddress output)
 // purpose: thread-safely convert IPv4 address -> ASCII representation
 // paramtr: a (IN): networked representation of IPv4 address
 //          buffer (OUT): storage area to store representation into.
 // returns: pointer to buffer
 // goodies: INADDR_ANY will be converted to "*"
 {
-    if ( a.s_addr == ntohl(INADDR_ANY) ) {
+    if (a.s_addr == ntohl(INADDR_ANY)) {
         // 'default' or '*' or ...
         output[0] = '*';
         output[1] = '\0';
     } else {
         // ANSI C++ forbids casting to an array type, nag, nag, nag...
         unsigned char s[sizeof(a.s_addr)];
-        memcpy( s, &a.s_addr, sizeof(a.s_addr) );
+        memcpy(s, &a.s_addr, sizeof(a.s_addr));
 
-        snprintf(output, sizeof(HostAddress), "%d.%d.%d.%d", s[0], s[1], s[2], s[3] );
+        snprintf(output, sizeof(HostAddress), "%d.%d.%d.%d", s[0], s[1], s[2], s[3]);
     }
     return output;
 }
 
-const char*
-my_sock_ntoa( const struct sockaddr_in& a, SockAddress buffer )
+const char *
+my_sock_ntoa(const struct sockaddr_in &a, SockAddress buffer)
 // purpose: thread-safely convert IPv4 socket pair into ASCII rep.
 // paramtr: a (IN): sockaddr_in address
 //          buffer (OUT): storage area to store representation into.
 // returns: pointer to buffer
 {
     HostAddress host;
-    snprintf( buffer, sizeof(SockAddress), "%s:%u",
-              my_inet_ntoa(a.sin_addr,host), ntohs(a.sin_port) );
+    snprintf(buffer, sizeof(SockAddress), "%s:%u",
+             my_inet_ntoa(a.sin_addr, host), ntohs(a.sin_port));
     return buffer;
 }
 
-const char*
-my_sock_fd2a( int fd, SockAddress buffer, bool peer )
+const char *
+my_sock_fd2a(int fd, SockAddress buffer, bool peer)
 // purpose: thread-safely convert IPv4 socket FD associated address
 //          to ASCII representation
 // paramtr: fd (IN): open socket FD
@@ -108,27 +108,29 @@ my_sock_fd2a( int fd, SockAddress buffer, bool peer )
     struct sockaddr_in socket;
     socklen_t len = sizeof(socket);
 
-    if ( (peer ? getpeername( fd, (SA*) &socket, &len ) :
-            getsockname( fd, (SA*) &socket, &len )) == -1 )
+    if ((peer ? getpeername(fd, (SA *)&socket, &len) : getsockname(fd, (SA *)&socket, &len)) == -1)
         return NULL;
     else
-        return my_sock_ntoa( socket, buffer );
+        return my_sock_ntoa(socket, buffer);
 }
 
 int
-convertHostname( const char* host, in_addr& dst )
+convertHostname(const char *host, in_addr &dst)
 // purpose: convert a numeric or symbolic hostname
 // paramtr: host (IN): host description to convert
 //          dst (OUT): the internet address in network byteorder.
 // returns: -1 in case of error, see h_errno; 0 otherwise.
 {
-    if ( host == 0 ) return -1;
+    if (host == 0)
+        return -1;
     unsigned long int h = inet_addr(host);
-    if ( h == 0xFFFFFFFF && strncmp(host,"255.255.255.255",15) != 0 ) {
+    if (h == 0xFFFFFFFF && strncmp(host, "255.255.255.255", 15) != 0) {
         // symbolic host
-        struct hostent* dns = gethostbyname(host);
-        if ( dns == NULL ) return -1;
-        else memcpy( &dst.s_addr, dns->h_addr, dns->h_length );
+        struct hostent *dns = gethostbyname(host);
+        if (dns == NULL)
+            return -1;
+        else
+            memcpy(&dst.s_addr, dns->h_addr, dns->h_length);
     } else {
         // numeric host
         dst.s_addr = h;
@@ -137,23 +139,24 @@ convertHostname( const char* host, in_addr& dst )
 }
 
 int
-convertPortname( const char* port, unsigned short& dst )
+convertPortname(const char *port, unsigned short &dst)
 // purpose: convert a numeric or symbolic port number
 // paramtr: port (IN): port description to convert
 //          dst (OUT): port number in network byteorder.
 // returns: -1 in case of error, see errno; 0 otherwise.
 {
-    int p = strtoul(port,0,0);
+    int p = strtoul(port, 0, 0);
 
-    if ( p == 0 ) {
+    if (p == 0) {
         // symbolic port
-        struct servent* proto = getservbyname( port, "tcp" );
-        if ( proto == NULL ) return -1;
-        else dst = proto->s_port;
+        struct servent *proto = getservbyname(port, "tcp");
+        if (proto == NULL)
+            return -1;
+        else
+            dst = proto->s_port;
     } else {
         // numeric port
         dst = htons(p);
     }
     return 0;
 }
-

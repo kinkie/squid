@@ -16,4 +16,3 @@
 
 /* Unused variable: */
 Fs::Ufs::StoreFSufs<Fs::Ufs::UFSSwapDir> *UfsInstance_foo = NULL;
-

@@ -20,4 +20,3 @@ bool mimeGetDownloadOption(const char *fn);
 bool mimeGetViewOption(const char *fn);
 
 #endif /* SQUID_MIME_H_ */
-

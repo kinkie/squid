@@ -9,10 +9,10 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "Debug.h"
-#include "globals.h"
 #include "ipc/Queue.h"
+#include "Debug.h"
+#include "base/TextException.h"
+#include "globals.h"
 
 #include <limits>
 
@@ -44,7 +44,8 @@ ReadersId(String id)
 
 InstanceIdDefinitions(Ipc::QueueReader, "ipcQR");
 
-Ipc::QueueReader::QueueReader(): popBlocked(true), popSignal(false),
+Ipc::QueueReader::QueueReader() :
+    popBlocked(true), popSignal(false),
     rateLimit(0), balance(0)
 {
     debugs(54, 7, HERE << "constructed " << id);
@@ -52,7 +53,8 @@ Ipc::QueueReader::QueueReader(): popBlocked(true), popSignal(false),
 
 /* QueueReaders */
 
-Ipc::QueueReaders::QueueReaders(const int aCapacity): theCapacity(aCapacity),
+Ipc::QueueReaders::QueueReaders(const int aCapacity) :
+    theCapacity(aCapacity),
     theReaders(theCapacity)
 {
     Must(theCapacity > 0);
@@ -72,7 +74,7 @@ Ipc::QueueReaders::SharedMemorySize(const int capacity)
 
 // OneToOneUniQueue
 
-Ipc::OneToOneUniQueue::OneToOneUniQueue(const unsigned int aMaxItemSize, const int aCapacity):
+Ipc::OneToOneUniQueue::OneToOneUniQueue(const unsigned int aMaxItemSize, const int aCapacity) :
     theIn(0), theOut(0), theSize(0), theMaxItemSize(aMaxItemSize),
     theCapacity(aCapacity)
 {
@@ -97,7 +99,8 @@ Ipc::OneToOneUniQueue::Items2Bytes(const unsigned int maxItemSize, const int siz
 
 /* OneToOneUniQueues */
 
-Ipc::OneToOneUniQueues::OneToOneUniQueues(const int aCapacity, const unsigned int maxItemSize, const int queueCapacity): theCapacity(aCapacity)
+Ipc::OneToOneUniQueues::OneToOneUniQueues(const int aCapacity, const unsigned int maxItemSize, const int queueCapacity) :
+    theCapacity(aCapacity)
 {
     Must(theCapacity > 0);
     for (int i = 0; i < theCapacity; ++i)
@@ -113,24 +116,22 @@ Ipc::OneToOneUniQueues::sharedMemorySize() const
 size_t
 Ipc::OneToOneUniQueues::SharedMemorySize(const int capacity, const unsigned int maxItemSize, const int queueCapacity)
 {
-    const int queueSize =
-        OneToOneUniQueue::Items2Bytes(maxItemSize, queueCapacity);
+    const int queueSize = OneToOneUniQueue::Items2Bytes(maxItemSize, queueCapacity);
     return sizeof(OneToOneUniQueues) + queueSize * capacity;
 }
 
 const Ipc::OneToOneUniQueue &
-Ipc::OneToOneUniQueues::operator [](const int index) const
+    Ipc::OneToOneUniQueues::operator[](const int index) const
 {
     Must(0 <= index && index < theCapacity);
     const size_t queueSize = index ? front().sharedMemorySize() : 0;
-    const char *const queue =
-        reinterpret_cast<const char *>(this) + sizeof(*this) + index * queueSize;
+    const char *const queue = reinterpret_cast<const char *>(this) + sizeof(*this) + index * queueSize;
     return *reinterpret_cast<const OneToOneUniQueue *>(queue);
 }
 
 // BaseMultiQueue
 
-Ipc::BaseMultiQueue::BaseMultiQueue(const int aLocalProcessId):
+Ipc::BaseMultiQueue::BaseMultiQueue(const int aLocalProcessId) :
     theLocalProcessId(aLocalProcessId),
     theLastPopProcessId(std::numeric_limits<int>::max() - 1)
 {
@@ -167,32 +168,28 @@ Ipc::BaseMultiQueue::rateLimit(const int remoteProcessId) const
 Ipc::OneToOneUniQueue &
 Ipc::BaseMultiQueue::inQueue(const int remoteProcessId)
 {
-    const OneToOneUniQueue &queue =
-        const_cast<const BaseMultiQueue *>(this)->inQueue(remoteProcessId);
+    const OneToOneUniQueue &queue = const_cast<const BaseMultiQueue *>(this)->inQueue(remoteProcessId);
     return const_cast<OneToOneUniQueue &>(queue);
 }
 
 Ipc::OneToOneUniQueue &
 Ipc::BaseMultiQueue::outQueue(const int remoteProcessId)
 {
-    const OneToOneUniQueue &queue =
-        const_cast<const BaseMultiQueue *>(this)->outQueue(remoteProcessId);
+    const OneToOneUniQueue &queue = const_cast<const BaseMultiQueue *>(this)->outQueue(remoteProcessId);
     return const_cast<OneToOneUniQueue &>(queue);
 }
 
 Ipc::QueueReader &
 Ipc::BaseMultiQueue::localReader()
 {
-    const QueueReader &reader =
-        const_cast<const BaseMultiQueue *>(this)->localReader();
+    const QueueReader &reader = const_cast<const BaseMultiQueue *>(this)->localReader();
     return const_cast<QueueReader &>(reader);
 }
 
 Ipc::QueueReader &
 Ipc::BaseMultiQueue::remoteReader(const int remoteProcessId)
 {
-    const QueueReader &reader =
-        const_cast<const BaseMultiQueue *>(this)->remoteReader(remoteProcessId);
+    const QueueReader &reader = const_cast<const BaseMultiQueue *>(this)->remoteReader(remoteProcessId);
     return const_cast<QueueReader &>(reader);
 }
 
@@ -204,7 +201,7 @@ Ipc::FewToFewBiQueue::Init(const String &id, const int groupASize, const int gro
     return new Owner(id, groupASize, groupAIdOffset, groupBSize, groupBIdOffset, maxItemSize, capacity);
 }
 
-Ipc::FewToFewBiQueue::FewToFewBiQueue(const String &id, const Group aLocalGroup, const int aLocalProcessId):
+Ipc::FewToFewBiQueue::FewToFewBiQueue(const String &id, const Group aLocalGroup, const int aLocalProcessId) :
     BaseMultiQueue(aLocalProcessId),
     metadata(shm_old(Metadata)(MetadataId(id).termedBuf())),
     queues(shm_old(OneToOneUniQueues)(QueuesId(id).termedBuf())),
@@ -228,11 +225,9 @@ Ipc::FewToFewBiQueue::validProcessId(const Group group, const int processId) con
 {
     switch (group) {
     case groupA:
-        return metadata->theGroupAIdOffset <= processId &&
-               processId < metadata->theGroupAIdOffset + metadata->theGroupASize;
+        return metadata->theGroupAIdOffset <= processId && processId < metadata->theGroupAIdOffset + metadata->theGroupASize;
     case groupB:
-        return metadata->theGroupBIdOffset <= processId &&
-               processId < metadata->theGroupBIdOffset + metadata->theGroupBSize;
+        return metadata->theGroupBIdOffset <= processId && processId < metadata->theGroupBIdOffset + metadata->theGroupBSize;
     }
     return false;
 }
@@ -283,9 +278,7 @@ int
 Ipc::FewToFewBiQueue::readerIndex(const Group group, const int processId) const
 {
     Must(validProcessId(group, processId));
-    return group == groupA ?
-           processId - metadata->theGroupAIdOffset :
-           metadata->theGroupASize + processId - metadata->theGroupBIdOffset;
+    return group == groupA ? processId - metadata->theGroupAIdOffset : metadata->theGroupASize + processId - metadata->theGroupBIdOffset;
 }
 
 const Ipc::QueueReader &
@@ -303,18 +296,16 @@ Ipc::FewToFewBiQueue::remoteReader(const int processId) const
 int
 Ipc::FewToFewBiQueue::remotesCount() const
 {
-    return theLocalGroup == groupA ? metadata->theGroupBSize :
-           metadata->theGroupASize;
+    return theLocalGroup == groupA ? metadata->theGroupBSize : metadata->theGroupASize;
 }
 
 int
 Ipc::FewToFewBiQueue::remotesIdOffset() const
 {
-    return theLocalGroup == groupA ? metadata->theGroupBIdOffset :
-           metadata->theGroupAIdOffset;
+    return theLocalGroup == groupA ? metadata->theGroupBIdOffset : metadata->theGroupAIdOffset;
 }
 
-Ipc::FewToFewBiQueue::Metadata::Metadata(const int aGroupASize, const int aGroupAIdOffset, const int aGroupBSize, const int aGroupBIdOffset):
+Ipc::FewToFewBiQueue::Metadata::Metadata(const int aGroupASize, const int aGroupAIdOffset, const int aGroupBSize, const int aGroupBIdOffset) :
     theGroupASize(aGroupASize), theGroupAIdOffset(aGroupAIdOffset),
     theGroupBSize(aGroupBSize), theGroupBIdOffset(aGroupBIdOffset)
 {
@@ -322,10 +313,10 @@ Ipc::FewToFewBiQueue::Metadata::Metadata(const int aGroupASize, const int aGroup
     Must(theGroupBSize > 0);
 }
 
-Ipc::FewToFewBiQueue::Owner::Owner(const String &id, const int groupASize, const int groupAIdOffset, const int groupBSize, const int groupBIdOffset, const unsigned int maxItemSize, const int capacity):
+Ipc::FewToFewBiQueue::Owner::Owner(const String &id, const int groupASize, const int groupAIdOffset, const int groupBSize, const int groupBIdOffset, const unsigned int maxItemSize, const int capacity) :
     metadataOwner(shm_new(Metadata)(MetadataId(id).termedBuf(), groupASize, groupAIdOffset, groupBSize, groupBIdOffset)),
-    queuesOwner(shm_new(OneToOneUniQueues)(QueuesId(id).termedBuf(), groupASize*groupBSize*2, maxItemSize, capacity)),
-    readersOwner(shm_new(QueueReaders)(ReadersId(id).termedBuf(), groupASize+groupBSize))
+    queuesOwner(shm_new(OneToOneUniQueues)(QueuesId(id).termedBuf(), groupASize * groupBSize * 2, maxItemSize, capacity)),
+    readersOwner(shm_new(QueueReaders)(ReadersId(id).termedBuf(), groupASize + groupBSize))
 {
 }
 
@@ -344,7 +335,7 @@ Ipc::MultiQueue::Init(const String &id, const int processCount, const int proces
     return new Owner(id, processCount, processIdOffset, maxItemSize, capacity);
 }
 
-Ipc::MultiQueue::MultiQueue(const String &id, const int localProcessId):
+Ipc::MultiQueue::MultiQueue(const String &id, const int localProcessId) :
     BaseMultiQueue(localProcessId),
     metadata(shm_old(Metadata)(MetadataId(id).termedBuf())),
     queues(shm_old(OneToOneUniQueues)(QueuesId(id).termedBuf())),
@@ -359,8 +350,7 @@ Ipc::MultiQueue::MultiQueue(const String &id, const int localProcessId):
 bool
 Ipc::MultiQueue::validProcessId(const int processId) const
 {
-    return metadata->theProcessIdOffset <= processId &&
-           processId < metadata->theProcessIdOffset + metadata->theProcessCount;
+    return metadata->theProcessIdOffset <= processId && processId < metadata->theProcessIdOffset + metadata->theProcessCount;
 }
 
 const Ipc::OneToOneUniQueue &
@@ -418,15 +408,15 @@ Ipc::MultiQueue::remotesIdOffset() const
     return metadata->theProcessIdOffset;
 }
 
-Ipc::MultiQueue::Metadata::Metadata(const int aProcessCount, const int aProcessIdOffset):
+Ipc::MultiQueue::Metadata::Metadata(const int aProcessCount, const int aProcessIdOffset) :
     theProcessCount(aProcessCount), theProcessIdOffset(aProcessIdOffset)
 {
     Must(theProcessCount > 0);
 }
 
-Ipc::MultiQueue::Owner::Owner(const String &id, const int processCount, const int processIdOffset, const unsigned int maxItemSize, const int capacity):
+Ipc::MultiQueue::Owner::Owner(const String &id, const int processCount, const int processIdOffset, const unsigned int maxItemSize, const int capacity) :
     metadataOwner(shm_new(Metadata)(MetadataId(id).termedBuf(), processCount, processIdOffset)),
-    queuesOwner(shm_new(OneToOneUniQueues)(QueuesId(id).termedBuf(), processCount*processCount, maxItemSize, capacity)),
+    queuesOwner(shm_new(OneToOneUniQueues)(QueuesId(id).termedBuf(), processCount * processCount, maxItemSize, capacity)),
     readersOwner(shm_new(QueueReaders)(ReadersId(id).termedBuf(), processCount))
 {
 }
@@ -437,4 +427,3 @@ Ipc::MultiQueue::Owner::~Owner()
     delete queuesOwner;
     delete readersOwner;
 }
-

@@ -103,4 +103,3 @@ AnyP::UriScheme::defaultPort() const
         return 0;
     }
 }
-

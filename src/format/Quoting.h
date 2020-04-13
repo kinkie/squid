@@ -9,12 +9,11 @@
 #ifndef _SQUID_FORMAT_QUOTING_H
 #define _SQUID_FORMAT_QUOTING_H
 
-namespace Format
-{
+namespace Format {
 
 /// Safely URL-encode a username.
 /// Accepts NULL or empty strings.
-char * QuoteUrlEncodeUsername(const char *name);
+char *QuoteUrlEncodeUsername(const char *name);
 
 /** URL-style encoding on a MIME headers blob.
  * May accept NULL or empty strings.
@@ -22,7 +21,6 @@ char * QuoteUrlEncodeUsername(const char *name);
  */
 char *QuoteMimeBlob(const char *header);
 
-}; // namespace Format
+};  // namespace Format
 
 #endif /* _SQUID_FORMAT_QUOTING_H */
-

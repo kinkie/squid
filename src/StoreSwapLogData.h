@@ -45,11 +45,13 @@ class SwapChecksum24
 public:
     SwapChecksum24() { raw[0] = raw[1] = raw[2] = 0; }
 
-    bool operator ==(const SwapChecksum24 &o) const {
+    bool operator==(const SwapChecksum24 &o) const
+    {
         return raw[0] == o.raw[0] && raw[1] == o.raw[1] && raw[2] == o.raw[2];
     }
 
-    bool operator !=(const SwapChecksum24 &o) const {
+    bool operator!=(const SwapChecksum24 &o) const
+    {
         return !(*this == o);
     }
 
@@ -63,11 +65,11 @@ public:
     std::ostream &print(std::ostream &os) const;
 
 private:
-    uint8_t raw[3]; // designed to follow "op" members, in padding space
+    uint8_t raw[3];  // designed to follow "op" members, in padding space
 };
 
 inline std::ostream &
-operator <<(std::ostream &os, const SwapChecksum24 &sum)
+operator<<(std::ostream &os, const SwapChecksum24 &sum)
 {
     return sum.print(os);
 }
@@ -105,7 +107,7 @@ public:
     /**
      * Fingerprint to weed out bogus/corrupted swap.state entries.
      */
-    SwapChecksum24 checksum; // follows "op" because compiler will pad anyway
+    SwapChecksum24 checksum;  // follows "op" because compiler will pad anyway
 
     /**
      * The 32-bit file number which maps to a pathname.
@@ -189,10 +191,9 @@ public:
     size_t gapSize() const;
 
     uint8_t op;
-    SwapChecksum24 checksum; // follows "op" because compiler will pad anyway
+    SwapChecksum24 checksum;  // follows "op" because compiler will pad anyway
     int32_t version;
     int32_t record_size;
 };
 
 #endif /* SQUID_STORESWAPLOGDATA_H */
-

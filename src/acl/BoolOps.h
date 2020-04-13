@@ -15,11 +15,10 @@
  * They cannot be specified directly in squid.conf because squid.conf ACLs are
  * more complex than (and are implemented using) these operator-like classes.*/
 
-namespace Acl
-{
+namespace Acl {
 
 /// Implements the "not" or "!" operator.
-class NotNode: public InnerNode
+class NotNode : public InnerNode
 {
     MEMPROXY_CLASS(NotNode);
 
@@ -40,7 +39,7 @@ private:
 /// An inner ACL expression tree node representing a boolean conjunction (AND)
 /// operator applied to a list of child tree nodes.
 /// For example, conditions expressed on a single http_access line are ANDed.
-class AndNode: public InnerNode
+class AndNode : public InnerNode
 {
     MEMPROXY_CLASS(AndNode);
 
@@ -57,7 +56,7 @@ private:
 /// An inner ACL expression tree node representing a boolean disjuction (OR)
 /// operator applied to a list of child tree nodes.
 /// For example, conditions expressed by multiple http_access lines are ORed.
-class OrNode: public InnerNode
+class OrNode : public InnerNode
 {
     MEMPROXY_CLASS(OrNode);
 
@@ -78,7 +77,6 @@ private:
     virtual int doMatch(ACLChecklist *checklist, Nodes::const_iterator start) const;
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACL_LOGIC_H */
-

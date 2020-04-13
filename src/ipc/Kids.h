@@ -17,21 +17,21 @@
 class Kids
 {
 public:
-    Kids ();
+    Kids();
 
 private:
-    Kids (const Kids&); ///< not implemented
-    Kids& operator= (const Kids&); ///< not implemented
+    Kids(const Kids &);             ///< not implemented
+    Kids &operator=(const Kids &);  ///< not implemented
 
 public:
     /// initialize all kid records based on Config
     void init();
 
     /// returns kid by pid
-    Kid* find(pid_t pid);
+    Kid *find(pid_t pid);
 
     /// returns the kid by index, useful for kids iteration
-    Kid& get(size_t i);
+    Kid &get(size_t i);
 
     /// whether all kids are hopeless
     bool allHopeless() const;
@@ -62,9 +62,8 @@ private:
     std::vector<Kid> storage;
 };
 
-extern Kids TheKids; ///< All kids being maintained
+extern Kids TheKids;  ///< All kids being maintained
 
-extern SBuf TheKidName; ///< current Squid process name (e.g., "squid-coord")
+extern SBuf TheKidName;  ///< current Squid process name (e.g., "squid-coord")
 
 #endif /* SQUID_IPC_KIDS_H */
-

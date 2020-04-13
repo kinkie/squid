@@ -19,12 +19,11 @@ public:
     BlockingDiskIOModule();
     virtual void init();
     virtual void gracefulShutdown();
-    virtual char const *type () const;
-    virtual DiskIOStrategy* createStrategy();
+    virtual char const *type() const;
+    virtual DiskIOStrategy *createStrategy();
 
 private:
     static BlockingDiskIOModule Instance;
 };
 
 #endif /* SQUID_BLOCKINGDISKIOMODULE_H */
-

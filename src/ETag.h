@@ -17,16 +17,15 @@
 class ETag
 {
 public:
-    const char *str;            ///< quoted-string
-    int weak;                   ///< true if it is a weak validator
+    const char *str;  ///< quoted-string
+    int weak;         ///< true if it is a weak validator
 };
 
 /* ETag */
-int etagParseInit(ETag * etag, const char *str);
+int etagParseInit(ETag *etag, const char *str);
 /// whether etags are strong-equal
 bool etagIsStrongEqual(const ETag &tag1, const ETag &tag2);
 /// whether etags are weak-equal
 bool etagIsWeakEqual(const ETag &tag1, const ETag &tag2);
 
 #endif /* _SQUIDETAG_H */
-

@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/HierCodeData.h"
 #include "ConfigParser.h"
+#include "acl/Checklist.h"
 #include "fatal.h"
 #include "hier_code.h"
 
@@ -21,11 +21,12 @@ ACLHierCodeData::ACLHierCodeData()
 
 ACLHierCodeData::ACLHierCodeData(ACLHierCodeData const &old)
 {
-    memcpy(values, old.values, sizeof(values) );
+    memcpy(values, old.values, sizeof(values));
 }
 
 ACLHierCodeData::~ACLHierCodeData()
-{ }
+{
+}
 
 bool
 ACLHierCodeData::match(hier_code toFind)
@@ -38,8 +39,9 @@ ACLHierCodeData::dump() const
 {
     SBufList sl;
 
-    for (hier_code iter=HIER_NONE; iter<HIER_MAX; ++iter) {
-        if (!values[iter]) continue;
+    for (hier_code iter = HIER_NONE; iter < HIER_MAX; ++iter) {
+        if (!values[iter])
+            continue;
         sl.push_back(SBuf(hier_code_str[iter]));
     }
 
@@ -54,12 +56,12 @@ ACLHierCodeData::parse()
     while ((t = ConfigParser::strtokFile())) {
         for (hier_code iter = HIER_NONE; iter <= HIER_MAX; ++iter) {
             if (iter == HIER_MAX) {
-                fatalf("ERROR: No such hier_code '%s'",t);
+                fatalf("ERROR: No such hier_code '%s'", t);
                 return;
             }
-            if (strcmp(hier_code_str[iter],t) == 0) {
+            if (strcmp(hier_code_str[iter], t) == 0) {
                 values[iter] = true;
-                break; // back to while-loop
+                break;  // back to while-loop
             }
         }
     }
@@ -69,7 +71,8 @@ bool
 ACLHierCodeData::empty() const
 {
     for (hier_code iter = HIER_NONE; iter <= HIER_MAX; ++iter) {
-        if (values[iter]) return false; // not empty.
+        if (values[iter])
+            return false;  // not empty.
     }
     return true;
 }
@@ -79,4 +82,3 @@ ACLHierCodeData::clone() const
 {
     return new ACLHierCodeData(*this);
 }
-

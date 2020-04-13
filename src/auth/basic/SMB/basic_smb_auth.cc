@@ -31,18 +31,18 @@
 
 #include <cstring>
 
-#define NMB_UNICAST     1
-#define NMB_BROADCAST   2
+#define NMB_UNICAST 1
+#define NMB_BROADCAST 2
 
 struct SMBDOMAIN {
-    const char *name;       /* domain name */
-    const char *sname;      /* match this with user input */
-    const char *passthrough;    /* pass-through authentication */
-    const char *nmbaddr;    /* name service address */
-    int nmbcast;        /* broadcast or unicast */
-    char *authshare;        /* share name of auth file */
-    const char *authfile;   /* pathname of auth file */
-    struct SMBDOMAIN *next; /* linked list */
+    const char *name;        /* domain name */
+    const char *sname;       /* match this with user input */
+    const char *passthrough; /* pass-through authentication */
+    const char *nmbaddr;     /* name service address */
+    int nmbcast;             /* broadcast or unicast */
+    char *authshare;         /* share name of auth file */
+    const char *authfile;    /* pathname of auth file */
+    struct SMBDOMAIN *next;  /* linked list */
 };
 
 struct SMBDOMAIN *firstdom = NULL;
@@ -54,7 +54,7 @@ struct SMBDOMAIN *lastdom = NULL;
  */
 
 void
-print_esc(FILE * p, char *s)
+print_esc(FILE *p, char *s)
 {
     char buf[HELPER_INPUT_BUFFER];
     char *t;
@@ -65,9 +65,9 @@ print_esc(FILE * p, char *s)
          * NP: The shell escaping permits 'i' to jump up to 2 octets per loop,
          *     so ensure we have at least 3 free.
          */
-        if (i > HELPER_INPUT_BUFFER-3) {
+        if (i > HELPER_INPUT_BUFFER - 3) {
             buf[i] = '\0';
-            (void) fputs(buf, p);
+            (void)fputs(buf, p);
             i = 0;
         }
         if (*t == '\\')
@@ -79,7 +79,7 @@ print_esc(FILE * p, char *s)
 
     if (i > 0) {
         buf[i] = '\0';
-        (void) fputs(buf, p);
+        (void)fputs(buf, p);
     }
 }
 
@@ -219,24 +219,23 @@ main(int argc, char *argv[])
             SEND_ERR("");
             continue;
         }
-        (void) fprintf(p, "%s\n", dom->name);
-        (void) fprintf(p, "%s\n", dom->passthrough);
-        (void) fprintf(p, "%s\n", dom->nmbaddr);
-        (void) fprintf(p, "%d\n", dom->nmbcast);
-        (void) fprintf(p, "%s\n", dom->authshare);
-        (void) fprintf(p, "%s\n", dom->authfile);
-        (void) fprintf(p, "%s\n", user);
+        (void)fprintf(p, "%s\n", dom->name);
+        (void)fprintf(p, "%s\n", dom->passthrough);
+        (void)fprintf(p, "%s\n", dom->nmbaddr);
+        (void)fprintf(p, "%d\n", dom->nmbcast);
+        (void)fprintf(p, "%s\n", dom->authshare);
+        (void)fprintf(p, "%s\n", dom->authfile);
+        (void)fprintf(p, "%s\n", user);
         /* the password can contain special characters */
         print_esc(p, pass);
-        (void) fputc('\n', p);
-        (void) fflush(p);
+        (void)fputc('\n', p);
+        (void)fflush(p);
 
         if (pclose(p) == 0)
             SEND_OK("");
         else
             SEND_ERR("");
-    }               /* while (1) */
+    } /* while (1) */
 
     return EXIT_SUCCESS;
 }
-

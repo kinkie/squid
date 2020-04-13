@@ -16,8 +16,7 @@
 class ACLHasComponentStrategy : public ACLStrategy<ACLChecklist *>
 {
 public:
-    virtual int match(ACLData<MatchType> * &, ACLFilledChecklist *);
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
 };
 
 #endif
-

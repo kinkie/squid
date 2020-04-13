@@ -14,8 +14,8 @@
 #include "esi/Element.h"
 #include "esi/Esi.h"
 #include "esi/Parser.h"
-#include "http/forward.h"
 #include "http/StatusCode.h"
+#include "http/forward.h"
 
 class ESIVarState;
 class ClientHttpRequest;
@@ -41,7 +41,8 @@ public:
         varState(NULL),
         cachedASTInUse(false),
         reading_(true),
-        processing(false) {
+        processing(false)
+    {
         memset(&flags, 0, sizeof(flags));
     }
 
@@ -56,17 +57,17 @@ public:
 
     /* when esi processing completes */
     void provideData(ESISegment::Pointer, ESIElement *source);
-    void fail (ESIElement *source, char const*anError = NULL);
+    void fail(ESIElement *source, char const *anError = NULL);
     void startRead();
     void finishRead();
     bool reading() const;
     void setError();
     void setErrorMessage(char const *);
 
-    void addStackElement (ESIElement::Pointer element);
-    void addLiteral (const char *s, int len);
+    void addStackElement(ESIElement::Pointer element);
+    void addLiteral(const char *s, int len);
 
-    void finishChildren ();
+    void finishChildren();
 
     clientStreamNode *thisNode; /* our stream node */
     /* the request we are processing. HMM: cbdataReferencing this will result
@@ -75,26 +76,26 @@ public:
     ClientHttpRequest *http;
 
     struct {
-        int passthrough:1;
-        int oktosend:1;
-        int finished:1;
+        int passthrough : 1;
+        int oktosend : 1;
+        int finished : 1;
 
         /* an error has occurred, send full body replies
          * regardless. Note that we don't fail midstream
          * because we buffer until we can not fail
          */
-        int error:1;
+        int error : 1;
 
-        int finishedtemplate:1; /* we've read the entire template */
-        int clientwantsdata:1; /* we need to satisfy a read request */
-        int kicked:1; /* note on reentering the kick routine */
-        int detached:1; /* our downstream has detached */
+        int finishedtemplate : 1; /* we've read the entire template */
+        int clientwantsdata : 1;  /* we need to satisfy a read request */
+        int kicked : 1;           /* note on reentering the kick routine */
+        int detached : 1;         /* our downstream has detached */
     } flags;
 
-    err_type errorpage; /* if we error what page to use */
+    err_type errorpage;           /* if we error what page to use */
     Http::StatusCode errorstatus; /* if we error, what code to return */
-    char *errormessage; /* error to pass to error page */
-    HttpReplyPointer rep; /* buffered until we pass data downstream */
+    char *errormessage;           /* error to pass to error page */
+    HttpReplyPointer rep;         /* buffered until we pass data downstream */
     ESISegment::Pointer buffered; /* unprocessed data - for whatever reason */
     ESISegment::Pointer incoming;
     /* processed data we are waiting to send, or for
@@ -108,22 +109,22 @@ public:
      */
     size_t outbound_offset;
     int64_t readpos; /* the logical position we are reading from */
-    int64_t pos; /* the logical position of outbound_offset in the data stream */
+    int64_t pos;     /* the logical position of outbound_offset in the data stream */
 
     class ParserState
     {
 
     public:
         ESIElement::Pointer stack[ESI_STACK_DEPTH_LIMIT]; /* a stack of esi elements that are open */
-        int stackdepth; /* self explanatory */
+        int stackdepth;                                   /* self explanatory */
         ESIParser::Pointer theParser;
         ESIElement::Pointer top();
-        void init (ESIParserClient *);
+        void init(ESIParserClient *);
         bool inited() const;
         ParserState();
         void freeResources();
         void popAll();
-        int parsing:1; /* libexpat is not reentrant on the same context */
+        int parsing : 1; /* libexpat is not reentrant on the same context */
 
     private:
         bool inited_;
@@ -133,21 +134,21 @@ public:
     ESIVarState *varState;
     ESIElement::Pointer tree;
 
-    esiKick_t kick ();
+    esiKick_t kick();
     RefCount<ESIContext> cbdataLocker;
-    bool failed() const {return flags.error != 0;}
+    bool failed() const { return flags.error != 0; }
 
     bool cachedASTInUse;
 
 private:
-    void fail ();
+    void fail();
     void freeResources();
     void fixupOutboundTail();
     void trimBlanks();
-    size_t send ();
+    size_t send();
     bool reading_;
     void appendOutboundData(ESISegment::Pointer theData);
-    esiProcessResult_t process ();
+    esiProcessResult_t process();
     void parse();
     void parseOneBuffer();
     void updateCachedAST();
@@ -155,10 +156,9 @@ private:
     void getCachedAST();
     virtual void start(const char *el, const char **attr, size_t attrCount);
     virtual void end(const char *el);
-    virtual void parserDefault (const char *s, int len);
-    virtual void parserComment (const char *s);
+    virtual void parserDefault(const char *s, int len);
+    virtual void parserComment(const char *s);
     bool processing;
 };
 
 #endif /* SQUID_ESICONTEXT_H */
-

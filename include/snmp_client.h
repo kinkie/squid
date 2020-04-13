@@ -34,8 +34,8 @@ struct synch_state {
     int waiting;
     int status;
     /* status codes */
-#define STAT_SUCCESS    0
-#define STAT_ERROR  1
+#define STAT_SUCCESS 0
+#define STAT_ERROR 1
 #define STAT_TIMEOUT 2
     int reqid;
     struct snmp_pdu *pdu;
@@ -62,5 +62,4 @@ void snmp_synch_setup(struct snmp_session *);
 }
 #endif
 
-#endif              /* SQUID_SNMP_CLIENT_H */
-
+#endif /* SQUID_SNMP_CLIENT_H */

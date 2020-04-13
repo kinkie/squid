@@ -9,17 +9,17 @@
 /* DEBUG: section 37    ICMP Routines */
 
 #include "squid.h"
+#include "icmp/IcmpSquid.h"
+#include "SquidConfig.h"
+#include "SquidIpc.h"
+#include "SquidTime.h"
 #include "comm.h"
 #include "comm/Loops.h"
 #include "defines.h"
 #include "fd.h"
 #include "icmp/IcmpConfig.h"
-#include "icmp/IcmpSquid.h"
 #include "icmp/net_db.h"
 #include "ip/tools.h"
-#include "SquidConfig.h"
-#include "SquidIpc.h"
-#include "SquidTime.h"
 
 #include <cerrno>
 
@@ -28,17 +28,18 @@ IcmpSquid icmpEngine;
 
 #if USE_ICMP
 
-#define S_ICMP_ECHO     1
-#define S_ICMP_DOM      3
+#define S_ICMP_ECHO 1
+#define S_ICMP_DOM 3
 
-static void * hIpc;
+static void *hIpc;
 static pid_t pid;
 
 #endif /* USE_ICMP */
 
-IcmpSquid::IcmpSquid() : Icmp()
+IcmpSquid::IcmpSquid() :
+    Icmp()
 {
-    ; // nothing new.
+    ;  // nothing new.
 }
 
 IcmpSquid::~IcmpSquid()
@@ -79,7 +80,7 @@ IcmpSquid::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
 
     pecho.to = to;
 
-    pecho.opcode = (unsigned char) opcode;
+    pecho.opcode = (unsigned char)opcode;
 
     pecho.psize = len;
 
@@ -126,7 +127,7 @@ IcmpSquid::Recv()
 
     Comm::SetSelect(icmp_sock, COMM_SELECT_READ, icmpSquidRecv, NULL, 0);
     n = comm_udp_recv(icmp_sock,
-                      (char *) &preply,
+                      (char *)&preply,
                       sizeof(pingerReplyData),
                       0);
 
@@ -160,11 +161,11 @@ IcmpSquid::Recv()
     switch (preply.opcode) {
 
     case S_ICMP_ECHO:
-        debugs(37,4, HERE << " ICMP_ECHO of " << preply.from << " gave: hops=" << preply.hops <<", rtt=" << preply.rtt);
+        debugs(37, 4, HERE << " ICMP_ECHO of " << preply.from << " gave: hops=" << preply.hops << ", rtt=" << preply.rtt);
         break;
 
     case S_ICMP_DOM:
-        debugs(37,4, HERE << " DomainPing of " << preply.from << " gave: hops=" << preply.hops <<", rtt=" << preply.rtt);
+        debugs(37, 4, HERE << " DomainPing of " << preply.from << " gave: hops=" << preply.hops << ", rtt=" << preply.rtt);
         netdbHandlePingReply(F, preply.hops, preply.rtt);
         break;
 
@@ -245,7 +246,7 @@ IcmpSquid::Open(void)
 
 #endif /* _SQUID_WINDOWS_ */
     return icmp_sock;
-#else /* USE_ICMP */
+#else  /* USE_ICMP */
     return -1;
 #endif /* USE_ICMP */
 }
@@ -262,7 +263,7 @@ IcmpSquid::Close(void)
 
 #if _SQUID_WINDOWS_
 
-    send(icmp_sock, (const void *) "$shutdown\n", 10, 0);
+    send(icmp_sock, (const void *)"$shutdown\n", 10, 0);
 
 #endif
 
@@ -284,4 +285,3 @@ IcmpSquid::Close(void)
 
 #endif
 }
-

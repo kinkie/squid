@@ -11,22 +11,22 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS
-#include "comm/Connection.h"
 #include "CommRead.h"
 #include "DelayVector.h"
+#include "comm/Connection.h"
 
 DelayVector::DelayVector()
 {
-    DelayPools::registerForUpdates (this);
+    DelayPools::registerForUpdates(this);
 }
 
 DelayVector::~DelayVector()
 {
-    DelayPools::deregisterForUpdates (this);
+    DelayPools::deregisterForUpdates(this);
 }
 
 void
-DelayVector::stats(StoreEntry * sentry)
+DelayVector::stats(StoreEntry *sentry)
 {
     iterator pos = pools.begin();
 
@@ -81,13 +81,14 @@ DelayVector::push_back(CompositePoolNode::Pointer aNode)
     pools.push_back(aNode);
 }
 
-DelayVector::Id::Id(DelayVector::Pointer aDelayVector, CompositeSelectionDetails &details) : theVector(aDelayVector)
+DelayVector::Id::Id(DelayVector::Pointer aDelayVector, CompositeSelectionDetails &details) :
+    theVector(aDelayVector)
 {
     debugs(77, 3, "DelayVector::Id::Id");
     DelayVector::iterator pos = theVector->pools.begin();
 
     while (pos != theVector->pools.end()) {
-        ids.push_back ((*pos)->id (details));
+        ids.push_back((*pos)->id(details));
         ++pos;
     }
 }
@@ -98,13 +99,13 @@ DelayVector::Id::~Id()
 }
 
 int
-DelayVector::Id::bytesWanted (int minimum, int maximum) const
+DelayVector::Id::bytesWanted(int minimum, int maximum) const
 {
     int nbytes = maximum;
     const_iterator pos = ids.begin();
 
     while (pos != ids.end()) {
-        nbytes = min (nbytes, (*pos)->bytesWanted(minimum, nbytes));
+        nbytes = min(nbytes, (*pos)->bytesWanted(minimum, nbytes));
         ++pos;
     }
 
@@ -132,4 +133,3 @@ DelayVector::Id::delayRead(DeferredRead const &aRead)
 }
 
 #endif
-

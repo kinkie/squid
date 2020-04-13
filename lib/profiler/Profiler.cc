@@ -110,10 +110,10 @@ TimersArray *xprof_Timers = NULL;
 /* Private stuff */
 
 /* new stuff */
-#define MAXSTACKDEPTH   512
+#define MAXSTACKDEPTH 512
 
 struct _callstack_entry {
-    int timer;      /* index into timers array */
+    int timer; /* index into timers array */
     const char *name;
     hrtime_t start, stop, accum;
 };
@@ -126,7 +126,7 @@ static __inline void
 #else
 static inline void
 #endif
-xprof_update(xprof_stats_data * head)
+xprof_update(xprof_stats_data *head)
 {
     if (head->delta < head->best)
         head->best = head->delta;
@@ -183,7 +183,6 @@ xprof_start(xprof_type type, const char *timer)
     cstack[cstack_head].name = timer;
     ++cstack_head;
     assert(cstack_head < MAXSTACKDEPTH);
-
 }
 
 void
@@ -213,4 +212,3 @@ xprof_stop(xprof_type type, const char *timer)
 }
 
 #endif /* USE_XPROF_STATS */
-

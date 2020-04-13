@@ -7,14 +7,14 @@
  */
 
 #include "squid.h"
+#include "security/ServerOptions.h"
+#include "SquidConfig.h"
 #include "anyp/PortCfg.h"
 #include "base/Packable.h"
 #include "cache_cf.h"
 #include "fatal.h"
 #include "globals.h"
-#include "security/ServerOptions.h"
 #include "security/Session.h"
-#include "SquidConfig.h"
 #if USE_OPENSSL
 #include "compat/openssl.h"
 #include "ssl/support.h"
@@ -25,9 +25,10 @@
 #endif
 
 Security::ServerOptions &
-Security::ServerOptions::operator =(const Security::ServerOptions &old) {
+Security::ServerOptions::operator=(const Security::ServerOptions &old)
+{
     if (this != &old) {
-        Security::PeerOptions::operator =(old);
+        Security::PeerOptions::operator=(old);
         clientCaFile = old.clientCaFile;
         dh = old.dh;
         dhParamsFile = old.dhParamsFile;
@@ -72,8 +73,8 @@ Security::ServerOptions::parse(const char *token)
         if (!dh.isEmpty()) {
             auto pos = dh.find(':');
             if (pos != SBuf::npos) {  // tls-dh=eecdhCurve:dhParamsFile
-                eecdhCurve = dh.substr(0,pos);
-                dhParamsFile = dh.substr(pos+1);
+                eecdhCurve = dh.substr(0, pos);
+                dhParamsFile = dh.substr(pos + 1);
             } else {  // tls-dh=dhParamsFile
                 dhParamsFile = dh;
                 // empty eecdhCurve means "do not use EECDH"
@@ -101,7 +102,7 @@ Security::ServerOptions::parse(const char *token)
         // probably making this comparison and misleading ERROR unnecessary.
         if (dynamicCertMemCacheSize == std::numeric_limits<size_t>::max()) {
             debugs(3, DBG_CRITICAL, "ERROR: Cannot allocate memory for '" << token << "'. Using default of 4MB instead.");
-            dynamicCertMemCacheSize = 4*1024*1024; // 4 MB
+            dynamicCertMemCacheSize = 4 * 1024 * 1024;  // 4 MB
         }
 
     } else if (strcmp(token, "generate-host-certificates") == 0) {
@@ -113,7 +114,7 @@ Security::ServerOptions::parse(const char *token)
 
     } else if (strncmp(token, "context=", 8) == 0) {
 #if USE_OPENSSL
-        staticContextSessionId = SBuf(token+8);
+        staticContextSessionId = SBuf(token + 8);
         // to hide its arguably sensitive value, do not print token in these debugs
         if (staticContextSessionId.length() > SSL_MAX_SSL_SESSION_ID_LENGTH) {
             debugs(83, DBG_CRITICAL, "FATAL: Option 'context=' value is too long. Maximum " << SSL_MAX_SSL_SESSION_ID_LENGTH << " characters.");
@@ -136,7 +137,7 @@ Security::ServerOptions::dumpCfg(Packable *p, const char *pfx) const
     Security::PeerOptions::dumpCfg(p, pfx);
 
     if (!encryptTransport)
-        return; // no other settings are relevant
+        return;  // no other settings are relevant
 
     // dump the server-only options
     if (!dh.isEmpty())
@@ -145,7 +146,7 @@ Security::ServerOptions::dumpCfg(Packable *p, const char *pfx) const
     if (!generateHostCertificates)
         p->appendf(" %sgenerate-host-certificates=off", pfx);
 
-    if (dynamicCertMemCacheSize != 4*1024*1024) // 4MB default, no 'tls-' prefix
+    if (dynamicCertMemCacheSize != 4 * 1024 * 1024)  // 4MB default, no 'tls-' prefix
         p->appendf(" dynamic_cert_mem_cache_size=%" PRIuSIZE "bytes", dynamicCertMemCacheSize);
 
     if (!staticContextSessionId.isEmpty())
@@ -395,7 +396,7 @@ Security::ServerOptions::updateContextConfig(Security::ContextPointer &ctx)
         debugs(83, 5, "Using cipher suite " << sslCipher << ".");
         if (!SSL_CTX_set_cipher_list(ctx.get(), sslCipher.c_str())) {
             auto ssl_error = ERR_get_error();
-            debugs(83, DBG_CRITICAL, "ERROR: Failed to set SSL cipher suite '" << sslCipher << "': " <<  Security::ErrorString(ssl_error));
+            debugs(83, DBG_CRITICAL, "ERROR: Failed to set SSL cipher suite '" << sslCipher << "': " << Security::ErrorString(ssl_error));
             return false;
         }
     }
@@ -409,7 +410,7 @@ Security::ServerOptions::updateContextConfig(Security::ContextPointer &ctx)
 
 #if USE_OPENSSL
     if (parsedFlags & SSL_FLAG_DONT_VERIFY_DOMAIN)
-        SSL_CTX_set_ex_data(ctx.get(), ssl_ctx_ex_index_dont_verify_domain, (void *) -1);
+        SSL_CTX_set_ex_data(ctx.get(), ssl_ctx_ex_index_dont_verify_domain, (void *)-1);
 
     Security::SetSessionCacheCallbacks(ctx);
 #endif
@@ -476,8 +477,8 @@ Security::ServerOptions::updateContextEecdh(Security::ContextPointer &ctx)
         EC_KEY_free(ecdh);
 
 #else
-        debugs(83, DBG_CRITICAL, "ERROR: EECDH is not available in this build." <<
-               " Please link against OpenSSL>=0.9.8 and ensure OPENSSL_NO_ECDH is not set.");
+        debugs(83, DBG_CRITICAL, "ERROR: EECDH is not available in this build."
+                   << " Please link against OpenSSL>=0.9.8 and ensure OPENSSL_NO_ECDH is not set.");
 #endif
     }
 
@@ -494,7 +495,6 @@ Security::ServerOptions::updateContextSessionId(Security::ContextPointer &ctx)
 {
 #if USE_OPENSSL
     if (!staticContextSessionId.isEmpty())
-        SSL_CTX_set_session_id_context(ctx.get(), reinterpret_cast<const unsigned char*>(staticContextSessionId.rawContent()), staticContextSessionId.length());
+        SSL_CTX_set_session_id_context(ctx.get(), reinterpret_cast<const unsigned char *>(staticContextSessionId.rawContent()), staticContextSessionId.length());
 #endif
 }
-

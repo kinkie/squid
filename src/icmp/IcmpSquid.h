@@ -33,7 +33,7 @@ public:
     void DomainPing(Ip::Address &to, const char *domain);
 
 #if USE_ICMP
-    virtual void SendEcho(Ip::Address &to, int opcode, const char* payload=NULL, int len=0);
+    virtual void SendEcho(Ip::Address &to, int opcode, const char *payload = NULL, int len = 0);
     virtual void Recv(void);
 #endif
 };
@@ -42,4 +42,3 @@ public:
 extern IcmpSquid icmpEngine;
 
 #endif /* _INCLUDE_ICMPSQUID_H */
-

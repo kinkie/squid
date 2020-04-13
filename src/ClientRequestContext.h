@@ -33,7 +33,7 @@ public:
 
     bool httpStateIsValid();
     void hostHeaderVerify();
-    void hostHeaderIpVerify(const ipcache_addrs* ia, const Dns::LookupDetails &dns);
+    void hostHeaderIpVerify(const ipcache_addrs *ia, const Dns::LookupDetails &dns);
     void hostHeaderVerifyFailed(const char *A, const char *B);
     void clientAccessCheck();
     void clientAccessCheck2();
@@ -60,7 +60,7 @@ public:
 #endif
 
     ClientHttpRequest *http;
-    ACLChecklist *acl_checklist;        /* need ptr back so we can unreg if needed */
+    ACLChecklist *acl_checklist; /* need ptr back so we can unreg if needed */
     int redirect_state;
     int store_id_state;
 
@@ -78,9 +78,8 @@ public:
 #if USE_OPENSSL
     bool sslBumpCheckDone;
 #endif
-    ErrorState *error; ///< saved error page for centralized/delayed processing
-    bool readNextRequest; ///< whether Squid should read after error handling
+    ErrorState *error;     ///< saved error page for centralized/delayed processing
+    bool readNextRequest;  ///< whether Squid should read after error handling
 };
 
 #endif /* SQUID_CLIENTREQUESTCONTEXT_H */
-

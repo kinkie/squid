@@ -9,11 +9,11 @@
 /* DEBUG: section 03    Configuration File Parsing */
 
 #include "squid.h"
-#include "MemBuf.h"
 #include "wordlist.h"
+#include "MemBuf.h"
 
 void
-wordlistDestroy(wordlist ** list)
+wordlistDestroy(wordlist **list)
 {
     while (*list != nullptr) {
         const char *k = wordlistChopHead(list);
@@ -22,7 +22,7 @@ wordlistDestroy(wordlist ** list)
 }
 
 const char *
-wordlistAdd(wordlist ** list, const char *key)
+wordlistAdd(wordlist **list, const char *key)
 {
     while (*list)
         list = &(*list)->next;
@@ -32,7 +32,7 @@ wordlistAdd(wordlist ** list, const char *key)
 }
 
 void
-wordlistCat(const wordlist * w, MemBuf * mb)
+wordlistCat(const wordlist *w, MemBuf *mb)
 {
     while (NULL != w) {
         mb->appendf("%s\n", w->key);
@@ -63,4 +63,3 @@ wordlistChopHead(wordlist **wl)
     delete w;
     return rv;
 }
-

@@ -7,13 +7,13 @@
  */
 
 #include "squid.h"
-#include "icmp/net_db.h"
 #include "tests/testNetDb.h"
+#include "icmp/net_db.h"
 #include "unitTestMain.h"
 
 #include <stdexcept>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testNetDb );
+CPPUNIT_TEST_SUITE_REGISTRATION(testNetDb);
 
 void
 testNetDb::testConstruct()
@@ -29,8 +29,8 @@ testNetDb::testConstruct()
         CPPUNIT_ASSERT_EQUAL(static_cast<time_t>(0), T.next_ping_time);
         CPPUNIT_ASSERT_EQUAL(static_cast<time_t>(0), T.last_use_time);
         CPPUNIT_ASSERT_EQUAL(0, T.link_count);
-        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_name*>(nullptr), T.hosts);
-        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_peer*>(nullptr), T.peers);
+        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_name *>(nullptr), T.hosts);
+        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_peer *>(nullptr), T.peers);
         CPPUNIT_ASSERT_EQUAL(0, T.n_peers_alloc);
         CPPUNIT_ASSERT_EQUAL(0, T.n_peers);
     }
@@ -46,11 +46,10 @@ testNetDb::testConstruct()
         CPPUNIT_ASSERT_EQUAL(static_cast<time_t>(0), T->next_ping_time);
         CPPUNIT_ASSERT_EQUAL(static_cast<time_t>(0), T->last_use_time);
         CPPUNIT_ASSERT_EQUAL(0, T->link_count);
-        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_name*>(nullptr), T->hosts);
-        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_peer*>(nullptr), T->peers);
+        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_name *>(nullptr), T->hosts);
+        CPPUNIT_ASSERT_EQUAL(static_cast<net_db_peer *>(nullptr), T->peers);
         CPPUNIT_ASSERT_EQUAL(0, T->n_peers_alloc);
         CPPUNIT_ASSERT_EQUAL(0, T->n_peers);
         delete T;
     }
 }
-

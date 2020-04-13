@@ -41,20 +41,19 @@ extern void DigestCalcHA1(
     const char *pszNonce,
     const char *pszCNonce,
     HASH HA1,
-    HASHHEX SessionKey
-);
+    HASHHEX SessionKey);
 
 /* calculate request-digest/response-digest as per HTTP Digest spec */
 extern void DigestCalcResponse(
-    const HASHHEX HA1,      /* H(A1) */
-    const char *pszNonce,   /* nonce from server */
-    const char *pszNonceCount,  /* 8 hex digits */
-    const char *pszCNonce,  /* client nonce */
-    const char *pszQop,     /* qop-value: "", "auth", "auth-int" */
-    const char *pszMethod,  /* method from the request */
-    const char *pszDigestUri,   /* requested URL */
-    const HASHHEX HEntity,  /* H(entity body) if qop="auth-int" */
-    HASHHEX Response        /* request-digest or response-digest */
+    const HASHHEX HA1,         /* H(A1) */
+    const char *pszNonce,      /* nonce from server */
+    const char *pszNonceCount, /* 8 hex digits */
+    const char *pszCNonce,     /* client nonce */
+    const char *pszQop,        /* qop-value: "", "auth", "auth-int" */
+    const char *pszMethod,     /* method from the request */
+    const char *pszDigestUri,  /* requested URL */
+    const HASHHEX HEntity,     /* H(entity body) if qop="auth-int" */
+    HASHHEX Response           /* request-digest or response-digest */
 );
 
 extern void CvtHex(const HASH Bin, HASHHEX Hex);
@@ -65,4 +64,3 @@ extern void CvtBin(const HASHHEX Hex, HASH Bin);
 }
 #endif
 #endif /* SQUID_RFC2617_H */
-

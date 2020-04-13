@@ -9,13 +9,13 @@
 /* DEBUG: section 05    Comm */
 
 #include "squid.h"
-#include "comm/Read.h"
-#include "Debug.h"
-#include "fd.h"
 #include "fde.h"
-#include "globals.h"
+#include "Debug.h"
 #include "SquidTime.h"
 #include "Store.h"
+#include "comm/Read.h"
+#include "fd.h"
+#include "globals.h"
 
 fde *fde::Table = nullptr;
 
@@ -24,7 +24,7 @@ fde::setIo(READ_HANDLER *reader, WRITE_HANDLER *writer)
 {
     assert(reader);
     assert(writer);
-    assert(!flags.read_pending); // this method is only meant for new FDs
+    assert(!flags.read_pending);  // this method is only meant for new FDs
 
     readMethod_ = reader;
     writeMethod_ = writer;
@@ -84,7 +84,7 @@ fde::dumpStats(StoreEntry &dumpEntry, int fdNumber) const
                       fdNumber,
 #endif
                       fdTypeStr[type],
-                      timeoutHandler ? (int) (timeout - squid_curtime) : 0,
+                      timeoutHandler ? (int)(timeout - squid_curtime) : 0,
                       bytes_read,
                       readPending(fdNumber) ? '*' : ' ',
                       bytes_written,
@@ -125,14 +125,14 @@ fde::DumpStats(StoreEntry *dumpEntry)
 char const *
 fde::remoteAddr() const
 {
-    static char buf[MAX_IPSTRLEN+7]; // 7 = length of ':port' strings
+    static char buf[MAX_IPSTRLEN + 7];  // 7 = length of ':port' strings
     *buf = 0;
 
     if (type == FD_SOCKET) {
         if (*ipaddr)
             snprintf(buf, sizeof(buf), "%s:%u", ipaddr, remote_port);
         else
-            local_addr.toUrl(buf, sizeof(buf)); // toHostStr does not include port.
+            local_addr.toUrl(buf, sizeof(buf));  // toHostStr does not include port.
     }
 
     return buf;
@@ -144,4 +144,3 @@ fde::Init()
     assert(!Table);
     Table = static_cast<fde *>(xcalloc(Squid_MaxFD, sizeof(fde)));
 }
-

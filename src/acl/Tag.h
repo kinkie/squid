@@ -15,8 +15,7 @@ class ACLTagStrategy : public ACLStrategy<const char *>
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *) override;
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *) override;
 };
 
 #endif /* SQUID_ACLMYPORTNAME_H */
-

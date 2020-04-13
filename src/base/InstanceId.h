@@ -18,10 +18,15 @@
 class ScopedId
 {
 public:
-    ScopedId(): scope(nullptr), value(0) {}
-    explicit ScopedId(const char *s): scope(s), value(0) {}
+    ScopedId() :
+        scope(nullptr), value(0) {}
+    explicit ScopedId(const char *s) :
+        scope(s), value(0) {}
     // when the values is zero/unknown, use other constructors
-    ScopedId(const char *s, uint64_t v): scope(s), value(v) { /* assert(value) */ }
+    ScopedId(const char *s, uint64_t v) :
+        scope(s), value(v)
+    { /* assert(value) */
+    }
 
     /// either the prefix() of the InstanceId object that we were detached from
     /// or, for 0 values, some other description (with endless lifetime) or nil
@@ -32,7 +37,7 @@ public:
     uint64_t value;
 };
 
-std::ostream &operator <<(std::ostream &os, const ScopedId &id);
+std::ostream &operator<<(std::ostream &os, const ScopedId &id);
 
 typedef unsigned int InstanceIdDefaultValueType;
 /** Identifier for class instances
@@ -46,13 +51,13 @@ template <class Class, class ValueType = InstanceIdDefaultValueType>
 class InstanceId
 {
 public:
-    typedef ValueType Value; ///< id storage type
+    typedef ValueType Value;  ///< id storage type
 
-    InstanceId() {change();}
+    InstanceId() { change(); }
 
     operator Value() const { return value; }
-    bool operator ==(const InstanceId &o) const { return value == o.value; }
-    bool operator !=(const InstanceId &o) const { return !(*this == o); }
+    bool operator==(const InstanceId &o) const { return value == o.value; }
+    bool operator!=(const InstanceId &o) const { return !(*this == o); }
     void change();
 
     /// writes a compact text representation of the ID
@@ -60,33 +65,39 @@ public:
 
     // TODO: Refactor into static Scope().
     /// \returns Class-specific nickname (with endless lifetime)
-    const char * prefix() const;
+    const char *prefix() const;
 
     /// \returns a copy of the ID usable outside our Class context
     ScopedId detach() const { return ScopedId(prefix(), value); }
 
 public:
-    Value value = Value(); ///< instance identifier
+    Value value = Value();  ///< instance identifier
 
 private:
-    InstanceId(const InstanceId &); ///< not implemented; IDs are unique
-    InstanceId& operator=(const InstanceId &); ///< not implemented
+    InstanceId(const InstanceId &);             ///< not implemented; IDs are unique
+    InstanceId &operator=(const InstanceId &);  ///< not implemented
 };
 
 /// An InstanceIdDefinitions() helper. Avoid direct use.
-#define InstanceIdDefinitions3(Class, pfx, ValueType, ...) \
-    template<> const char * \
-    InstanceId<Class, ValueType>::prefix() const { \
-        return pfx; \
-    } \
-    template<> std::ostream & \
-    InstanceId<Class, ValueType>::print(std::ostream &os) const { \
-        return os << pfx << value; \
-    } \
-    template<> void \
-    InstanceId<Class, ValueType>::change() { \
-        static auto Last = Value(); \
-        value = ++Last ? Last : ++Last; \
+#define InstanceIdDefinitions3(Class, pfx, ValueType, ...)      \
+    template <>                                                 \
+    const char *                                                \
+    InstanceId<Class, ValueType>::prefix() const                \
+    {                                                           \
+        return pfx;                                             \
+    }                                                           \
+    template <>                                                 \
+    std::ostream &                                              \
+    InstanceId<Class, ValueType>::print(std::ostream &os) const \
+    {                                                           \
+        return os << pfx << value;                              \
+    }                                                           \
+    template <>                                                 \
+    void                                                        \
+    InstanceId<Class, ValueType>::change()                      \
+    {                                                           \
+        static auto Last = Value();                             \
+        value = ++Last ? Last : ++Last;                         \
     }
 
 /// convenience macro to instantiate Class-specific stuff in .cc files
@@ -94,11 +105,10 @@ private:
 
 /// print the id
 template <class Class, class ValueType>
-inline
-std::ostream &operator <<(std::ostream &os, const InstanceId<Class, ValueType> &id)
+inline std::ostream &
+operator<<(std::ostream &os, const InstanceId<Class, ValueType> &id)
 {
     return id.print(os);
 }
 
 #endif /* SQUID_BASE_INSTANCE_ID_H */
-

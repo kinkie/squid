@@ -57,7 +57,7 @@
 #warn "Warning! You have a broken Solaris <krb5.h> system header"
 #warn "http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6837512"
 #if defined(__cplusplus)
-#define KRB5INT_BEGIN_DECLS     extern "C" {
+#define KRB5INT_BEGIN_DECLS extern "C" {
 #define KRB5INT_END_DECLS
 KRB5INT_BEGIN_DECLS
 #endif
@@ -108,7 +108,7 @@ extern "C" {
 #define PROGRAM "negotiate_kerberos_auth"
 
 #ifndef MAX_AUTHTOKEN_LEN
-#define MAX_AUTHTOKEN_LEN   65535
+#define MAX_AUTHTOKEN_LEN 65535
 #endif
 #ifndef SQUID_KERB_AUTH_VERSION
 #define SQUID_KERB_AUTH_VERSION "3.1.0sq"
@@ -128,7 +128,7 @@ LogTime()
     gettimeofday(&now, NULL);
     if (now.tv_sec != last_t) {
         struct tm *tm;
-        tm = localtime((time_t *) & now.tv_sec);
+        tm = localtime((time_t *)&now.tv_sec);
         strftime(buf, 127, "%Y/%m/%d %H:%M:%S", tm);
         last_t = now.tv_sec;
     }
@@ -142,7 +142,7 @@ char *gethost_name(void);
 
 #if (HAVE_GSSKRB5_EXTRACT_AUTHZ_DATA_FROM_SEC_CONTEXT || HAVE_GSS_MAP_NAME_TO_ANY) && HAVE_KRB5_PAC
 #define HAVE_PAC_SUPPORT 1
-#define MAX_PAC_GROUP_SIZE 200*60
+#define MAX_PAC_GROUP_SIZE 200 * 60
 typedef struct {
     uint16_t length;
     uint16_t maxlength;
@@ -152,18 +152,17 @@ typedef struct {
 void align(int n);
 void getustr(RPC_UNICODE_STRING *string);
 char **getgids(char **Rids, uint32_t GroupIds, uint32_t GroupCount);
-char *getdomaingids(char *ad_groups, uint32_t DomainLogonId, char **Rids, uint32_t  GroupCount);
+char *getdomaingids(char *ad_groups, uint32_t DomainLogonId, char **Rids, uint32_t GroupCount);
 char *getextrasids(char *ad_groups, uint32_t ExtraSids, uint32_t SidCount);
 uint64_t get6byt_be(void);
 uint32_t get4byt(void);
 uint16_t get2byt(void);
 uint8_t get1byt(void);
-char *xstrcpy( char *src, const char*dst);
-char *xstrcat( char *src, const char*dst);
+char *xstrcpy(char *src, const char *dst);
+char *xstrcat(char *src, const char *dst);
 int checkustr(RPC_UNICODE_STRING *string);
 char *get_ad_groups(char *ad_groups, krb5_context context, krb5_pac pac);
 #else
 #define HAVE_PAC_SUPPORT 0
 #endif
 int check_k5_err(krb5_context context, const char *msg, krb5_error_code code);
-

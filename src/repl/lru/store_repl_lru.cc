@@ -21,13 +21,15 @@
 REMOVALPOLICYCREATE createRemovalPolicy_lru;
 
 struct LruPolicyData {
-    void setPolicyNode (StoreEntry *, void *) const;
+    void setPolicyNode(StoreEntry *, void *) const;
     RemovalPolicy *policy;
     dlink_list list;
     int count;
     int nwalkers;
     enum heap_entry_type {
-        TYPE_UNKNOWN = 0, TYPE_STORE_ENTRY, TYPE_STORE_MEM
+        TYPE_UNKNOWN = 0,
+        TYPE_STORE_ENTRY,
+        TYPE_STORE_MEM
     } type;
 };
 
@@ -35,7 +37,7 @@ struct LruPolicyData {
  * Needed by the purge walker to clear the policy information
  */
 static enum LruPolicyData::heap_entry_type
-repl_guessType(StoreEntry * entry, RemovalPolicyNode * node)
+repl_guessType(StoreEntry *entry, RemovalPolicyNode *node)
 {
     if (node == &entry->repl)
         return LruPolicyData::TYPE_STORE_ENTRY;
@@ -49,17 +51,17 @@ repl_guessType(StoreEntry * entry, RemovalPolicyNode * node)
 }
 
 void
-LruPolicyData::setPolicyNode (StoreEntry *entry, void *value) const
+LruPolicyData::setPolicyNode(StoreEntry *entry, void *value) const
 {
     switch (type) {
 
     case TYPE_STORE_ENTRY:
         entry->repl.data = value;
-        break ;
+        break;
 
     case TYPE_STORE_MEM:
-        entry->mem_obj->repl.data = value ;
-        break ;
+        entry->mem_obj->repl.data = value;
+        break;
 
     default:
         break;
@@ -79,7 +81,7 @@ static MemAllocator *lru_node_pool = NULL;
 static int nr_lru_policies = 0;
 
 static void
-lru_add(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
+lru_add(RemovalPolicy *policy, StoreEntry *entry, RemovalPolicyNode *node)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
     LruNode *lru_node;
@@ -93,7 +95,7 @@ lru_add(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
 }
 
 static void
-lru_remove(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
+lru_remove(RemovalPolicy *policy, StoreEntry *entry, RemovalPolicyNode *node)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
     LruNode *lru_node = (LruNode *)node->data;
@@ -121,8 +123,8 @@ lru_remove(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
 }
 
 static void
-lru_referenced(RemovalPolicy * policy, const StoreEntry * entry,
-               RemovalPolicyNode * node)
+lru_referenced(RemovalPolicy *policy, const StoreEntry *entry,
+               RemovalPolicyNode *node)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
     LruNode *lru_node = (LruNode *)node->data;
@@ -132,7 +134,7 @@ lru_referenced(RemovalPolicy * policy, const StoreEntry * entry,
 
     dlinkDelete(&lru_node->node, &lru->list);
 
-    dlinkAddTail((void *) entry, &lru_node->node, &lru->list);
+    dlinkAddTail((void *)entry, &lru_node->node, &lru->list);
 }
 
 /** RemovalPolicyWalker **/
@@ -144,7 +146,7 @@ struct _LruWalkData {
 };
 
 static const StoreEntry *
-lru_walkNext(RemovalPolicyWalker * walker)
+lru_walkNext(RemovalPolicyWalker *walker)
 {
     LruWalkData *lru_walk = (LruWalkData *)walker->_data;
     LruNode *lru_node = lru_walk->current;
@@ -152,13 +154,13 @@ lru_walkNext(RemovalPolicyWalker * walker)
     if (!lru_node)
         return NULL;
 
-    lru_walk->current = (LruNode *) lru_node->node.next;
+    lru_walk->current = (LruNode *)lru_node->node.next;
 
-    return (StoreEntry *) lru_node->node.data;
+    return (StoreEntry *)lru_node->node.data;
 }
 
 static void
-lru_walkDone(RemovalPolicyWalker * walker)
+lru_walkDone(RemovalPolicyWalker *walker)
 {
     RemovalPolicy *policy = walker->_policy;
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
@@ -170,7 +172,7 @@ lru_walkDone(RemovalPolicyWalker * walker)
 }
 
 static RemovalPolicyWalker *
-lru_walkInit(RemovalPolicy * policy)
+lru_walkInit(RemovalPolicy *policy)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
     RemovalPolicyWalker *walker;
@@ -182,7 +184,7 @@ lru_walkInit(RemovalPolicy * policy)
     walker->_data = lru_walk;
     walker->Next = lru_walkNext;
     walker->Done = lru_walkDone;
-    lru_walk->current = (LruNode *) lru->list.head;
+    lru_walk->current = (LruNode *)lru->list.head;
     return walker;
 }
 
@@ -196,7 +198,7 @@ struct _LruPurgeData {
 };
 
 static StoreEntry *
-lru_purgeNext(RemovalPurgeWalker * walker)
+lru_purgeNext(RemovalPurgeWalker *walker)
 {
     LruPurgeData *lru_walker = (LruPurgeData *)walker->_data;
     RemovalPolicy *policy = walker->_policy;
@@ -212,19 +214,19 @@ try_again:
 
     walker->scanned += 1;
 
-    lru_walker->current = (LruNode *) lru_node->node.next;
+    lru_walker->current = (LruNode *)lru_node->node.next;
 
     if (lru_walker->current == lru_walker->start) {
         /* Last node found */
         lru_walker->current = NULL;
     }
 
-    entry = (StoreEntry *) lru_node->node.data;
+    entry = (StoreEntry *)lru_node->node.data;
     dlinkDelete(&lru_node->node, &lru->list);
 
     if (entry->locked()) {
         /* Shit, it is locked. we can't return this one */
-        ++ walker->locked;
+        ++walker->locked;
         dlinkAddTail(entry, &lru_node->node, &lru->list);
         goto try_again;
     }
@@ -236,7 +238,7 @@ try_again:
 }
 
 static void
-lru_purgeDone(RemovalPurgeWalker * walker)
+lru_purgeDone(RemovalPurgeWalker *walker)
 {
     RemovalPolicy *policy = walker->_policy;
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
@@ -248,7 +250,7 @@ lru_purgeDone(RemovalPurgeWalker * walker)
 }
 
 static RemovalPurgeWalker *
-lru_purgeInit(RemovalPolicy * policy, int max_scan)
+lru_purgeInit(RemovalPolicy *policy, int max_scan)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
     RemovalPurgeWalker *walker;
@@ -261,32 +263,32 @@ lru_purgeInit(RemovalPolicy * policy, int max_scan)
     walker->max_scan = max_scan;
     walker->Next = lru_purgeNext;
     walker->Done = lru_purgeDone;
-    lru_walk->start = lru_walk->current = (LruNode *) lru->list.head;
+    lru_walk->start = lru_walk->current = (LruNode *)lru->list.head;
     return walker;
 }
 
 static void
-lru_stats(RemovalPolicy * policy, StoreEntry * sentry)
+lru_stats(RemovalPolicy *policy, StoreEntry *sentry)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
-    LruNode *lru_node = (LruNode *) lru->list.head;
+    LruNode *lru_node = (LruNode *)lru->list.head;
 
 again:
 
     if (lru_node) {
-        StoreEntry *entry = (StoreEntry *) lru_node->node.data;
+        StoreEntry *entry = (StoreEntry *)lru_node->node.data;
 
         if (entry->locked()) {
-            lru_node = (LruNode *) lru_node->node.next;
+            lru_node = (LruNode *)lru_node->node.next;
             goto again;
         }
 
-        storeAppendPrintf(sentry, "LRU reference age: %.2f days\n", (double) (squid_curtime - entry->lastref) / (double) (24 * 60 * 60));
+        storeAppendPrintf(sentry, "LRU reference age: %.2f days\n", (double)(squid_curtime - entry->lastref) / (double)(24 * 60 * 60));
     }
 }
 
 static void
-lru_free(RemovalPolicy * policy)
+lru_free(RemovalPolicy *policy)
 {
     LruPolicyData *lru = (LruPolicyData *)policy->_data;
     /* Make some verification of the policy state */
@@ -300,7 +302,7 @@ lru_free(RemovalPolicy * policy)
 }
 
 RemovalPolicy *
-createRemovalPolicy_lru(wordlist * args)
+createRemovalPolicy_lru(wordlist *args)
 {
     RemovalPolicy *policy;
     LruPolicyData *lru_data;
@@ -348,4 +350,3 @@ createRemovalPolicy_lru(wordlist * args)
 
     return policy;
 }
-

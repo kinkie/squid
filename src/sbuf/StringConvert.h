@@ -9,8 +9,8 @@
 #ifndef SQUID_SRC_SBUF_SBUFSTRING_H_
 #define SQUID_SRC_SBUF_SBUFSTRING_H_
 
-#include "sbuf/SBuf.h"
 #include "SquidString.h"
+#include "sbuf/SBuf.h"
 
 /// create a new SBuf from a String by copying contents
 inline SBuf
@@ -31,4 +31,3 @@ SBufToString(const SBuf &s)
 }
 
 #endif /* SQUID_SRC_SBUF_SBUFSTRING_H_ */
-

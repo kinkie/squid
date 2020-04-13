@@ -28,7 +28,7 @@ public:
     bool parse(char const *dataToParse, size_t const lengthOfData, bool const endOfStream);
 
     long int lineNumber() const;
-    char const * errorString() const;
+    char const *errorString() const;
 
     EsiParserDeclaration;
 
@@ -37,9 +37,9 @@ private:
     mutable XML_Parser p;
     static void Start(void *data, const XML_Char *el, const char **attr);
     static void End(void *data, const XML_Char *el);
-    static void Default (void *data, const XML_Char *s, int len);
-    static void Comment (void *data, const XML_Char *s);
-    XML_Parser &myParser() const {return p;}
+    static void Default(void *data, const XML_Char *s, int len);
+    static void Comment(void *data, const XML_Char *s);
+    XML_Parser &myParser() const { return p; }
 
     ESIParserClient *theClient;
 };
@@ -47,4 +47,3 @@ private:
 #endif /* USE_SQUID_ESI */
 
 #endif /* SQUID_ESIEXPATPARSER_H */
-

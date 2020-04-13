@@ -7,40 +7,41 @@
  */
 
 #include "squid.h"
+#include "PeerPoolMgr.h"
 #include "AccessLogEntry.h"
-#include "base/AsyncJobCalls.h"
-#include "base/RunnersRegistry.h"
 #include "CachePeer.h"
-#include "comm/Connection.h"
-#include "comm/ConnOpener.h"
 #include "Debug.h"
-#include "fd.h"
 #include "FwdState.h"
-#include "globals.h"
 #include "HttpRequest.h"
 #include "MasterXaction.h"
-#include "neighbors.h"
-#include "pconn.h"
-#include "PeerPoolMgr.h"
-#include "security/BlindPeerConnector.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
+#include "base/AsyncJobCalls.h"
+#include "base/RunnersRegistry.h"
+#include "comm/ConnOpener.h"
+#include "comm/Connection.h"
+#include "fd.h"
+#include "globals.h"
+#include "neighbors.h"
+#include "pconn.h"
+#include "security/BlindPeerConnector.h"
 
 CBDATA_CLASS_INIT(PeerPoolMgr);
 
 /// Gives Security::PeerConnector access to Answer in the PeerPoolMgr callback dialer.
-class MyAnswerDialer: public UnaryMemFunT<PeerPoolMgr, Security::EncryptorAnswer, Security::EncryptorAnswer&>,
-    public Security::PeerConnector::CbDialer
+class MyAnswerDialer : public UnaryMemFunT<PeerPoolMgr, Security::EncryptorAnswer, Security::EncryptorAnswer &>,
+                       public Security::PeerConnector::CbDialer
 {
 public:
-    MyAnswerDialer(const JobPointer &aJob, Method aMethod):
-        UnaryMemFunT<PeerPoolMgr, Security::EncryptorAnswer, Security::EncryptorAnswer&>(aJob, aMethod, Security::EncryptorAnswer()) {}
+    MyAnswerDialer(const JobPointer &aJob, Method aMethod) :
+        UnaryMemFunT<PeerPoolMgr, Security::EncryptorAnswer, Security::EncryptorAnswer &>(aJob, aMethod, Security::EncryptorAnswer()) {}
 
     /* Security::PeerConnector::CbDialer API */
     virtual Security::EncryptorAnswer &answer() { return arg1; }
 };
 
-PeerPoolMgr::PeerPoolMgr(CachePeer *aPeer): AsyncJob("PeerPoolMgr"),
+PeerPoolMgr::PeerPoolMgr(CachePeer *aPeer) :
+    AsyncJob("PeerPoolMgr"),
     peer(cbdataReference(aPeer)),
     request(),
     opener(),
@@ -104,7 +105,7 @@ PeerPoolMgr::handleOpenedConnection(const CommConnectCbParams &params)
         if (params.conn != NULL)
             params.conn->close();
         peerConnectFailed(peer);
-        checkpoint("conn opening failure"); // may retry
+        checkpoint("conn opening failure");  // may retry
         return;
     }
 
@@ -125,7 +126,7 @@ PeerPoolMgr::handleOpenedConnection(const CommConnectCbParams &params)
         // Use positive timeout when less than one second is left for conn.
         const int timeLeft = positiveTimeout(peerTimeout - timeUsed);
         auto *connector = new Security::BlindPeerConnector(request, params.conn, securer, nullptr, timeLeft);
-        AsyncJob::Start(connector); // will call our callback
+        AsyncJob::Start(connector);  // will call our callback
         return;
     }
 
@@ -166,7 +167,7 @@ PeerPoolMgr::handleSecuredPeer(Security::EncryptorAnswer &answer)
         if (answer.conn != NULL)
             answer.conn->close();
         // PeerConnector calls peerConnectFailed() for us;
-        checkpoint("conn securing failure"); // may retry
+        checkpoint("conn securing failure");  // may retry
         return;
     }
 
@@ -191,23 +192,23 @@ PeerPoolMgr::openNewConnection()
     // KISS: Do nothing else when we are already doing something.
     if (opener != NULL || securer != NULL || shutting_down) {
         debugs(48, 7, "busy: " << opener << '|' << securer << '|' << shutting_down);
-        return; // there will be another checkpoint when we are done opening/securing
+        return;  // there will be another checkpoint when we are done opening/securing
     }
 
     // Do not talk to a peer until it is ready.
-    if (!neighborUp(peer)) // provides debugging
-        return; // there will be another checkpoint when peer is up
+    if (!neighborUp(peer))  // provides debugging
+        return;             // there will be another checkpoint when peer is up
 
     // Do not violate peer limits.
-    if (!peerCanOpenMore(peer)) { // provides debugging
-        peer->standby.waitingForClose = true; // may already be true
-        return; // there will be another checkpoint when a peer conn closes
+    if (!peerCanOpenMore(peer)) {              // provides debugging
+        peer->standby.waitingForClose = true;  // may already be true
+        return;                                // there will be another checkpoint when a peer conn closes
     }
 
     // Do not violate global restrictions.
     if (fdUsageHigh()) {
         debugs(48, 7, "overwhelmed");
-        peer->standby.waitingForClose = true; // may already be true
+        peer->standby.waitingForClose = true;  // may already be true
         // There will be another checkpoint when a peer conn closes OR when
         // a future pop() fails due to an empty pool. See PconnPool::pop().
         return;
@@ -216,11 +217,11 @@ PeerPoolMgr::openNewConnection()
     peer->standby.waitingForClose = false;
 
     Comm::ConnectionPointer conn = new Comm::Connection;
-    Must(peer->n_addresses); // guaranteed by neighborUp() above
+    Must(peer->n_addresses);  // guaranteed by neighborUp() above
     // cycle through all available IP addresses
     conn->remote = peer->addresses[addrUsed++ % peer->n_addresses];
     conn->remote.port(peer->http_port);
-    conn->peerType = STANDBY_POOL; // should be reset by peerSelect()
+    conn->peerType = STANDBY_POOL;  // should be reset by peerSelect()
     conn->setPeer(peer);
     getOutgoingAddress(request.getRaw(), conn);
     GetMarkingsToServer(request.getRaw(), *conn);
@@ -244,7 +245,7 @@ PeerPoolMgr::checkpoint(const char *reason)
 {
     if (!validPeer()) {
         debugs(48, 3, reason << " and peer gone");
-        return; // nothing to do after our owner dies; the job will quit
+        return;  // nothing to do after our owner dies; the job will quit
     }
 
     const int count = peer->standby.pool->count();
@@ -264,7 +265,7 @@ PeerPoolMgr::Checkpoint(const Pointer &mgr, const char *reason)
 }
 
 /// launches PeerPoolMgrs for peers configured with standby.limit
-class PeerPoolMgrsRr: public RegisteredRunner
+class PeerPoolMgrsRr : public RegisteredRunner
 {
 public:
     /* RegisteredRunner API */
@@ -289,4 +290,3 @@ PeerPoolMgrsRr::syncConfig()
         }
     }
 }
-

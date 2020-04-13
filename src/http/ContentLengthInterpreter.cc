@@ -9,16 +9,16 @@
 /* DEBUG: section 55    HTTP Header */
 
 #include "squid.h"
-#include "base/CharacterSet.h"
-#include "Debug.h"
 #include "http/ContentLengthInterpreter.h"
-#include "http/one/Parser.h"
+#include "Debug.h"
 #include "HttpHeaderTools.h"
 #include "SquidConfig.h"
 #include "SquidString.h"
 #include "StrList.h"
+#include "base/CharacterSet.h"
+#include "http/one/Parser.h"
 
-Http::ContentLengthInterpreter::ContentLengthInterpreter():
+Http::ContentLengthInterpreter::ContentLengthInterpreter() :
     value(-1),
     headerWideProblem(nullptr),
     debugLevel(Config.onoff.relaxed_header_parser <= 0 ? DBG_IMPORTANT : 2),
@@ -31,19 +31,19 @@ Http::ContentLengthInterpreter::ContentLengthInterpreter():
 
 /// checks whether all characters after the Content-Length are allowed
 bool
-Http::ContentLengthInterpreter::goodSuffix(const char *suffix, const char * const end) const
+Http::ContentLengthInterpreter::goodSuffix(const char *suffix, const char *const end) const
 {
     // optimize for the common case that does not need delimiters
     if (suffix == end)
         return true;
 
     for (const CharacterSet &delimiters = Http::One::Parser::DelimiterCharacters();
-            suffix < end; ++suffix) {
+         suffix < end; ++suffix) {
         if (!delimiters[*suffix])
             return false;
     }
     // needsSanitizing = true; // TODO: Always remove trailing whitespace?
-    return true; // including empty suffix
+    return true;  // including empty suffix
 }
 
 /// handles a single-token Content-Length value
@@ -78,17 +78,17 @@ Http::ContentLengthInterpreter::checkValue(const char *rawValue, const int value
     if (sawGood) {
         /* we have found at least two, possibly identical values */
 
-        needsSanitizing = true; // replace identical values with a single value
+        needsSanitizing = true;  // replace identical values with a single value
 
         const bool conflicting = value != latestValue;
         if (conflicting)
-            headerWideProblem = "Conflicting"; // overwrite any lesser problem
-        else if (!headerWideProblem) // preserve a possibly worse problem
+            headerWideProblem = "Conflicting";  // overwrite any lesser problem
+        else if (!headerWideProblem)            // preserve a possibly worse problem
             headerWideProblem = "Duplicate";
 
         // with relaxed_header_parser, identical values are permitted
         sawBad = !Config.onoff.relaxed_header_parser || conflicting;
-        return false; // conflicting or duplicate
+        return false;  // conflicting or duplicate
     }
 
     sawGood = true;
@@ -108,28 +108,26 @@ Http::ContentLengthInterpreter::checkList(const String &list)
         return false;
     }
 
-    needsSanitizing = true; // remove extra commas (at least)
+    needsSanitizing = true;  // remove extra commas (at least)
 
     const char *pos = nullptr;
-    const char *item = nullptr;;
+    const char *item = nullptr;
+    ;
     int ilen = -1;
     while (strListGetItem(&list, ',', &item, &ilen, &pos)) {
         if (!checkValue(item, ilen) && sawBad)
             break;
         // keep going after a duplicate value to find conflicting ones
     }
-    return false; // no need to keep this list field; it will be sanitized away
+    return false;  // no need to keep this list field; it will be sanitized away
 }
 
 bool
 Http::ContentLengthInterpreter::checkField(const String &rawValue)
 {
     if (sawBad)
-        return false; // one rotten apple is enough to spoil all of them
+        return false;  // one rotten apple is enough to spoil all of them
 
     // TODO: Optimize by always parsing the first integer first.
-    return rawValue.pos(',') ?
-           checkList(rawValue) :
-           checkValue(rawValue.rawBuf(), rawValue.size());
+    return rawValue.pos(',') ? checkList(rawValue) : checkValue(rawValue.rawBuf(), rawValue.size());
 }
-

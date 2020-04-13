@@ -11,12 +11,12 @@
 #include "squid.h"
 #include "AccessLogEntry.h"
 #include "HttpRequest.h"
+#include "SquidTime.h"
 #include "log/File.h"
 #include "log/Formats.h"
-#include "SquidTime.h"
 
 void
-Log::Format::SquidUserAgent(const AccessLogEntry::Pointer &al, Logfile * logfile)
+Log::Format::SquidUserAgent(const AccessLogEntry::Pointer &al, Logfile *logfile)
 {
     const char *agent = NULL;
 
@@ -34,4 +34,3 @@ Log::Format::SquidUserAgent(const AccessLogEntry::Pointer &al, Logfile * logfile
                   Time::FormatHttpd(squid_curtime),
                   agent);
 }
-

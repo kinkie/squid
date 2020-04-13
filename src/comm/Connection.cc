@@ -7,16 +7,16 @@
  */
 
 #include "squid.h"
-#include "CachePeer.h"
-#include "cbdata.h"
-#include "comm.h"
 #include "comm/Connection.h"
-#include "fde.h"
+#include "CachePeer.h"
 #include "FwdState.h"
-#include "neighbors.h"
-#include "security/NegotiationHistory.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
+#include "cbdata.h"
+#include "comm.h"
+#include "fde.h"
+#include "neighbors.h"
+#include "security/NegotiationHistory.h"
 #include <ostream>
 
 InstanceIdDefinitions(Comm::Connection, "conn", uint64_t);
@@ -38,7 +38,7 @@ Comm::Connection::Connection() :
     startTime_(squid_curtime),
     tlsHistory(nullptr)
 {
-    *rfc931 = 0; // quick init the head. the rest does not matter.
+    *rfc931 = 0;  // quick init the head. the rest does not matter.
 }
 
 static int64_t lost_conn = 0;
@@ -91,7 +91,7 @@ Comm::Connection::noteClosure()
 {
     if (isOpen()) {
         fd = -1;
-        if (CachePeer *p=getPeer())
+        if (CachePeer *p = getPeer())
             peerConnClosed(p);
     }
 }
@@ -151,13 +151,14 @@ Comm::Connection::connectTimeout(const time_t fwdStart) const
     // "immediate") timeout notification is firing, ensure a positive timeout.
     // XXX: This hack gives some timed-out forwarding sequences more time than
     // some sequences that have not quite reached the forwarding timeout yet!
-    const time_t ftimeout = fwdTimeLeft ? fwdTimeLeft : 5; // seconds
+    const time_t ftimeout = fwdTimeLeft ? fwdTimeLeft : 5;  // seconds
 
     return min(ctimeout, ftimeout);
 }
 
 ScopedId
-Comm::Connection::codeContextGist() const {
+Comm::Connection::codeContextGist() const
+{
     return id.detach();
 }
 
@@ -168,7 +169,7 @@ Comm::Connection::detailCodeContext(std::ostream &os) const
 }
 
 std::ostream &
-operator << (std::ostream &os, const Comm::Connection &conn)
+operator<<(std::ostream &os, const Comm::Connection &conn)
 {
     os << conn.id;
     if (!conn.local.isNoAddr() || conn.local.port())
@@ -187,4 +188,3 @@ operator << (std::ostream &os, const Comm::Connection &conn)
 #endif
     return os;
 }
-

@@ -8,24 +8,24 @@
 
 #ifndef SQUID_ACLREQUESTHEADERSTRATEGY_H
 #define SQUID_ACLREQUESTHEADERSTRATEGY_H
+#include "HttpRequest.h"
 #include "acl/Acl.h"
 #include "acl/Data.h"
 #include "acl/FilledChecklist.h"
 #include "acl/Strategy.h"
-#include "HttpRequest.h"
 
 template <Http::HdrType header>
 class ACLRequestHeaderStrategy : public ACLStrategy<char const *>
 {
 
 public:
-    virtual int match (ACLData<char const *> * &, ACLFilledChecklist *);
-    virtual bool requiresRequest() const {return true;}
+    virtual int match(ACLData<char const *> *&, ACLFilledChecklist *);
+    virtual bool requiresRequest() const { return true; }
 };
 
 template <Http::HdrType header>
 int
-ACLRequestHeaderStrategy<header>::match (ACLData<char const *> * &data, ACLFilledChecklist *checklist)
+ACLRequestHeaderStrategy<header>::match(ACLData<char const *> *&data, ACLFilledChecklist *checklist)
 {
     char const *theHeader = checklist->request->header.getStr(header);
 
@@ -36,4 +36,3 @@ ACLRequestHeaderStrategy<header>::match (ACLData<char const *> * &data, ACLFille
 }
 
 #endif /* SQUID_REQUESTHEADERSTRATEGY_H */
-

@@ -30,7 +30,7 @@ public:
     virtual void Recv(void) {};
 
     /* methods to relay test data from tester to private methods being tested */
-    int testChecksum(unsigned short *ptr, int size) { return CheckSum(ptr,size); };
+    int testChecksum(unsigned short *ptr, int size) { return CheckSum(ptr, size); };
     int testHops(int ttl) { return ipHops(ttl); };
 };
 #endif
@@ -40,9 +40,9 @@ public:
  */
 class testIcmp : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testIcmp );
-    CPPUNIT_TEST( testChecksum );
-    CPPUNIT_TEST( testHops );
+    CPPUNIT_TEST_SUITE(testIcmp);
+    CPPUNIT_TEST(testChecksum);
+    CPPUNIT_TEST(testHops);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -51,4 +51,3 @@ protected:
 };
 
 #endif /* SQUID_SRC_TESTS_TESTICMP_H */
-

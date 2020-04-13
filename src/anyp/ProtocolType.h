@@ -11,8 +11,7 @@
 
 #include <ostream>
 
-namespace AnyP
-{
+namespace AnyP {
 
 // TODO order by current protocol popularity (eg HTTPS before FTP)
 /**
@@ -51,7 +50,7 @@ extern const char *ProtocolType_str[];
  * The caller is responsible for any alternative text.
  */
 inline std::ostream &
-operator <<(std::ostream &os, ProtocolType const &p)
+operator<<(std::ostream &os, ProtocolType const &p)
 {
     if (PROTO_NONE <= p && p < PROTO_MAX)
         os << ProtocolType_str[p];
@@ -60,7 +59,6 @@ operator <<(std::ostream &os, ProtocolType const &p)
     return os;
 }
 
-} // namespace AnyP
+}  // namespace AnyP
 
 #endif /* _SQUID_SRC_ANYP_PROTOCOLTYPE_H */
-

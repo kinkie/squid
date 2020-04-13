@@ -13,15 +13,15 @@
 
 class testRefCount : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testRefCount );
-    CPPUNIT_TEST( testCountability );
-    CPPUNIT_TEST( testObjectToRefCounted );
-    CPPUNIT_TEST( testStandalonePointer );
-    CPPUNIT_TEST( testCheckPointers );
-    CPPUNIT_TEST( testPointerConst );
-    CPPUNIT_TEST( testRefCountFromConst );
-    CPPUNIT_TEST( testPointerFromRefCounter );
-    CPPUNIT_TEST( testDoubleInheritToSingleInherit );
+    CPPUNIT_TEST_SUITE(testRefCount);
+    CPPUNIT_TEST(testCountability);
+    CPPUNIT_TEST(testObjectToRefCounted);
+    CPPUNIT_TEST(testStandalonePointer);
+    CPPUNIT_TEST(testCheckPointers);
+    CPPUNIT_TEST(testPointerConst);
+    CPPUNIT_TEST(testRefCountFromConst);
+    CPPUNIT_TEST(testPointerFromRefCounter);
+    CPPUNIT_TEST(testDoubleInheritToSingleInherit);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -36,4 +36,3 @@ protected:
 };
 
 #endif
-

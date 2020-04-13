@@ -13,16 +13,14 @@
 
 class testNetDb : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testNetDb );
+    CPPUNIT_TEST_SUITE(testNetDb);
     /* note the statement here and then the actual prototype below */
-    CPPUNIT_TEST( testConstruct );
+    CPPUNIT_TEST(testConstruct);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-
 protected:
     void testConstruct();
 };
 
 #endif /* SQUID_SRC_TESTS_TESTNETDB_H */
-

@@ -12,8 +12,7 @@
 #include "auth/forward.h"
 #include "cbdata.h"
 
-namespace Auth
-{
+namespace Auth {
 
 /**
  * A queue of auth requests waiting for verification to occur.
@@ -32,7 +31,7 @@ class QueueNode
 private:
     // we store CBDATA here, copy is not safe
     QueueNode(const QueueNode &);
-    QueueNode &operator =(const QueueNode &);
+    QueueNode &operator=(const QueueNode &);
 
 public:
     QueueNode(Auth::UserRequest *aRequest, AUTHCB *aHandler, void *aData) :
@@ -40,7 +39,8 @@ public:
         auth_user_request(aRequest),
         handler(aHandler),
         data(cbdataReference(aData)) {}
-    ~QueueNode() {
+    ~QueueNode()
+    {
         cbdataReferenceDone(data);
         while (next) {
             QueueNode *tmp = next->next;
@@ -56,7 +56,6 @@ public:
     void *data;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* SQUID_SRC_AUTH_QUEUENODE_H */
-

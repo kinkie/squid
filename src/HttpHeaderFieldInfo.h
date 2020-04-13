@@ -9,15 +9,16 @@
 #ifndef SQUID_HTTPHEADERFIELDINFO_H_
 #define SQUID_HTTPHEADERFIELDINFO_H_
 
-#include "http/RegisteredHeaders.h"
 #include "HttpHeaderFieldStat.h"
 #include "SquidString.h"
+#include "http/RegisteredHeaders.h"
 
 /// compiled version of HttpHeaderFieldAttrs plus stats. Currently a POD.
 class HttpHeaderFieldInfo
 {
 public:
-    HttpHeaderFieldInfo() : id(Http::HdrType::ACCEPT), type(Http::HdrFieldType::ftInvalid) {}
+    HttpHeaderFieldInfo() :
+        id(Http::HdrType::ACCEPT), type(Http::HdrFieldType::ftInvalid) {}
 
     Http::HdrType id;
     String name;
@@ -26,4 +27,3 @@ public:
 };
 
 #endif /* SQUID_HTTPHEADERFIELDINFO_H_ */
-

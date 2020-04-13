@@ -17,7 +17,6 @@ class RefreshPattern
     MEMPROXY_CLASS(RefreshPattern);
 
 public:
-
     /*
      * Defaults:
      *      MIN     NONE
@@ -35,7 +34,8 @@ public:
         memset(&flags, 0, sizeof(flags));
     }
 
-    ~RefreshPattern() {
+    ~RefreshPattern()
+    {
         while (RefreshPattern *t = next) {
             next = t->next;
             t->next = nullptr;
@@ -66,7 +66,8 @@ public:
 
     // statistics about how many matches this pattern has had
     mutable struct stats_ {
-        stats_() : matchTests(0), matchCount(0) {}
+        stats_() :
+            matchTests(0), matchCount(0) {}
 
         uint64_t matchTests;
         uint64_t matchCount;
@@ -75,4 +76,3 @@ public:
 };
 
 #endif /* SQUID_REFRESHPATTERN_H_ */
-

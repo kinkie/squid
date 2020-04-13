@@ -45,4 +45,3 @@ headersEnd(const char *buf, size_t sz)
 }
 
 #endif /* SQUID_MIME_HEADER_H_ */
-

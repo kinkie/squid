@@ -9,8 +9,8 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
-#include "IpcIoFile.h"
 #include "IpcIoIOStrategy.h"
+#include "IpcIoFile.h"
 #include "unlinkd.h"
 
 bool
@@ -27,9 +27,9 @@ IpcIoIOStrategy::load()
 }
 
 DiskFile::Pointer
-IpcIoIOStrategy::newFile (char const *path)
+IpcIoIOStrategy::newFile(char const *path)
 {
-    return new IpcIoFile (path);
+    return new IpcIoFile(path);
 }
 
 bool
@@ -43,4 +43,3 @@ IpcIoIOStrategy::unlinkFile(char const *path)
 {
     unlinkdUnlink(path);
 }
-

@@ -7,19 +7,20 @@
  */
 
 #include "squid.h"
-#include "CacheManager.h"
-#include "mgr/Action.h"
-#include "Store.h"
 #include "testCacheManager.h"
+#include "CacheManager.h"
+#include "Store.h"
+#include "mgr/Action.h"
 #include "unitTestMain.h"
 
 #include <cppunit/TestAssert.h>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testCacheManager );
+CPPUNIT_TEST_SUITE_REGISTRATION(testCacheManager);
 
 /* init memory pools */
 
-void testCacheManager::setUp()
+void
+testCacheManager::setUp()
 {
     Mem::Init();
 }
@@ -30,14 +31,14 @@ void testCacheManager::setUp()
 void
 testCacheManager::testCreate()
 {
-    CacheManager::GetInstance(); //it's a singleton..
+    CacheManager::GetInstance();  //it's a singleton..
 }
 
 /* an action to register */
 static void
-dummy_action(StoreEntry * sentry)
+dummy_action(StoreEntry *sentry)
 {
-    sentry->flags=1;
+    sentry->flags = 1;
 }
 
 /*
@@ -46,7 +47,7 @@ dummy_action(StoreEntry * sentry)
 void
 testCacheManager::testRegister()
 {
-    CacheManager *manager=CacheManager::GetInstance();
+    CacheManager *manager = CacheManager::GetInstance();
     CPPUNIT_ASSERT(manager != NULL);
 
     manager->registerProfile("sample", "my sample", &dummy_action, false, false);
@@ -60,9 +61,8 @@ testCacheManager::testRegister()
     CPPUNIT_ASSERT_EQUAL(false, profile->isAtomic);
     CPPUNIT_ASSERT_EQUAL(String("sample"), String(action->name()));
 
-    StoreEntry *sentry=new StoreEntry();
-    sentry->flags=0x25; //arbitrary test value
+    StoreEntry *sentry = new StoreEntry();
+    sentry->flags = 0x25;  //arbitrary test value
     action->run(sentry, false);
-    CPPUNIT_ASSERT_EQUAL(1,(int)sentry->flags);
+    CPPUNIT_ASSERT_EQUAL(1, (int)sentry->flags);
 }
-

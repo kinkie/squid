@@ -9,11 +9,11 @@
 /* DEBUG: section 29    Authenticator */
 
 #include "squid.h"
+#include "auth/CredentialsCache.h"
+#include "Debug.h"
 #include "acl/Gadgets.h"
 #include "auth/Config.h"
-#include "auth/CredentialsCache.h"
 #include "base/RunnersRegistry.h"
-#include "Debug.h"
 #include "event.h"
 
 namespace Auth {
@@ -21,24 +21,28 @@ namespace Auth {
 class CredentialCacheRr : public RegisteredRunner
 {
 public:
-    explicit CredentialCacheRr(const char *n, CredentialsCache * const c) :
+    explicit CredentialCacheRr(const char *n, CredentialsCache *const c) :
         name(n),
         whichCache(c)
-    {}
+    {
+    }
 
-    virtual ~CredentialCacheRr() {
+    virtual ~CredentialCacheRr()
+    {
         debugs(29, 5, "Terminating Auth credentials cache: " << name);
         // invalidate the CBDATA reference.
         // causes Auth::*::User::Cache() to produce nil / invalid pointer
         delete whichCache.get();
     }
 
-    virtual void endingShutdown() override {
+    virtual void endingShutdown() override
+    {
         debugs(29, 5, "Clearing Auth credentials cache: " << name);
         whichCache->reset();
     }
 
-    virtual void syncConfig() override {
+    virtual void syncConfig() override
+    {
         debugs(29, 5, "Reconfiguring Auth credentials cache: " << name);
         whichCache->doConfigChangeCleanup();
     }
@@ -53,7 +57,7 @@ private:
 
 CBDATA_CLASS_INIT(CredentialsCache);
 
-CredentialsCache::CredentialsCache(const char *name, const char * const prettyEvName) :
+CredentialsCache::CredentialsCache(const char *name, const char *const prettyEvName) :
     gcScheduled_(false),
     cacheCleanupEventName(prettyEvName)
 {
@@ -84,15 +88,14 @@ void
 CredentialsCache::cleanup()
 {
     // cache entries with expiretime <= expirationTime are to be evicted
-    const time_t expirationTime =  current_time.tv_sec - Auth::TheConfig.credentialsTtl;
+    const time_t expirationTime = current_time.tv_sec - Auth::TheConfig.credentialsTtl;
 
     const auto end = store_.end();
     for (auto i = store_.begin(); i != end;) {
-        debugs(29, 6, "considering " << i->first << "(expires in " <<
-               (expirationTime - i->second->expiretime) << " sec)");
+        debugs(29, 6, "considering " << i->first << "(expires in " << (expirationTime - i->second->expiretime) << " sec)");
         if (i->second->expiretime <= expirationTime) {
             debugs(29, 6, "evicting " << i->first);
-            i = store_.erase(i); //erase advances i
+            i = store_.erase(i);  //erase advances i
         } else {
             ++i;
         }
@@ -116,13 +119,11 @@ CredentialsCache::sortedUsersList() const
 {
     std::vector<Auth::User::Pointer> rv(size(), nullptr);
     std::transform(store_.begin(), store_.end(), rv.begin(),
-    [](StoreType::value_type v) { return v.second; }
-                  );
+                   [](StoreType::value_type v) { return v.second; });
     std::sort(rv.begin(), rv.end(),
-    [](const Auth::User::Pointer &lhs, const Auth::User::Pointer &rhs) {
-        return strcmp(lhs->username(), rhs->username()) < 0;
-    }
-             );
+              [](const Auth::User::Pointer &lhs, const Auth::User::Pointer &rhs) {
+                  return strcmp(lhs->username(), rhs->username()) < 0;
+              });
     return rv;
 }
 
@@ -148,4 +149,3 @@ CredentialsCache::doConfigChangeCleanup()
 }
 
 } /* namespace Auth */
-

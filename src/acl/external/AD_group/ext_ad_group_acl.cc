@@ -81,16 +81,16 @@ int _wcsicmp(const wchar_t *, const wchar_t *);
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#include <windows.h>
-#include <objbase.h>
-#include <initguid.h>
-#include <adsiid.h>
-#include <iads.h>
-#include <adshlp.h>
 #include <adserr.h>
-#include <lm.h>
+#include <adshlp.h>
+#include <adsiid.h>
 #include <dsrole.h>
+#include <iads.h>
+#include <initguid.h>
+#include <lm.h>
+#include <objbase.h>
 #include <sddl.h>
+#include <windows.h>
 
 enum ADSI_PATH {
     LDAP_MODE,
@@ -121,7 +121,7 @@ CloseCOM(void)
 }
 
 HRESULT
-GetLPBYTEtoOctetString(VARIANT * pVar, LPBYTE * ppByte)
+GetLPBYTEtoOctetString(VARIANT *pVar, LPBYTE *ppByte)
 {
     HRESULT hr = E_FAIL;
     void HUGEP *pArray;
@@ -138,8 +138,8 @@ GetLPBYTEtoOctetString(VARIANT * pVar, LPBYTE * ppByte)
     cElements = lUBound - lLBound + 1;
     hr = SafeArrayAccessData(V_ARRAY(pVar), &pArray);
     if (SUCCEEDED(hr)) {
-        LPBYTE pTemp = (LPBYTE) pArray;
-        *ppByte = (LPBYTE) CoTaskMemAlloc(cElements);
+        LPBYTE pTemp = (LPBYTE)pArray;
+        *ppByte = (LPBYTE)CoTaskMemAlloc(cElements);
         if (*ppByte)
             memcpy(*ppByte, pTemp, cElements);
         else
@@ -151,7 +151,7 @@ GetLPBYTEtoOctetString(VARIANT * pVar, LPBYTE * ppByte)
 }
 
 wchar_t *
-Get_primaryGroup(IADs * pUser)
+Get_primaryGroup(IADs *pUser)
 {
     HRESULT hr;
     VARIANT var;
@@ -181,17 +181,17 @@ Get_primaryGroup(IADs * pUser)
         char *szSID = NULL;
         hr = GetLPBYTEtoOctetString(&var, &pByte);
 
-        pObjectSID = (PSID) pByte;
+        pObjectSID = (PSID)pByte;
 
         /* Convert SID to string. */
         ConvertSidToStringSid(pObjectSID, &szSID);
         CoTaskMemFree(pByte);
 
         *(strrchr(szSID, '-') + 1) = '\0';
-        snprintf(tmpSID, sizeof(tmpSID)-1, "%s%u", szSID, User_primaryGroupID);
+        snprintf(tmpSID, sizeof(tmpSID) - 1, "%s%u", szSID, User_primaryGroupID);
 
         wcsize = MultiByteToWideChar(CP_ACP, 0, tmpSID, -1, wc, 0);
-        wc = (wchar_t *) xmalloc(wcsize * sizeof(wchar_t));
+        wc = (wchar_t *)xmalloc(wcsize * sizeof(wchar_t));
         MultiByteToWideChar(CP_ACP, 0, tmpSID, -1, wc, wcsize);
         LocalFree(szSID);
 
@@ -211,19 +211,18 @@ Get_primaryGroup(IADs * pUser)
 char *
 Get_WIN32_ErrorMessage(HRESULT hr)
 {
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                  FORMAT_MESSAGE_IGNORE_INSERTS,
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                   NULL,
                   hr,
                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  (LPTSTR) & WIN32_ErrorMessage,
+                  (LPTSTR)&WIN32_ErrorMessage,
                   0,
                   NULL);
     return WIN32_ErrorMessage;
 }
 
 wchar_t *
-My_NameTranslate(wchar_t * name, int in_format, int out_format)
+My_NameTranslate(wchar_t *name, int in_format, int out_format)
 {
     IADsNameTranslate *pNto;
     HRESULT hr;
@@ -243,7 +242,7 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
                           NULL,
                           CLSCTX_INPROC_SERVER,
                           &IID_IADsNameTranslate,
-                          (void **) &pNto);
+                          (void **)&pNto);
     if (FAILED(hr)) {
         debug("My_NameTranslate: cannot create COM instance, ERROR: %s\n", Get_WIN32_ErrorMessage(hr));
         /* This is a fatal error */
@@ -270,7 +269,7 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
     }
     debug("My_NameTranslate: %S translated to %S\n", name, bstr);
 
-    wc = (wchar_t *) xmalloc((wcslen(bstr) + 1) * sizeof(wchar_t));
+    wc = (wchar_t *)xmalloc((wcslen(bstr) + 1) * sizeof(wchar_t));
     wcscpy(wc, bstr);
     SysFreeString(bstr);
     pNto->lpVtbl->Release(pNto);
@@ -278,11 +277,11 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
 }
 
 wchar_t *
-GetLDAPPath(wchar_t * Base_DN, int query_mode)
+GetLDAPPath(wchar_t *Base_DN, int query_mode)
 {
     wchar_t *wc;
 
-    wc = (wchar_t *) xmalloc((wcslen(Base_DN) + 8) * sizeof(wchar_t));
+    wc = (wchar_t *)xmalloc((wcslen(Base_DN) + 8) * sizeof(wchar_t));
 
     if (query_mode == LDAP_MODE)
         wcscpy(wc, L"LDAP://");
@@ -300,21 +299,18 @@ GetDomainName(void)
     PDSROLE_PRIMARY_DOMAIN_INFO_BASIC pDSRoleInfo;
     DWORD netret;
 
-    if ((netret = DsRoleGetPrimaryDomainInformation(NULL, DsRolePrimaryDomainInfoBasic, (PBYTE *) & pDSRoleInfo) == ERROR_SUCCESS)) {
+    if ((netret = DsRoleGetPrimaryDomainInformation(NULL, DsRolePrimaryDomainInfoBasic, (PBYTE *)&pDSRoleInfo) == ERROR_SUCCESS)) {
         /*
          * Check the machine role.
          */
 
-        if ((pDSRoleInfo->MachineRole == DsRole_RoleMemberWorkstation) ||
-                (pDSRoleInfo->MachineRole == DsRole_RoleMemberServer) ||
-                (pDSRoleInfo->MachineRole == DsRole_RoleBackupDomainController) ||
-                (pDSRoleInfo->MachineRole == DsRole_RolePrimaryDomainController)) {
+        if ((pDSRoleInfo->MachineRole == DsRole_RoleMemberWorkstation) || (pDSRoleInfo->MachineRole == DsRole_RoleMemberServer) || (pDSRoleInfo->MachineRole == DsRole_RoleBackupDomainController) || (pDSRoleInfo->MachineRole == DsRole_RolePrimaryDomainController)) {
 
             size_t len = wcslen(pDSRoleInfo->DomainNameFlat);
 
             /* allocate buffer for str + null termination */
             safe_free(DomainName);
-            DomainName = (char *) xmalloc(len + 1);
+            DomainName = (char *)xmalloc(len + 1);
 
             /* copy unicode buffer */
             WideCharToMultiByte(CP_ACP, 0, pDSRoleInfo->DomainNameFlat, -1, DomainName, len, NULL, NULL);
@@ -344,12 +340,12 @@ GetDomainName(void)
 }
 
 int
-add_User_Group(wchar_t * Group)
+add_User_Group(wchar_t *Group)
 {
     wchar_t **array;
 
     if (User_Groups_Count == 0) {
-        User_Groups = (wchar_t **) xmalloc(sizeof(wchar_t *));
+        User_Groups = (wchar_t **)xmalloc(sizeof(wchar_t *));
         *User_Groups = NULL;
         ++User_Groups_Count;
     }
@@ -359,9 +355,9 @@ add_User_Group(wchar_t * Group)
             return 0;
         ++array;
     }
-    User_Groups = (wchar_t **) xrealloc(User_Groups, sizeof(wchar_t *) * (User_Groups_Count + 1));
+    User_Groups = (wchar_t **)xrealloc(User_Groups, sizeof(wchar_t *) * (User_Groups_Count + 1));
     User_Groups[User_Groups_Count] = NULL;
-    User_Groups[User_Groups_Count - 1] = (wchar_t *) xmalloc((wcslen(Group) + 1) * sizeof(wchar_t));
+    User_Groups[User_Groups_Count - 1] = (wchar_t *)xmalloc((wcslen(Group) + 1) * sizeof(wchar_t));
     wcscpy(User_Groups[User_Groups_Count - 1], Group);
     ++User_Groups_Count;
 
@@ -370,7 +366,7 @@ add_User_Group(wchar_t * Group)
 
 /* returns 0 on match, -1 if no match */
 static int
-wccmparray(const wchar_t * str, const wchar_t ** array)
+wccmparray(const wchar_t *str, const wchar_t **array)
 {
     while (*array) {
         debug("Windows group: %S, Squid group: %S\n", str, *array);
@@ -383,7 +379,7 @@ wccmparray(const wchar_t * str, const wchar_t ** array)
 
 /* returns 0 on match, -1 if no match */
 static int
-wcstrcmparray(const wchar_t * str, const char **array)
+wcstrcmparray(const wchar_t *str, const char **array)
 {
     WCHAR wszGroup[GNLEN + 1];  // Unicode Group
 
@@ -399,7 +395,7 @@ wcstrcmparray(const wchar_t * str, const char **array)
 }
 
 HRESULT
-Recursive_Memberof(IADs * pObj)
+Recursive_Memberof(IADs *pObj)
 {
     VARIANT var;
     long lBound, uBound;
@@ -414,13 +410,13 @@ Recursive_Memberof(IADs * pObj)
                 IADs *pGrp;
 
                 Group_Path = GetLDAPPath(var.n1.n2.n3.bstrVal, GC_MODE);
-                hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                hr = ADsGetObject(Group_Path, &IID_IADs, (void **)&pGrp);
                 if (SUCCEEDED(hr)) {
                     hr = Recursive_Memberof(pGrp);
                     pGrp->lpVtbl->Release(pGrp);
                     safe_free(Group_Path);
                     Group_Path = GetLDAPPath(var.n1.n2.n3.bstrVal, LDAP_MODE);
-                    hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                    hr = ADsGetObject(Group_Path, &IID_IADs, (void **)&pGrp);
                     if (SUCCEEDED(hr)) {
                         hr = Recursive_Memberof(pGrp);
                         pGrp->lpVtbl->Release(pGrp);
@@ -431,8 +427,7 @@ Recursive_Memberof(IADs * pObj)
                 safe_free(Group_Path);
             }
         } else {
-            if (SUCCEEDED(SafeArrayGetLBound(V_ARRAY(&var), 1, &lBound)) &&
-                    SUCCEEDED(SafeArrayGetUBound(V_ARRAY(&var), 1, &uBound))) {
+            if (SUCCEEDED(SafeArrayGetLBound(V_ARRAY(&var), 1, &lBound)) && SUCCEEDED(SafeArrayGetUBound(V_ARRAY(&var), 1, &uBound))) {
                 VARIANT elem;
                 while (lBound <= uBound) {
                     hr = SafeArrayGetElement(V_ARRAY(&var), &lBound, &elem);
@@ -442,13 +437,13 @@ Recursive_Memberof(IADs * pObj)
                             IADs *pGrp;
 
                             Group_Path = GetLDAPPath(elem.n1.n2.n3.bstrVal, GC_MODE);
-                            hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                            hr = ADsGetObject(Group_Path, &IID_IADs, (void **)&pGrp);
                             if (SUCCEEDED(hr)) {
                                 hr = Recursive_Memberof(pGrp);
                                 pGrp->lpVtbl->Release(pGrp);
                                 safe_free(Group_Path);
                                 Group_Path = GetLDAPPath(elem.n1.n2.n3.bstrVal, LDAP_MODE);
-                                hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                                hr = ADsGetObject(Group_Path, &IID_IADs, (void **)&pGrp);
                                 if (SUCCEEDED(hr)) {
                                     hr = Recursive_Memberof(pGrp);
                                     pGrp->lpVtbl->Release(pGrp);
@@ -487,7 +482,7 @@ build_groups_DN_array(const char **array, char *userdomain)
 
     wchar_t **wc_array, **entry;
 
-    entry = wc_array = (wchar_t **) xmalloc((numberofgroups + 1) * sizeof(wchar_t *));
+    entry = wc_array = (wchar_t **)xmalloc((numberofgroups + 1) * sizeof(wchar_t *));
 
     while (*array) {
         if (strchr(*array, '/') != NULL) {
@@ -504,7 +499,7 @@ build_groups_DN_array(const char **array, char *userdomain)
         }
 
         wcsize = MultiByteToWideChar(CP_ACP, 0, Group, -1, wc, 0);
-        wc = (wchar_t *) xmalloc(wcsize * sizeof(wchar_t));
+        wc = (wchar_t *)xmalloc(wcsize * sizeof(wchar_t));
         MultiByteToWideChar(CP_ACP, 0, Group, -1, wc, wcsize);
         *entry = My_NameTranslate(wc, source_group_format, ADS_NAME_TYPE_1779);
         safe_free(wc);
@@ -525,7 +520,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
 {
     int result = 0;
     char *Domain_Separator;
-    WCHAR wszUserName[UNLEN + 1];   /* Unicode user name */
+    WCHAR wszUserName[UNLEN + 1]; /* Unicode user name */
 
     LPLOCALGROUP_USERS_INFO_0 pBuf;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
@@ -565,7 +560,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
                                     dwPrefMaxLen,
                                     &dwEntriesRead,
                                     &dwTotalEntries);
-    pBuf = (LPLOCALGROUP_USERS_INFO_0) pBufTmp;
+    pBuf = (LPLOCALGROUP_USERS_INFO_0)pBufTmp;
     /*
      * If the call succeeds,
      */
@@ -602,7 +597,7 @@ int
 Valid_Global_Groups(char *UserName, const char **Groups)
 {
     int result = 0;
-    WCHAR wszUser[DNLEN + UNLEN + 2];   /* Unicode user name */
+    WCHAR wszUser[DNLEN + UNLEN + 2]; /* Unicode user name */
     char NTDomain[DNLEN + UNLEN + 2];
 
     char *domain_qualify = NULL;
@@ -648,7 +643,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
     User_LDAP_path = GetLDAPPath(User_DN, GC_MODE);
 
-    hr = ADsGetObject(User_LDAP_path, &IID_IADs, (void **) &pUser);
+    hr = ADsGetObject(User_LDAP_path, &IID_IADs, (void **)&pUser);
     if (SUCCEEDED(hr)) {
         wchar_t *User_PrimaryGroup_Path;
         IADs *pGrp;
@@ -659,13 +654,13 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         else {
             add_User_Group(User_PrimaryGroup);
             User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, GC_MODE);
-            hr = ADsGetObject(User_PrimaryGroup_Path, &IID_IADs, (void **) &pGrp);
+            hr = ADsGetObject(User_PrimaryGroup_Path, &IID_IADs, (void **)&pGrp);
             if (SUCCEEDED(hr)) {
                 hr = Recursive_Memberof(pGrp);
                 pGrp->lpVtbl->Release(pGrp);
                 safe_free(User_PrimaryGroup_Path);
                 User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, LDAP_MODE);
-                hr = ADsGetObject(User_PrimaryGroup_Path, &IID_IADs, (void **) &pGrp);
+                hr = ADsGetObject(User_PrimaryGroup_Path, &IID_IADs, (void **)&pGrp);
                 if (SUCCEEDED(hr)) {
                     hr = Recursive_Memberof(pGrp);
                     pGrp->lpVtbl->Release(pGrp);
@@ -679,7 +674,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         pUser->lpVtbl->Release(pUser);
         safe_free(User_LDAP_path);
         User_LDAP_path = GetLDAPPath(User_DN, LDAP_MODE);
-        hr = ADsGetObject(User_LDAP_path, &IID_IADs, (void **) &pUser);
+        hr = ADsGetObject(User_LDAP_path, &IID_IADs, (void **)&pUser);
         if (SUCCEEDED(hr)) {
             hr = Recursive_Memberof(pUser);
             pUser->lpVtbl->Release(pUser);
@@ -722,11 +717,11 @@ static void
 usage(const char *program)
 {
     fprintf(stderr, "Usage: %s [-D domain][-G][-c][-d][-h]\n"
-            " -D    default user Domain\n"
-            " -G    enable Active Directory Global group mode\n"
-            " -c    use case insensitive compare (local mode only)\n"
-            " -d    enable debugging\n"
-            " -h    this message\n",
+                    " -D    default user Domain\n"
+                    " -G    enable Active Directory Global group mode\n"
+                    " -c    use case insensitive compare (local mode only)\n"
+                    " -d    enable debugging\n"
+                    " -h    this message\n",
             program);
 }
 
@@ -761,7 +756,7 @@ process_options(int argc, char *argv[])
             fprintf(stderr, "%s: FATAL: Unknown option: -%c. Exiting\n", program_name, opt);
             usage(argv[0]);
             exit(EXIT_FAILURE);
-            break;      /* not reached */
+            break; /* not reached */
         }
     }
 }
@@ -776,7 +771,7 @@ main(int argc, char *argv[])
     const char *groups[512];
     int n;
 
-    if (argc > 0) {     /* should always be true */
+    if (argc > 0) { /* should always be true */
         program_name = strrchr(argv[0], '/');
         if (program_name == NULL)
             program_name = argv[0];
@@ -822,9 +817,9 @@ main(int argc, char *argv[])
             continue;
         }
         if ((p = strchr(buf, '\n')) != NULL)
-            *p = '\0';      /* strip \n */
+            *p = '\0'; /* strip \n */
         if ((p = strchr(buf, '\r')) != NULL)
-            *p = '\0';      /* strip \r */
+            *p = '\0'; /* strip \r */
 
         debug("Got '%s' from Squid (length: %d).\n", buf, strlen(buf));
 
@@ -855,4 +850,3 @@ main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
-

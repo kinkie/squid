@@ -9,9 +9,9 @@
 /* DEBUG: section 86    ESI processing */
 
 #include "squid.h"
+#include "esi/Expression.h"
 #include "Debug.h"
 #include "esi/Esi.h"
-#include "esi/Expression.h"
 #include "profiler/Profiler.h"
 
 #include <cerrno>
@@ -35,8 +35,8 @@
 
 typedef struct _stackmember stackmember;
 
-typedef int evaluate(stackmember * stack, int *depth, int whereAmI,
-                     stackmember * candidate);
+typedef int evaluate(stackmember *stack, int *depth, int whereAmI,
+                     stackmember *candidate);
 
 typedef enum {
     ESI_EXPR_INVALID,
@@ -52,7 +52,7 @@ typedef enum {
     ESI_EXPR_LESSEQ,
     ESI_EXPR_MORE,
     ESI_EXPR_MOREEQ,
-    ESI_EXPR_EXPR           /* the result of an expr PRI 1 */
+    ESI_EXPR_EXPR /* the result of an expr PRI 1 */
 } evaltype;
 
 typedef enum {
@@ -76,21 +76,20 @@ struct _stackmember {
 };
 
 static void cleanmember(stackmember *);
-static void stackpop(stackmember * s, int *depth);
+static void stackpop(stackmember *s, int *depth);
 
 void
-cleanmember(stackmember * s)
+cleanmember(stackmember *s)
 {
     if (s->valuetype == ESI_EXPR_LITERAL
-            && s->valuestored == ESI_LITERAL_STRING) {
+        && s->valuestored == ESI_LITERAL_STRING) {
         safe_free(s->value.string);
         s->value.string = NULL;
     }
-
 }
 
 void
-stackpop(stackmember * s, int *depth)
+stackpop(stackmember *s, int *depth)
 {
     if (!(*depth)--)
         return;
@@ -122,9 +121,9 @@ static evaluate evalnotequals;
 static evaluate evalstartexpr;
 static evaluate evalendexpr;
 static evaluate evalexpr;
-static void dumpstack(stackmember * stack, int depth);
-static int addmember(stackmember * stack, int *stackdepth,
-                     stackmember * candidate);
+static void dumpstack(stackmember *stack, int depth);
+static int addmember(stackmember *stack, int *stackdepth,
+                     stackmember *candidate);
 static int membercompare(stackmember a, stackmember b);
 static char const *trim(char const *s);
 static stackmember getsymbol(const char *s, char const **endptr);
@@ -141,9 +140,7 @@ membercompare(stackmember a, stackmember b)
      * literals to literals
      */
 
-    if (!((a.valuetype == ESI_EXPR_LITERAL && b.valuetype == ESI_EXPR_LITERAL &&
-            a.valuestored != ESI_LITERAL_INVALID && b.valuestored != ESI_LITERAL_INVALID) ||
-            (a.valuetype == ESI_EXPR_EXPR && b.valuetype == ESI_EXPR_EXPR)))
+    if (!((a.valuetype == ESI_EXPR_LITERAL && b.valuetype == ESI_EXPR_LITERAL && a.valuestored != ESI_LITERAL_INVALID && b.valuestored != ESI_LITERAL_INVALID) || (a.valuetype == ESI_EXPR_EXPR && b.valuetype == ESI_EXPR_EXPR)))
         return -2;
 
     if (a.valuetype == ESI_EXPR_EXPR) {
@@ -153,7 +150,7 @@ membercompare(stackmember a, stackmember b)
             return 1;
     } else if (a.valuestored == ESI_LITERAL_STRING) {
         if (b.valuestored == ESI_LITERAL_STRING) {
-            int i =strcmp(a.value.string, b.value.string);
+            int i = strcmp(a.value.string, b.value.string);
 
             if (i < 0)
                 return -1;
@@ -214,7 +211,7 @@ membercompare(stackmember a, stackmember b)
 
 /* return 0 on success, 1 on failure */
 int
-evalnegate(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalnegate(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     if (whereAmI != *depth - 2)
         /* invalid stack */
@@ -245,7 +242,7 @@ evalnegate(stackmember * stack, int *depth, int whereAmI, stackmember * candidat
 }
 
 int
-evalliteral(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalliteral(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     debugs(86, DBG_IMPORTANT, "attempt to evaluate a literal");
     /* literals can't be evaluated */
@@ -253,7 +250,7 @@ evalliteral(stackmember * stack, int *depth, int whereAmI, stackmember * candida
 }
 
 int
-evalexpr(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalexpr(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     debugs(86, DBG_IMPORTANT, "attempt to evaluate a sub-expression result");
     /* sub-scpr's can't be evaluated */
@@ -261,7 +258,7 @@ evalexpr(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
 }
 
 int
-evalor(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalor(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -274,18 +271,17 @@ evalor(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
         /* invalid stack */
         return 1;
 
-    if (stack[whereAmI + 1].valuetype != ESI_EXPR_EXPR ||
-            stack[whereAmI - 1].valuetype != ESI_EXPR_EXPR)
+    if (stack[whereAmI + 1].valuetype != ESI_EXPR_EXPR || stack[whereAmI - 1].valuetype != ESI_EXPR_EXPR)
         /* invalid operand */
         return 1;
 
     rv = stack[whereAmI - 1].value.integral || stack[whereAmI + 1].value.integral;
 
-    stackpop(stack, depth);      /* arg rhs */
+    stackpop(stack, depth); /* arg rhs */
 
-    stackpop(stack, depth);      /* me */
+    stackpop(stack, depth); /* me */
 
-    stackpop(stack, depth);      /* arg lhs */
+    stackpop(stack, depth); /* arg lhs */
 
     srv.valuetype = ESI_EXPR_EXPR;
 
@@ -308,7 +304,7 @@ evalor(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
 }
 
 int
-evaland(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evaland(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -321,18 +317,17 @@ evaland(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
         /* invalid stack */
         return 1;
 
-    if (stack[whereAmI + 1].valuetype != ESI_EXPR_EXPR ||
-            stack[whereAmI - 1].valuetype != ESI_EXPR_EXPR)
+    if (stack[whereAmI + 1].valuetype != ESI_EXPR_EXPR || stack[whereAmI - 1].valuetype != ESI_EXPR_EXPR)
         /* invalid operand */
         return 1;
 
     rv = stack[whereAmI - 1].value.integral && stack[whereAmI + 1].value.integral;
 
-    stackpop(stack, depth);      /* arg rhs */
+    stackpop(stack, depth); /* arg rhs */
 
-    stackpop(stack, depth);      /* me */
+    stackpop(stack, depth); /* me */
 
-    stackpop(stack, depth);      /* arg lhs */
+    stackpop(stack, depth); /* arg lhs */
 
     srv.valuetype = ESI_EXPR_EXPR;
 
@@ -355,7 +350,7 @@ evaland(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
 }
 
 int
-evallesseq(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evallesseq(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -374,11 +369,11 @@ evallesseq(stackmember * stack, int *depth, int whereAmI, stackmember * candidat
         /* invalid comparison */
         return 1;
 
-    stackpop(stack, depth);      /* arg rhs */
+    stackpop(stack, depth); /* arg rhs */
 
-    stackpop(stack, depth);      /* me */
+    stackpop(stack, depth); /* me */
 
-    stackpop(stack, depth);      /* arg lhs */
+    stackpop(stack, depth); /* arg lhs */
 
     srv.valuetype = ESI_EXPR_EXPR;
 
@@ -399,11 +394,10 @@ evallesseq(stackmember * stack, int *depth, int whereAmI, stackmember * candidat
 
     /*  debugs(86, DBG_IMPORTANT, "?= " << srv.value.integral << " "); */
     return 0;
-
 }
 
 int
-evallessthan(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evallessthan(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -422,11 +416,11 @@ evallessthan(stackmember * stack, int *depth, int whereAmI, stackmember * candid
         /* invalid comparison */
         return 1;
 
-    stackpop(stack, depth);      /* arg rhs */
+    stackpop(stack, depth); /* arg rhs */
 
-    stackpop(stack, depth);      /* me */
+    stackpop(stack, depth); /* me */
 
-    stackpop(stack, depth);      /* arg lhs */
+    stackpop(stack, depth); /* arg lhs */
 
     srv.valuetype = ESI_EXPR_EXPR;
 
@@ -447,11 +441,10 @@ evallessthan(stackmember * stack, int *depth, int whereAmI, stackmember * candid
 
     /* debugs(86, DBG_IMPORTANT, "?= " << srv.value.integral << " "); */
     return 0;
-
 }
 
 int
-evalmoreeq(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalmoreeq(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -470,11 +463,11 @@ evalmoreeq(stackmember * stack, int *depth, int whereAmI, stackmember * candidat
         /* invalid comparison */
         return 1;
 
-    stackpop(stack, depth);      /* arg rhs */
+    stackpop(stack, depth); /* arg rhs */
 
-    stackpop(stack, depth);      /* me */
+    stackpop(stack, depth); /* me */
 
-    stackpop(stack, depth);      /* arg lhs */
+    stackpop(stack, depth); /* arg lhs */
 
     srv.valuetype = ESI_EXPR_EXPR;
 
@@ -495,11 +488,10 @@ evalmoreeq(stackmember * stack, int *depth, int whereAmI, stackmember * candidat
 
     /* debugs(86, DBG_IMPORTANT, "?= " << srv.value.integral << " "); */
     return 0;
-
 }
 
 int
-evalmorethan(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalmorethan(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -543,12 +535,11 @@ evalmorethan(stackmember * stack, int *depth, int whereAmI, stackmember * candid
 
     /* debugs(86, DBG_IMPORTANT, "?= " << srv.value.integral << " "); */
     return 0;
-
 }
 
 int
-evalequals(stackmember * stack, int *depth, int whereAmI,
-           stackmember * candidate)
+evalequals(stackmember *stack, int *depth, int whereAmI,
+           stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -595,7 +586,7 @@ evalequals(stackmember * stack, int *depth, int whereAmI,
 }
 
 int
-evalnotequals(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalnotequals(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     int rv;
     stackmember srv;
@@ -642,7 +633,7 @@ evalnotequals(stackmember * stack, int *depth, int whereAmI, stackmember * candi
 }
 
 int
-evalstartexpr(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalstartexpr(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     /* debugs(86, DBG_IMPORTANT, "?("); */
 
@@ -664,7 +655,7 @@ evalstartexpr(stackmember * stack, int *depth, int whereAmI, stackmember * candi
 }
 
 int
-evalendexpr(stackmember * stack, int *depth, int whereAmI, stackmember * candidate)
+evalendexpr(stackmember *stack, int *depth, int whereAmI, stackmember *candidate)
 {
     /* Can't evaluate ) brackets */
     return 1;
@@ -687,7 +678,7 @@ getsymbol(const char *s, char const **endptr)
     char const *origs = s;
     /* trim whitespace */
     s = trim(s);
-    rv.eval = NULL;     /* A literal */
+    rv.eval = NULL; /* A literal */
     rv.valuetype = ESI_EXPR_INVALID;
     rv.valuestored = ESI_LITERAL_INVALID;
     rv.precedence = 1; /* A literal */
@@ -698,7 +689,7 @@ getsymbol(const char *s, char const **endptr)
 
         if ((point = strchr(s, '.')) && point - s < (ssize_t)length) {
             /* floating point */
-            errno=0; /* reset errno */
+            errno = 0; /* reset errno */
             rv.value.floating = strtod(s, &end);
 
             if (s == end || errno) {
@@ -706,7 +697,7 @@ getsymbol(const char *s, char const **endptr)
                 debugs(86, DBG_IMPORTANT, "failed to convert '" << s << "' to float ");
                 *endptr = origs;
             } else {
-                debugs(86,6, "found " << rv.value.floating << " of length " << end - s);
+                debugs(86, 6, "found " << rv.value.floating << " of length " << end - s);
                 *endptr = end;
                 rv.eval = evalliteral;
                 rv.valuestored = ESI_LITERAL_FLOAT;
@@ -715,7 +706,7 @@ getsymbol(const char *s, char const **endptr)
             }
         } else {
             /* INT */
-            errno=0; /* reset errno */
+            errno = 0; /* reset errno */
             rv.value.integral = strtol(s, &end, 0);
 
             if (s == end || errno) {
@@ -723,7 +714,7 @@ getsymbol(const char *s, char const **endptr)
                 debugs(86, DBG_IMPORTANT, "failed to convert '" << s << "' to int ");
                 *endptr = origs;
             } else {
-                debugs(86,6, "found " << rv.value.integral << " of length " << end - s);
+                debugs(86, 6, "found " << rv.value.integral << " of length " << end - s);
                 *endptr = end;
                 rv.eval = evalliteral;
                 rv.valuestored = ESI_LITERAL_INT;
@@ -762,7 +753,7 @@ getsymbol(const char *s, char const **endptr)
             if (t - s - 1)
                 rv.value.string = xstrndup(s + 1, t - (s + 1) + 1);
             else
-                rv.value.string = static_cast<char *>(xcalloc(1,1));
+                rv.value.string = static_cast<char *>(xcalloc(1, 1));
 
             rv.eval = evalliteral;
 
@@ -888,7 +879,7 @@ printLiteral(std::ostream &os, const stackmember &s)
 }
 
 static std::ostream &
-operator <<(std::ostream &os, const stackmember &s)
+operator<<(std::ostream &os, const stackmember &s)
 {
     switch (s.valuetype) {
 
@@ -953,18 +944,18 @@ operator <<(std::ostream &os, const stackmember &s)
 }
 
 void
-dumpstack(stackmember * stack, int depth)
+dumpstack(stackmember *stack, int depth)
 {
     if (depth) {
         std::ostringstream buf;
         for (int i = 0; i < depth; ++i)
             buf << stack[i];
-        debugs(86,1, buf.str());
+        debugs(86, 1, buf.str());
     }
 }
 
 int
-addmember(stackmember * stack, int *stackdepth, stackmember * candidate)
+addmember(stackmember *stack, int *stackdepth, stackmember *candidate)
 {
     if (candidate->valuetype != ESI_EXPR_LITERAL && *stackdepth > 1) {
         /* !(!(a==b))) is why that's safe */
@@ -973,14 +964,10 @@ addmember(stackmember * stack, int *stackdepth, stackmember * candidate)
         if (*stackdepth >= ESI_STACK_DEPTH_LIMIT)
             throw Esi::Error("ESI expression too complex to add member");
 
-        if (candidate->precedence < stack[*stackdepth - 1].precedence ||
-                candidate->precedence < stack[*stackdepth - 2].precedence) {
+        if (candidate->precedence < stack[*stackdepth - 1].precedence || candidate->precedence < stack[*stackdepth - 2].precedence) {
             /* must be an operator */
 
-            if (stack[*stackdepth - 2].valuetype == ESI_EXPR_LITERAL ||
-                    stack[*stackdepth - 2].valuetype == ESI_EXPR_INVALID ||
-                    stack[*stackdepth - 2].eval(stack, stackdepth,
-                                                *stackdepth - 2, candidate)) {
+            if (stack[*stackdepth - 2].valuetype == ESI_EXPR_LITERAL || stack[*stackdepth - 2].valuetype == ESI_EXPR_INVALID || stack[*stackdepth - 2].eval(stack, stackdepth, *stackdepth - 2, candidate)) {
                 /* cleanup candidate and stack */
                 dumpstack(stack, *stackdepth);
                 cleanmember(candidate);
@@ -1017,7 +1004,7 @@ ESIExpression::Evaluate(char const *s)
 
             s = end;
         } else {
-            assert (s == end);
+            assert(s == end);
             debugs(86, DBG_IMPORTANT, "failed parsing expression");
             PROF_stop(esiExpressionEval);
             return 0;
@@ -1029,8 +1016,7 @@ ESIExpression::Evaluate(char const *s)
         rv.valuetype = ESI_EXPR_INVALID;
         rv.precedence = 0;
 
-        if (stack[stackdepth - 2].
-                eval(stack, &stackdepth, stackdepth - 2, &rv)) {
+        if (stack[stackdepth - 2].eval(stack, &stackdepth, stackdepth - 2, &rv)) {
             /* special case - leading operator failed */
             debugs(86, DBG_IMPORTANT, "invalid expression");
             PROF_stop(esiExpressionEval);

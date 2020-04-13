@@ -15,28 +15,26 @@
 class HttpRequest;
 class HttpReply;
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 /// information used to search for adaptation services
 class ServiceFilter
 {
 public:
-    ServiceFilter(Method, VectPoint, HttpRequest *, HttpReply *, AccessLogEntry::Pointer const &al); // locks
+    ServiceFilter(Method, VectPoint, HttpRequest *, HttpReply *, AccessLogEntry::Pointer const &al);  // locks
     ServiceFilter(const ServiceFilter &f);
-    ~ServiceFilter(); // unlocks
+    ~ServiceFilter();  // unlocks
 
-    ServiceFilter &operator =(const ServiceFilter &f);
+    ServiceFilter &operator=(const ServiceFilter &f);
 
 public:
-    Method method; ///< adaptation direction
-    VectPoint point; ///< adaptation location
-    HttpRequest *request; ///< HTTP request being adapted or cause; may be nil
-    HttpReply *reply; ///< HTTP response being adapted; may be nil
-    AccessLogEntry::Pointer al; ///< info for the future access.log entry
+    Method method;               ///< adaptation direction
+    VectPoint point;             ///< adaptation location
+    HttpRequest *request;        ///< HTTP request being adapted or cause; may be nil
+    HttpReply *reply;            ///< HTTP response being adapted; may be nil
+    AccessLogEntry::Pointer al;  ///< info for the future access.log entry
 };
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__SERVICE_FILTER_H */
-

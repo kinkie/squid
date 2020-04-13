@@ -21,7 +21,7 @@ class ExternalACLLookup : public ACLChecklist::AsyncState
 
 public:
     static ExternalACLLookup *Instance();
-    virtual void checkForAsync(ACLChecklist *)const;
+    virtual void checkForAsync(ACLChecklist *) const;
 
     // If possible, starts an asynchronous lookup of an external ACL.
     // Otherwise, asserts (or bails if background refresh is requested).
@@ -39,27 +39,27 @@ class ACLExternal : public ACL
     MEMPROXY_CLASS(ACLExternal);
 
 public:
-    static void ExternalAclLookup(ACLChecklist * ch, ACLExternal *);
+    static void ExternalAclLookup(ACLChecklist *ch, ACLExternal *);
 
     ACLExternal(char const *);
     ACLExternal(ACLExternal const &);
     ~ACLExternal();
-    ACLExternal&operator=(ACLExternal const &);
+    ACLExternal &operator=(ACLExternal const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     /* This really should be dynamic based on the external class defn */
-    virtual bool requiresAle() const {return true;}
-    virtual bool requiresRequest() const {return true;}
+    virtual bool requiresAle() const { return true; }
+    virtual bool requiresRequest() const { return true; }
 
     /* when requiresRequest is made dynamic, review this too */
     //    virtual bool requiresReply() const {return true;}
     virtual bool isProxyAuth() const;
     virtual SBufList dump() const;
-    virtual bool valid () const;
-    virtual bool empty () const;
+    virtual bool valid() const;
+    virtual bool empty() const;
 
 protected:
     external_acl_data *data;
@@ -67,12 +67,11 @@ protected:
 };
 
 void parse_externalAclHelper(external_acl **);
-void dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl *);
+void dump_externalAclHelper(StoreEntry *sentry, const char *name, const external_acl *);
 void free_externalAclHelper(external_acl **);
 typedef void EAH(void *data, const ExternalACLEntryPointer &result);
-void externalAclLookup(ACLChecklist * ch, void *acl_data, EAH * handler, void *data);
+void externalAclLookup(ACLChecklist *ch, void *acl_data, EAH *handler, void *data);
 void externalAclInit(void);
 void externalAclShutdown(void);
 
 #endif /* SQUID_EXTERNALACL_H */
-

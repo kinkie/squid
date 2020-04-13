@@ -116,15 +116,16 @@ public:
     RequestFlags cloneAdaptationImmune() const;
 
     // if FOLLOW_X_FORWARDED_FOR is not set, we always return "done".
-    bool doneFollowXff() const {
+    bool doneFollowXff() const
+    {
         return done_follow_x_forwarded_for || !FOLLOW_X_FORWARDED_FOR;
     }
 
     // if USE_HTTP_VIOLATIONS is not set, never allow this
-    bool noCacheHack() const {
+    bool noCacheHack() const
+    {
         return USE_HTTP_VIOLATIONS && nocacheHack;
     }
 };
 
 #endif /* SQUID_REQUESTFLAGS_H_ */
-

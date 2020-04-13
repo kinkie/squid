@@ -9,9 +9,9 @@
 /* DEBUG: section 20    Storage Manager MD5 Cache Keys */
 
 #include "squid.h"
+#include "store_key_md5.h"
 #include "HttpRequest.h"
 #include "md5.h"
-#include "store_key_md5.h"
 
 static cache_key null_key[SQUID_MD5_DIGEST_LENGTH];
 
@@ -21,11 +21,11 @@ storeKeyText(const cache_key *key)
     if (!key)
         return "[null_store_key]";
 
-    static char buf[SQUID_MD5_DIGEST_LENGTH * 2+1];
+    static char buf[SQUID_MD5_DIGEST_LENGTH * 2 + 1];
     int i;
 
     for (i = 0; i < SQUID_MD5_DIGEST_LENGTH; ++i)
-        snprintf(&buf[i*2],sizeof(buf) - i*2, "%02X", *(key + i));
+        snprintf(&buf[i * 2], sizeof(buf) - i * 2, "%02X", *(key + i));
 
     return buf;
 }
@@ -42,7 +42,7 @@ storeKeyScan(const char *buf)
         t[0] = *(buf + (j++));
         t[1] = *(buf + (j++));
         t[2] = '\0';
-        *(digest + i) = (unsigned char) strtol(t, NULL, 16);
+        *(digest + i) = (unsigned char)strtol(t, NULL, 16);
     }
 
     return digest;
@@ -72,9 +72,9 @@ storeKeyHashHash(const void *key, unsigned int n)
     /* note, n must be a power of 2! */
     const unsigned char *digest = (const unsigned char *)key;
     unsigned int i = digest[0]
-                     | digest[1] << 8
-                     | digest[2] << 16
-                     | digest[3] << 24;
+        | digest[1] << 8
+        | digest[2] << 16
+        | digest[3] << 24;
     return (i & (--n));
 }
 
@@ -87,21 +87,21 @@ storeKeyPrivate()
         uint64_t count;
         pid_t pid;
         int32_t kid;
-    } key = { 0, getpid(), KidIdentifier };
+    } key = {0, getpid(), KidIdentifier};
     assert(sizeof(key) == SQUID_MD5_DIGEST_LENGTH);
     ++key.count;
-    return reinterpret_cast<cache_key*>(&key);
+    return reinterpret_cast<cache_key *>(&key);
 }
 
 const cache_key *
-storeKeyPublic(const char *url, const HttpRequestMethod& method, const KeyScope keyScope)
+storeKeyPublic(const char *url, const HttpRequestMethod &method, const KeyScope keyScope)
 {
     static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
-    unsigned char m = (unsigned char) method.id();
+    unsigned char m = (unsigned char)method.id();
     SquidMD5_CTX M;
     SquidMD5Init(&M);
     SquidMD5Update(&M, &m, sizeof(m));
-    SquidMD5Update(&M, (unsigned char *) url, strlen(url));
+    SquidMD5Update(&M, (unsigned char *)url, strlen(url));
     if (keyScope)
         SquidMD5Update(&M, &keyScope, sizeof(keyScope));
     SquidMD5Final(digest, &M);
@@ -109,21 +109,21 @@ storeKeyPublic(const char *url, const HttpRequestMethod& method, const KeyScope 
 }
 
 const cache_key *
-storeKeyPublicByRequest(HttpRequest * request, const KeyScope keyScope)
+storeKeyPublicByRequest(HttpRequest *request, const KeyScope keyScope)
 {
     return storeKeyPublicByRequestMethod(request, request->method, keyScope);
 }
 
 const cache_key *
-storeKeyPublicByRequestMethod(HttpRequest * request, const HttpRequestMethod& method, const KeyScope keyScope)
+storeKeyPublicByRequestMethod(HttpRequest *request, const HttpRequestMethod &method, const KeyScope keyScope)
 {
     static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
-    unsigned char m = (unsigned char) method.id();
+    unsigned char m = (unsigned char)method.id();
     const SBuf url = request->storeId(); /* returns the right storeID\URL for the MD5 calc */
     SquidMD5_CTX M;
     SquidMD5Init(&M);
     SquidMD5Update(&M, &m, sizeof(m));
-    SquidMD5Update(&M, (unsigned char *) url.rawContent(), url.length());
+    SquidMD5Update(&M, (unsigned char *)url.rawContent(), url.length());
     if (keyScope)
         SquidMD5Update(&M, &keyScope, sizeof(keyScope));
 
@@ -138,7 +138,7 @@ storeKeyPublicByRequestMethod(HttpRequest * request, const HttpRequestMethod& me
 }
 
 cache_key *
-storeKeyDup(const cache_key * key)
+storeKeyDup(const cache_key *key)
 {
     cache_key *dup = (cache_key *)memAllocate(MEM_MD5_DIGEST);
     memcpy(dup, key, SQUID_MD5_DIGEST_LENGTH);
@@ -146,16 +146,16 @@ storeKeyDup(const cache_key * key)
 }
 
 cache_key *
-storeKeyCopy(cache_key * dst, const cache_key * src)
+storeKeyCopy(cache_key *dst, const cache_key *src)
 {
     memcpy(dst, src, SQUID_MD5_DIGEST_LENGTH);
     return dst;
 }
 
 void
-storeKeyFree(const cache_key * key)
+storeKeyFree(const cache_key *key)
 {
-    memFree((void *) key, MEM_MD5_DIGEST);
+    memFree((void *)key, MEM_MD5_DIGEST);
 }
 
 int
@@ -170,7 +170,7 @@ storeKeyHashBuckets(int nbuckets)
 }
 
 int
-storeKeyNull(const cache_key * key)
+storeKeyNull(const cache_key *key)
 {
     if (memcmp(key, null_key, SQUID_MD5_DIGEST_LENGTH) == 0)
         return 1;
@@ -183,4 +183,3 @@ storeKeyInit(void)
 {
     memset(null_key, '\0', SQUID_MD5_DIGEST_LENGTH);
 }
-

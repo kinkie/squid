@@ -11,8 +11,7 @@
 
 #include "sbuf/forward.h"
 
-namespace Mgr
-{
+namespace Mgr {
 //TODO: refactor into a std::list
 /// list of cachemgr password authorization definitions. Currently a POD.
 class ActionPasswordList
@@ -25,7 +24,6 @@ public:
     ActionPasswordList *next = nullptr;
 };
 
-} //namespace Mgr
+}  //namespace Mgr
 
 #endif /* SQUID_MGR_CACHEMGRPASSWD_H_ */
-

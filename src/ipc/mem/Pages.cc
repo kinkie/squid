@@ -9,10 +9,10 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/mem/Pages.h"
 #include "base/RunnersRegistry.h"
 #include "base/TextException.h"
 #include "ipc/mem/PagePool.h"
-#include "ipc/mem/Pages.h"
 #include "tools.h"
 
 // Uses a single PagePool instance, for now.
@@ -27,14 +27,13 @@ static int TheLimits[Ipc::Mem::PageId::maxPurpose];
 size_t
 Ipc::Mem::PageSize()
 {
-    return 32*1024;
+    return 32 * 1024;
 }
 
 bool
 Ipc::Mem::GetPage(const PageId::Purpose purpose, PageId &page)
 {
-    return ThePagePool && PagesAvailable(purpose) > 0 ?
-           ThePagePool->get(purpose, page) : false;
+    return ThePagePool && PagesAvailable(purpose) > 0 ? ThePagePool->get(purpose, page) : false;
 }
 
 void
@@ -89,11 +88,12 @@ Ipc::Mem::PageLevel(const int purpose)
 }
 
 /// initializes shared memory pages
-class SharedMemPagesRr: public Ipc::Mem::RegisteredRunner
+class SharedMemPagesRr : public Ipc::Mem::RegisteredRunner
 {
 public:
     /* RegisteredRunner API */
-    SharedMemPagesRr(): owner(NULL) {}
+    SharedMemPagesRr() :
+        owner(NULL) {}
     virtual void useConfig();
     virtual void create();
     virtual void open();
@@ -137,4 +137,3 @@ SharedMemPagesRr::~SharedMemPagesRr()
     ThePagePool = NULL;
     delete owner;
 }
-

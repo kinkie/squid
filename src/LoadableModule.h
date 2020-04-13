@@ -15,18 +15,19 @@
 class LoadableModule
 {
 public:
-    enum LoadMode { lmNow, lmLazy };
+    enum LoadMode { lmNow,
+                    lmLazy };
 
 public:
     LoadableModule(const String &aName);
-    ~LoadableModule();           // unloads if loaded
+    ~LoadableModule();  // unloads if loaded
 
     bool loaded() const;
     const String &name() const { return theName; }
     const String &error() const { return theError; }
 
-    void load(int mode = lmNow); // throws Texc
-    void unload(); // throws Texc
+    void load(int mode = lmNow);  // throws Texc
+    void unload();                // throws Texc
 
 protected:
     String theName;
@@ -40,4 +41,3 @@ private:
 };
 
 #endif
-

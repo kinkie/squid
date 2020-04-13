@@ -7,19 +7,19 @@
  */
 
 #include "squid.h"
-#include "AccessLogEntry.h"
-#include "base/CodeContext.h"
-#include "CachePeer.h"
-#include "errorpage.h"
-#include "FwdState.h"
 #include "HappyConnOpener.h"
+#include "AccessLogEntry.h"
+#include "CachePeer.h"
+#include "FwdState.h"
 #include "HttpRequest.h"
-#include "ip/QosConfig.h"
-#include "neighbors.h"
-#include "pconn.h"
 #include "PeerPoolMgr.h"
 #include "ResolvedPeers.h"
 #include "SquidConfig.h"
+#include "base/CodeContext.h"
+#include "errorpage.h"
+#include "ip/QosConfig.h"
+#include "neighbors.h"
+#include "pconn.h"
 
 CBDATA_CLASS_INIT(HappyConnOpener);
 
@@ -54,7 +54,8 @@ class HappyOrderEnforcer
 {
 public:
     /// \param aName names scheduled events, for debugging
-    HappyOrderEnforcer(const char *aName): name(aName) {}
+    HappyOrderEnforcer(const char *aName) :
+        name(aName) {}
 
     /// resumes jobs that need resuming (if any)
     void checkpoint();
@@ -65,7 +66,7 @@ public:
     /// stops managing the job's wait; cancels the pending callback, if any
     void dequeue(HappyConnOpener &);
 
-    const char * const name; ///< waiting event name, for debugging
+    const char *const name;  ///< waiting event name, for debugging
 
 protected:
     virtual bool readyNow(const HappyConnOpener &) const = 0;
@@ -78,11 +79,12 @@ private:
     static void NoteWaitOver(void *raw);
     void noteWaitOver();
 
-    HappySpareWaitList jobs_; ///< queued jobs waiting their turn
-    mutable HappyAbsoluteTime waitEnd_ = 0; ///< expected NoteWaitOver() call time (or zero)
+    HappySpareWaitList jobs_;                ///< queued jobs waiting their turn
+    mutable HappyAbsoluteTime waitEnd_ = 0;  ///< expected NoteWaitOver() call time (or zero)
 };
 
-std::ostream &operator <<(std::ostream &os, const HappyConnOpenerAnswer &answer)
+std::ostream &
+operator<<(std::ostream &os, const HappyConnOpenerAnswer &answer)
 {
     if (answer.error.set())
         os << "bad ";
@@ -94,10 +96,11 @@ std::ostream &operator <<(std::ostream &os, const HappyConnOpenerAnswer &answer)
 }
 
 /// enforces happy_eyeballs_connect_timeout
-class PrimeChanceGiver: public HappyOrderEnforcer
+class PrimeChanceGiver : public HappyOrderEnforcer
 {
 public:
-    PrimeChanceGiver(): HappyOrderEnforcer("happy_eyeballs_connect_timeout enforcement") {}
+    PrimeChanceGiver() :
+        HappyOrderEnforcer("happy_eyeballs_connect_timeout enforcement") {}
 
     /* HappyOrderEnforcer API */
     virtual bool readyNow(const HappyConnOpener &job) const override;
@@ -108,10 +111,11 @@ private:
 };
 
 /// enforces happy_eyeballs_connect_gap and happy_eyeballs_connect_limit
-class SpareAllowanceGiver: public HappyOrderEnforcer
+class SpareAllowanceGiver : public HappyOrderEnforcer
 {
 public:
-    SpareAllowanceGiver(): HappyOrderEnforcer("happy_eyeballs_connect_gap/happy_eyeballs_connect_limit enforcement") {}
+    SpareAllowanceGiver() :
+        HappyOrderEnforcer("happy_eyeballs_connect_gap/happy_eyeballs_connect_limit enforcement") {}
 
     /* HappyOrderEnforcer API */
     virtual bool readyNow(const HappyConnOpener &job) const override;
@@ -175,9 +179,9 @@ HappyOrderEnforcer::checkpoint()
         if (const auto jobPtr = jobs_.front().valid()) {
             auto &job = *jobPtr;
             if (!readyNow(job))
-                break; // the next job cannot be ready earlier (FIFO)
+                break;  // the next job cannot be ready earlier (FIFO)
             CallBack(job.spareWaiting.codeContext, [&] {
-                job.spareWaiting.callback = notify(jobPtr); // and fall through to the next job
+                job.spareWaiting.callback = notify(jobPtr);  // and fall through to the next job
             });
         }
         jobs_.pop_front();
@@ -197,14 +201,14 @@ HappyOrderEnforcer::startedWaiting(const HappyAbsoluteTime lastStart, const int 
     const auto tout = static_cast<HappyAbsoluteTime>(cfgTimeoutMsec) * Config.workers / 1000.0;
     const auto newWaitEnd = std::min(lastStart, current_dtime) + tout;
     if (newWaitEnd <= current_dtime)
-        return false; // no need to wait
+        return false;  // no need to wait
 
     // We cannot avoid event accumulation because calling eventDelete() is
     // unsafe, but any accumulation will be small because it can only be caused
     // by hot reconfiguration changes or current time jumps.
     if (!waiting() || newWaitEnd < waitEnd_) {
         const auto waitTime = newWaitEnd - current_dtime;
-        eventAdd(name, &HappyOrderEnforcer::NoteWaitOver, const_cast<HappyOrderEnforcer*>(this), waitTime, 0, false);
+        eventAdd(name, &HappyOrderEnforcer::NoteWaitOver, const_cast<HappyOrderEnforcer *>(this), waitTime, 0, false);
         waitEnd_ = newWaitEnd;
         assert(waiting());
     }
@@ -216,7 +220,7 @@ void
 HappyOrderEnforcer::NoteWaitOver(void *raw)
 {
     assert(raw);
-    static_cast<HappyOrderEnforcer*>(raw)->noteWaitOver();
+    static_cast<HappyOrderEnforcer *>(raw)->noteWaitOver();
 }
 
 void
@@ -246,8 +250,7 @@ PrimeChanceGiver::notify(const CbcPointer<HappyConnOpener> &job)
 bool
 SpareAllowanceGiver::readyNow(const HappyConnOpener &) const
 {
-    return !concurrencyLimitReached() &&
-           !startedWaiting(lastAllowanceStart, Config.happyEyeballs.connect_gap);
+    return !concurrencyLimitReached() && !startedWaiting(lastAllowanceStart, Config.happyEyeballs.connect_gap);
 }
 
 AsyncCall::Pointer
@@ -302,10 +305,10 @@ bool
 SpareAllowanceGiver::concurrencyLimitReached() const
 {
     if (Config.happyEyeballs.connect_limit < 0)
-        return false; // no limit
+        return false;  // no limit
 
     if (Config.happyEyeballs.connect_limit == 0)
-        return true; // concurrent spares prohibited regardless of spare level
+        return true;  // concurrent spares prohibited regardless of spare level
 
     // adjust for SMP workers to keep aggregated spare level in check despite
     // the lack of coordination among workers
@@ -326,7 +329,7 @@ HappyConnOpenerAnswer::~HappyConnOpenerAnswer()
 
 /* HappyConnOpener */
 
-HappyConnOpener::HappyConnOpener(const ResolvedPeers::Pointer &dests, const AsyncCall::Pointer &aCall, HttpRequest::Pointer &request, const time_t aFwdStart, int tries, const AccessLogEntry::Pointer &anAle):
+HappyConnOpener::HappyConnOpener(const ResolvedPeers::Pointer &dests, const AsyncCall::Pointer &aCall, HttpRequest::Pointer &request, const time_t aFwdStart, int tries, const AccessLogEntry::Pointer &anAle) :
     AsyncJob("HappyConnOpener"),
     fwdStart(aFwdStart),
     callback_(aCall),
@@ -336,7 +339,7 @@ HappyConnOpener::HappyConnOpener(const ResolvedPeers::Pointer &dests, const Asyn
     n_tries(tries)
 {
     assert(destinations);
-    assert(dynamic_cast<Answer*>(callback_->getDialer()));
+    assert(dynamic_cast<Answer *>(callback_->getDialer()));
 }
 
 HappyConnOpener::~HappyConnOpener()
@@ -364,21 +367,21 @@ bool
 HappyConnOpener::doneAll() const
 {
     if (!callback_)
-        return true; // (probably found a good path and) informed the requestor
+        return true;  // (probably found a good path and) informed the requestor
 
     // TODO: Expose AsyncCall::canFire() instead so that code like this can
     // detect gone initiators without the need to explicitly cancel callbacks.
     if (callback_->canceled())
-        return true; // the requestor is gone or has lost interest
+        return true;  // the requestor is gone or has lost interest
 
     if (prime || spare)
         return false;
 
     if (ranOutOfTimeOrAttempts())
-        return true; // trying new connection paths prohibited
+        return true;  // trying new connection paths prohibited
 
     if (destinations->empty() && destinations->destinationsFinalized)
-        return true; // there are no more paths to try
+        return true;  // there are no more paths to try
 
     return false;
 }
@@ -452,8 +455,7 @@ HappyConnOpener::status() const
 ErrorState *
 HappyConnOpener::makeError(const err_type type) const
 {
-    const auto statusCode = cause->flags.needValidation ?
-                            Http::scGatewayTimeout : Http::scServiceUnavailable;
+    const auto statusCode = cause->flags.needValidation ? Http::scGatewayTimeout : Http::scServiceUnavailable;
     return new ErrorState(type, statusCode, cause.getRaw(), ale);
 }
 
@@ -494,7 +496,7 @@ HappyConnOpener::sendFailure()
             lastError = makeError(ERR_GATEWAY_FAILURE);
         answer->error = lastError;
         assert(answer->error.valid());
-        lastError = nullptr; // the answer owns it now
+        lastError = nullptr;  // the answer owns it now
         ScheduleCallHere(callback_);
     }
     callback_ = nullptr;
@@ -596,12 +598,12 @@ HappyConnOpener::connectDone(const CommConnectCbParams &params)
     debugs(17, 8, what << " failed: " << params.conn);
     if (const auto peer = params.conn->getPeer())
         peerConnectFailed(peer);
-    params.conn->close(); // TODO: Comm::ConnOpener should do this instead.
+    params.conn->close();  // TODO: Comm::ConnOpener should do this instead.
 
     // remember the last failure (we forward it if we cannot connect anywhere)
     lastFailedConnection = params.conn;
     delete lastError;
-    lastError = nullptr; // in case makeError() throws
+    lastError = nullptr;  // in case makeError() throws
     lastError = makeError(ERR_CONNECT_FAIL);
     lastError->xerrno = params.xerrno;
 
@@ -622,7 +624,7 @@ HappyConnOpener::updateSpareWaitAfterPrimeFailure()
     if (destinations->doneWithPrimes(*currentPeer)) {
         cancelSpareWait("all primes failed");
         ignoreSpareRestrictions = true;
-        return; // checkForNewConnection() will open a spare connection ASAP
+        return;  // checkForNewConnection() will open a spare connection ASAP
     }
 
     if (spareWaiting.toGivePrimeItsChance)
@@ -634,7 +636,8 @@ HappyConnOpener::updateSpareWaitAfterPrimeFailure()
 
 /// called when the prime attempt has used up its chance for a solo victory
 void
-HappyConnOpener::stopGivingPrimeItsChance() {
+HappyConnOpener::stopGivingPrimeItsChance()
+{
     Must(spareWaiting.toGivePrimeItsChance);
     spareWaiting.toGivePrimeItsChance = false;
     ThePrimeChanceGiver.dequeue(*this);
@@ -642,13 +645,14 @@ HappyConnOpener::stopGivingPrimeItsChance() {
 
 /// called when the spare attempt should no longer obey spare connection limits
 void
-HappyConnOpener::stopWaitingForSpareAllowance() {
+HappyConnOpener::stopWaitingForSpareAllowance()
+{
     Must(spareWaiting.forSpareAllowance);
     spareWaiting.forSpareAllowance = false;
 
     if (spareWaiting.callback)
         TheSpareAllowanceGiver.jobDroppedAllowance();
-    TheSpareAllowanceGiver.dequeue(*this); // clears spareWaiting.callback
+    TheSpareAllowanceGiver.dequeue(*this);  // clears spareWaiting.callback
 }
 
 /// stops waiting for the right conditions to open a spare connection
@@ -685,11 +689,11 @@ HappyConnOpener::checkForNewConnection()
     // The order of the top-level if-statements below is important.
 
     if (done())
-        return; // bail ASAP to minimize our waste and others delays (state #0)
+        return;  // bail ASAP to minimize our waste and others delays (state #0)
 
     if (ranOutOfTimeOrAttempts()) {
-        Must(currentPeer); // or we would be done() already
-        return; // will continue working (state #1.1)
+        Must(currentPeer);  // or we would be done() already
+        return;             // will continue working (state #1.1)
     }
 
     // update stale currentPeer and/or stale spareWaiting
@@ -717,26 +721,26 @@ HappyConnOpener::checkForNewConnection()
             primeStart = current_dtime;
             startConnecting(prime, currentPeer);
             maybeGivePrimeItsChance();
-            Must(prime); // entering state #1.1
+            Must(prime);  // entering state #1.1
         } else {
             if (!prime)
-                maybeOpenAnotherPrimeConnection(); // may make destinations empty()
+                maybeOpenAnotherPrimeConnection();  // may make destinations empty()
         }
 
         if (!spare && !spareWaiting)
-            maybeOpenSpareConnection(); // may make destinations empty()
+            maybeOpenSpareConnection();  // may make destinations empty()
 
         Must(currentPeer);
     }
 
     if (currentPeer) {
         debugs(17, 7, "working on " << *currentPeer);
-        return; // remaining in state #1.1 or #1.2
+        return;  // remaining in state #1.1 or #1.2
     }
 
     if (!destinations->destinationsFinalized) {
         debugs(17, 7, "waiting for more peers");
-        return; // remaining in state #2
+        return;  // remaining in state #2
     }
 
     debugs(17, 7, "done; no more peers");
@@ -760,13 +764,13 @@ HappyConnOpener::noteSpareAllowance()
 
     if (ranOutOfTimeOrAttempts()) {
         TheSpareAllowanceGiver.jobDroppedAllowance();
-        return; // will quit or continue working on prime
+        return;  // will quit or continue working on prime
     }
 
     Must(!gotSpareAllowance);
     gotSpareAllowance = true;
 
-    auto dest = destinations->extractSpare(*currentPeer); // ought to succeed
+    auto dest = destinations->extractSpare(*currentPeer);  // ought to succeed
     startConnecting(spare, dest);
 }
 
@@ -822,12 +826,12 @@ HappyConnOpener::maybeOpenSpareConnection()
     Must(!gotSpareAllowance);
 
     if (ranOutOfTimeOrAttempts())
-        return; // will quit or continue working on prime
+        return;  // will quit or continue working on prime
 
     // jobGotInstantAllowance() call conditions below rely on the readyNow() check here
-    if (!ignoreSpareRestrictions && // we have to honor spare restrictions
-            !TheSpareAllowanceGiver.readyNow(*this) && // all new spares must wait
-            destinations->haveSpare(*currentPeer)) { // and we do have a new spare
+    if (!ignoreSpareRestrictions &&                 // we have to honor spare restrictions
+        !TheSpareAllowanceGiver.readyNow(*this) &&  // all new spares must wait
+        destinations->haveSpare(*currentPeer)) {    // and we do have a new spare
         TheSpareAllowanceGiver.enqueue(*this);
         spareWaiting.forSpareAllowance = true;
         return;
@@ -868,4 +872,3 @@ HappyConnOpener::ranOutOfTimeOrAttempts() const
 
     return false;
 }
-

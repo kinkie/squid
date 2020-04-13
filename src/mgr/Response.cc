@@ -9,26 +9,26 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
+#include "mgr/Response.h"
 #include "CacheManager.h"
+#include "base/TextException.h"
 #include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
 #include "mgr/ActionCreator.h"
 #include "mgr/ActionProfile.h"
-#include "mgr/Response.h"
 
-Mgr::Response::Response(unsigned int aRequestId, Action::Pointer anAction):
+Mgr::Response::Response(unsigned int aRequestId, Action::Pointer anAction) :
     Ipc::Response(aRequestId), action(anAction)
 {
-    Must(!action || action->name()); // if there is an action, it must be named
+    Must(!action || action->name());  // if there is an action, it must be named
 }
 
-Mgr::Response::Response(const Response& response):
+Mgr::Response::Response(const Response &response) :
     Ipc::Response(response.requestId), action(response.action)
 {
 }
 
-Mgr::Response::Response(const Ipc::TypedMsgHdr& msg):
+Mgr::Response::Response(const Ipc::TypedMsgHdr &msg) :
     Ipc::Response(0)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
@@ -45,7 +45,7 @@ Mgr::Response::Response(const Ipc::TypedMsgHdr& msg):
 }
 
 void
-Mgr::Response::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::Response::pack(Ipc::TypedMsgHdr &msg) const
 {
     Must(requestId != 0);
     msg.setType(Ipc::mtCacheMgrResponse);
@@ -68,10 +68,9 @@ Mgr::Response::hasAction() const
     return action != NULL;
 }
 
-const Mgr::Action&
+const Mgr::Action &
 Mgr::Response::getAction() const
 {
     Must(hasAction());
     return *action;
 }
-

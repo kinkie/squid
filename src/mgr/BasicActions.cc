@@ -9,15 +9,15 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "CacheManager.h"
-#include "mgr/ActionCreator.h"
-#include "mgr/ActionProfile.h"
 #include "mgr/BasicActions.h"
-#include "mgr/Registration.h"
-#include "protos.h"
+#include "CacheManager.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "base/TextException.h"
+#include "mgr/ActionCreator.h"
+#include "mgr/ActionProfile.h"
+#include "mgr/Registration.h"
+#include "protos.h"
 
 Mgr::IndexAction::Pointer
 Mgr::IndexAction::Create(const Command::Pointer &cmd)
@@ -25,7 +25,8 @@ Mgr::IndexAction::Create(const Command::Pointer &cmd)
     return new IndexAction(cmd);
 }
 
-Mgr::IndexAction::IndexAction(const Command::Pointer &aCmd): Action(aCmd)
+Mgr::IndexAction::IndexAction(const Command::Pointer &aCmd) :
+    Action(aCmd)
 {
     debugs(16, 5, HERE);
 }
@@ -42,19 +43,20 @@ Mgr::MenuAction::Create(const Command::Pointer &cmd)
     return new MenuAction(cmd);
 }
 
-Mgr::MenuAction::MenuAction(const Command::Pointer &aCmd): Action(aCmd)
+Mgr::MenuAction::MenuAction(const Command::Pointer &aCmd) :
+    Action(aCmd)
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::MenuAction::dump(StoreEntry* entry)
+Mgr::MenuAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
 
     typedef CacheManager::Menu::const_iterator Iterator;
-    const CacheManager::Menu& menu = CacheManager::GetInstance()->menu();
+    const CacheManager::Menu &menu = CacheManager::GetInstance()->menu();
 
     for (Iterator a = menu.begin(); a != menu.end(); ++a) {
         storeAppendPrintf(entry, " %-22s\t%-32s\t%s\n",
@@ -69,7 +71,8 @@ Mgr::ShutdownAction::Create(const Command::Pointer &cmd)
     return new ShutdownAction(cmd);
 }
 
-Mgr::ShutdownAction::ShutdownAction(const Command::Pointer &aCmd): Action(aCmd)
+Mgr::ShutdownAction::ShutdownAction(const Command::Pointer &aCmd) :
+    Action(aCmd)
 {
     debugs(16, 5, HERE);
 }
@@ -87,14 +90,14 @@ Mgr::ReconfigureAction::Create(const Command::Pointer &cmd)
     return new ReconfigureAction(cmd);
 }
 
-Mgr::ReconfigureAction::ReconfigureAction(const Command::Pointer &aCmd):
+Mgr::ReconfigureAction::ReconfigureAction(const Command::Pointer &aCmd) :
     Action(aCmd)
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::ReconfigureAction::dump(StoreEntry* entry)
+Mgr::ReconfigureAction::dump(StoreEntry *entry)
 {
     debugs(16, DBG_IMPORTANT, "Reconfigure by Cache Manager command.");
     storeAppendPrintf(entry, "Reconfiguring Squid Process ....");
@@ -107,13 +110,14 @@ Mgr::RotateAction::Create(const Command::Pointer &cmd)
     return new RotateAction(cmd);
 }
 
-Mgr::RotateAction::RotateAction(const Command::Pointer &aCmd): Action(aCmd)
+Mgr::RotateAction::RotateAction(const Command::Pointer &aCmd) :
+    Action(aCmd)
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::RotateAction::dump(StoreEntry* entry)
+Mgr::RotateAction::dump(StoreEntry *entry)
 {
     debugs(16, DBG_IMPORTANT, "Rotate Logs by Cache Manager command.");
     storeAppendPrintf(entry, "Rotating Squid Process Logs ....");
@@ -130,14 +134,14 @@ Mgr::OfflineToggleAction::Create(const Command::Pointer &cmd)
     return new OfflineToggleAction(cmd);
 }
 
-Mgr::OfflineToggleAction::OfflineToggleAction(const Command::Pointer &aCmd):
+Mgr::OfflineToggleAction::OfflineToggleAction(const Command::Pointer &aCmd) :
     Action(aCmd)
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::OfflineToggleAction::dump(StoreEntry* entry)
+Mgr::OfflineToggleAction::dump(StoreEntry *entry)
 {
     Config.onoff.offline = !Config.onoff.offline;
     debugs(16, DBG_IMPORTANT, "offline_mode now " << (Config.onoff.offline ? "ON" : "OFF") << " by Cache Manager request.");
@@ -156,4 +160,3 @@ Mgr::RegisterBasics()
     RegisterAction("reconfigure", "Reconfigure Squid", &Mgr::ReconfigureAction::Create, 1, 1);
     RegisterAction("rotate", "Rotate Squid Logs", &Mgr::RotateAction::Create, 1, 1);
 }
-

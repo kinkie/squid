@@ -33,7 +33,7 @@ RegexPattern::~RegexPattern()
 }
 
 RegexPattern &
-RegexPattern::operator =(RegexPattern &&o)
+RegexPattern::operator=(RegexPattern &&o)
 {
     flags = std::move(o.flags);
     regex = std::move(o.regex);
@@ -42,4 +42,3 @@ RegexPattern::operator =(RegexPattern &&o)
     o.pattern = nullptr;
     return *this;
 }
-

@@ -17,7 +17,7 @@
 /// Interface for reporting what Squid code is working on.
 /// Such reports are usually requested outside creator's call stack.
 /// They are especially useful for attributing low-level errors to transactions.
-class CodeContext: public RefCountable
+class CodeContext : public RefCountable
 {
 public:
     typedef RefCount<CodeContext> Pointer;
@@ -47,8 +47,8 @@ private:
 };
 
 /// by default, only small context gist is printed
-inline
-std::ostream &operator <<(std::ostream &os, const CodeContext &ctx)
+inline std::ostream &
+operator<<(std::ostream &os, const CodeContext &ctx)
 {
     return os << ctx.codeContextGist();
 }
@@ -62,7 +62,8 @@ std::ostream &CurrentCodeContextDetail(std::ostream &os);
 class CodeContextGuard
 {
 public:
-    CodeContextGuard(const CodeContext::Pointer &newContext): savedCodeContext(CodeContext::Current()) { CodeContext::Reset(newContext); }
+    CodeContextGuard(const CodeContext::Pointer &newContext) :
+        savedCodeContext(CodeContext::Current()) { CodeContext::Reset(newContext); }
     ~CodeContextGuard() { CodeContext::Reset(savedCodeContext); }
 
     // no copying of any kind (for simplicity and to prevent accidental copies)
@@ -118,4 +119,3 @@ CallContextCreator(Fun &&creator)
 }
 
 #endif
-

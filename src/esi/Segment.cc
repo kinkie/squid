@@ -9,14 +9,14 @@
 /* DEBUG: section 86    ESI processing */
 
 #include "squid.h"
-#include "Debug.h"
 #include "esi/Segment.h"
+#include "Debug.h"
 #include "SquidString.h"
 
 CBDATA_CLASS_INIT(ESISegment);
 
 void
-ESISegmentFreeList (ESISegment::Pointer &head)
+ESISegmentFreeList(ESISegment::Pointer &head)
 {
     while (head.getRaw()) {
         ESISegment::Pointer temp = head;
@@ -28,21 +28,21 @@ ESISegmentFreeList (ESISegment::Pointer &head)
 size_t
 ESISegment::space() const
 {
-    assert (len <= sizeof(buf));
-    return sizeof (buf) - len;
+    assert(len <= sizeof(buf));
+    return sizeof(buf) - len;
 }
 
 void
-ESISegment::adsorbList (ESISegment::Pointer from)
+ESISegment::adsorbList(ESISegment::Pointer from)
 {
-    assert (next.getRaw() == NULL);
-    assert (from.getRaw() != NULL);
+    assert(next.getRaw() == NULL);
+    assert(from.getRaw() != NULL);
     /* prevent worst case */
-    assert (!(len == 0 && from->len == space() ));
+    assert(!(len == 0 && from->len == space()));
     Pointer copyFrom = from;
 
     while (copyFrom.getRaw() && space() >= copyFrom->len) {
-        assert (append (copyFrom) == copyFrom->len);
+        assert(append(copyFrom) == copyFrom->len);
         copyFrom = copyFrom->next;
     }
 
@@ -50,7 +50,7 @@ ESISegment::adsorbList (ESISegment::Pointer from)
 }
 
 void
-ESISegment::ListTransfer (ESISegment::Pointer &from, ESISegment::Pointer &to)
+ESISegment::ListTransfer(ESISegment::Pointer &from, ESISegment::Pointer &to)
 {
     if (!to.getRaw()) {
         to = from;
@@ -59,7 +59,7 @@ ESISegment::ListTransfer (ESISegment::Pointer &from, ESISegment::Pointer &to)
     }
 
     ESISegment::Pointer temp = to->tail();
-    temp->adsorbList (from);
+    temp->adsorbList(from);
     from = NULL;
 }
 
@@ -67,7 +67,7 @@ size_t
 ESISegment::listLength() const
 {
     size_t result = 0;
-    ESISegment const* temp = this;
+    ESISegment const *temp = this;
 
     while (temp) {
         result += temp->len;
@@ -81,9 +81,9 @@ char *
 ESISegment::listToChar() const
 {
     size_t length = listLength();
-    char *rv = (char *)xmalloc (length + 1);
-    assert (rv);
-    rv [length] = '\0';
+    char *rv = (char *)xmalloc(length + 1);
+    assert(rv);
+    rv[length] = '\0';
 
     ESISegment::Pointer temp = this;
     size_t pos = 0;
@@ -98,16 +98,16 @@ ESISegment::listToChar() const
 }
 
 void
-ESISegment::listAppend (char const *s, size_t length)
+ESISegment::listAppend(char const *s, size_t length)
 {
-    assert (next.getRaw() == NULL);
+    assert(next.getRaw() == NULL);
     ESISegment::Pointer output = this;
     /* copy the string to output */
-    size_t pos=0;
+    size_t pos = 0;
 
     while (pos < length) {
         if (output->space() == 0) {
-            assert (output->next.getRaw() == NULL);
+            assert(output->next.getRaw() == NULL);
             output->next = new ESISegment;
             output = output->next;
         }
@@ -117,19 +117,19 @@ ESISegment::listAppend (char const *s, size_t length)
 }
 
 void
-ESISegment::ListAppend (ESISegment::Pointer &head, char const *s, size_t len)
+ESISegment::ListAppend(ESISegment::Pointer &head, char const *s, size_t len)
 {
     if (!head.getRaw())
         head = new ESISegment;
 
-    head->tail()->listAppend (s, len);
+    head->tail()->listAppend(s, len);
 }
 
 /* XXX: if needed, make this iterative */
 ESISegment::Pointer
-ESISegment::cloneList () const
+ESISegment::cloneList() const
 {
-    ESISegment::Pointer result = new ESISegment (*this);
+    ESISegment::Pointer result = new ESISegment(*this);
     result->next = next.getRaw() ? next->cloneList() : NULL;
     return result;
 }
@@ -146,7 +146,7 @@ ESISegment::append(char const *appendBuffer, size_t appendLength)
 size_t
 ESISegment::append(ESISegment::Pointer from)
 {
-    return append (from->buf, from->len);
+    return append(from->buf, from->len);
 }
 
 ESISegment const *
@@ -171,9 +171,10 @@ ESISegment::tail()
     return result.getRaw();
 }
 
-ESISegment::ESISegment(ESISegment const &old) : len (0), next(NULL)
+ESISegment::ESISegment(ESISegment const &old) :
+    len(0), next(NULL)
 {
-    append (old.buf, old.len);
+    append(old.buf, old.len);
 }
 
 void
@@ -194,4 +195,3 @@ ESISegment::dumpOne() const
     temp.assign(buf, len);
     debugs(86, 9, "ESISegment::dumpOne: \"" << temp << "\"");
 }
-

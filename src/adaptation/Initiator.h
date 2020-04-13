@@ -22,13 +22,13 @@
  * or aborting an ICAP transaction.
  */
 
-namespace Adaptation
-{
+namespace Adaptation {
 
-class Initiator: virtual public AsyncJob
+class Initiator : virtual public AsyncJob
 {
 public:
-    Initiator(): AsyncJob("Initiator") {}
+    Initiator() :
+        AsyncJob("Initiator") {}
     virtual ~Initiator() {}
 
     /// AccessCheck calls this back with a possibly nil service group
@@ -52,7 +52,6 @@ protected:
     bool initiated(const CbcPointer<AsyncJob> &job) const { return job.set(); }
 };
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__INITIATOR_H */
-

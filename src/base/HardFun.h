@@ -18,4 +18,3 @@ struct HardFun {
 };
 
 #endif /* _SQUID_SRC_BASE_HARDFUN_H */
-

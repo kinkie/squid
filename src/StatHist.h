@@ -36,8 +36,9 @@ public:
      */
     StatHist() = default;
     StatHist(const StatHist &);
-    ~StatHist() {
-        xfree(bins); // can handle case of bins being nullptr
+    ~StatHist()
+    {
+        xfree(bins);    // can handle case of bins being nullptr
         capacity_ = 0;  // mark as destructed, may be needed for troubleshooting
     }
 
@@ -62,7 +63,7 @@ public:
 
     /** iterate the supplied bd function over the histogram values
      */
-    void dump(StoreEntry *sentry, StatHistBinDumper * bd) const;
+    void dump(StoreEntry *sentry, StatHistBinDumper *bd) const;
 
     /** Initialize the Histogram using a logarithmic values distribution
      */
@@ -77,7 +78,7 @@ public:
      * \note: the two histograms MUST have the same capicity, min and max or
      *      an exception will be raised
      */
-    StatHist &operator += (const StatHist &B);
+    StatHist &operator+=(const StatHist &B);
 
 protected:
     /** low-level initialize function. called by *Init high-level functions
@@ -91,7 +92,7 @@ protected:
      *  val_in is applied after offsetting the value but before scaling
      *  See log and linear based histograms for examples
      */
-    void init(unsigned int capacity, hbase_f * val_in, hbase_f * val_out, double min, double max);
+    void init(unsigned int capacity, hbase_f *val_in, hbase_f *val_out, double min, double max);
 
     /// find what entry in the histogram corresponds to v, by applying
     /// the preset input transformation function
@@ -109,34 +110,33 @@ protected:
 
     /// scaling factor when looking for a bin
     double scale_ = 1.0;
-    hbase_f *val_in = nullptr;        /* e.g., log() for log-based histogram */
-    hbase_f *val_out = nullptr;       /* e.g., exp() for log based histogram */
+    hbase_f *val_in = nullptr;  /* e.g., log() for log-based histogram */
+    hbase_f *val_out = nullptr; /* e.g., exp() for log based histogram */
 };
 
-double statHistDeltaMedian(const StatHist & A, const StatHist & B);
-double statHistDeltaPctile(const StatHist & A, const StatHist & B, double pctile);
+double statHistDeltaMedian(const StatHist &A, const StatHist &B);
+double statHistDeltaPctile(const StatHist &A, const StatHist &B, double pctile);
 StatHistBinDumper statHistEnumDumper;
 StatHistBinDumper statHistIntDumper;
 
-inline StatHist&
-StatHist::operator =(const StatHist & src)
+inline StatHist &
+StatHist::operator=(const StatHist &src)
 {
-    if (this==&src) //handle self-assignment
+    if (this == &src)  //handle self-assignment
         return *this;
     if (capacity_ != src.capacity_) {
-        xfree(bins); // xfree can handle NULL pointers, no need to check
-        capacity_=src.capacity_;
+        xfree(bins);  // xfree can handle NULL pointers, no need to check
+        capacity_ = src.capacity_;
         bins = static_cast<bins_type *>(xcalloc(src.capacity_, sizeof(bins_type)));
     }
-    min_=src.min_;
-    max_=src.max_;
-    scale_=src.scale_;
-    val_in=src.val_in;
-    val_out=src.val_out;
+    min_ = src.min_;
+    max_ = src.max_;
+    scale_ = src.scale_;
+    val_in = src.val_in;
+    val_out = src.val_out;
     if (bins)
-        memcpy(bins,src.bins,capacity_*sizeof(*bins));
+        memcpy(bins, src.bins, capacity_ * sizeof(*bins));
     return *this;
 }
 
 #endif /* STATHIST_H_ */
-

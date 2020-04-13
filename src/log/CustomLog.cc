@@ -15,4 +15,3 @@ CustomLog::usesDaemon() const
 {
     return (filename && strncmp(filename, "daemon:", 7) == 0);
 }
-

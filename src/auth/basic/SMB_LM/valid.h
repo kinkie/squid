@@ -18,4 +18,3 @@
 int Valid_User(char *USERNAME, char *PASSWORD, const char *SERVER, char *BACKUP, const char *DOMAIN);
 
 #endif
-

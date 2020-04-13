@@ -11,35 +11,35 @@
 
 class StoreSwapLogData;
 
-namespace Fs
-{
-namespace Ufs
-{
-/// \ingroup UFS
-class UFSSwapLogParser
-{
-public:
-    FILE *log;
-    int log_entries;
-    int record_size;
+namespace Fs {
+namespace Ufs {
+    /// \ingroup UFS
+    class UFSSwapLogParser
+    {
+    public:
+        FILE *log;
+        int log_entries;
+        int record_size;
 
-    UFSSwapLogParser(FILE *fp):log(fp),log_entries(-1), record_size(0) {
-    }
-    virtual ~UFSSwapLogParser() {};
-
-    static UFSSwapLogParser *GetUFSSwapLogParser(FILE *fp);
-
-    virtual bool ReadRecord(StoreSwapLogData &swapData) = 0;
-    int SwapLogEntries();
-    void Close() {
-        if (log) {
-            fclose(log);
-            log = NULL;
+        UFSSwapLogParser(FILE *fp) :
+            log(fp), log_entries(-1), record_size(0)
+        {
         }
-    }
-};
+        virtual ~UFSSwapLogParser() {};
 
-} //namespace Ufs
-} //namespace Fs
+        static UFSSwapLogParser *GetUFSSwapLogParser(FILE *fp);
+
+        virtual bool ReadRecord(StoreSwapLogData &swapData) = 0;
+        int SwapLogEntries();
+        void Close()
+        {
+            if (log) {
+                fclose(log);
+                log = NULL;
+            }
+        }
+    };
+
+}  //namespace Ufs
+}  //namespace Fs
 #endif /* SQUID_FS_UFS_UFSSWAPLOGPARSER_H */
-

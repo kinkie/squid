@@ -23,7 +23,7 @@ typedef signed_int32_t sfileno;
 typedef signed int sdirno;
 
 /// maximum number of entries per cache_dir
-enum { SwapFilenMax = 0xFFFFFF }; // keep in sync with StoreEntry::swap_filen
+enum { SwapFilenMax = 0xFFFFFF };  // keep in sync with StoreEntry::swap_filen
 
 /// Store key.
 typedef unsigned char cache_key;
@@ -34,10 +34,12 @@ class StoreEntry;
 class MemStore;
 class Transients;
 
-namespace Store
-{
+namespace Store {
 /// cache "I/O" direction and status
-enum IoStatus { ioUndecided, ioWriting, ioReading, ioDone };
+enum IoStatus { ioUndecided,
+                ioWriting,
+                ioReading,
+                ioDone };
 
 class Storage;
 class Controller;
@@ -50,14 +52,14 @@ class EntryGuard;
 typedef ::StoreEntry Entry;
 typedef ::MemStore Memory;
 typedef ::Transients Transients;
-} // namespace Store
+}  // namespace Store
 
 // TODO: Remove these once all code has been transitioned to Store namespace.
 typedef Store::Controller StoreController;
 typedef Store::Disks StoreHashIndex;
 typedef Store::Disk SwapDir;
-template <class C> class RefCount;
+template <class C>
+class RefCount;
 typedef RefCount<Store::Disk> SwapDirPointer;
 
 #endif /* SQUID_STORE_FORWARD_H */
-

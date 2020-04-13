@@ -10,21 +10,20 @@
 #define SQUID_ADAPTATION__SERVICE_H
 
 #include "AccessLogEntry.h"
+#include "SquidString.h"
 #include "adaptation/Elements.h"
-#include "adaptation/forward.h"
 #include "adaptation/ServiceConfig.h"
+#include "adaptation/forward.h"
 #include "base/RefCount.h"
 #include "http/forward.h"
-#include "SquidString.h"
 
 // TODO: Move src/ICAP/ICAPServiceRep.h API comments here and update them
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 // manages adaptation service configuration in squid.conf
 // specific adaptation mechanisms extend this class
-class Service: public RefCountable
+class Service : public RefCountable
 {
 public:
     typedef RefCount<Service> Pointer;
@@ -34,9 +33,9 @@ public:
     explicit Service(const ServiceConfigPointer &aConfig);
     virtual ~Service();
 
-    virtual bool probed() const = 0; // see comments above
+    virtual bool probed() const = 0;  // see comments above
     virtual bool broken() const;
-    virtual bool up() const = 0; // see comments above
+    virtual bool up() const = 0;  // see comments above
 
     virtual Initiate *makeXactLauncher(Http::Message *virginHeader, HttpRequest *virginCause, AccessLogEntry::Pointer &alp) = 0;
 
@@ -50,7 +49,7 @@ public:
 
     const ServiceConfig &cfg() const { return *theConfig; }
 
-    virtual void finalize(); // called after creation
+    virtual void finalize();  // called after creation
 
     /// called when removed from the config; the service will be
     /// auto-destroyed when the last refcounting user leaves
@@ -74,7 +73,6 @@ ServicePointer FindService(const Service::Id &key);
 /// detach all adaptation services from current configuration
 void DetachServices();
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__SERVICE_H */
-

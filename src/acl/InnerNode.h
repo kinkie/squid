@@ -12,13 +12,12 @@
 #include "acl/Acl.h"
 #include <vector>
 
-namespace Acl
-{
+namespace Acl {
 
-typedef std::vector<ACL*> Nodes; ///< a collection of nodes
+typedef std::vector<ACL *> Nodes;  ///< a collection of nodes
 
 /// An intermediate ACL tree node. Manages a collection of child tree nodes.
-class InnerNode: public ACL
+class InnerNode : public ACL
 {
 public:
     // No ~InnerNode() to delete children. They are aclRegister()ed instead.
@@ -49,10 +48,9 @@ protected:
     virtual int match(ACLChecklist *checklist);
 
     // XXX: use refcounting instead of raw pointers
-    std::vector<ACL*> nodes; ///< children nodes of this intermediate node
+    std::vector<ACL *> nodes;  ///< children nodes of this intermediate node
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACL_INNER_NODE_H */
-

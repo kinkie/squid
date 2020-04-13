@@ -27,7 +27,7 @@ Adaptation::Answer::Forward(Http::Message *aMsg)
 {
     Answer answer(akForward);
     answer.message = aMsg;
-    debugs(93, 4, HERE << "forwarding: " << (void*)aMsg);
+    debugs(93, 4, HERE << "forwarding: " << (void *)aMsg);
     return answer;
 }
 
@@ -43,10 +43,10 @@ Adaptation::Answer::Block(const String &aRule)
 std::ostream &
 Adaptation::Answer::print(std::ostream &os) const
 {
-    return os << kind; // TODO: add more details
+    return os << kind;  // TODO: add more details
 }
 
-Adaptation::Answer::Answer(Kind aKind): final(true), kind(aKind)
+Adaptation::Answer::Answer(Kind aKind) :
+    final(true), kind(aKind)
 {
 }
-

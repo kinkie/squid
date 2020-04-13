@@ -14,45 +14,42 @@
 #include "auth/User.h"
 #include "auth/UserRequest.h"
 
-namespace Auth
-{
+namespace Auth {
 
 class SchemeConfig;
 class QueueNode;
 
-namespace Basic
-{
+namespace Basic {
 
-/** User credentials for the Basic authentication protocol */
-class User : public Auth::User
-{
-    MEMPROXY_CLASS(Auth::Basic::User);
+    /** User credentials for the Basic authentication protocol */
+    class User : public Auth::User
+    {
+        MEMPROXY_CLASS(Auth::Basic::User);
 
-public:
-    User(Auth::SchemeConfig *, const char *requestRealm);
-    virtual ~User();
-    bool authenticated() const;
-    bool valid() const;
+    public:
+        User(Auth::SchemeConfig *, const char *requestRealm);
+        virtual ~User();
+        bool authenticated() const;
+        bool valid() const;
 
-    /** Update the cached password for a username. */
-    void updateCached(User *from);
-    virtual int32_t ttl() const override;
+        /** Update the cached password for a username. */
+        void updateCached(User *from);
+        virtual int32_t ttl() const override;
 
-    /* Auth::User API */
-    static CbcPointer<Auth::CredentialsCache> Cache();
-    virtual void addToNameCache() override;
+        /* Auth::User API */
+        static CbcPointer<Auth::CredentialsCache> Cache();
+        virtual void addToNameCache() override;
 
-    char *passwd;
+        char *passwd;
 
-    QueueNode *queue;
+        QueueNode *queue;
 
-private:
-    Auth::UserRequest::Pointer currentRequest;
-};
+    private:
+        Auth::UserRequest::Pointer currentRequest;
+    };
 
-} // namespace Basic
-} // namespace Auth
+}  // namespace Basic
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_BASIC */
 #endif /* _SQUID_AUTH_BASIC_USER_H */
-

@@ -14,15 +14,15 @@ extern "C" {
 #endif
 
 /* Encoder rfc1738_do_escape flag values. */
-#define RFC1738_ESCAPE_CTRLS       1
-#define RFC1738_ESCAPE_UNSAFE      2
-#define RFC1738_ESCAPE_RESERVED    4
-#define RFC1738_ESCAPE_ALL         (RFC1738_ESCAPE_UNSAFE|RFC1738_ESCAPE_RESERVED|RFC1738_ESCAPE_CTRLS)
+#define RFC1738_ESCAPE_CTRLS 1
+#define RFC1738_ESCAPE_UNSAFE 2
+#define RFC1738_ESCAPE_RESERVED 4
+#define RFC1738_ESCAPE_ALL (RFC1738_ESCAPE_UNSAFE | RFC1738_ESCAPE_RESERVED | RFC1738_ESCAPE_CTRLS)
 // exclusions
-#define RFC1738_ESCAPE_NOSPACE     128
-#define RFC1738_ESCAPE_NOPERCENT   256
+#define RFC1738_ESCAPE_NOSPACE 128
+#define RFC1738_ESCAPE_NOPERCENT 256
 // Backward compatibility
-#define RFC1738_ESCAPE_UNESCAPED   (RFC1738_ESCAPE_UNSAFE|RFC1738_ESCAPE_CTRLS|RFC1738_ESCAPE_NOPERCENT)
+#define RFC1738_ESCAPE_UNESCAPED (RFC1738_ESCAPE_UNSAFE | RFC1738_ESCAPE_CTRLS | RFC1738_ESCAPE_NOPERCENT)
 
 /**
  * RFC 1738 URL-escaping
@@ -49,14 +49,14 @@ extern char *rfc1738_do_escape(const char *url, int flags);
 /* Old API functions */
 
 /* Default RFC 1738 escaping. Escape all UNSAFE characters and binary CTRL codes */
-#define rfc1738_escape(x)  rfc1738_do_escape(x, RFC1738_ESCAPE_UNSAFE|RFC1738_ESCAPE_CTRLS)
+#define rfc1738_escape(x) rfc1738_do_escape(x, RFC1738_ESCAPE_UNSAFE | RFC1738_ESCAPE_CTRLS)
 
 /* Escape a partial URL. Encoding every binary code, unsafe or reserved character. */
-#define rfc1738_escape_part(x)  rfc1738_do_escape(x, RFC1738_ESCAPE_ALL)
+#define rfc1738_escape_part(x) rfc1738_do_escape(x, RFC1738_ESCAPE_ALL)
 
 /* Escape a URL. Encoding every unsafe characters but skipping reserved and already-encoded bytes.
  * Suitable for safely encoding an absolute URL which may be encoded but is not trusted. */
-#define rfc1738_escape_unescaped(x)  rfc1738_do_escape(x, RFC1738_ESCAPE_UNSAFE|RFC1738_ESCAPE_CTRLS|RFC1738_ESCAPE_NOPERCENT)
+#define rfc1738_escape_unescaped(x) rfc1738_do_escape(x, RFC1738_ESCAPE_UNSAFE | RFC1738_ESCAPE_CTRLS | RFC1738_ESCAPE_NOPERCENT)
 
 /**
  * Unescape a URL string according to RFC 1738 specification.
@@ -68,4 +68,3 @@ extern void rfc1738_unescape(char *url);
 }
 #endif
 #endif /* _SQUID_INCLUDE_RFC1738_H */
-

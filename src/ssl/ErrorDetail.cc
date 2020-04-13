@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
+#include "ssl/ErrorDetail.h"
 #include "errorpage.h"
 #include "fatal.h"
 #include "html_quote.h"
-#include "ssl/ErrorDetail.h"
 
 #include <climits>
 #include <map>
@@ -26,243 +26,164 @@ typedef std::map<Security::ErrorCode, const SslErrorEntry *> SslErrors;
 SslErrors TheSslErrors;
 
 static SslErrorEntry TheSslErrorArray[] = {
-    {   SQUID_X509_V_ERR_INFINITE_VALIDATION,
-        "SQUID_X509_V_ERR_INFINITE_VALIDATION"
-    },
-    {   SQUID_X509_V_ERR_CERT_CHANGE,
-        "SQUID_X509_V_ERR_CERT_CHANGE"
-    },
-    {   SQUID_ERR_SSL_HANDSHAKE,
-        "SQUID_ERR_SSL_HANDSHAKE"
-    },
-    {   SQUID_X509_V_ERR_DOMAIN_MISMATCH,
-        "SQUID_X509_V_ERR_DOMAIN_MISMATCH"
-    },
-    {   X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT,
-        "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT"
-    },
-    {   X509_V_ERR_UNABLE_TO_GET_CRL,
-        "X509_V_ERR_UNABLE_TO_GET_CRL"
-    },
-    {   X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE,
-        "X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE"
-    },
-    {   X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE,
-        "X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE"
-    },
-    {   X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY,
-        "X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY"
-    },
-    {   X509_V_ERR_CERT_SIGNATURE_FAILURE,
-        "X509_V_ERR_CERT_SIGNATURE_FAILURE"
-    },
-    {   X509_V_ERR_CRL_SIGNATURE_FAILURE,
-        "X509_V_ERR_CRL_SIGNATURE_FAILURE"
-    },
-    {   X509_V_ERR_CERT_NOT_YET_VALID,
-        "X509_V_ERR_CERT_NOT_YET_VALID"
-    },
-    {   X509_V_ERR_CERT_HAS_EXPIRED,
-        "X509_V_ERR_CERT_HAS_EXPIRED"
-    },
-    {   X509_V_ERR_CRL_NOT_YET_VALID,
-        "X509_V_ERR_CRL_NOT_YET_VALID"
-    },
-    {   X509_V_ERR_CRL_HAS_EXPIRED,
-        "X509_V_ERR_CRL_HAS_EXPIRED"
-    },
-    {   X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD,
-        "X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD"
-    },
-    {   X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD,
-        "X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD"
-    },
-    {   X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD,
-        "X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD"
-    },
-    {   X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD,
-        "X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD"
-    },
-    {   X509_V_ERR_OUT_OF_MEM,
-        "X509_V_ERR_OUT_OF_MEM"
-    },
-    {   X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT,
-        "X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT"
-    },
-    {   X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN,
-        "X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN"
-    },
-    {   X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
-        "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY"
-    },
-    {   X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE,
-        "X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE"
-    },
-    {   X509_V_ERR_CERT_CHAIN_TOO_LONG,
-        "X509_V_ERR_CERT_CHAIN_TOO_LONG"
-    },
-    {   X509_V_ERR_CERT_REVOKED,
-        "X509_V_ERR_CERT_REVOKED"
-    },
-    {   X509_V_ERR_INVALID_CA,
-        "X509_V_ERR_INVALID_CA"
-    },
-    {   X509_V_ERR_PATH_LENGTH_EXCEEDED,
-        "X509_V_ERR_PATH_LENGTH_EXCEEDED"
-    },
-    {   X509_V_ERR_INVALID_PURPOSE,
-        "X509_V_ERR_INVALID_PURPOSE"
-    },
-    {   X509_V_ERR_CERT_UNTRUSTED,
-        "X509_V_ERR_CERT_UNTRUSTED"
-    },
-    {   X509_V_ERR_CERT_REJECTED,
-        "X509_V_ERR_CERT_REJECTED"
-    },
-    {   X509_V_ERR_SUBJECT_ISSUER_MISMATCH,
-        "X509_V_ERR_SUBJECT_ISSUER_MISMATCH"
-    },
-    {   X509_V_ERR_AKID_SKID_MISMATCH,
-        "X509_V_ERR_AKID_SKID_MISMATCH"
-    },
-    {   X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH,
-        "X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH"
-    },
-    {   X509_V_ERR_KEYUSAGE_NO_CERTSIGN,
-        "X509_V_ERR_KEYUSAGE_NO_CERTSIGN"
-    },
+    {SQUID_X509_V_ERR_INFINITE_VALIDATION,
+     "SQUID_X509_V_ERR_INFINITE_VALIDATION"},
+    {SQUID_X509_V_ERR_CERT_CHANGE,
+     "SQUID_X509_V_ERR_CERT_CHANGE"},
+    {SQUID_ERR_SSL_HANDSHAKE,
+     "SQUID_ERR_SSL_HANDSHAKE"},
+    {SQUID_X509_V_ERR_DOMAIN_MISMATCH,
+     "SQUID_X509_V_ERR_DOMAIN_MISMATCH"},
+    {X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT,
+     "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT"},
+    {X509_V_ERR_UNABLE_TO_GET_CRL,
+     "X509_V_ERR_UNABLE_TO_GET_CRL"},
+    {X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE,
+     "X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE"},
+    {X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE,
+     "X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE"},
+    {X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY,
+     "X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY"},
+    {X509_V_ERR_CERT_SIGNATURE_FAILURE,
+     "X509_V_ERR_CERT_SIGNATURE_FAILURE"},
+    {X509_V_ERR_CRL_SIGNATURE_FAILURE,
+     "X509_V_ERR_CRL_SIGNATURE_FAILURE"},
+    {X509_V_ERR_CERT_NOT_YET_VALID,
+     "X509_V_ERR_CERT_NOT_YET_VALID"},
+    {X509_V_ERR_CERT_HAS_EXPIRED,
+     "X509_V_ERR_CERT_HAS_EXPIRED"},
+    {X509_V_ERR_CRL_NOT_YET_VALID,
+     "X509_V_ERR_CRL_NOT_YET_VALID"},
+    {X509_V_ERR_CRL_HAS_EXPIRED,
+     "X509_V_ERR_CRL_HAS_EXPIRED"},
+    {X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD,
+     "X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD"},
+    {X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD,
+     "X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD"},
+    {X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD,
+     "X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD"},
+    {X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD,
+     "X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD"},
+    {X509_V_ERR_OUT_OF_MEM,
+     "X509_V_ERR_OUT_OF_MEM"},
+    {X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT,
+     "X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT"},
+    {X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN,
+     "X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN"},
+    {X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
+     "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY"},
+    {X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE,
+     "X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE"},
+    {X509_V_ERR_CERT_CHAIN_TOO_LONG,
+     "X509_V_ERR_CERT_CHAIN_TOO_LONG"},
+    {X509_V_ERR_CERT_REVOKED,
+     "X509_V_ERR_CERT_REVOKED"},
+    {X509_V_ERR_INVALID_CA,
+     "X509_V_ERR_INVALID_CA"},
+    {X509_V_ERR_PATH_LENGTH_EXCEEDED,
+     "X509_V_ERR_PATH_LENGTH_EXCEEDED"},
+    {X509_V_ERR_INVALID_PURPOSE,
+     "X509_V_ERR_INVALID_PURPOSE"},
+    {X509_V_ERR_CERT_UNTRUSTED,
+     "X509_V_ERR_CERT_UNTRUSTED"},
+    {X509_V_ERR_CERT_REJECTED,
+     "X509_V_ERR_CERT_REJECTED"},
+    {X509_V_ERR_SUBJECT_ISSUER_MISMATCH,
+     "X509_V_ERR_SUBJECT_ISSUER_MISMATCH"},
+    {X509_V_ERR_AKID_SKID_MISMATCH,
+     "X509_V_ERR_AKID_SKID_MISMATCH"},
+    {X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH,
+     "X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH"},
+    {X509_V_ERR_KEYUSAGE_NO_CERTSIGN,
+     "X509_V_ERR_KEYUSAGE_NO_CERTSIGN"},
 #if defined(X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER)
-    {
-        X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER, //33
-        "X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER"
-    },
+    {X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER,  //33
+     "X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER"},
 #endif
 #if defined(X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION)
-    {
-        X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION, //34
-        "X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"
-    },
+    {X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION,  //34
+     "X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"},
 #endif
 #if defined(X509_V_ERR_KEYUSAGE_NO_CRL_SIGN)
-    {
-        X509_V_ERR_KEYUSAGE_NO_CRL_SIGN, //35
-        "X509_V_ERR_KEYUSAGE_NO_CRL_SIGN"
-    },
+    {X509_V_ERR_KEYUSAGE_NO_CRL_SIGN,  //35
+     "X509_V_ERR_KEYUSAGE_NO_CRL_SIGN"},
 #endif
 #if defined(X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION)
-    {
-        X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION, //36
-        "X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION"
-    },
+    {X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION,  //36
+     "X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION"},
 #endif
 #if defined(X509_V_ERR_INVALID_NON_CA)
-    {
-        X509_V_ERR_INVALID_NON_CA, //37
-        "X509_V_ERR_INVALID_NON_CA"
-    },
+    {X509_V_ERR_INVALID_NON_CA,  //37
+     "X509_V_ERR_INVALID_NON_CA"},
 #endif
 #if defined(X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED)
-    {
-        X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED, //38
-        "X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED"
-    },
+    {X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED,  //38
+     "X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED"},
 #endif
 #if defined(X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE)
-    {
-        X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE, //39
-        "X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE"
-    },
+    {X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE,  //39
+     "X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE"},
 #endif
 #if defined(X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED)
-    {
-        X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED, //40
-        "X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED"
-    },
+    {X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED,  //40
+     "X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED"},
 #endif
 #if defined(X509_V_ERR_INVALID_EXTENSION)
-    {
-        X509_V_ERR_INVALID_EXTENSION, //41
-        "X509_V_ERR_INVALID_EXTENSION"
-    },
+    {X509_V_ERR_INVALID_EXTENSION,  //41
+     "X509_V_ERR_INVALID_EXTENSION"},
 #endif
 #if defined(X509_V_ERR_INVALID_POLICY_EXTENSION)
-    {
-        X509_V_ERR_INVALID_POLICY_EXTENSION, //42
-        "X509_V_ERR_INVALID_POLICY_EXTENSION"
-    },
+    {X509_V_ERR_INVALID_POLICY_EXTENSION,  //42
+     "X509_V_ERR_INVALID_POLICY_EXTENSION"},
 #endif
 #if defined(X509_V_ERR_NO_EXPLICIT_POLICY)
-    {
-        X509_V_ERR_NO_EXPLICIT_POLICY, //43
-        "X509_V_ERR_NO_EXPLICIT_POLICY"
-    },
+    {X509_V_ERR_NO_EXPLICIT_POLICY,  //43
+     "X509_V_ERR_NO_EXPLICIT_POLICY"},
 #endif
 #if defined(X509_V_ERR_DIFFERENT_CRL_SCOPE)
-    {
-        X509_V_ERR_DIFFERENT_CRL_SCOPE, //44
-        "X509_V_ERR_DIFFERENT_CRL_SCOPE"
-    },
+    {X509_V_ERR_DIFFERENT_CRL_SCOPE,  //44
+     "X509_V_ERR_DIFFERENT_CRL_SCOPE"},
 #endif
 #if defined(X509_V_ERR_UNSUPPORTED_EXTENSION_FEATURE)
-    {
-        X509_V_ERR_UNSUPPORTED_EXTENSION_FEATURE, //45
-        "X509_V_ERR_UNSUPPORTED_EXTENSION_FEATURE"
-    },
+    {X509_V_ERR_UNSUPPORTED_EXTENSION_FEATURE,  //45
+     "X509_V_ERR_UNSUPPORTED_EXTENSION_FEATURE"},
 #endif
 #if defined(X509_V_ERR_UNNESTED_RESOURCE)
-    {
-        X509_V_ERR_UNNESTED_RESOURCE, //46
-        "X509_V_ERR_UNNESTED_RESOURCE"
-    },
+    {X509_V_ERR_UNNESTED_RESOURCE,  //46
+     "X509_V_ERR_UNNESTED_RESOURCE"},
 #endif
 #if defined(X509_V_ERR_PERMITTED_VIOLATION)
-    {
-        X509_V_ERR_PERMITTED_VIOLATION, //47
-        "X509_V_ERR_PERMITTED_VIOLATION"
-    },
+    {X509_V_ERR_PERMITTED_VIOLATION,  //47
+     "X509_V_ERR_PERMITTED_VIOLATION"},
 #endif
 #if defined(X509_V_ERR_EXCLUDED_VIOLATION)
-    {
-        X509_V_ERR_EXCLUDED_VIOLATION, //48
-        "X509_V_ERR_EXCLUDED_VIOLATION"
-    },
+    {X509_V_ERR_EXCLUDED_VIOLATION,  //48
+     "X509_V_ERR_EXCLUDED_VIOLATION"},
 #endif
 #if defined(X509_V_ERR_SUBTREE_MINMAX)
-    {
-        X509_V_ERR_SUBTREE_MINMAX, //49
-        "X509_V_ERR_SUBTREE_MINMAX"
-    },
+    {X509_V_ERR_SUBTREE_MINMAX,  //49
+     "X509_V_ERR_SUBTREE_MINMAX"},
 #endif
 #if defined(X509_V_ERR_UNSUPPORTED_CONSTRAINT_TYPE)
-    {
-        X509_V_ERR_UNSUPPORTED_CONSTRAINT_TYPE, //51
-        "X509_V_ERR_UNSUPPORTED_CONSTRAINT_TYPE"
-    },
+    {X509_V_ERR_UNSUPPORTED_CONSTRAINT_TYPE,  //51
+     "X509_V_ERR_UNSUPPORTED_CONSTRAINT_TYPE"},
 #endif
 #if defined(X509_V_ERR_UNSUPPORTED_CONSTRAINT_SYNTAX)
-    {
-        X509_V_ERR_UNSUPPORTED_CONSTRAINT_SYNTAX, //52
-        "X509_V_ERR_UNSUPPORTED_CONSTRAINT_SYNTAX"
-    },
+    {X509_V_ERR_UNSUPPORTED_CONSTRAINT_SYNTAX,  //52
+     "X509_V_ERR_UNSUPPORTED_CONSTRAINT_SYNTAX"},
 #endif
 #if defined(X509_V_ERR_UNSUPPORTED_NAME_SYNTAX)
-    {
-        X509_V_ERR_UNSUPPORTED_NAME_SYNTAX, //53
-        "X509_V_ERR_UNSUPPORTED_NAME_SYNTAX"
-    },
+    {X509_V_ERR_UNSUPPORTED_NAME_SYNTAX,  //53
+     "X509_V_ERR_UNSUPPORTED_NAME_SYNTAX"},
 #endif
 #if defined(X509_V_ERR_CRL_PATH_VALIDATION_ERROR)
-    {
-        X509_V_ERR_CRL_PATH_VALIDATION_ERROR, //54
-        "X509_V_ERR_CRL_PATH_VALIDATION_ERROR"
-    },
+    {X509_V_ERR_CRL_PATH_VALIDATION_ERROR,  //54
+     "X509_V_ERR_CRL_PATH_VALIDATION_ERROR"},
 #endif
-    {   X509_V_ERR_APPLICATION_VERIFICATION,
-        "X509_V_ERR_APPLICATION_VERIFICATION"
-    },
-    { SSL_ERROR_NONE, "SSL_ERROR_NONE"},
-    {SSL_ERROR_NONE, NULL}
-};
+    {X509_V_ERR_APPLICATION_VERIFICATION,
+     "X509_V_ERR_APPLICATION_VERIFICATION"},
+    {SSL_ERROR_NONE, "SSL_ERROR_NONE"},
+    {SSL_ERROR_NONE, NULL}};
 
 static const char *OptionalSslErrors[] = {
     "X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER",
@@ -286,8 +207,7 @@ static const char *OptionalSslErrors[] = {
     "X509_V_ERR_UNSUPPORTED_CONSTRAINT_SYNTAX",
     "X509_V_ERR_UNSUPPORTED_NAME_SYNTAX",
     "X509_V_ERR_CRL_PATH_VALIDATION_ERROR",
-    NULL
-};
+    NULL};
 
 struct SslErrorAlias {
     const char *name;
@@ -302,8 +222,7 @@ static const Security::ErrorCode certUntrusted[] = {X509_V_ERR_INVALID_CA,
                                                     X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE,
                                                     X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT,
                                                     X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
-                                                    X509_V_ERR_CERT_UNTRUSTED, SSL_ERROR_NONE
-                                                   };
+                                                    X509_V_ERR_CERT_UNTRUSTED, SSL_ERROR_NONE};
 static const Security::ErrorCode certSelfSigned[] = {X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT, SSL_ERROR_NONE};
 
 // The list of error name shortcuts  for use with ssl_error acls.
@@ -321,14 +240,14 @@ static SslErrorAlias TheSslErrorShortcutsArray[] = {
     {"certUntrusted", certUntrusted},
     {"ssl::certSelfSigned", certSelfSigned},
     {"certSelfSigned", certSelfSigned},
-    {NULL, NULL}
-};
+    {NULL, NULL}};
 
 // Use std::map to optimize search.
 typedef std::map<std::string, const Security::ErrorCode *> SslErrorShortcuts;
 SslErrorShortcuts TheSslErrorShortcuts;
 
-static void loadSslErrorMap()
+static void
+loadSslErrorMap()
 {
     assert(TheSslErrors.empty());
     for (int i = 0; TheSslErrorArray[i].name; ++i) {
@@ -336,14 +255,16 @@ static void loadSslErrorMap()
     }
 }
 
-static void loadSslErrorShortcutsMap()
+static void
+loadSslErrorShortcutsMap()
 {
     assert(TheSslErrorShortcuts.empty());
     for (int i = 0; TheSslErrorShortcutsArray[i].name; ++i)
         TheSslErrorShortcuts[TheSslErrorShortcutsArray[i].name] = TheSslErrorShortcutsArray[i].errors;
 }
 
-Security::ErrorCode Ssl::GetErrorCode(const char *name)
+Security::ErrorCode
+Ssl::GetErrorCode(const char *name)
 {
     //TODO: use a std::map?
     for (int i = 0; TheSslErrorArray[i].name != NULL; ++i) {
@@ -387,10 +308,11 @@ Ssl::ParseErrorString(const char *name, Security::Errors &errors)
     }
 
     fatalf("Unknown TLS error name '%s'", name);
-    return false; // not reached
+    return false;  // not reached
 }
 
-const char *Ssl::GetErrorName(Security::ErrorCode value)
+const char *
+Ssl::GetErrorName(Security::ErrorCode value)
 {
     if (TheSslErrors.empty())
         loadSslErrorMap();
@@ -427,16 +349,16 @@ Ssl::ErrorDetail::err_frm_code Ssl::ErrorDetail::ErrorFormatingCodes[] = {
     {"err_name", &Ssl::ErrorDetail::err_code},
     {"ssl_error_descr", &Ssl::ErrorDetail::err_descr},
     {"ssl_lib_error", &Ssl::ErrorDetail::err_lib_error},
-    {NULL,NULL}
-};
+    {NULL, NULL}};
 
 /**
  * The subject of the current certification in text form
  */
-const char  *Ssl::ErrorDetail::subject() const
+const char *
+Ssl::ErrorDetail::subject() const
 {
     if (broken_cert.get()) {
-        static char tmpBuffer[256]; // A temporary buffer
+        static char tmpBuffer[256];  // A temporary buffer
         if (X509_NAME_oneline(X509_get_subject_name(broken_cert.get()), tmpBuffer, sizeof(tmpBuffer))) {
             // quote to avoid possible html code injection through
             // certificate subject
@@ -447,10 +369,11 @@ const char  *Ssl::ErrorDetail::subject() const
 }
 
 // helper function to be used with Ssl::matchX509CommonNames
-static int copy_cn(void *check_data,  ASN1_STRING *cn_data)
+static int
+copy_cn(void *check_data, ASN1_STRING *cn_data)
 {
     String *str = (String *)check_data;
-    if (!str) // no data? abort
+    if (!str)  // no data? abort
         return 0;
     if (cn_data && cn_data->length) {
         if (str->size() > 0)
@@ -463,7 +386,8 @@ static int copy_cn(void *check_data,  ASN1_STRING *cn_data)
 /**
  * The list with certificates cn and alternate names
  */
-const char *Ssl::ErrorDetail::cn() const
+const char *
+Ssl::ErrorDetail::cn() const
 {
     if (broken_cert.get()) {
         static String tmpStr;  ///< A temporary string buffer
@@ -481,10 +405,11 @@ const char *Ssl::ErrorDetail::cn() const
 /**
  * The issuer name
  */
-const char *Ssl::ErrorDetail::ca_name() const
+const char *
+Ssl::ErrorDetail::ca_name() const
 {
     if (broken_cert.get()) {
-        static char tmpBuffer[256]; // A temporary buffer
+        static char tmpBuffer[256];  // A temporary buffer
         if (X509_NAME_oneline(X509_get_issuer_name(broken_cert.get()), tmpBuffer, sizeof(tmpBuffer))) {
             // quote to avoid possible html code injection through
             // certificate issuer subject
@@ -497,11 +422,12 @@ const char *Ssl::ErrorDetail::ca_name() const
 /**
  * The certificate "not before" field
  */
-const char *Ssl::ErrorDetail::notbefore() const
+const char *
+Ssl::ErrorDetail::notbefore() const
 {
     if (broken_cert.get()) {
         if (const auto tm = X509_getm_notBefore(broken_cert.get())) {
-            static char tmpBuffer[256]; // A temporary buffer
+            static char tmpBuffer[256];  // A temporary buffer
             Ssl::asn1timeToString(tm, tmpBuffer, sizeof(tmpBuffer));
             return tmpBuffer;
         }
@@ -512,11 +438,12 @@ const char *Ssl::ErrorDetail::notbefore() const
 /**
  * The certificate "not after" field
  */
-const char *Ssl::ErrorDetail::notafter() const
+const char *
+Ssl::ErrorDetail::notafter() const
 {
     if (broken_cert.get()) {
         if (const auto tm = X509_getm_notAfter(broken_cert.get())) {
-            static char tmpBuffer[256]; // A temporary buffer
+            static char tmpBuffer[256];  // A temporary buffer
             Ssl::asn1timeToString(tm, tmpBuffer, sizeof(tmpBuffer));
             return tmpBuffer;
         }
@@ -527,7 +454,8 @@ const char *Ssl::ErrorDetail::notafter() const
 /**
  * The string representation of the error_no
  */
-const char *Ssl::ErrorDetail::err_code() const
+const char *
+Ssl::ErrorDetail::err_code() const
 {
     static char tmpBuffer[64];
     // We can use the GetErrorName but using the detailEntry is faster,
@@ -549,7 +477,8 @@ const char *Ssl::ErrorDetail::err_code() const
 /**
  * A short description of the error_no
  */
-const char *Ssl::ErrorDetail::err_descr() const
+const char *
+Ssl::ErrorDetail::err_descr() const
 {
     if (error_no == SSL_ERROR_NONE)
         return "[No Error]";
@@ -558,7 +487,8 @@ const char *Ssl::ErrorDetail::err_descr() const
     return "[Not available]";
 }
 
-const char *Ssl::ErrorDetail::err_lib_error() const
+const char *
+Ssl::ErrorDetail::err_lib_error() const
 {
     if (errReason.size() > 0)
         return errReason.termedBuf();
@@ -585,13 +515,14 @@ const char *Ssl::ErrorDetail::err_lib_error() const
  *
  \retval  the length of the code (the number of characters will be replaced by value)
 */
-int Ssl::ErrorDetail::convert(const char *code, const char **value) const
+int
+Ssl::ErrorDetail::convert(const char *code, const char **value) const
 {
     *value = "-";
-    for (int i=0; ErrorFormatingCodes[i].code!=NULL; ++i) {
+    for (int i = 0; ErrorFormatingCodes[i].code != NULL; ++i) {
         const int len = strlen(ErrorFormatingCodes[i].code);
-        if (strncmp(code,ErrorFormatingCodes[i].code, len)==0) {
-            ErrorDetail::fmt_action_t action  = ErrorFormatingCodes[i].fmt_action;
+        if (strncmp(code, ErrorFormatingCodes[i].code, len) == 0) {
+            ErrorDetail::fmt_action_t action = ErrorFormatingCodes[i].fmt_action;
             *value = (this->*action)();
             return len;
         }
@@ -606,7 +537,8 @@ int Ssl::ErrorDetail::convert(const char *code, const char **value) const
  * can also contain normal error pages formatting codes.
  * Currently the error template messages are hard-coded
  */
-void Ssl::ErrorDetail::buildDetail() const
+void
+Ssl::ErrorDetail::buildDetail() const
 {
     char const *s = NULL;
     char const *p;
@@ -632,14 +564,16 @@ void Ssl::ErrorDetail::buildDetail() const
     errDetailStr.append(s, strlen(s));
 }
 
-const String &Ssl::ErrorDetail::toString() const
+const String &
+Ssl::ErrorDetail::toString() const
 {
     if (errDetailStr.size() == 0)
         buildDetail();
     return errDetailStr;
 }
 
-Ssl::ErrorDetail::ErrorDetail( Security::ErrorCode err_no, X509 *cert, X509 *broken, const char *aReason): error_no (err_no), lib_error_no(SSL_ERROR_NONE), errReason(aReason)
+Ssl::ErrorDetail::ErrorDetail(Security::ErrorCode err_no, X509 *cert, X509 *broken, const char *aReason) :
+    error_no(err_no), lib_error_no(SSL_ERROR_NONE), errReason(aReason)
 {
     if (cert)
         peer_cert.resetAndLock(cert);
@@ -669,4 +603,3 @@ Ssl::ErrorDetail::ErrorDetail(Ssl::ErrorDetail const &anErrDetail)
 
     lib_error_no = anErrDetail.lib_error_no;
 }
-

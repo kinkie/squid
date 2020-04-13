@@ -9,11 +9,11 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/MaxConnection.h"
-#include "client_db.h"
 #include "Debug.h"
 #include "SquidConfig.h"
+#include "acl/FilledChecklist.h"
+#include "client_db.h"
 
 ACL *
 ACLMaxConnection::clone() const
@@ -21,14 +21,19 @@ ACLMaxConnection::clone() const
     return new ACLMaxConnection(*this);
 }
 
-ACLMaxConnection::ACLMaxConnection (char const *theClass) : class_ (theClass), limit(-1)
-{}
+ACLMaxConnection::ACLMaxConnection(char const *theClass) :
+    class_(theClass), limit(-1)
+{
+}
 
-ACLMaxConnection::ACLMaxConnection (ACLMaxConnection const & old) :class_ (old.class_), limit (old.limit)
-{}
+ACLMaxConnection::ACLMaxConnection(ACLMaxConnection const &old) :
+    class_(old.class_), limit(old.limit)
+{
+}
 
 ACLMaxConnection::~ACLMaxConnection()
-{}
+{
+}
 
 char const *
 ACLMaxConnection::typeString() const
@@ -37,13 +42,13 @@ ACLMaxConnection::typeString() const
 }
 
 bool
-ACLMaxConnection::empty () const
+ACLMaxConnection::empty() const
 {
     return false;
 }
 
 bool
-ACLMaxConnection::valid () const
+ACLMaxConnection::valid() const
 {
     return limit > 0;
 }
@@ -56,7 +61,7 @@ ACLMaxConnection::parse()
     if (!t)
         return;
 
-    limit = (atoi (t));
+    limit = (atoi(t));
 
     /* suck out file contents */
     // ignore comments
@@ -99,4 +104,3 @@ ACLMaxConnection::prepareForUse()
 
     debugs(22, DBG_CRITICAL, "WARNING: 'maxconn' ACL (" << name << ") won't work with client_db disabled");
 }
-

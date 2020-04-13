@@ -9,12 +9,12 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/Forwarder.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
 #include "base/AsyncJobCalls.h"
 #include "base/TextException.h"
 #include "errorpage.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
-#include "ipc/Forwarder.h"
 #include "ipc/Port.h"
 #include "ipc/TypedMsgHdr.h"
 
@@ -23,7 +23,7 @@ CBDATA_NAMESPACED_CLASS_INIT(Ipc, Forwarder);
 Ipc::Forwarder::RequestsMap Ipc::Forwarder::TheRequestsMap;
 unsigned int Ipc::Forwarder::LastRequestId = 0;
 
-Ipc::Forwarder::Forwarder(Request::Pointer aRequest, double aTimeout):
+Ipc::Forwarder::Forwarder(Request::Pointer aRequest, double aTimeout) :
     AsyncJob("Ipc::Forwarder"),
     request(aRequest), timeout(aTimeout)
 {
@@ -43,7 +43,7 @@ Ipc::Forwarder::start()
 
     typedef NullaryMemFunT<Forwarder> Dialer;
     AsyncCall::Pointer callback = JobCallback(54, 5, Dialer, this, Forwarder::handleRemoteAck);
-    if (++LastRequestId == 0) // don't use zero value as request->requestId
+    if (++LastRequestId == 0)  // don't use zero value as request->requestId
         ++LastRequestId;
     request->requestId = LastRequestId;
     TheRequestsMap[request->requestId] = callback;
@@ -95,11 +95,11 @@ Ipc::Forwarder::handleRemoteAck()
 
 /// Ipc::Forwarder::requestTimedOut wrapper
 void
-Ipc::Forwarder::RequestTimedOut(void* param)
+Ipc::Forwarder::RequestTimedOut(void *param)
 {
     debugs(54, 3, HERE);
     Must(param != NULL);
-    Forwarder* fwdr = static_cast<Forwarder*>(param);
+    Forwarder *fwdr = static_cast<Forwarder *>(param);
     // use async call to enable job call protection that time events lack
     CallJobHere(54, 5, fwdr, Forwarder, requestTimedOut);
 }
@@ -126,18 +126,18 @@ Ipc::Forwarder::handleTimeout()
 
 /// terminate with an error
 void
-Ipc::Forwarder::handleException(const std::exception& e)
+Ipc::Forwarder::handleException(const std::exception &e)
 {
     debugs(54, 3, HERE << e.what());
     mustStop("exception");
 }
 
 void
-Ipc::Forwarder::callException(const std::exception& e)
+Ipc::Forwarder::callException(const std::exception &e)
 {
     try {
         handleException(e);
-    } catch (const std::exception& ex) {
+    } catch (const std::exception &ex) {
         debugs(54, DBG_CRITICAL, HERE << ex.what());
     }
     AsyncJob::callException(e);
@@ -177,4 +177,3 @@ Ipc::Forwarder::HandleRemoteAck(unsigned int requestId)
     if (call != NULL)
         ScheduleCallHere(call);
 }
-

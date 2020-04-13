@@ -72,15 +72,15 @@
  */
 
 #include "squid.h"
-#include "mem/forward.h"
 #include "MemBuf.h"
+#include "mem/forward.h"
 #include "profiler/Profiler.h"
 
 /* local constants */
 
 /* default values for buffer sizes, used by memBufDefInit */
-#define MEM_BUF_INIT_SIZE   (2*1024)
-#define MEM_BUF_MAX_SIZE    (2*1000*1024*1024)
+#define MEM_BUF_INIT_SIZE (2 * 1024)
+#define MEM_BUF_MAX_SIZE (2 * 1000 * 1024 * 1024)
 
 CBDATA_CLASS_INIT(MemBuf);
 
@@ -116,7 +116,7 @@ MemBuf::clean()
         // nothing to do
     } else {
         assert(buf);
-        assert(!stolen);    /* not frozen */
+        assert(!stolen); /* not frozen */
 
         memFreeBuf(capacity, buf);
         buf = NULL;
@@ -134,7 +134,7 @@ MemBuf::reset()
     if (isNull()) {
         init();
     } else {
-        assert(!stolen);    /* not frozen */
+        assert(!stolen); /* not frozen */
         /* reset */
         memset(buf, 0, capacity);
         size = 0;
@@ -148,27 +148,30 @@ int
 MemBuf::isNull() const
 {
     if (!buf && !max_capacity && !capacity && !size)
-        return 1;       /* is null (not initialized) */
+        return 1; /* is null (not initialized) */
 
-    assert(buf && max_capacity && capacity);    /* paranoid */
+    assert(buf && max_capacity && capacity); /* paranoid */
 
     return 0;
 }
 
-mb_size_t MemBuf::spaceSize() const
+mb_size_t
+MemBuf::spaceSize() const
 {
     const mb_size_t terminatedSize = size + 1;
     return (terminatedSize < capacity) ? capacity - terminatedSize : 0;
 }
 
-mb_size_t MemBuf::potentialSpaceSize() const
+mb_size_t
+MemBuf::potentialSpaceSize() const
 {
     const mb_size_t terminatedSize = size + 1;
     return (terminatedSize < max_capacity) ? max_capacity - terminatedSize : 0;
 }
 
 /// removes sz bytes and "packs" by moving content left
-void MemBuf::consume(mb_size_t shiftSize)
+void
+MemBuf::consume(mb_size_t shiftSize)
 {
     const mb_size_t cSize = contentSize();
     assert(0 <= shiftSize && shiftSize <= cSize);
@@ -187,21 +190,24 @@ void MemBuf::consume(mb_size_t shiftSize)
 }
 
 /// removes all whitespace prefix bytes and "packs" by moving content left
-void MemBuf::consumeWhitespacePrefix()
+void
+MemBuf::consumeWhitespacePrefix()
 {
     PROF_start(MemBuf_consumeWhitespace);
     if (contentSize() > 0) {
         const char *end = buf + contentSize();
         const char *p = buf;
-        for (; p<end && xisspace(*p); ++p);
-        if (p-buf > 0)
-            consume(p-buf);
+        for (; p < end && xisspace(*p); ++p)
+            ;
+        if (p - buf > 0)
+            consume(p - buf);
     }
     PROF_stop(MemBuf_consumeWhitespace);
 }
 
 // removes last tailSize bytes
-void MemBuf::truncate(mb_size_t tailSize)
+void
+MemBuf::truncate(mb_size_t tailSize)
 {
     const mb_size_t cSize = contentSize();
     assert(0 <= tailSize && tailSize <= cSize);
@@ -213,10 +219,11 @@ void MemBuf::truncate(mb_size_t tailSize)
  * calls memcpy, appends exactly size bytes,
  * extends buffer or creates buffer if needed.
  */
-void MemBuf::append(const char *newContent, int sz)
+void
+MemBuf::append(const char *newContent, int sz)
 {
     assert(sz >= 0);
-    assert(buf || (0==capacity && 0==size));
+    assert(buf || (0 == capacity && 0 == size));
     assert(!stolen); /* not frozen */
 
     PROF_start(MemBuf_append);
@@ -232,7 +239,8 @@ void MemBuf::append(const char *newContent, int sz)
 }
 
 /// updates content size after external append
-void MemBuf::appended(mb_size_t sz)
+void
+MemBuf::appended(mb_size_t sz)
 {
     assert(size + sz <= capacity);
     size += sz;
@@ -247,7 +255,8 @@ void MemBuf::appended(mb_size_t sz)
  *     This will cause the buffer to grow when spaceSize() == 1 on append,
  *     which will assert() if the buffer cannot grow any more.
  */
-void MemBuf::terminate()
+void
+MemBuf::terminate()
 {
     assert(size < capacity);
     *space() = '\0';
@@ -262,7 +271,7 @@ MemBuf::vappendf(const char *fmt, va_list vargs)
     int sz = 0;
     assert(fmt);
     assert(buf);
-    assert(!stolen);    /* not frozen */
+    assert(!stolen); /* not frozen */
     /* assert in Grow should quit first, but we do not want to have a scary infinite loop */
 
     while (capacity <= max_capacity) {
@@ -274,7 +283,7 @@ MemBuf::vappendf(const char *fmt, va_list vargs)
          * in case we loop around and call vsnprintf() again.
          */
         va_list ap;
-        va_copy(ap,vargs);
+        va_copy(ap, vargs);
         sz = vsnprintf(buf + size, free_space, fmt, ap);
         va_end(ap);
 
@@ -313,10 +322,10 @@ MemBuf::freeFunc()
 {
     FREE *ff;
     assert(buf);
-    assert(!stolen);    /* not frozen */
+    assert(!stolen); /* not frozen */
 
-    ff = memFreeBufFunc((size_t) capacity);
-    stolen = 1;     /* freeze */
+    ff = memFreeBufFunc((size_t)capacity);
+    stolen = 1; /* freeze */
     return ff;
 }
 
@@ -339,26 +348,26 @@ MemBuf::grow(mb_size_t min_cap)
     if (min_cap > 64 * 1024) {
         new_cap = 64 * 1024;
 
-        while (new_cap < (size_t) min_cap)
-            new_cap += 64 * 1024;   /* increase in reasonable steps */
+        while (new_cap < (size_t)min_cap)
+            new_cap += 64 * 1024; /* increase in reasonable steps */
     } else {
-        new_cap = (size_t) min_cap;
+        new_cap = (size_t)min_cap;
     }
 
     /* last chance to fit before we assert(!overflow) */
-    if (new_cap > (size_t) max_capacity)
-        new_cap = (size_t) max_capacity;
+    if (new_cap > (size_t)max_capacity)
+        new_cap = (size_t)max_capacity;
 
-    assert(new_cap <= (size_t) max_capacity);   /* no overflow */
+    assert(new_cap <= (size_t)max_capacity); /* no overflow */
 
-    assert(new_cap > (size_t) capacity);    /* progress */
+    assert(new_cap > (size_t)capacity); /* progress */
 
-    buf_cap = (size_t) capacity;
+    buf_cap = (size_t)capacity;
 
     buf = (char *)memReallocBuf(buf, new_cap, &buf_cap);
 
     /* done */
-    capacity = (mb_size_t) buf_cap;
+    capacity = (mb_size_t)buf_cap;
     PROF_stop(MemBuf_grow);
 }
 
@@ -368,9 +377,8 @@ MemBuf::grow(mb_size_t min_cap)
  * Puts report on MemBuf _module_ usage into mb
  */
 void
-memBufReport(MemBuf * mb)
+memBufReport(MemBuf *mb)
 {
     assert(mb);
     mb->appendf("memBufReport is not yet implemented @?@\n");
 }
-

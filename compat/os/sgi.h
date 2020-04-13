@@ -18,7 +18,7 @@
  ****************************************************************************/
 
 #if !defined(_SVR4_SOURCE)
-#define _SVR4_SOURCE        /* for tempnam(3) */
+#define _SVR4_SOURCE /* for tempnam(3) */
 #endif
 
 #if USE_ASYNC_IO
@@ -27,4 +27,3 @@
 
 #endif /* _SQUID_SGI_ */
 #endif /* SQUID_OS_SGI_H */
-

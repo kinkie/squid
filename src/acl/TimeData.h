@@ -19,7 +19,7 @@ class ACLTimeData : public ACLData<time_t>
 public:
     ACLTimeData();
     ACLTimeData(ACLTimeData const &);
-    ACLTimeData&operator=(ACLTimeData const &);
+    ACLTimeData &operator=(ACLTimeData const &);
     virtual ~ACLTimeData();
     bool match(time_t);
     virtual SBufList dump() const;
@@ -35,4 +35,3 @@ private:
 };
 
 #endif /* SQUID_ACLTIMEDATA_H */
-

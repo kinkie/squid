@@ -45,15 +45,16 @@ public:
      \param stats   Object to be filled with statistical data about pool.
      \retval        Number of objects in use, ie. allocated.
      */
-    virtual int getStats(MemPoolStats * stats, int accumulate);
+    virtual int getStats(MemPoolStats *stats, int accumulate);
 
     virtual int getInUseCount();
+
 protected:
     virtual void *allocate();
     virtual void deallocate(void *, bool aggressive);
+
 private:
     std::stack<void *> freelist;
 };
 
 #endif /* _MEM_POOL_MALLOC_H_ */
-

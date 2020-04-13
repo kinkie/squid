@@ -14,27 +14,30 @@
  * #if to exclude the delay pools code from compile process when not needed.
  */
 #if USE_DELAY_POOLS
-#include "acl/FilledChecklist.h"
-#include "client_side_request.h"
 #include "CommRead.h"
 #include "DelayId.h"
 #include "DelayPool.h"
 #include "DelayPools.h"
-#include "http/Stream.h"
 #include "HttpRequest.h"
 #include "SquidConfig.h"
+#include "acl/FilledChecklist.h"
+#include "client_side_request.h"
+#include "http/Stream.h"
 
-DelayId::DelayId () : pool_ (0), compositeId(NULL), markedAsNoDelay(false)
-{}
+DelayId::DelayId() :
+    pool_(0), compositeId(NULL), markedAsNoDelay(false)
+{
+}
 
-DelayId::DelayId (unsigned short aPool) :
-    pool_ (aPool), compositeId (NULL), markedAsNoDelay (false)
+DelayId::DelayId(unsigned short aPool) :
+    pool_(aPool), compositeId(NULL), markedAsNoDelay(false)
 {
     debugs(77, 3, "DelayId::DelayId: Pool " << aPool << "u");
 }
 
-DelayId::~DelayId ()
-{}
+DelayId::~DelayId()
+{
+}
 
 void
 DelayId::compositePosition(DelayIdComposite::Pointer newPosition)
@@ -49,7 +52,7 @@ DelayId::pool() const
 }
 
 bool
-DelayId::operator == (DelayId const &rhs) const
+DelayId::operator==(DelayId const &rhs) const
 {
     /* Doesn't compare composites properly....
      * only use to test against default ID's
@@ -64,7 +67,7 @@ DelayId::operator bool() const
 
 /* create a delay Id for a given request */
 DelayId
-DelayId::DelayClient(ClientHttpRequest * http, HttpReply *reply)
+DelayId::DelayClient(ClientHttpRequest *http, HttpReply *reply)
 {
     HttpRequest *r;
     unsigned short pool;
@@ -80,8 +83,7 @@ DelayId::DelayClient(ClientHttpRequest * http, HttpReply *reply)
 
         /* pools require explicit 'allow' to assign a client into them */
         if (!DelayPools::delay_data[pool].access) {
-            debugs(77, DBG_IMPORTANT, "delay_pool " << pool <<
-                   " has no delay_access configured. This means that no clients will ever use it.");
+            debugs(77, DBG_IMPORTANT, "delay_pool " << pool << " has no delay_access configured. This means that no clients will ever use it.");
             continue;
         }
 
@@ -103,7 +105,7 @@ DelayId::DelayClient(ClientHttpRequest * http, HttpReply *reply)
 
         if (DelayPools::delay_data[pool].theComposite().getRaw() && ch.fastCheck().allowed()) {
 
-            DelayId result (pool + 1);
+            DelayId result(pool + 1);
             CompositePoolNode::CompositeSelectionDetails details;
             details.src_addr = ch.src_addr;
 #if USE_AUTH
@@ -133,7 +135,7 @@ DelayId::bytesWanted(int minimum, int maximum) const
 {
     /* unlimited */
 
-    if (! (*this) || markedAsNoDelay)
+    if (!(*this) || markedAsNoDelay)
         return max(minimum, maximum);
 
     /* limited */
@@ -153,13 +155,13 @@ DelayId::bytesWanted(int minimum, int maximum) const
 void
 DelayId::bytesIn(int qty)
 {
-    if (! (*this))
+    if (!(*this))
         return;
 
     if (markedAsNoDelay)
         return;
 
-    assert ((unsigned short)(pool() - 1) != 0xFFFF);
+    assert((unsigned short)(pool() - 1) != 0xFFFF);
 
     if (compositeId != NULL)
         compositeId->bytesIn(qty);
@@ -168,10 +170,8 @@ DelayId::bytesIn(int qty)
 void
 DelayId::delayRead(DeferredRead const &aRead)
 {
-    assert (compositeId != NULL);
+    assert(compositeId != NULL);
     compositeId->delayRead(aRead);
-
 }
 
 #endif /* USE_DELAY_POOLS */
-

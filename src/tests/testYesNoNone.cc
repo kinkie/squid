@@ -7,13 +7,13 @@
  */
 
 #include "squid.h"
-#include "base/YesNoNone.h"
 #include "tests/testYesNoNone.h"
+#include "base/YesNoNone.h"
 #include "unitTestMain.h"
 
 #include <stdexcept>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testYesNoNone );
+CPPUNIT_TEST_SUITE_REGISTRATION(testYesNoNone);
 
 void
 testYesNoNone::testBasics()
@@ -54,4 +54,3 @@ testYesNoNone::testBasics()
         CPPUNIT_ASSERT_EQUAL(true, static_cast<bool>(v));
     }
 }
-

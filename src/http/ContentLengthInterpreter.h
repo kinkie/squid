@@ -13,8 +13,7 @@
 
 class String;
 
-namespace Http
-{
+namespace Http {
 
 /// Finds the intended Content-Length value while parsing message-header fields.
 /// Deals with complications such as value lists and/or repeated fields.
@@ -28,10 +27,10 @@ public:
     bool checkField(const String &field);
 
     /// prohibits Content-Length in 1xx and 204 responses
-    void applyStatusCodeRules(const StatusCode code) {
+    void applyStatusCodeRules(const StatusCode code)
+    {
         if (!prohibitedAndIgnored_ && ProhibitsContentLength(code))
-            prohibitedAndIgnored_ = (code == scNoContent) ? "prohibited and ignored in the 204 response" :
-                                    "prohibited and ignored the 1xx response";
+            prohibitedAndIgnored_ = (code == scNoContent) ? "prohibited and ignored in the 204 response" : "prohibited and ignored the 1xx response";
     }
 
     // TODO: implement
@@ -39,7 +38,8 @@ public:
     // void applyRequestMethodRules(const Http::MethodType method);
 
     /// prohibits Content-Length in trailer
-    void applyTrailerRules() {
+    void applyTrailerRules()
+    {
         if (!prohibitedAndIgnored_)
             prohibitedAndIgnored_ = "prohibited in trailers";
     }
@@ -51,8 +51,8 @@ public:
     int64_t value;
 
     /* for debugging (declared here to minimize padding) */
-    const char *headerWideProblem; ///< worst header-wide problem found (or nil)
-    const int debugLevel; ///< debugging level for certain warnings
+    const char *headerWideProblem;  ///< worst header-wide problem found (or nil)
+    const int debugLevel;           ///< debugging level for certain warnings
 
     /// whether a malformed Content-Length value was present
     bool sawBad;
@@ -67,7 +67,7 @@ public:
     bool sawGood;
 
 protected:
-    bool goodSuffix(const char *suffix, const char * const end) const;
+    bool goodSuffix(const char *suffix, const char *const end) const;
     bool checkValue(const char *start, const int size);
     bool checkList(const String &list);
 
@@ -76,7 +76,6 @@ private:
     const char *prohibitedAndIgnored_;
 };
 
-} // namespace Http
+}  // namespace Http
 
 #endif /* SQUID_SRC_HTTP_CONTENTLENGTH_INTERPRETER_H */
-

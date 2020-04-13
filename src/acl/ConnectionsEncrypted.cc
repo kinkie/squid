@@ -10,11 +10,11 @@
 
 #include "squid.h"
 #include "acl/ConnectionsEncrypted.h"
-#include "acl/FilledChecklist.h"
 #include "Debug.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "SquidConfig.h"
+#include "acl/FilledChecklist.h"
 
 ACL *
 Acl::ConnectionsEncrypted::clone() const
@@ -22,14 +22,19 @@ Acl::ConnectionsEncrypted::clone() const
     return new Acl::ConnectionsEncrypted(*this);
 }
 
-Acl::ConnectionsEncrypted::ConnectionsEncrypted (char const *theClass) : class_ (theClass)
-{}
+Acl::ConnectionsEncrypted::ConnectionsEncrypted(char const *theClass) :
+    class_(theClass)
+{
+}
 
-Acl::ConnectionsEncrypted::ConnectionsEncrypted (Acl::ConnectionsEncrypted const & old) :class_ (old.class_)
-{}
+Acl::ConnectionsEncrypted::ConnectionsEncrypted(Acl::ConnectionsEncrypted const &old) :
+    class_(old.class_)
+{
+}
 
 Acl::ConnectionsEncrypted::~ConnectionsEncrypted()
-{}
+{
+}
 
 char const *
 Acl::ConnectionsEncrypted::typeString() const
@@ -38,7 +43,7 @@ Acl::ConnectionsEncrypted::typeString() const
 }
 
 bool
-Acl::ConnectionsEncrypted::empty () const
+Acl::ConnectionsEncrypted::empty() const
 {
     return false;
 }
@@ -55,17 +60,15 @@ int
 Acl::ConnectionsEncrypted::match(ACLChecklist *checklist)
 {
     if (!checklist->hasRequest()) {
-        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in " <<
-               "context without an HTTP request. Assuming mismatch.");
+        debugs(28, DBG_IMPORTANT, "WARNING: " << name << " ACL is used in "
+                                              << "context without an HTTP request. Assuming mismatch.");
         return 0;
     }
 
-    ACLFilledChecklist *filled = Filled((ACLChecklist*)checklist);
+    ACLFilledChecklist *filled = Filled((ACLChecklist *)checklist);
 
-    const bool safeRequest =
-        !(filled->request->sources & Http::Message::srcUnsafe);
-    const bool safeReply = !filled->reply ||
-                           !(filled->reply->sources & Http::Message::srcUnsafe);
+    const bool safeRequest = !(filled->request->sources & Http::Message::srcUnsafe);
+    const bool safeReply = !filled->reply || !(filled->reply->sources & Http::Message::srcUnsafe);
 
     return (safeRequest && safeReply) ? 1 : 0;
 }
@@ -75,4 +78,3 @@ Acl::ConnectionsEncrypted::dump() const
 {
     return SBufList();
 }
-

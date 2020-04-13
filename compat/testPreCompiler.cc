@@ -12,7 +12,7 @@
 
 #include <cassert>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testPreCompiler );
+CPPUNIT_TEST_SUITE_REGISTRATION(testPreCompiler);
 
 /**
  * Test several ways of defining pre-compiler directives.
@@ -175,4 +175,3 @@ testPreCompiler::testIfDefOr()
     CPPUNIT_ASSERT(notUndefinedOrNotUndefinedC);
     CPPUNIT_ASSERT(!undefinedOrUndefinedC);
 }
-

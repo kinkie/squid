@@ -9,17 +9,17 @@
 /* DEBUG: section 29    Authenticator */
 
 #include "squid.h"
-#include "auth/Config.h"
-#include "auth/forward.h"
-#include "auth/Gadgets.h"
-#include "auth/UserRequest.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "Store.h"
+#include "auth/Config.h"
+#include "auth/Gadgets.h"
+#include "auth/UserRequest.h"
+#include "auth/forward.h"
+#include "cache_cf.h"
 #include "errorpage.h"
 #include "format/Format.h"
 #include "globals.h"
-#include "Store.h"
 #include "wordlist.h"
 
 /**
@@ -38,8 +38,7 @@ Auth::SchemeConfig::CreateAuthUser(const char *proxy_auth, AccessLogEntry::Point
     Auth::SchemeConfig *config = Find(proxy_auth);
 
     if (config == NULL || !config->active()) {
-        debugs(29, (shutting_down?3:DBG_IMPORTANT), (shutting_down?"":"WARNING: ") <<
-               "Unsupported or unconfigured/inactive proxy-auth scheme, '" << proxy_auth << "'");
+        debugs(29, (shutting_down ? 3 : DBG_IMPORTANT), (shutting_down ? "" : "WARNING: ") << "Unsupported or unconfigured/inactive proxy-auth scheme, '" << proxy_auth << "'");
         return NULL;
     }
     static MemBuf rmb;
@@ -78,10 +77,11 @@ Auth::SchemeConfig::GetParsed(const char *proxy_auth)
 /** Default behaviour is to expose nothing */
 void
 Auth::SchemeConfig::registerWithCacheManager(void)
-{}
+{
+}
 
 void
-Auth::SchemeConfig::parse(Auth::SchemeConfig * scheme, int, char *param_str)
+Auth::SchemeConfig::parse(Auth::SchemeConfig *scheme, int, char *param_str)
 {
     if (strcmp(param_str, "program") == 0) {
         if (authenticateProgram)
@@ -112,7 +112,7 @@ Auth::SchemeConfig::parse(Auth::SchemeConfig * scheme, int, char *param_str)
 
     } else if (strcmp(param_str, "key_extras") == 0) {
         keyExtrasLine = ConfigParser::NextQuotedToken();
-        Format::Format *nlf =  new ::Format::Format(scheme->type());
+        Format::Format *nlf = new ::Format::Format(scheme->type());
         if (!nlf->parse(keyExtrasLine.termedBuf())) {
             debugs(29, DBG_CRITICAL, "FATAL: Failed parsing key_extras formatting value");
             self_destruct();
@@ -140,7 +140,7 @@ bool
 Auth::SchemeConfig::dump(StoreEntry *entry, const char *name, Auth::SchemeConfig *scheme) const
 {
     if (!authenticateProgram)
-        return false; // not configured
+        return false;  // not configured
 
     const char *schemeType = scheme->type();
 
@@ -159,13 +159,13 @@ Auth::SchemeConfig::dump(StoreEntry *entry, const char *name, Auth::SchemeConfig
                       authenticateChildren.n_max, authenticateChildren.n_startup,
                       authenticateChildren.n_idle, authenticateChildren.concurrency);
 
-    if (keyExtrasLine.size() > 0) // default is none
+    if (keyExtrasLine.size() > 0)  // default is none
         storeAppendPrintf(entry, "%s %s key_extras \"%s\"\n", name, schemeType, keyExtrasLine.termedBuf());
 
-    if (!keep_alive) // default is on
+    if (!keep_alive)  // default is on
         storeAppendPrintf(entry, "%s %s keep_alive off\n", name, schemeType);
 
-    if (utf8) // default is off
+    if (utf8)  // default is off
         storeAppendPrintf(entry, "%s %s utf8 on\n", name, schemeType);
 
     return true;
@@ -188,7 +188,7 @@ Auth::SchemeConfig::isCP1251EncodingAllowed(const HttpRequest *request)
         return false;
 
     char lang[256];
-    size_t pos = 0; // current parsing position in header string
+    size_t pos = 0;  // current parsing position in header string
 
     while (strHdrAcptLangGetItem(hdr, lang, 256, pos)) {
 
@@ -196,13 +196,13 @@ Auth::SchemeConfig::isCP1251EncodingAllowed(const HttpRequest *request)
         if (lang[0] == '*' && lang[1] == '\0')
             return false;
 
-        if ((strncmp(lang, "ru", 2) == 0 // Russian
-                || strncmp(lang, "uk", 2) == 0 // Ukrainian
-                || strncmp(lang, "be", 2) == 0 // Belorussian
-                || strncmp(lang, "bg", 2) == 0 // Bulgarian
-                || strncmp(lang, "sr", 2) == 0)) { // Serbian
+        if ((strncmp(lang, "ru", 2) == 0         // Russian
+             || strncmp(lang, "uk", 2) == 0      // Ukrainian
+             || strncmp(lang, "be", 2) == 0      // Belorussian
+             || strncmp(lang, "bg", 2) == 0      // Bulgarian
+             || strncmp(lang, "sr", 2) == 0)) {  // Serbian
             if (lang[2] == '-') {
-                if (strcmp(lang + 3, "latn") == 0) // not Cyrillic
+                if (strcmp(lang + 3, "latn") == 0)  // not Cyrillic
                     return false;
             } else if (xisalpha(lang[2])) {
                 return false;
@@ -214,4 +214,3 @@ Auth::SchemeConfig::isCP1251EncodingAllowed(const HttpRequest *request)
 
     return false;
 }
-

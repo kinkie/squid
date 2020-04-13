@@ -44,37 +44,38 @@ struct cmsghdr {
 /* lifted off https://metacpan.org/source/SAMPO/Socket-PassAccessRights-0.03/passfd.c */
 // check for WSA_CMSG first because Windows defines CMSG_DATA for other uses
 #if defined(WSA_CMSG_DATA)
-# define SQUID_CMSG_DATA(cmsg) WSA_CMSG_DATA(cmsg)
+#define SQUID_CMSG_DATA(cmsg) WSA_CMSG_DATA(cmsg)
 #elif defined(CMSG_DATA)
-# define SQUID_CMSG_DATA(cmsg) CMSG_DATA(cmsg)
+#define SQUID_CMSG_DATA(cmsg) CMSG_DATA(cmsg)
 #else
-# define SQUID_CMSG_DATA(cmsg) ((cmsg)->cmsg_data)
+#define SQUID_CMSG_DATA(cmsg) ((cmsg)->cmsg_data)
 #endif
 
 #ifndef CMSG_NXTHDR
-# define CMSG_NXTHDR(mhdr, X) __cmsg_nxthdr (mhdr, X)
+#define CMSG_NXTHDR(mhdr, X) __cmsg_nxthdr(mhdr, X)
 #endif
 
 #ifndef CMSG_FIRSTHDR
-# define CMSG_FIRSTHDR(mhdr) \
-  ((size_t) (mhdr)->msg_controllen >= sizeof (struct cmsghdr)        \
-   ? (struct cmsghdr *) (mhdr)->msg_control : (struct cmsghdr *) NULL)
+#define CMSG_FIRSTHDR(mhdr)                                   \
+    ((size_t)(mhdr)->msg_controllen >= sizeof(struct cmsghdr) \
+         ? (struct cmsghdr *)(mhdr)->msg_control              \
+         : (struct cmsghdr *)NULL)
 #endif
 
 #ifndef CMSG_ALIGN
-# define CMSG_ALIGN(len) (((len) + sizeof (size_t) - 1) \
-             & ~(sizeof (size_t) - 1))
+#define CMSG_ALIGN(len) (((len) + sizeof(size_t) - 1) \
+                         & ~(sizeof(size_t) - 1))
 #endif
 
 #ifndef CMSG_SPACE
-# define CMSG_SPACE(len) (CMSG_ALIGN (len) \
-             + CMSG_ALIGN (sizeof (struct cmsghdr)))
+#define CMSG_SPACE(len) (CMSG_ALIGN(len) \
+                         + CMSG_ALIGN(sizeof(struct cmsghdr)))
 #undef HAVE_CONSTANT_CMSG_SPACE
 #define HAVE_CONSTANT_CMSG_SPACE 1
 #endif
 
 #ifndef CMSG_LEN
-# define CMSG_LEN(len)   (CMSG_ALIGN (sizeof (struct cmsghdr)) + (len))
+#define CMSG_LEN(len) (CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
 #endif
 
 #if !HAVE_IOVEC
@@ -86,32 +87,32 @@ struct iovec {
 
 #if !HAVE_MSGHDR
 struct msghdr {
-    void *msg_name;             /* Address to send to/receive from.  */
-    socklen_t msg_namelen;      /* Length of address data.  */
+    void *msg_name;        /* Address to send to/receive from.  */
+    socklen_t msg_namelen; /* Length of address data.  */
 
-    struct iovec *msg_iov;      /* Vector of data to send/receive into.  */
-    size_t msg_iovlen;          /* Number of elements in the vector.  */
+    struct iovec *msg_iov; /* Vector of data to send/receive into.  */
+    size_t msg_iovlen;     /* Number of elements in the vector.  */
 
-    void *msg_control;          /* Ancillary data (eg BSD filedesc passing). */
-    size_t msg_controllen;      /* Ancillary data buffer length.
+    void *msg_control;     /* Ancillary data (eg BSD filedesc passing). */
+    size_t msg_controllen; /* Ancillary data buffer length.
                                    !! The type should be socklen_t but the
                                    definition of the kernel is incompatible
                                    with this.  */
 
-    int msg_flags;              /* Flags on received message.  */
+    int msg_flags; /* Flags on received message.  */
 };
 #endif
 
 #if !HAVE_SOCKADDR_UN
 struct sockaddr_un {
     char sun_family;
-    char sun_path[256];   /* pathname */
+    char sun_path[256]; /* pathname */
 };
 #endif
 
 #ifndef SUN_LEN
-# define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
-        + strlen ((ptr)->sun_path))
+#define SUN_LEN(ptr) ((size_t)(((struct sockaddr_un *)0)->sun_path) \
+                      + strlen((ptr)->sun_path))
 #endif
 
 #ifndef SCM_RIGHTS
@@ -140,4 +141,3 @@ struct sockaddr_un {
 #endif
 
 #endif /* SQUID_COMPAT_CMSG_H */
-

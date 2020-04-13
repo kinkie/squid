@@ -18,32 +18,32 @@ typedef int64_t off64_t;
 #if _SQUID_WINDOWS_
 
 union sigval {
-    int sival_int; /* integer value */
+    int sival_int;   /* integer value */
     void *sival_ptr; /* pointer value */
 };
 
 struct sigevent {
-    int sigev_notify; /* notification mode */
-    int sigev_signo; /* signal number */
+    int sigev_notify;         /* notification mode */
+    int sigev_signo;          /* signal number */
     union sigval sigev_value; /* signal value */
 };
 
 // #endif
 
 struct aiocb64 {
-    int aio_fildes; /* file descriptor */
-    void *aio_buf; /* buffer location */
-    size_t aio_nbytes; /* length of transfer */
+    int aio_fildes;     /* file descriptor */
+    void *aio_buf;      /* buffer location */
+    size_t aio_nbytes;  /* length of transfer */
     off64_t aio_offset; /* file offset */
-    int aio_reqprio; /* request priority offset */
+    int aio_reqprio;    /* request priority offset */
 
     struct sigevent aio_sigevent; /* signal number and offset */
-    int aio_lio_opcode; /* listio operation */
+    int aio_lio_opcode;           /* listio operation */
 };
 
 struct aiocb {
-    int aio_fildes; /* file descriptor */
-    void *aio_buf; /* buffer location */
+    int aio_fildes;    /* file descriptor */
+    void *aio_buf;     /* buffer location */
     size_t aio_nbytes; /* length of transfer */
 #if (_FILE_OFFSET_BITS == 64)
 
@@ -56,7 +56,7 @@ struct aiocb {
     int aio_reqprio; /* request priority offset */
 
     struct sigevent aio_sigevent; /* signal number and offset */
-    int aio_lio_opcode; /* listio operation */
+    int aio_lio_opcode;           /* listio operation */
 };
 
 int aio_read(struct aiocb *);
@@ -80,4 +80,3 @@ void aio_close(int);
 #endif /* _SQUID_WINDOWS_ */
 #endif /* HAVE_DISKIO_MODULE_AIO */
 #endif /* __WIN32_AIO_H__ */
-

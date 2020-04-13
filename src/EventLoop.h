@@ -11,7 +11,7 @@
 
 #include <vector>
 
-#define EVENT_LOOP_TIMEOUT  1000 /* 1s timeout */
+#define EVENT_LOOP_TIMEOUT 1000 /* 1s timeout */
 
 class AsyncEngine;
 class TimeEngine;
@@ -53,7 +53,7 @@ public:
      * If no primary has been nominated, the last async engine added is
      * implicitly the default.
      */
-    void setPrimaryEngine(AsyncEngine * engine);
+    void setPrimaryEngine(AsyncEngine *engine);
 
     /** set the time service. There can be only one time service set at any
      * time. The time service is invoked on each loop
@@ -76,7 +76,7 @@ private:
     void prepareToRun();
 
     /** check an individual engine */
-    void checkEngine(AsyncEngine * engine, bool const primary);
+    void checkEngine(AsyncEngine *engine, bool const primary);
 
     /** dispatch calls and events scheduled during checkEngine() */
     bool dispatchCalls();
@@ -84,12 +84,11 @@ private:
     bool last_loop;
     typedef std::vector<AsyncEngine *> engine_vector;
     engine_vector engines;
-    TimeEngine * timeService;
-    AsyncEngine * primaryEngine;
-    int loop_delay; /**< the delay to be given to the primary engine */
-    bool error; /**< has an error occurred in this loop */
+    TimeEngine *timeService;
+    AsyncEngine *primaryEngine;
+    int loop_delay;     /**< the delay to be given to the primary engine */
+    bool error;         /**< has an error occurred in this loop */
     bool runOnceResult; /**< the result from runOnce */
 };
 
 #endif /* SQUID_EVENTLOOP_H */
-

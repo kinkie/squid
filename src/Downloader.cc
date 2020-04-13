@@ -7,20 +7,20 @@
  */
 
 #include "squid.h"
+#include "Downloader.h"
+#include "ClientRequestContext.h"
 #include "client_side.h"
 #include "client_side_reply.h"
 #include "client_side_request.h"
-#include "ClientRequestContext.h"
-#include "Downloader.h"
 #include "fatal.h"
-#include "http/one/RequestParser.h"
 #include "http/Stream.h"
+#include "http/one/RequestParser.h"
 
 CBDATA_CLASS_INIT(Downloader);
 
 /// Used to hold and pass the required info and buffers to the
 /// clientStream callbacks
-class DownloaderContext: public RefCountable
+class DownloaderContext : public RefCountable
 {
     MEMPROXY_CLASS(DownloaderContext);
 
@@ -36,16 +36,16 @@ public:
     char requestBuffer[HTTP_REQBUF_SZ];
 };
 
-DownloaderContext::DownloaderContext(Downloader *dl, ClientHttpRequest *h):
+DownloaderContext::DownloaderContext(Downloader *dl, ClientHttpRequest *h) :
     downloader(dl),
     http(h)
 {
-    debugs(33, 6, "DownloaderContext constructed, this=" << (void*)this);
+    debugs(33, 6, "DownloaderContext constructed, this=" << (void *)this);
 }
 
 DownloaderContext::~DownloaderContext()
 {
-    debugs(33, 6, "DownloaderContext destructed, this=" << (void*)this);
+    debugs(33, 6, "DownloaderContext destructed, this=" << (void *)this);
     if (http)
         finished();
 }
@@ -63,7 +63,7 @@ Downloader::CbDialer::print(std::ostream &os) const
     os << " Http Status:" << status << Raw("body data", object.rawContent(), 64).hex();
 }
 
-Downloader::Downloader(SBuf &url, AsyncCall::Pointer &aCallback, const XactionInitiator initiator, unsigned int level):
+Downloader::Downloader(SBuf &url, AsyncCall::Pointer &aCallback, const XactionInitiator initiator, unsigned int level) :
     AsyncJob("Downloader"),
     url_(url),
     callback_(aCallback),
@@ -94,8 +94,8 @@ Downloader::doneAll() const
 }
 
 static void
-downloaderRecipient(clientStreamNode * node, ClientHttpRequest * http,
-                    HttpReply * rep, StoreIOBuffer receivedData)
+downloaderRecipient(clientStreamNode *node, ClientHttpRequest *http,
+                    HttpReply *rep, StoreIOBuffer receivedData)
 {
     debugs(33, 6, MYNAME);
     /* Test preconditions */
@@ -116,7 +116,7 @@ downloaderRecipient(clientStreamNode * node, ClientHttpRequest * http,
 }
 
 static void
-downloaderDetach(clientStreamNode * node, ClientHttpRequest * http)
+downloaderDetach(clientStreamNode *node, ClientHttpRequest *http)
 {
     debugs(33, 5, MYNAME);
     clientStreamDetach(node, http);
@@ -129,10 +129,10 @@ Downloader::buildRequest()
     const HttpRequestMethod method = Http::METHOD_GET;
 
     const MasterXaction::Pointer mx = new MasterXaction(initiator_);
-    auto * const request = HttpRequest::FromUrl(url_, mx, method);
+    auto *const request = HttpRequest::FromUrl(url_, mx, method);
     if (!request) {
         debugs(33, 5, "Invalid URI: " << url_);
-        return false; //earlyError(...)
+        return false;  //earlyError(...)
     }
     request->http_ver = Http::ProtocolVersion();
     request->header.putStr(Http::HdrType::HOST, request->url.host());
@@ -140,15 +140,15 @@ Downloader::buildRequest()
     request->client_addr.setNoAddr();
 #if FOLLOW_X_FORWARDED_FOR
     request->indirect_client_addr.setNoAddr();
-#endif /* FOLLOW_X_FORWARDED_FOR */
-    request->my_addr.setNoAddr();   /* undefined for internal requests */
+#endif                            /* FOLLOW_X_FORWARDED_FOR */
+    request->my_addr.setNoAddr(); /* undefined for internal requests */
     request->my_addr.port(0);
     request->downloader = this;
 
     debugs(11, 2, "HTTP Client Downloader " << this << "/" << id);
-    debugs(11, 2, "HTTP Client REQUEST:\n---------\n" <<
-           request->method << " " << url_ << " " << request->http_ver << "\n" <<
-           "\n----------");
+    debugs(11, 2, "HTTP Client REQUEST:\n---------\n"
+               << request->method << " " << url_ << " " << request->http_ver << "\n"
+               << "\n----------");
 
     ClientHttpRequest *const http = new ClientHttpRequest(nullptr);
     http->initRequest(request);
@@ -181,15 +181,13 @@ Downloader::start()
 }
 
 void
-Downloader::handleReply(clientStreamNode * node, ClientHttpRequest *http, HttpReply *reply, StoreIOBuffer receivedData)
+Downloader::handleReply(clientStreamNode *node, ClientHttpRequest *http, HttpReply *reply, StoreIOBuffer receivedData)
 {
     DownloaderContext::Pointer callerContext = dynamic_cast<DownloaderContext *>(node->data.getRaw());
     // TODO: remove the following check:
     assert(callerContext == context_);
 
-    debugs(33, 4, "Received " << receivedData.length <<
-           " object data, offset: " << receivedData.offset <<
-           " error flag:" << receivedData.flags.error);
+    debugs(33, 4, "Received " << receivedData.length << " object data, offset: " << receivedData.offset << " error flag:" << receivedData.flags.error);
 
     const bool failed = receivedData.flags.error;
     if (failed) {
@@ -199,9 +197,7 @@ Downloader::handleReply(clientStreamNode * node, ClientHttpRequest *http, HttpRe
 
     const int64_t existingContent = reply ? reply->content_length : 0;
     const size_t maxSize = MaxObjectSize > SBuf::maxSize ? SBuf::maxSize : MaxObjectSize;
-    const bool tooLarge = (existingContent > -1 && existingContent > static_cast<int64_t>(maxSize)) ||
-                          (maxSize < object_.length()) ||
-                          ((maxSize - object_.length()) < receivedData.length);
+    const bool tooLarge = (existingContent > -1 && existingContent > static_cast<int64_t>(maxSize)) || (maxSize < object_.length()) || ((maxSize - object_.length()) < receivedData.length);
 
     if (tooLarge) {
         callBack(Http::scInternalServerError);
@@ -220,8 +216,7 @@ Downloader::handleReply(clientStreamNode * node, ClientHttpRequest *http, HttpRe
         tempBuffer.data = context_->requestBuffer;
         tempBuffer.length = HTTP_REQBUF_SZ;
         clientStreamRead(node, http, tempBuffer);
-    }
-    break;
+    } break;
     case STREAM_COMPLETE:
         debugs(33, 3, "Object data transfer successfully complete");
         callBack(Http::scOkay);
@@ -251,7 +246,7 @@ Downloader::downloadFinished()
 void
 Downloader::callBack(Http::StatusCode const statusCode)
 {
-    CbDialer *dialer = dynamic_cast<CbDialer*>(callback_->getDialer());
+    CbDialer *dialer = dynamic_cast<CbDialer *>(callback_->getDialer());
     Must(dialer);
     dialer->status = statusCode;
     if (statusCode == Http::scOkay)
@@ -265,4 +260,3 @@ Downloader::callBack(Http::StatusCode const statusCode)
     // call firing code discovers a done() job, it deletes us.
     CallJobHere(33, 7, CbcPointer<Downloader>(this), Downloader, downloadFinished);
 }
-

@@ -9,8 +9,8 @@
 #ifndef SQUID_HTTP_CONTROL_MSG_H
 #define SQUID_HTTP_CONTROL_MSG_H
 
-#include "base/AsyncCall.h"
 #include "HttpReply.h"
+#include "base/AsyncCall.h"
 
 class CommIoCbParams;
 class HttpControlMsg;
@@ -25,10 +25,11 @@ class HttpControlMsg;
  */
 
 /// sends a single control message, notifying the Sink
-class HttpControlMsgSink: public virtual AsyncJob
+class HttpControlMsgSink : public virtual AsyncJob
 {
 public:
-    HttpControlMsgSink(): AsyncJob("unused") {}
+    HttpControlMsgSink() :
+        AsyncJob("unused") {}
 
     /// called to send the 1xx message and notify the Source
     virtual void sendControlMsg(HttpControlMsg msg) = 0;
@@ -48,12 +49,12 @@ class HttpControlMsg
 public:
     typedef AsyncCall::Pointer Callback;
 
-    HttpControlMsg(const HttpReply::Pointer &aReply, const Callback &aCallback):
+    HttpControlMsg(const HttpReply::Pointer &aReply, const Callback &aCallback) :
         reply(aReply), cbSuccess(aCallback) {}
 
 public:
-    HttpReply::Pointer reply; ///< the 1xx message being forwarded
-    Callback cbSuccess; ///< called after successfully writing the 1xx message
+    HttpReply::Pointer reply;  ///< the 1xx message being forwarded
+    Callback cbSuccess;        ///< called after successfully writing the 1xx message
 
     // We could add an API to notify of send failures as well, but the
     // current Source and Sink are tied via Store anyway, so the Source
@@ -61,10 +62,9 @@ public:
 };
 
 inline std::ostream &
-operator <<(std::ostream &os, const HttpControlMsg &msg)
+operator<<(std::ostream &os, const HttpControlMsg &msg)
 {
     return os << msg.reply << ", " << msg.cbSuccess;
 }
 
 #endif /* SQUID_HTTP_CONTROL_MSG_H */
-

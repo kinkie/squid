@@ -15,8 +15,8 @@
 #include "esi/Sequence.h"
 
 struct esiAttempt : public esiSequence {
-    esiAttempt(esiTreeParentPtr aParent) : esiSequence (aParent) {}
+    esiAttempt(esiTreeParentPtr aParent) :
+        esiSequence(aParent) {}
 };
 
 #endif /* SQUID_ESIATTEMPT_H */
-

@@ -20,7 +20,7 @@ class DiskdActionData
 {
 public:
     DiskdActionData();
-    DiskdActionData& operator += (const DiskdActionData& stats);
+    DiskdActionData &operator+=(const DiskdActionData &stats);
 
 public:
     double sent_count;
@@ -50,7 +50,7 @@ public:
 };
 
 /// implement aggregated 'diskd' action
-class DiskdAction: public Mgr::Action
+class DiskdAction : public Mgr::Action
 {
 protected:
     DiskdAction(const Mgr::CommandPointer &aCmd);
@@ -58,18 +58,17 @@ protected:
 public:
     static Pointer Create(const Mgr::CommandPointer &aCmd);
     /* Action API */
-    virtual void add(const Mgr::Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& hdrMsg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& hdrMsg);
+    virtual void add(const Mgr::Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &hdrMsg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &hdrMsg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     DiskdActionData data;
 };
 
 #endif /* SQUID_DISKD_ACTION_H */
-

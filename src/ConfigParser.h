@@ -9,8 +9,8 @@
 #ifndef SQUID_CONFIGPARSER_H
 #define SQUID_CONFIGPARSER_H
 
-#include "sbuf/forward.h"
 #include "SquidString.h"
+#include "sbuf/forward.h"
 
 #include <queue>
 #include <stack>
@@ -26,7 +26,7 @@ class wordlist;
  * The config parser read mechanism can cope, but the other systems
  * receiving the data from its buffers on such lines may not.
  */
-#define CONFIG_LINE_LIMIT   2048
+#define CONFIG_LINE_LIMIT 2048
 
 /**
  * A configuration file Parser. Instances of this class track
@@ -46,7 +46,9 @@ public:
      * Parsed tokens type: simple tokens, quoted tokens or function
      * like parameters.
      */
-    enum TokenType {SimpleToken, QuotedToken, FunctionParameters};
+    enum TokenType { SimpleToken,
+                     QuotedToken,
+                     FunctionParameters };
 
     void destruct();
     static void ParseUShort(unsigned short *var);
@@ -59,7 +61,7 @@ public:
      * If the configuration_includes_quoted_values configuration parameter is
      * set to 'off' this interprets the quoted tokens as filenames.
      */
-    static char * strtokFile();
+    static char *strtokFile();
 
     /**
      * Returns the body of the next element. The element is either a token or
@@ -89,7 +91,7 @@ public:
     static char *NextQuotedToken();
 
     /// \return true if the last parsed token was quoted
-    static bool LastTokenWasQuoted() {return (LastTokenType == ConfigParser::QuotedToken);}
+    static bool LastTokenWasQuoted() { return (LastTokenType == ConfigParser::QuotedToken); }
 
     /**
      * \return the next quoted string or the raw string data until the end of line.
@@ -102,7 +104,7 @@ public:
      * the next key value pair which must be separated by "="
      * \return true on success, false otherwise
      */
-    static bool NextKvPair(char * &key, char * &value);
+    static bool NextKvPair(char *&key, char *&value);
 
     /**
      * Preview the next token. The next NextToken() and strtokFile() call
@@ -122,10 +124,10 @@ public:
     static void SetCfgLine(char *line);
 
     /// Allow %macros inside quoted strings
-    static void EnableMacros() {AllowMacros_ = true;}
+    static void EnableMacros() { AllowMacros_ = true; }
 
     /// Do not allow %macros inside quoted strings
-    static void DisableMacros() {AllowMacros_ = false;}
+    static void DisableMacros() { AllowMacros_ = false; }
 
     static SBuf CurrentLocation();
 
@@ -148,10 +150,11 @@ protected:
     class CfgFile
     {
     public:
-        CfgFile(): wordFile(NULL), parsePos(NULL), lineNo(0) { parseBuffer[0] = '\0';}
+        CfgFile() :
+            wordFile(NULL), parsePos(NULL), lineNo(0) { parseBuffer[0] = '\0'; }
         ~CfgFile();
         /// True if the configuration file is open
-        bool isOpen() {return wordFile != NULL;}
+        bool isOpen() { return wordFile != NULL; }
 
         /**
          * Open the file given by 'path' and initializes the CfgFile object
@@ -168,19 +171,19 @@ protected:
         char *parse(TokenType &type);
 
     private:
-        bool getFileLine();   ///< Read the next line from the file
+        bool getFileLine();  ///< Read the next line from the file
         /**
          * Return the body of the next element. If the wasQuoted is given
          * set to true if the element was quoted.
          */
         char *nextElement(TokenType &type);
-        FILE *wordFile; ///< Pointer to the file.
-        char parseBuffer[CONFIG_LINE_LIMIT]; ///< Temporary buffer to store data to parse
-        const char *parsePos; ///< The next element position in parseBuffer string
+        FILE *wordFile;                       ///< Pointer to the file.
+        char parseBuffer[CONFIG_LINE_LIMIT];  ///< Temporary buffer to store data to parse
+        const char *parsePos;                 ///< The next element position in parseBuffer string
     public:
-        std::string filePath; ///< The file path
-        std::string currentLine; ///< The current line to parse
-        int lineNo; ///< Current line number
+        std::string filePath;     ///< The file path
+        std::string currentLine;  ///< The current line to parse
+        int lineNo;               ///< Current line number
     };
 
     /// Return the last TokenPutBack() queued element or NULL if none exist
@@ -199,25 +202,25 @@ protected:
      * \param nextToken updated to point to the pos after parsed token.
      * \param type      The token type
      */
-    static char *TokenParse(const char * &nextToken, TokenType &type);
+    static char *TokenParse(const char *&nextToken, TokenType &type);
 
     /// Wrapper method for TokenParse.
     static char *NextElement(TokenType &type);
-    static std::stack<CfgFile *> CfgFiles; ///< The stack of open cfg files
-    static TokenType LastTokenType; ///< The type of last parsed element
-    static const char *CfgLine; ///< The current line to parse
-    static const char *CfgPos; ///< Pointer to the next element in cfgLine string
-    static std::queue<char *> CfgLineTokens_; ///< Store the list of tokens for current configuration line
-    static std::queue<std::string> Undo_; ///< The list with TokenPutBack() queued elements
+    static std::stack<CfgFile *> CfgFiles;     ///< The stack of open cfg files
+    static TokenType LastTokenType;            ///< The type of last parsed element
+    static const char *CfgLine;                ///< The current line to parse
+    static const char *CfgPos;                 ///< Pointer to the next element in cfgLine string
+    static std::queue<char *> CfgLineTokens_;  ///< Store the list of tokens for current configuration line
+    static std::queue<std::string> Undo_;      ///< The list with TokenPutBack() queued elements
     static bool AllowMacros_;
-    static bool ParseQuotedOrToEol_; ///< The next tokens will be handled as quoted or to_eol token
-    static bool RecognizeQuotedPair_; ///< The next tokens may contain quoted-pair (\-escaped) characters
-    static bool PreviewMode_; ///< The next token will not popped from cfg files, will just previewd.
-    static bool ParseKvPair_; ///<The next token will be handled as kv-pair token
-    static enum ParsingStates {atParseKey, atParseValue} KvPairState_; ///< Parsing state while parsing kv-pair tokens
+    static bool ParseQuotedOrToEol_;   ///< The next tokens will be handled as quoted or to_eol token
+    static bool RecognizeQuotedPair_;  ///< The next tokens may contain quoted-pair (\-escaped) characters
+    static bool PreviewMode_;          ///< The next token will not popped from cfg files, will just previewd.
+    static bool ParseKvPair_;          ///<The next token will be handled as kv-pair token
+    static enum ParsingStates { atParseKey,
+                                atParseValue } KvPairState_;  ///< Parsing state while parsing kv-pair tokens
 };
 
 int parseConfigFile(const char *file_name);
 
 #endif /* SQUID_CONFIGPARSER_H */
-

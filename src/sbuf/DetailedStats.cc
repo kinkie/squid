@@ -16,7 +16,8 @@
  */
 
 static StatHist *
-newStatHist() {
+newStatHist()
+{
     StatHist *stats = new StatHist;
     stats->logInit(100, 30.0, 128000.0);
     return stats;
@@ -47,4 +48,3 @@ recordMemBlobSizeAtDestruct(SBuf::size_type sz)
 {
     collectMemBlobDestructTimeStats().count(static_cast<double>(sz));
 }
-

@@ -21,7 +21,8 @@ public:
     void put(ssize_t);
     void *get(ssize_t *);
     void init(int ikey, int magic2);
-    SharedMemory() : nbufs(0), buf(nullptr), inuse_map(nullptr), id(0) {}
+    SharedMemory() :
+        nbufs(0), buf(nullptr), inuse_map(nullptr), id(0) {}
 
     int nbufs;
     char *buf;
@@ -48,12 +49,12 @@ public:
     virtual int load();
     virtual RefCount<DiskFile> newFile(char const *path);
     virtual bool unlinkdUseful() const;
-    virtual void unlinkFile (char const *);
+    virtual void unlinkFile(char const *);
     virtual ConfigOption *getOptionTree() const;
     virtual void init();
     virtual void sync();
     virtual int callback();
-    virtual void statfs(StoreEntry & sentry) const;
+    virtual void statfs(StoreEntry &sentry) const;
     int send(int mtype, int id, DiskdFile *theFile, size_t size, off_t offset, ssize_t shm_offset, Lock *requestor);
 
     /** public for accessing return address's */
@@ -64,13 +65,13 @@ private:
     static size_t nextInstanceID;
     void openFailed();
     bool optionQ1Parse(char const *option, const char *value, int reconfiguring);
-    void optionQ1Dump(StoreEntry * e) const;
+    void optionQ1Dump(StoreEntry *e) const;
     bool optionQ2Parse(char const *option, const char *value, int reconfiguring);
-    void optionQ2Dump(StoreEntry * e) const;
+    void optionQ2Dump(StoreEntry *e) const;
     int send(int mtype, int id, RefCount<StoreIOState> sio, size_t size, off_t offset, ssize_t shm_offset);
-    int SEND(diomsg * M, int mtype, int id, size_t size, off_t offset, ssize_t shm_offset);
-    void handle(diomsg * M);
-    void unlinkDone(diomsg * M);
+    int SEND(diomsg *M, int mtype, int id, size_t size, off_t offset, ssize_t shm_offset);
+    void handle(diomsg *M);
+    void unlinkDone(diomsg *M);
 
     /**
      * magic1 is the number of messages away which we
@@ -113,11 +114,11 @@ struct diskd_stats_t {
         int fail;
     }
 
-    open, create, close, unlink, read, write;
+    open,
+        create, close, unlink, read, write;
 };
 
 /// \ingroup diskd
 extern diskd_stats_t diskd_stats;
 
 #endif
-

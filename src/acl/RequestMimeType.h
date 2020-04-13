@@ -17,7 +17,7 @@
 
 template <>
 inline int
-ACLRequestHeaderStrategy<Http::HdrType::CONTENT_TYPE>::match (ACLData<char const *> * &data, ACLFilledChecklist *checklist)
+ACLRequestHeaderStrategy<Http::HdrType::CONTENT_TYPE>::match(ACLData<char const *> *&data, ACLFilledChecklist *checklist)
 {
     char const *theHeader = checklist->request->header.getStr(Http::HdrType::CONTENT_TYPE);
 
@@ -28,4 +28,3 @@ ACLRequestHeaderStrategy<Http::HdrType::CONTENT_TYPE>::match (ACLData<char const
 }
 
 #endif /* SQUID_ACLREQUESTMIMETYPE_H */
-

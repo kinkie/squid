@@ -10,41 +10,37 @@
 #define SQUID_SERVERS_FORWARD_H
 
 class MasterXaction;
-template <class C> class RefCount;
+template <class C>
+class RefCount;
 typedef RefCount<MasterXaction> MasterXactionPointer;
 
 class ConnStateData;
 
-namespace Http
-{
+namespace Http {
 
-namespace One
-{
-class Server;
-} // namespace One
+namespace One {
+    class Server;
+}  // namespace One
 
 /// create a new HTTP connection handler; never returns NULL
 ConnStateData *NewServer(MasterXactionPointer &xact);
 
-} // namespace Http
+}  // namespace Http
 
-namespace Https
-{
+namespace Https {
 
 /// create a new HTTPS connection handler; never returns NULL
 ConnStateData *NewServer(MasterXactionPointer &xact);
 
-} // namespace Https
+}  // namespace Https
 
-namespace Ftp
-{
+namespace Ftp {
 
 /// accept connections on all configured ftp_ports
 void StartListening();
 /// reject new connections to any configured ftp_port
 void StopListening();
 
-} // namespace Ftp
+}  // namespace Ftp
 
 #endif /* SQUID_SERVERS_FORWARD_H */
-

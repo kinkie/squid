@@ -42,7 +42,7 @@ FileOpeningConfig::ReadOnly()
 
     /* locking (if enabled later) */
 #if _SQUID_WINDOWS_
-    cfg.lockFlags = 0; // no named constant for a shared lock
+    cfg.lockFlags = 0;  // no named constant for a shared lock
 #elif _SQUID_SOLARIS_
     cfg.lockType = F_RDLCK;
 #else
@@ -94,7 +94,7 @@ FileOpeningConfig::createdIfMissing()
 #else
     Must((openFlags & O_RDWR) == O_RDWR);
     openFlags |= O_CREAT;
-    creationMask = (S_IXUSR | S_IXGRP|S_IWGRP | S_IXOTH|S_IWOTH); // unwanted bits
+    creationMask = (S_IXUSR | S_IXGRP | S_IWGRP | S_IXOTH | S_IWOTH);  // unwanted bits
 #endif
     return *this;
 }
@@ -114,24 +114,23 @@ fcntlLock(const int fd, const short lockType)
     struct flock fl;
     memset(&fl, 0, sizeof(fl));
     fl.l_type = lockType;
-    fl.l_whence = SEEK_SET; // with zero l_len and l_start, means "whole file"
+    fl.l_whence = SEEK_SET;  // with zero l_len and l_start, means "whole file"
     return ::fcntl(fd, F_SETLK, &fl);
 }
-#endif // _SQUID_SOLARIS_
+#endif  // _SQUID_SOLARIS_
 
 File *
 File::Optional(const SBuf &filename, const FileOpeningConfig &cfg)
 {
     try {
         return new File(filename, cfg);
-    }
-    catch (const std::exception &ex) {
+    } catch (const std::exception &ex) {
         debugs(54, 5, "will not lock: " << ex.what());
     }
     return nullptr;
 }
 
-File::File(const SBuf &aName, const FileOpeningConfig &cfg):
+File::File(const SBuf &aName, const FileOpeningConfig &cfg) :
     name_(aName)
 {
     debugs(54, 7, "constructing, this=" << this << ' ' << name_);
@@ -139,9 +138,7 @@ File::File(const SBuf &aName, const FileOpeningConfig &cfg):
     try {
         open(cfg);
         lock(cfg);
-    }
-    catch (...)
-    {
+    } catch (...) {
         close();
         throw;
     }
@@ -159,7 +156,7 @@ File::File(File &&other)
 }
 
 File &
-File::operator = (File &&other)
+File::operator=(File &&other)
 {
     std::swap(fd_, other.fd_);
     return *this;
@@ -177,10 +174,10 @@ File::open(const FileOpeningConfig &cfg)
     }
 #else
     mode_t oldCreationMask = 0;
-    const auto filename = name_.c_str(); // avoid complex operations inside enter_suid()
+    const auto filename = name_.c_str();  // avoid complex operations inside enter_suid()
     enter_suid();
     if (cfg.creationMask)
-        oldCreationMask = umask(cfg.creationMask); // XXX: Why here? Should not this be set for the whole Squid?
+        oldCreationMask = umask(cfg.creationMask);  // XXX: Why here? Should not this be set for the whole Squid?
     fd_ = ::open(filename, cfg.openFlags, cfg.openMode);
     const auto savedErrno = errno;
     if (cfg.creationMask)
@@ -240,7 +237,7 @@ SBuf
 File::readSmall(const SBuf::size_type minBytes, const SBuf::size_type maxBytes)
 {
     SBuf buf;
-    const auto readLimit = maxBytes + 1; // to detect excessively large files that we do not handle
+    const auto readLimit = maxBytes + 1;  // to detect excessively large files that we do not handle
     char *rawBuf = buf.rawAppendStart(readLimit);
 #if _SQUID_WINDOWS_
     DWORD result = 0;
@@ -327,10 +324,9 @@ File::lock(const FileOpeningConfig &cfg)
         } catch (const std::exception &ex) {
             if (!attemptsLeft)
                 throw;
-            debugs(54, 4, "sleeping and then trying up to " << attemptsLeft <<
-                   " more time(s) after a failure: " << ex.what());
+            debugs(54, 4, "sleeping and then trying up to " << attemptsLeft << " more time(s) after a failure: " << ex.what());
         }
-        Must(attemptsLeft); // the catch statement handles the last attempt
+        Must(attemptsLeft);  // the catch statement handles the last attempt
         xusleep(cfg.RetryGapUsec);
     }
     debugs(54, 9, "disabled");
@@ -376,4 +372,3 @@ File::sysCallError(const char *callName, const int savedErrno) const
 #if _SQUID_WINDOWS_
 const HANDLE File::InvalidHandle = INVALID_HANDLE_VALUE;
 #endif /* _SQUID_WINDOWS_ */
-

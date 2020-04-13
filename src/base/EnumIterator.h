@@ -30,19 +30,24 @@ protected:
 #endif
 
 public:
-    explicit EnumIteratorBase(EnumType e) : current(static_cast<iterator_type>(e)) {}
+    explicit EnumIteratorBase(EnumType e) :
+        current(static_cast<iterator_type>(e)) {}
 
-    bool operator==(const EnumIteratorBase &i) const {
+    bool operator==(const EnumIteratorBase &i) const
+    {
         return current == i.current;
     }
 
-    bool operator!=(const EnumIteratorBase &i) const {
+    bool operator!=(const EnumIteratorBase &i) const
+    {
         return current != i.current;
     }
 
-    EnumType operator*() const {
+    EnumType operator*() const
+    {
         return static_cast<EnumType>(current);
     }
+
 protected:
     iterator_type current;
 };
@@ -65,27 +70,32 @@ template <typename EnumType>
 class EnumIterator : public EnumIteratorBase<EnumType>
 {
 public:
-    explicit EnumIterator(EnumType e) : EnumIteratorBase<EnumType>(e) {}
+    explicit EnumIterator(EnumType e) :
+        EnumIteratorBase<EnumType>(e) {}
 
-    EnumIterator& operator++() {
-        ++ EnumIteratorBase<EnumType>::current;
+    EnumIterator &operator++()
+    {
+        ++EnumIteratorBase<EnumType>::current;
         return *this;
     }
 
-    EnumIterator& operator++(int) {
+    EnumIterator &operator++(int)
+    {
         EnumIterator rv(*this);
-        ++ EnumIteratorBase<EnumType>::current;
+        ++EnumIteratorBase<EnumType>::current;
         return rv;
     }
 
-    EnumIterator& operator--() {
-        -- EnumIteratorBase<EnumType>::current;
+    EnumIterator &operator--()
+    {
+        --EnumIteratorBase<EnumType>::current;
         return *this;
     }
 
-    EnumIterator& operator--(int) {
+    EnumIterator &operator--(int)
+    {
         EnumIterator rv(*this);
-        -- EnumIteratorBase<EnumType>::current;
+        --EnumIteratorBase<EnumType>::current;
         return rv;
     }
 };
@@ -109,31 +119,36 @@ template <typename EnumType>
 class ReverseEnumIterator : public EnumIteratorBase<EnumType>
 {
 public:
-    explicit ReverseEnumIterator(EnumType e) : EnumIteratorBase<EnumType>(e) {}
+    explicit ReverseEnumIterator(EnumType e) :
+        EnumIteratorBase<EnumType>(e) {}
 
     // prefix increment
-    ReverseEnumIterator& operator++() {
-        -- EnumIteratorBase<EnumType>::current;
+    ReverseEnumIterator &operator++()
+    {
+        --EnumIteratorBase<EnumType>::current;
         return *this;
     }
 
     // postfix increment
-    ReverseEnumIterator& operator++(int) {
+    ReverseEnumIterator &operator++(int)
+    {
         ReverseEnumIterator rv(*this);
-        -- EnumIteratorBase<EnumType>::current;
+        --EnumIteratorBase<EnumType>::current;
         return rv;
     }
 
     // prefix decrement
-    ReverseEnumIterator& operator--() {
-        ++ EnumIteratorBase<EnumType>::current;
+    ReverseEnumIterator &operator--()
+    {
+        ++EnumIteratorBase<EnumType>::current;
         return *this;
     }
 
     // postfix decrement
-    ReverseEnumIterator& operator--(int) {
+    ReverseEnumIterator &operator--(int)
+    {
         ReverseEnumIterator rv(*this);
-        ++ EnumIteratorBase<EnumType>::current;
+        ++EnumIteratorBase<EnumType>::current;
         return rv;
     }
 };
@@ -157,11 +172,13 @@ class EnumRangeT
 public:
     typedef EnumIterator<EnumType> iterator;
     typedef ReverseEnumIterator<EnumType> reverse_iterator;
-    EnumRangeT(EnumType first, EnumType one_past_last) : begin_(first), end_(one_past_last) { }
-    iterator begin() const { return iterator(begin_);}
-    iterator end() const { return iterator(end_);}
+    EnumRangeT(EnumType first, EnumType one_past_last) :
+        begin_(first), end_(one_past_last) {}
+    iterator begin() const { return iterator(begin_); }
+    iterator end() const { return iterator(end_); }
     reverse_iterator rbegin() const { return ++reverse_iterator(end_); }
     reverse_iterator rend() const { return ++reverse_iterator(begin_); }
+
 private:
     EnumType begin_;
     EnumType end_;
@@ -183,9 +200,10 @@ private:
  * \endcode
  */
 template <typename EnumType>
-EnumRangeT<EnumType> EnumRange(EnumType begin, EnumType one_past_end)
+EnumRangeT<EnumType>
+EnumRange(EnumType begin, EnumType one_past_end)
 {
-    return EnumRangeT<EnumType>(begin,one_past_end);
+    return EnumRangeT<EnumType>(begin, one_past_end);
 }
 
 /** Class expressing a continuous range of a whole enum for range-for expressions
@@ -219,8 +237,8 @@ template <typename EnumType>
 class WholeEnum : public EnumRangeT<EnumType>
 {
 public:
-    WholeEnum() : EnumRangeT<EnumType>(EnumType::enumBegin_, EnumType::enumEnd_) {}
+    WholeEnum() :
+        EnumRangeT<EnumType>(EnumType::enumBegin_, EnumType::enumEnd_) {}
 };
 
 #endif /* SQUID_BASE_ENUMITERATOR_H */
-

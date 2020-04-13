@@ -11,7 +11,7 @@
 
 #include "sbuf/SBuf.h"
 
-class Packable; // TODO: Add and use base/forward.h.
+class Packable;  // TODO: Add and use base/forward.h.
 
 /** Representation of a short predetermined message
  *
@@ -44,11 +44,10 @@ public:
     const char *content() const { return raw_.rawContent(); }
 
 private:
-    HttpBody& operator=(const HttpBody&); //not implemented
-    HttpBody(const HttpBody&); // not implemented
+    HttpBody &operator=(const HttpBody &);  //not implemented
+    HttpBody(const HttpBody &);             // not implemented
 
-    SBuf raw_; // body bytes
+    SBuf raw_;  // body bytes
 };
 
 #endif /* HTTPBODY_H_ */
-

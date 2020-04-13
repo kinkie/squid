@@ -7,17 +7,17 @@
  */
 
 #include "squid.h"
-#include "client_side_request.h"
 #include "http/Stream.h"
 #include "HttpHdrContRange.h"
 #include "HttpHeaderTools.h"
 #include "Store.h"
 #include "TimeOrTag.h"
+#include "client_side_request.h"
 #if USE_DELAY_POOLS
-#include "acl/FilledChecklist.h"
 #include "ClientInfo.h"
-#include "fde.h"
 #include "MessageDelayPools.h"
+#include "acl/FilledChecklist.h"
+#include "fde.h"
 #endif
 
 Http::Stream::Stream(const Comm::ConnectionPointer &aConn, ClientHttpRequest *aReq) :
@@ -29,7 +29,7 @@ Http::Stream::Stream(const Comm::ConnectionPointer &aConn, ClientHttpRequest *aR
     connRegistered_(false)
 {
     assert(http != nullptr);
-    memset(reqbuf, '\0', sizeof (reqbuf));
+    memset(reqbuf, '\0', sizeof(reqbuf));
     flags.deferred = 0;
     flags.parsed_ok = 0;
     deferredparams.node = nullptr;
@@ -67,9 +67,7 @@ void
 Http::Stream::writeComplete(size_t size)
 {
     const StoreEntry *entry = http->storeEntry();
-    debugs(33, 5, clientConnection << ", sz " << size <<
-           ", off " << (http->out.size + size) << ", len " <<
-           (entry ? entry->objectLen() : 0));
+    debugs(33, 5, clientConnection << ", sz " << size << ", off " << (http->out.size + size) << ", len " << (entry ? entry->objectLen() : 0));
 
     http->out.size += size;
 
@@ -86,8 +84,7 @@ Http::Stream::writeComplete(size_t size)
         break;
 
     case STREAM_COMPLETE: {
-        debugs(33, 5, clientConnection << " Stream complete, keepalive is " <<
-               http->request->flags.proxyKeepalive);
+        debugs(33, 5, clientConnection << " Stream complete, keepalive is " << http->request->flags.proxyKeepalive);
         // XXX: This code assumes we are done with the transaction, but we may
         // still be receiving request body. TODO: Extend stopSending() instead.
         ConnStateData *c = getConn();
@@ -96,7 +93,7 @@ Http::Stream::writeComplete(size_t size)
         finished();
         c->kick();
     }
-    return;
+        return;
 
     case STREAM_UNPLANNED_COMPLETE:
         initiateClose("STREAM_UNPLANNED_COMPLETE");
@@ -136,9 +133,7 @@ Http::Stream::multipartRangeRequest() const
 int64_t
 Http::Stream::getNextRangeOffset() const
 {
-    debugs (33, 5, "range: " << http->request->range <<
-            "; http offset " << http->out.offset <<
-            "; reply " << reply);
+    debugs(33, 5, "range: " << http->request->range << "; http offset " << http->out.offset << "; reply " << reply);
 
     // XXX: This method is called from many places, including pullData() which
     // may be called before prepareReply() [on some Squid-generated errors].
@@ -153,20 +148,16 @@ Http::Stream::getNextRangeOffset() const
         {
             assert(http->range_iter.currentSpec());
             /* offset of still missing data */
-            int64_t start = http->range_iter.currentSpec()->offset +
-                            http->range_iter.currentSpec()->length -
-                            http->range_iter.debt();
+            int64_t start = http->range_iter.currentSpec()->offset + http->range_iter.currentSpec()->length - http->range_iter.debt();
             debugs(33, 3, "clientPackMoreRanges: in:  offset: " << http->out.offset);
             debugs(33, 3, "clientPackMoreRanges: out:"
-                   " start: " << start <<
-                   " spec[" << http->range_iter.pos - http->request->range->begin() << "]:" <<
-                   " [" << http->range_iter.currentSpec()->offset <<
-                   ", " << http->range_iter.currentSpec()->offset +
-                   http->range_iter.currentSpec()->length << "),"
-                   " len: " << http->range_iter.currentSpec()->length <<
-                   " debt: " << http->range_iter.debt());
+                          " start: "
+                       << start << " spec[" << http->range_iter.pos - http->request->range->begin() << "]:"
+                       << " [" << http->range_iter.currentSpec()->offset << ", " << http->range_iter.currentSpec()->offset + http->range_iter.currentSpec()->length << "),"
+                                                                                                                                                                       " len: "
+                       << http->range_iter.currentSpec()->length << " debt: " << http->range_iter.debt());
             if (http->range_iter.currentSpec()->length != -1)
-                assert(http->out.offset <= start);  /* we did not miss it */
+                assert(http->out.offset <= start); /* we did not miss it */
 
             return start;
         }
@@ -224,8 +215,8 @@ Http::Stream::socketState()
             /* filter out data according to range specs */
 
             if (!canPackMoreRanges()) {
-                debugs(33, 5, "Range request at end of returnable " <<
-                       "range sequence on " << clientConnection);
+                debugs(33, 5, "Range request at end of returnable "
+                           << "range sequence on " << clientConnection);
                 // we got everything we wanted from the store
                 return STREAM_COMPLETE;
             }
@@ -234,16 +225,14 @@ Http::Stream::socketState()
             const int64_t &bytesSent = http->out.offset;
             const int64_t &bytesExpected = reply->contentRange()->spec.length;
 
-            debugs(33, 7, "body bytes sent vs. expected: " <<
-                   bytesSent << " ? " << bytesExpected << " (+" <<
-                   reply->contentRange()->spec.offset << ")");
+            debugs(33, 7, "body bytes sent vs. expected: " << bytesSent << " ? " << bytesExpected << " (+" << reply->contentRange()->spec.offset << ")");
 
             // did we get at least what we expected, based on range specs?
 
-            if (bytesSent == bytesExpected) // got everything
+            if (bytesSent == bytesExpected)  // got everything
                 return STREAM_COMPLETE;
 
-            if (bytesSent > bytesExpected) // Error: Sent more than expected
+            if (bytesSent > bytesExpected)  // Error: Sent more than expected
                 return STREAM_UNPLANNED_COMPLETE;
         }
 
@@ -259,7 +248,7 @@ Http::Stream::socketState()
         return STREAM_FAILED;
     }
 
-    fatal ("unreachable code\n");
+    fatal("unreachable code\n");
     return STREAM_NONE;
 }
 
@@ -272,7 +261,8 @@ Http::Stream::sendStartOfMessage(HttpReply *rep, StoreIOBuffer bodyData)
 
     // dump now, so we do not output any body.
     debugs(11, 2, "HTTP Client " << clientConnection);
-    debugs(11, 2, "HTTP Client REPLY:\n---------\n" << mb->buf << "\n----------");
+    debugs(11, 2, "HTTP Client REPLY:\n---------\n"
+               << mb->buf << "\n----------");
 
     /* Save length of headers for persistent conn checks */
     http->out.headers_sz = mb->contentSize();
@@ -292,7 +282,7 @@ Http::Stream::sendStartOfMessage(HttpReply *rep, StoreIOBuffer bodyData)
         }
     }
 #if USE_DELAY_POOLS
-    for (const auto &pool: MessageDelayPools::Instance()->pools) {
+    for (const auto &pool : MessageDelayPools::Instance()->pools) {
         if (pool->access) {
             std::unique_ptr<ACLFilledChecklist> chl(clientAclChecklistCreate(pool->access, http));
             chl->reply = rep;
@@ -303,8 +293,7 @@ Http::Stream::sendStartOfMessage(HttpReply *rep, StoreIOBuffer bodyData)
                 fd_table[clientConnection->fd].writeQuotaHandler = writeQuotaHandler;
                 break;
             } else {
-                debugs(83, 4, "Response delay pool " << pool->poolName <<
-                       " skipped because ACL " << answer);
+                debugs(83, 4, "Response delay pool " << pool->poolName << " skipped because ACL " << answer);
             }
         }
     }
@@ -371,7 +360,7 @@ Http::Stream::noteSentBodyBytes(size_t bytes)
 
     if (http->range_iter.debt() != -1) {
         http->range_iter.debt(http->range_iter.debt() - bytes);
-        assert (http->range_iter.debt() >= 0);
+        assert(http->range_iter.debt() >= 0);
     }
 
     /* debt() always stops at -1, below that is a bug */
@@ -380,7 +369,7 @@ Http::Stream::noteSentBodyBytes(size_t bytes)
 
 /// \return true when If-Range specs match reply, false otherwise
 static bool
-clientIfRangeMatch(ClientHttpRequest * http, HttpReply * rep)
+clientIfRangeMatch(ClientHttpRequest *http, HttpReply *rep)
 {
     const TimeOrTag spec = http->request->header.getTimeOrTag(Http::HdrType::IF_RANGE);
 
@@ -391,16 +380,14 @@ clientIfRangeMatch(ClientHttpRequest * http, HttpReply * rep)
     /* got an ETag? */
     if (spec.tag.str) {
         ETag rep_tag = rep->header.getETag(Http::HdrType::ETAG);
-        debugs(33, 3, "ETags: " << spec.tag.str << " and " <<
-               (rep_tag.str ? rep_tag.str : "<none>"));
+        debugs(33, 3, "ETags: " << spec.tag.str << " and " << (rep_tag.str ? rep_tag.str : "<none>"));
 
         if (!rep_tag.str)
-            return false; // entity has no etag to compare with!
+            return false;  // entity has no etag to compare with!
 
         if (spec.tag.weak || rep_tag.weak) {
-            debugs(33, DBG_IMPORTANT, "Weak ETags are not allowed in If-Range: " <<
-                   spec.tag.str << " ? " << rep_tag.str);
-            return false; // must use strong validator for sub-range requests
+            debugs(33, DBG_IMPORTANT, "Weak ETags are not allowed in If-Range: " << spec.tag.str << " ? " << rep_tag.str);
+            return false;  // must use strong validator for sub-range requests
         }
 
         return etagIsStrongEqual(rep_tag, spec.tag);
@@ -410,7 +397,7 @@ clientIfRangeMatch(ClientHttpRequest * http, HttpReply * rep)
     if (spec.time >= 0)
         return !http->storeEntry()->modifiedSince(spec.time);
 
-    assert(0);          /* should not happen */
+    assert(0); /* should not happen */
     return false;
 }
 
@@ -432,24 +419,21 @@ Http::Stream::buildRangeHeader(HttpReply *rep)
     else if ((rep->sline.status() != Http::scOkay) && (rep->sline.status() != Http::scPartialContent))
         range_err = "wrong status code";
     else if (rep->sline.status() == Http::scPartialContent)
-        range_err = "too complex response"; // probably contains what the client needs
+        range_err = "too complex response";  // probably contains what the client needs
     else if (rep->sline.status() != Http::scOkay)
         range_err = "wrong status code";
     else if (hdr->has(Http::HdrType::CONTENT_RANGE)) {
-        Must(!contentRange); // this is a 200, not 206 response
-        range_err = "meaningless response"; // the status code or the header is wrong
-    }
-    else if (rep->content_length < 0)
+        Must(!contentRange);                 // this is a 200, not 206 response
+        range_err = "meaningless response";  // the status code or the header is wrong
+    } else if (rep->content_length < 0)
         range_err = "unknown length";
     else if (rep->content_length != http->storeEntry()->mem().baseReply().content_length)
-        range_err = "INCONSISTENT length";  /* a bug? */
+        range_err = "INCONSISTENT length"; /* a bug? */
 
     /* hits only - upstream CachePeer determines correct behaviour on misses,
      * and client_side_reply determines hits candidates
      */
-    else if (http->logType.isTcpHit() &&
-             http->request->header.has(Http::HdrType::IF_RANGE) &&
-             !clientIfRangeMatch(http, rep))
+    else if (http->logType.isTcpHit() && http->request->header.has(Http::HdrType::IF_RANGE) && !clientIfRangeMatch(http, rep))
         range_err = "If-Range match failed";
 
     else if (!http->request->range->canonize(rep))
@@ -474,14 +458,11 @@ Http::Stream::buildRangeHeader(HttpReply *rep)
         // will (try-to) forward as-is.
         //TODO: we should cope with multirange request/responses
         // TODO: review, since rep->content_range is always nil here.
-        bool replyMatchRequest = contentRange != nullptr ?
-                                 request->range->contains(contentRange->spec) :
-                                 true;
+        bool replyMatchRequest = contentRange != nullptr ? request->range->contains(contentRange->spec) : true;
         const int spec_count = http->request->range->specs.size();
         int64_t actual_clen = -1;
 
-        debugs(33, 3, "range spec count: " << spec_count <<
-               " virgin clen: " << rep->content_length);
+        debugs(33, 3, "range spec count: " << spec_count << " virgin clen: " << rep->content_length);
         assert(spec_count > 0);
         /* append appropriate header(s) */
         if (spec_count == 1) {
@@ -588,7 +569,7 @@ void
 Http::Stream::initiateClose(const char *reason)
 {
     debugs(33, 4, clientConnection << " because " << reason);
-    getConn()->stopSending(reason); // closes ASAP
+    getConn()->stopSending(reason);  // closes ASAP
 }
 
 void
@@ -617,8 +598,7 @@ Http::Stream::prepareReply(HttpReply *rep)
 void
 Http::Stream::packChunk(const StoreIOBuffer &bodyData, MemBuf &mb)
 {
-    const uint64_t length =
-        static_cast<uint64_t>(lengthToSend(bodyData.range()));
+    const uint64_t length = static_cast<uint64_t>(lengthToSend(bodyData.range()));
     noteSentBodyBytes(length);
 
     mb.appendf("%" PRIX64 "\r\n", length);
@@ -633,7 +613,7 @@ Http::Stream::packChunk(const StoreIOBuffer &bodyData, MemBuf &mb)
 void
 Http::Stream::packRange(StoreIOBuffer const &source, MemBuf *mb)
 {
-    HttpHdrRangeIter * i = &http->range_iter;
+    HttpHdrRangeIter *i = &http->range_iter;
     Range<int64_t> available(source.range());
     char const *buf = source.data;
 
@@ -651,8 +631,8 @@ Http::Stream::packRange(StoreIOBuffer const &source, MemBuf *mb)
             if (http->multipartRangeRequest() && i->debt() == i->currentSpec()->length) {
                 clientPackRangeHdr(
                     &http->storeEntry()->mem().freshestReply(),
-                    i->currentSpec(),       /* current range */
-                    i->boundary,    /* boundary, the same for all */
+                    i->currentSpec(), /* current range */
+                    i->boundary,      /* boundary, the same for all */
                     mb);
             }
 
@@ -696,4 +676,3 @@ Http::Stream::doClose()
 {
     clientConnection->close();
 }
-

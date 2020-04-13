@@ -21,11 +21,10 @@
 /* explicit template instantiation required for some systems */
 
 /* XXX: move to ACLHTTPRepHeader or ACLHTTPReqHeader */
-template class ACLStrategised<HttpHeader*>;
+template class ACLStrategised<HttpHeader *>;
 
 /* ACLMyPortName + ACLMyPeerName + ACLBrowser */
 template class ACLStrategised<const char *>;
 
 /* ACLLocalPort + ACLSslError */
 template class ACLStrategised<int>;
-

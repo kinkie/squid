@@ -15,6 +15,12 @@
 
 #include "squid.h"
 #include "AccessLogEntry.h"
+#include "HttpRequest.h"
+#include "ICP.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "Store.h"
 #include "acl/Acl.h"
 #include "acl/FilledChecklist.h"
 #include "client_db.h"
@@ -23,9 +29,7 @@
 #include "comm/Loops.h"
 #include "comm/UdpOpenDialer.h"
 #include "fd.h"
-#include "HttpRequest.h"
 #include "icmp/net_db.h"
-#include "ICP.h"
 #include "ip/Address.h"
 #include "ip/tools.h"
 #include "ipcache.h"
@@ -34,10 +38,6 @@
 #include "neighbors.h"
 #include "refresh.h"
 #include "rfc1738.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
-#include "Store.h"
 #include "store_key_md5.h"
 #include "tools.h"
 #include "wordlist.h"
@@ -48,13 +48,14 @@
 #include <cerrno>
 
 /// a delayed icpUdpSend() call
-class DelayedUdpSend {
+class DelayedUdpSend
+{
 public:
-    Ip::Address address; ///< remote peer (which may not be a cache_peer)
-    icp_common_t *msg = nullptr; ///< ICP message with network byte order fields
-    DelayedUdpSend *next = nullptr; ///< invasive FIFO queue of delayed ICP messages
-    AccessLogEntryPointer ale; ///< sender's master transaction summary
-    struct timeval queue_time = {0, 0}; ///< queuing timestamp
+    Ip::Address address;                 ///< remote peer (which may not be a cache_peer)
+    icp_common_t *msg = nullptr;         ///< ICP message with network byte order fields
+    DelayedUdpSend *next = nullptr;      ///< invasive FIFO queue of delayed ICP messages
+    AccessLogEntryPointer ale;           ///< sender's master transaction summary
+    struct timeval queue_time = {0, 0};  ///< queuing timestamp
 };
 
 static void icpIncomingConnectionOpened(const Comm::ConnectionPointer &conn, int errNo);
@@ -70,7 +71,7 @@ static void icpCount(void *, int, size_t, int);
 
 static LogTags_ot icpLogFromICPCode(icp_opcode);
 
-static int icpUdpSend(int fd, const Ip::Address &to, icp_common_t * msg, int delay, AccessLogEntryPointer al);
+static int icpUdpSend(int fd, const Ip::Address &to, icp_common_t *msg, int delay, AccessLogEntryPointer al);
 
 static void
 icpSyncAle(AccessLogEntryPointer &al, const Ip::Address &caddr, const char *url, int len, int delay)
@@ -107,7 +108,8 @@ Comm::ConnectionPointer icpOutgoingConn = NULL;
 icp_common_t::icp_common_t() :
     opcode(ICP_INVALID), version(0), length(0), reqnum(0),
     flags(0), pad(0), shostid(0)
-{}
+{
+}
 
 icp_common_t::icp_common_t(char *buf, unsigned int len) :
     opcode(ICP_INVALID), version(0), reqnum(0), flags(0), pad(0), shostid(0)
@@ -139,7 +141,7 @@ icp_common_t::getOpCode() const
 
 /* ICPState */
 
-ICPState::ICPState(icp_common_t &aHeader, HttpRequest *aRequest):
+ICPState::ICPState(icp_common_t &aHeader, HttpRequest *aRequest) :
     header(aHeader),
     request(aRequest),
     fd(-1),
@@ -191,15 +193,15 @@ ICPState::fillChecklist(ACLFilledChecklist &checklist) const
 /* ICP2State */
 
 /// \ingroup ServerProtocolICPInternal2
-class ICP2State: public ICPState
+class ICP2State : public ICPState
 {
 
 public:
-    ICP2State(icp_common_t & aHeader, HttpRequest *aRequest):
-        ICPState(aHeader, aRequest),rtt(0),src_rtt(0),flags(0) {}
+    ICP2State(icp_common_t &aHeader, HttpRequest *aRequest) :
+        ICPState(aHeader, aRequest), rtt(0), src_rtt(0), flags(0) {}
 
     ~ICP2State();
-    virtual void created(StoreEntry * newEntry) override;
+    virtual void created(StoreEntry *newEntry) override;
 
     int rtt;
     int src_rtt;
@@ -207,7 +209,8 @@ public:
 };
 
 ICP2State::~ICP2State()
-{}
+{
+}
 
 void
 ICP2State::created(StoreEntry *e)
@@ -257,7 +260,7 @@ icpLogIcp(const Ip::Address &caddr, const LogTags_ot logcode, const int len, con
     }
 
     if (logcode == LOG_ICP_QUERY)
-        return; // we never log queries
+        return;  // we never log queries
 
     if (!Config.onoff.log_udp) {
         clientdbUpdate(caddr, al ? al->cache.code : LogTags(logcode), AnyP::PROTO_ICP, len);
@@ -308,15 +311,15 @@ icp_common_t::CreateMessage(
     if (opcode == ICP_QUERY)
         buf_len += sizeof(uint32_t);
 
-    buf = (char *) xcalloc(buf_len, 1);
+    buf = (char *)xcalloc(buf_len, 1);
 
-    headerp = (icp_common_t *) (void *) buf;
+    headerp = (icp_common_t *)(void *)buf;
 
-    headerp->opcode = (char) opcode;
+    headerp->opcode = (char)opcode;
 
     headerp->version = ICP_VERSION_CURRENT;
 
-    headerp->length = (uint16_t) htons(buf_len);
+    headerp->length = (uint16_t)htons(buf_len);
 
     headerp->reqnum = htonl(reqnum);
 
@@ -342,23 +345,22 @@ icp_common_t::CreateMessage(
 static int
 icpUdpSend(int fd,
            const Ip::Address &to,
-           icp_common_t * msg,
+           icp_common_t *msg,
            int delay,
            AccessLogEntryPointer al)
 {
     int x;
     int len;
-    len = (int) ntohs(msg->length);
-    debugs(12, 5, "icpUdpSend: FD " << fd << " sending " <<
-           icp_opcode_str[msg->opcode] << ", " << len << " bytes to " << to);
+    len = (int)ntohs(msg->length);
+    debugs(12, 5, "icpUdpSend: FD " << fd << " sending " << icp_opcode_str[msg->opcode] << ", " << len << " bytes to " << to);
 
     x = comm_udp_sendto(fd, to, msg, len);
 
     if (x >= 0) {
         /* successfully written */
         const auto logcode = icpLogFromICPCode(static_cast<icp_opcode>(msg->opcode));
-        icpLogIcp(to, logcode, len, (char *) (msg + 1), delay, al);
-        icpCount(msg, SENT, (size_t) len, delay);
+        icpLogIcp(to, logcode, len, (char *)(msg + 1), delay, al);
+        icpCount(msg, SENT, (size_t)len, delay);
         safe_free(msg);
     } else if (0 == delay) {
         /* send failed, but queue it */
@@ -401,8 +403,7 @@ icpGetCommonOpcode()
 {
     /* if store is rebuilding, return a UDP_MISS_NOFETCH */
 
-    if ((StoreController::store_dirs_rebuilding && opt_reload_hit_only) ||
-            hit_only_mode_until > squid_curtime) {
+    if ((StoreController::store_dirs_rebuilding && opt_reload_hit_only) || hit_only_mode_until > squid_curtime) {
         return ICP_MISS_NOFETCH;
     }
 
@@ -465,7 +466,7 @@ icpDenyAccess(Ip::Address &from, char *url, int reqnum, int fd)
 }
 
 bool
-icpAccessAllowed(Ip::Address &from, HttpRequest * icp_request)
+icpAccessAllowed(Ip::Address &from, HttpRequest *icp_request)
 {
     /* absent any explicit rules, we deny all */
     if (!Config.accessList.icp)
@@ -501,7 +502,6 @@ icpGetRequest(char *url, int reqnum, int fd, Ip::Address &from)
         icpCreateAndSend(ICP_ERR, 0, url, reqnum, 0, fd, from, nullptr);
 
     return result;
-
 }
 
 static void
@@ -561,7 +561,7 @@ icp_common_t::handleReply(char *buf, Ip::Address &from)
     char *url = buf + sizeof(icp_common_t);
     debugs(12, 3, "icpHandleIcpV2: " << icp_opcode_str[opcode] << " from " << from << " for '" << url << "'");
 
-    const cache_key *key = icpGetCacheKey(url, (int) reqnum);
+    const cache_key *key = icpGetCacheKey(url, (int)reqnum);
     /* call neighborsUdpAck even if ping_status != PING_WAITING */
     neighborsUdpAck(key, this, from);
 }
@@ -617,18 +617,18 @@ icpHandleIcpV2(int fd, Ip::Address &from, char *buf, int len)
 
 #ifdef ICP_PKT_DUMP
 static void
-icpPktDump(icp_common_t * pkt)
+icpPktDump(icp_common_t *pkt)
 {
     Ip::Address a;
 
-    debugs(12, 9, "opcode:     " << std::setw(3) << pkt->opcode  << " " << icp_opcode_str[pkt->opcode]);
-    debugs(12, 9, "version: "<< std::left << std::setw(8) << pkt->version);
-    debugs(12, 9, "length:  "<< std::left << std::setw(8) << ntohs(pkt->length));
-    debugs(12, 9, "reqnum:  "<< std::left << std::setw(8) << ntohl(pkt->reqnum));
-    debugs(12, 9, "flags:   "<< std::left << std::hex << std::setw(8) << ntohl(pkt->flags));
+    debugs(12, 9, "opcode:     " << std::setw(3) << pkt->opcode << " " << icp_opcode_str[pkt->opcode]);
+    debugs(12, 9, "version: " << std::left << std::setw(8) << pkt->version);
+    debugs(12, 9, "length:  " << std::left << std::setw(8) << ntohs(pkt->length));
+    debugs(12, 9, "reqnum:  " << std::left << std::setw(8) << ntohl(pkt->reqnum));
+    debugs(12, 9, "flags:   " << std::left << std::hex << std::setw(8) << ntohl(pkt->flags));
     a = (struct in_addr)pkt->shostid;
-    debugs(12, 9, "shostid: " << a );
-    debugs(12, 9, "payload: " << (char *) pkt + sizeof(icp_common_t));
+    debugs(12, 9, "shostid: " << a);
+    debugs(12, 9, "payload: " << (char *)pkt + sizeof(icp_common_t));
 }
 
 #endif
@@ -674,22 +674,21 @@ icpHandleUdp(int sock, void *)
         }
 
         ++(*N);
-        icpCount(buf, RECV, (size_t) len, 0);
+        icpCount(buf, RECV, (size_t)len, 0);
         buf[len] = '\0';
-        debugs(12, 4, "icpHandleUdp: FD " << sock << ": received " <<
-               (unsigned long int)len << " bytes from " << from);
+        debugs(12, 4, "icpHandleUdp: FD " << sock << ": received " << (unsigned long int)len << " bytes from " << from);
 
 #ifdef ICP_PACKET_DUMP
 
         icpPktDump(buf);
 #endif
 
-        if ((size_t) len < sizeof(icp_common_t)) {
+        if ((size_t)len < sizeof(icp_common_t)) {
             debugs(12, 4, "icpHandleUdp: Ignoring too-small UDP packet");
             break;
         }
 
-        icp_version = (int) buf[1]; /* cheat! */
+        icp_version = (int)buf[1]; /* cheat! */
 
         if (icpOutgoingConn->local == from)
             // ignore ICP packets which loop back (multicast usually)
@@ -699,8 +698,7 @@ icpHandleUdp(int sock, void *)
         else if (icp_version == ICP_VERSION_3)
             icpHandleIcpV3(sock, from, buf, len);
         else
-            debugs(12, DBG_IMPORTANT, "WARNING: Unused ICP version " << icp_version <<
-                   " received from " << from);
+            debugs(12, DBG_IMPORTANT, "WARNING: Unused ICP version " << icp_version << " received from " << from);
     }
 }
 
@@ -721,7 +719,7 @@ icpOpenPorts(void)
         fatal("ICP port cannot be opened.");
     }
     /* split-stack for now requires default IPv4-only ICP */
-    if (Ip::EnableIpv6&IPV6_SPECIAL_SPLITSTACK && icpIncomingConn->local.isAnyAddr()) {
+    if (Ip::EnableIpv6 & IPV6_SPECIAL_SPLITSTACK && icpIncomingConn->local.isAnyAddr()) {
         icpIncomingConn->local.setIPv4();
     }
 
@@ -734,7 +732,7 @@ icpOpenPorts(void)
                         icpIncomingConn,
                         Ipc::fdnInIcpSocket, call);
 
-    if ( !Config.Addrs.udp_outgoing.isNoAddr() ) {
+    if (!Config.Addrs.udp_outgoing.isNoAddr()) {
         icpOutgoingConn = new Comm::Connection;
         icpOutgoingConn->local = Config.Addrs.udp_outgoing;
         icpOutgoingConn->local.port(port);
@@ -744,7 +742,7 @@ icpOpenPorts(void)
             fatal("ICP port cannot be opened.");
         }
         /* split-stack for now requires default IPv4-only ICP */
-        if (Ip::EnableIpv6&IPV6_SPECIAL_SPLITSTACK && icpOutgoingConn->local.isAnyAddr()) {
+        if (Ip::EnableIpv6 & IPV6_SPECIAL_SPLITSTACK && icpOutgoingConn->local.isAnyAddr()) {
             icpOutgoingConn->local.setIPv4();
         }
 
@@ -771,7 +769,7 @@ icpIncomingConnectionOpened(const Comm::ConnectionPointer &conn, int)
     Comm::SetSelect(conn->fd, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
 
     for (const wordlist *s = Config.mcast_group_list; s; s = s->next)
-        ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL); // XXX: pass the conn for mcastJoinGroups usage.
+        ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL);  // XXX: pass the conn for mcastJoinGroups usage.
 
     debugs(12, DBG_IMPORTANT, "Accepting ICP messages on " << conn->local);
 
@@ -826,7 +824,7 @@ icpClosePorts(void)
 static void
 icpCount(void *buf, int which, size_t len, int delay)
 {
-    icp_common_t *icp = (icp_common_t *) buf;
+    icp_common_t *icp = (icp_common_t *)buf;
 
     if (len < sizeof(*icp))
         return;
@@ -870,7 +868,7 @@ icpCount(void *buf, int which, size_t len, int delay)
 static cache_key queried_keys[N_QUERIED_KEYS][SQUID_MD5_DIGEST_LENGTH];
 
 int
-icpSetCacheKey(const cache_key * key)
+icpSetCacheKey(const cache_key *key)
 {
     static int reqnum = 0;
 
@@ -890,4 +888,3 @@ icpGetCacheKey(const char *url, int reqnum)
 
     return storeKeyPublic(url, Http::METHOD_GET);
 }
-

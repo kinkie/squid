@@ -19,7 +19,7 @@ namespace Store {
 
 /// Public Store interface. Coordinates the work of memory/disk/transient stores
 /// and hides their individual existence/differences from the callers.
-class Controller: public Storage
+class Controller : public Storage
 {
 public:
     Controller();
@@ -153,9 +153,9 @@ private:
     bool anchorToCache(StoreEntry &e, bool &inSync);
     void checkTransients(const StoreEntry &) const;
 
-    Disks *swapDir; ///< summary view of all disk caches
-    Memory *sharedMemStore; ///< memory cache that multiple workers can use
-    bool localMemStore; ///< whether local (non-shared) memory cache is enabled
+    Disks *swapDir;          ///< summary view of all disk caches
+    Memory *sharedMemStore;  ///< memory cache that multiple workers can use
+    bool localMemStore;      ///< whether local (non-shared) memory cache is enabled
 
     /// A shared table of public store entries that do not know whether they
     /// will belong to a memory cache, a disk cache, or will be uncachable
@@ -175,7 +175,6 @@ extern void Init(Controller *root = nullptr);
 /// undo Init()
 extern void FreeMemory();
 
-} // namespace Store
+}  // namespace Store
 
 #endif /* SQUID_STORE_CONTROLLER_H */
-

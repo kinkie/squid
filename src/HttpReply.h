@@ -9,9 +9,9 @@
 #ifndef SQUID_HTTPREPLY_H
 #define SQUID_HTTPREPLY_H
 
-#include "http/StatusLine.h"
 #include "HttpBody.h"
 #include "HttpRequest.h"
+#include "http/StatusLine.h"
 
 void httpReplyInitModule(void);
 
@@ -21,7 +21,7 @@ class HttpHdrContRange;
 
 class HttpHdrSc;
 
-class HttpReply: public Http::Message
+class HttpReply : public Http::Message
 {
     MEMPROXY_CLASS(HttpReply);
 
@@ -59,16 +59,16 @@ public:
     /** \par public, writable, but use httpReply* interfaces when possible */
     Http::StatusLine sline;
 
-    HttpBody body;      /**< for small constant memory-resident text bodies only */
+    HttpBody body; /**< for small constant memory-resident text bodies only */
 
-    String protoPrefix;         /**< e.g., "HTTP/"  */
+    String protoPrefix; /**< e.g., "HTTP/"  */
 
     bool do_clean;
 
 public:
     virtual int httpMsgParseError();
 
-    virtual bool expectingBody(const HttpRequestMethod&, int64_t&) const;
+    virtual bool expectingBody(const HttpRequestMethod &, int64_t &) const;
 
     virtual bool inheritProperties(const Http::Message *);
 
@@ -91,19 +91,19 @@ public:
 
     void redirect(Http::StatusCode, const char *);
 
-    int64_t bodySize(const HttpRequestMethod&) const;
+    int64_t bodySize(const HttpRequestMethod &) const;
 
     /** Checks whether received body exceeds known maximum size.
      * Requires a prior call to calcMaxBodySize().
      */
-    bool receivedBodyTooLarge(HttpRequest&, int64_t receivedBodySize);
+    bool receivedBodyTooLarge(HttpRequest &, int64_t receivedBodySize);
 
     /** Checks whether expected body exceeds known maximum size.
      * Requires a prior call to calcMaxBodySize().
      */
-    bool expectedBodyTooLarge(HttpRequest& request);
+    bool expectedBodyTooLarge(HttpRequest &request);
 
-    int validatorsMatch (HttpReply const *other) const;
+    int validatorsMatch(HttpReply const *other) const;
 
     /// adds status line and header to the given Packable
     /// assumes that `p` can quickly process small additions
@@ -152,19 +152,18 @@ private:
     /** Calculates and stores maximum body size if needed.
      * Used by receivedBodyTooLarge() and expectedBodyTooLarge().
      */
-    void calcMaxBodySize(HttpRequest& request) const;
+    void calcMaxBodySize(HttpRequest &request) const;
 
     String removeStaleWarningValues(const String &value);
 
     mutable int64_t bodySizeMax; /**< cached result of calcMaxBodySize */
 
-    HttpHdrContRange *content_range; ///< parsed Content-Range; nil for non-206 responses!
+    HttpHdrContRange *content_range;  ///< parsed Content-Range; nil for non-206 responses!
 
 protected:
-    virtual void packFirstLineInto(Packable * p, bool) const { sline.packInto(p); }
+    virtual void packFirstLineInto(Packable *p, bool) const { sline.packInto(p); }
 
     virtual bool parseFirstLine(const char *start, const char *end);
 };
 
 #endif /* SQUID_HTTPREPLY_H */
-

@@ -18,8 +18,7 @@
 
 class CommCloseCbParams;
 
-namespace Comm
-{
+namespace Comm {
 
 class AcceptLimiter;
 
@@ -48,7 +47,7 @@ private:
     virtual void swanSong();
     virtual const char *status() const;
 
-    TcpAcceptor(const TcpAcceptor &); // not implemented.
+    TcpAcceptor(const TcpAcceptor &);  // not implemented.
 
 public:
     TcpAcceptor(const Comm::ConnectionPointer &conn, const char *note, const Subscription::Pointer &aSub);
@@ -84,7 +83,7 @@ protected:
     friend class AcceptLimiter;
 
 private:
-    Subscription::Pointer theCallSub;    ///< used to generate AsyncCalls handling our events.
+    Subscription::Pointer theCallSub;  ///< used to generate AsyncCalls handling our events.
 
     /// conn being listened on for new connections
     /// Reserved for read-only use.
@@ -108,7 +107,6 @@ private:
     void logAcceptError(const ConnectionPointer &tcpClient) const;
 };
 
-} // namespace Comm
+}  // namespace Comm
 
 #endif /* SQUID_COMM_TCPACCEPTOR_H */
-

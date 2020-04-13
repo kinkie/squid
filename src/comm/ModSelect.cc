@@ -12,34 +12,34 @@
 
 #if USE_SELECT
 
-#include "anyp/PortCfg.h"
-#include "comm/Connection.h"
-#include "comm/Loops.h"
-#include "fde.h"
-#include "globals.h"
 #include "ICP.h"
-#include "mgr/Registration.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
 #include "StatHist.h"
 #include "Store.h"
+#include "anyp/PortCfg.h"
+#include "comm/Connection.h"
+#include "comm/Loops.h"
+#include "fde.h"
+#include "globals.h"
+#include "mgr/Registration.h"
 
 #include <cerrno>
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
 
-static int MAX_POLL_TIME = 1000;    /* see also Comm::QuickPollRequired() */
+static int MAX_POLL_TIME = 1000; /* see also Comm::QuickPollRequired() */
 
-#ifndef        howmany
-#define howmany(x, y)   (((x)+((y)-1))/(y))
+#ifndef howmany
+#define howmany(x, y) (((x) + ((y)-1)) / (y))
 #endif
-#ifndef        NBBY
-#define        NBBY    8
+#ifndef NBBY
+#define NBBY 8
 #endif
 #define FD_MASK_BYTES sizeof(fd_mask)
-#define FD_MASK_BITS (FD_MASK_BYTES*NBBY)
+#define FD_MASK_BITS (FD_MASK_BYTES * NBBY)
 
 /* STATIC */
 static int examine_select(fd_set *, fd_set *);
@@ -49,8 +49,8 @@ static int fdIsDns(int fd);
 static OBJH commIncomingStats;
 static int comm_check_incoming_select_handlers(int nfds, int *fds);
 static void comm_select_dns_incoming(void);
-static void commUpdateReadBits(int fd, PF * handler);
-static void commUpdateWriteBits(int fd, PF * handler);
+static void commUpdateReadBits(int fd, PF *handler);
+static void commUpdateWriteBits(int fd, PF *handler);
 
 static struct timeval zero_tv;
 static fd_set global_readfds;
@@ -115,19 +115,17 @@ static int tcp_io_events = 0;
 static int incoming_udp_interval = 16 << INCOMING_FACTOR;
 static int incoming_dns_interval = 16 << INCOMING_FACTOR;
 static int incoming_tcp_interval = 16 << INCOMING_FACTOR;
-#define commCheckUdpIncoming (++udp_io_events > (incoming_udp_interval>> INCOMING_FACTOR))
-#define commCheckDnsIncoming (++dns_io_events > (incoming_dns_interval>> INCOMING_FACTOR))
-#define commCheckTcpIncoming (++tcp_io_events > (incoming_tcp_interval>> INCOMING_FACTOR))
+#define commCheckUdpIncoming (++udp_io_events > (incoming_udp_interval >> INCOMING_FACTOR))
+#define commCheckDnsIncoming (++dns_io_events > (incoming_dns_interval >> INCOMING_FACTOR))
+#define commCheckTcpIncoming (++tcp_io_events > (incoming_tcp_interval >> INCOMING_FACTOR))
 
 void
-Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+Comm::SetSelect(int fd, unsigned int type, PF *handler, void *client_data, time_t timeout)
 {
     fde *F = &fd_table[fd];
     assert(fd >= 0);
     assert(F->flags.open || (!handler && !client_data && !timeout));
-    debugs(5, 5, HERE << "FD " << fd << ", type=" << type <<
-           ", handler=" << handler << ", client_data=" << client_data <<
-           ", timeout=" << timeout);
+    debugs(5, 5, HERE << "FD " << fd << ", type=" << type << ", handler=" << handler << ", client_data=" << client_data << ", timeout=" << timeout);
 
     if (type & COMM_SELECT_READ) {
         F->read_handler = handler;
@@ -216,7 +214,7 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
 
     getCurrentTime();
 
-    ++ statCounter.syscalls.selects;
+    ++statCounter.syscalls.selects;
 
     if (select(maxfd, &read_mask, &write_mask, NULL, &zero_tv) < 1)
         return incoming_sockets_accepted;
@@ -379,11 +377,11 @@ Comm::DoSelect(int msec)
 
         maxindex = howmany(maxfd, FD_MASK_BITS);
 
-        fdsp = (fd_mask *) & readfds;
+        fdsp = (fd_mask *)&readfds;
 
         for (j = 0; j < maxindex; ++j) {
             if ((tmask = fdsp[j]) == 0)
-                continue;   /* no bits here */
+                continue; /* no bits here */
 
             for (k = 0; k < FD_MASK_BITS; ++k) {
                 if (!EBIT_TEST(tmask, k))
@@ -427,10 +425,10 @@ Comm::DoSelect(int msec)
         for (;;) {
             poll_time.tv_sec = msec / 1000;
             poll_time.tv_usec = (msec % 1000) * 1000;
-            ++ statCounter.syscalls.selects;
+            ++statCounter.syscalls.selects;
             num = select(maxfd, &readfds, &writefds, NULL, &poll_time);
             int xerrno = errno;
-            ++ statCounter.select_loops;
+            ++statCounter.select_loops;
 
             if (num >= 0 || pending > 0)
                 break;
@@ -460,19 +458,19 @@ Comm::DoSelect(int msec)
             continue;
 
         /* Scan return fd masks for ready descriptors */
-        fdsp = (fd_mask *) & readfds;
+        fdsp = (fd_mask *)&readfds;
 
-        pfdsp = (fd_mask *) & pendingfds;
+        pfdsp = (fd_mask *)&pendingfds;
 
         maxindex = howmany(maxfd, FD_MASK_BITS);
 
         for (j = 0; j < maxindex; ++j) {
             if ((tmask = (fdsp[j] | pfdsp[j])) == 0)
-                continue;   /* no bits here */
+                continue; /* no bits here */
 
             for (k = 0; k < FD_MASK_BITS; ++k) {
                 if (tmask == 0)
-                    break;  /* no more bits left */
+                    break; /* no more bits left */
 
                 if (!EBIT_TEST(tmask, k))
                     continue;
@@ -509,12 +507,12 @@ Comm::DoSelect(int msec)
                 debugs(5, 6, "comm_select: FD " << fd << " ready for reading");
 
                 if (NULL == (hdl = F->read_handler))
-                    (void) 0;
+                    (void)0;
                 else {
                     F->read_handler = NULL;
                     commUpdateReadBits(fd, NULL);
                     hdl(fd, F->read_data);
-                    ++ statCounter.select_fds;
+                    ++statCounter.select_fds;
 
                     if (commCheckUdpIncoming)
                         comm_select_udp_incoming();
@@ -528,15 +526,15 @@ Comm::DoSelect(int msec)
             }
         }
 
-        fdsp = (fd_mask *) & writefds;
+        fdsp = (fd_mask *)&writefds;
 
         for (j = 0; j < maxindex; ++j) {
             if ((tmask = fdsp[j]) == 0)
-                continue;   /* no bits here */
+                continue; /* no bits here */
 
             for (k = 0; k < FD_MASK_BITS; ++k) {
                 if (tmask == 0)
-                    break;  /* no more bits left */
+                    break; /* no more bits left */
 
                 if (!EBIT_TEST(tmask, k))
                     continue;
@@ -576,7 +574,7 @@ Comm::DoSelect(int msec)
                     F->write_handler = NULL;
                     commUpdateWriteBits(fd, NULL);
                     hdl(fd, F->write_data);
-                    ++ statCounter.select_fds;
+                    ++statCounter.select_fds;
 
                     if (commCheckUdpIncoming)
                         comm_select_udp_incoming();
@@ -675,7 +673,7 @@ Comm::SelectLoopInit(void)
  * Call this from where the select loop fails.
  */
 static int
-examine_select(fd_set * readfds, fd_set * writefds)
+examine_select(fd_set *readfds, fd_set *writefds)
 {
     int fd = 0;
     fd_set read_x;
@@ -700,7 +698,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
         else
             continue;
 
-        ++ statCounter.syscalls.selects;
+        ++statCounter.syscalls.selects;
         errno = 0;
 
         if (!fstat(fd, &sb)) {
@@ -737,7 +735,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
 }
 
 static void
-commIncomingStats(StoreEntry * sentry)
+commIncomingStats(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Current incoming_udp_interval: %d\n",
                       incoming_udp_interval >> INCOMING_FACTOR);
@@ -756,7 +754,7 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 void
-commUpdateReadBits(int fd, PF * handler)
+commUpdateReadBits(int fd, PF *handler)
 {
     if (handler && !FD_ISSET(fd, &global_readfds)) {
         FD_SET(fd, &global_readfds);
@@ -768,7 +766,7 @@ commUpdateReadBits(int fd, PF * handler)
 }
 
 void
-commUpdateWriteBits(int fd, PF * handler)
+commUpdateWriteBits(int fd, PF *handler)
 {
     if (handler && !FD_ISSET(fd, &global_writefds)) {
         FD_SET(fd, &global_writefds);
@@ -787,4 +785,3 @@ Comm::QuickPollRequired(void)
 }
 
 #endif /* USE_SELECT */
-

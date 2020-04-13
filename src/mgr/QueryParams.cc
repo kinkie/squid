@@ -9,14 +9,14 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/QueryParams.h"
 #include "base/TextException.h"
 #include "ipc/TypedMsgHdr.h"
 #include "mgr/IntParam.h"
-#include "mgr/QueryParams.h"
 #include "mgr/StringParam.h"
 
 Mgr::QueryParam::Pointer
-Mgr::QueryParams::get(const String& name) const
+Mgr::QueryParams::get(const String &name) const
 {
     Must(name.size() != 0);
     Params::const_iterator pos = find(name);
@@ -24,7 +24,7 @@ Mgr::QueryParams::get(const String& name) const
 }
 
 void
-Mgr::QueryParams::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::QueryParams::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.putInt(params.size());
     for (Params::const_iterator iter = params.begin(); iter != params.end(); ++iter) {
@@ -36,12 +36,12 @@ Mgr::QueryParams::pack(Ipc::TypedMsgHdr& msg) const
 }
 
 void
-Mgr::QueryParams::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::QueryParams::unpack(const Ipc::TypedMsgHdr &msg)
 {
     int count = msg.getInt();
     Must(count >= 0);
     params.clear();
-    for ( ; count > 0; --count) {
+    for (; count > 0; --count) {
         String name;
         msg.getString(name);
         Must(name.size() != 0);
@@ -54,11 +54,11 @@ Mgr::QueryParams::unpack(const Ipc::TypedMsgHdr& msg)
 }
 
 Mgr::QueryParams::Params::const_iterator
-Mgr::QueryParams::find(const String& name) const
+Mgr::QueryParams::find(const String &name) const
 {
     Must(name.size() != 0);
     Params::const_iterator iter = params.begin();
-    for ( ; iter != params.end(); ++iter) {
+    for (; iter != params.end(); ++iter) {
         if (name.caseCmp(iter->first) == 0)
             break;
     }
@@ -66,7 +66,7 @@ Mgr::QueryParams::find(const String& name) const
 }
 
 bool
-Mgr::QueryParams::ParseParam(const String& paramStr, Param& param)
+Mgr::QueryParams::ParseParam(const String &paramStr, Param &param)
 {
     bool parsed = false;
     regmatch_t pmatch[3];
@@ -99,7 +99,7 @@ Mgr::QueryParams::ParseParam(const String& paramStr, Param& param)
 }
 
 bool
-Mgr::QueryParams::Parse(const String& aParamsStr, QueryParams& aParams)
+Mgr::QueryParams::Parse(const String &aParamsStr, QueryParams &aParams)
 {
     if (aParamsStr.size() != 0) {
         Param param;
@@ -138,4 +138,3 @@ Mgr::QueryParams::CreateParam(QueryParam::Type aType)
     }
     return NULL;
 }
-

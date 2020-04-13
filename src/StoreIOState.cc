@@ -9,20 +9,20 @@
 /* DEBUG: section 20    Swap Dir base object */
 
 #include "squid.h"
-#include "Debug.h"
-#include "defines.h"
-#include "Store.h"
 #include "StoreIOState.h"
+#include "Debug.h"
+#include "Store.h"
+#include "defines.h"
 
 void *
-StoreIOState::operator new (size_t)
+    StoreIOState::operator new(size_t)
 {
     assert(0);
     return (void *)1;
 }
 
 void
-StoreIOState::operator delete (void *)
+StoreIOState::operator delete(void *)
 {
     assert(0);
 }
@@ -44,7 +44,7 @@ StoreIOState::StoreIOState(StoreIOState::STFNCB *cbFile, StoreIOState::STIOCB *c
 
 StoreIOState::~StoreIOState()
 {
-    debugs(20,3, "StoreIOState::~StoreIOState: " << this);
+    debugs(20, 3, "StoreIOState::~StoreIOState: " << this);
 
     if (read.callback_data)
         cbdataReferenceDone(read.callback_data);
@@ -53,8 +53,8 @@ StoreIOState::~StoreIOState()
         cbdataReferenceDone(callback_data);
 }
 
-bool StoreIOState::touchingStoreEntry() const
+bool
+StoreIOState::touchingStoreEntry() const
 {
     return e && e->swap_filen == swap_filen;
 }
-

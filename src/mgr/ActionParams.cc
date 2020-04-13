@@ -9,12 +9,13 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/ActionParams.h"
 #include "base/TextException.h"
 #include "ipc/TypedMsgHdr.h"
-#include "mgr/ActionParams.h"
 #include "sbuf/StringConvert.h"
 
-Mgr::ActionParams::ActionParams(): httpMethod(Http::METHOD_NONE)
+Mgr::ActionParams::ActionParams() :
+    httpMethod(Http::METHOD_NONE)
 {
 }
 
@@ -49,4 +50,3 @@ Mgr::ActionParams::pack(Ipc::TypedMsgHdr &msg) const
     msg.putString(password);
     queryParams.pack(msg);
 }
-

@@ -18,9 +18,9 @@
  */
 
 #include "squid.h"
-#include "heap.h"
 #include "MemObject.h"
 #include "Store.h"
+#include "heap.h"
 #include "store_heap_replacement.h"
 #include "wordlist.h"
 
@@ -31,14 +31,16 @@ REMOVALPOLICYCREATE createRemovalPolicy_heap;
 static int nr_heap_policies = 0;
 
 struct HeapPolicyData {
-    void setPolicyNode (StoreEntry *, void *) const;
+    void setPolicyNode(StoreEntry *, void *) const;
     RemovalPolicy *policy;
     heap *theHeap;
     heap_key_func *keyfunc;
     int count;
     int nwalkers;
     enum heap_entry_type {
-        TYPE_UNKNOWN = 0, TYPE_STORE_ENTRY, TYPE_STORE_MEM
+        TYPE_UNKNOWN = 0,
+        TYPE_STORE_ENTRY,
+        TYPE_STORE_MEM
     } type;
 };
 
@@ -46,7 +48,7 @@ struct HeapPolicyData {
  * Needed by the purge walker.
  */
 static enum HeapPolicyData::heap_entry_type
-heap_guessType(StoreEntry * entry, RemovalPolicyNode * node)
+heap_guessType(StoreEntry *entry, RemovalPolicyNode *node)
 {
     if (node == &entry->repl)
         return HeapPolicyData::TYPE_STORE_ENTRY;
@@ -60,17 +62,17 @@ heap_guessType(StoreEntry * entry, RemovalPolicyNode * node)
 }
 
 void
-HeapPolicyData::setPolicyNode (StoreEntry *entry, void *value) const
+HeapPolicyData::setPolicyNode(StoreEntry *entry, void *value) const
 {
     switch (type) {
 
     case TYPE_STORE_ENTRY:
         entry->repl.data = value;
-        break ;
+        break;
 
     case TYPE_STORE_MEM:
-        entry->mem_obj->repl.data = value ;
-        break ;
+        entry->mem_obj->repl.data = value;
+        break;
 
     default:
         break;
@@ -78,13 +80,13 @@ HeapPolicyData::setPolicyNode (StoreEntry *entry, void *value) const
 }
 
 static void
-heap_add(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
+heap_add(RemovalPolicy *policy, StoreEntry *entry, RemovalPolicyNode *node)
 {
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
     assert(!node->data);
 
     if (EBIT_TEST(entry->flags, ENTRY_SPECIAL))
-        return;         /* We won't manage these.. they messes things up */
+        return; /* We won't manage these.. they messes things up */
 
     node->data = heap_insert(h->theHeap, entry);
 
@@ -98,8 +100,8 @@ heap_add(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
 }
 
 static void
-heap_remove(RemovalPolicy * policy, StoreEntry * entry,
-            RemovalPolicyNode * node)
+heap_remove(RemovalPolicy *policy, StoreEntry *entry,
+            RemovalPolicyNode *node)
 {
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
     heap_node *hnode = (heap_node *)node->data;
@@ -115,8 +117,8 @@ heap_remove(RemovalPolicy * policy, StoreEntry * entry,
 }
 
 static void
-heap_referenced(RemovalPolicy * policy, const StoreEntry * entry,
-                RemovalPolicyNode * node)
+heap_referenced(RemovalPolicy *policy, const StoreEntry *entry,
+                RemovalPolicyNode *node)
 {
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
     heap_node *hnode = (heap_node *)node->data;
@@ -124,7 +126,7 @@ heap_referenced(RemovalPolicy * policy, const StoreEntry * entry,
     if (!hnode)
         return;
 
-    heap_update(h->theHeap, hnode, (StoreEntry *) entry);
+    heap_update(h->theHeap, hnode, (StoreEntry *)entry);
 }
 
 /** RemovalPolicyWalker **/
@@ -136,7 +138,7 @@ struct _HeapWalkData {
 };
 
 static const StoreEntry *
-heap_walkNext(RemovalPolicyWalker * walker)
+heap_walkNext(RemovalPolicyWalker *walker)
 {
     HeapWalkData *heap_walk = (HeapWalkData *)walker->_data;
     RemovalPolicy *policy = walker->_policy;
@@ -144,15 +146,15 @@ heap_walkNext(RemovalPolicyWalker * walker)
     StoreEntry *entry;
 
     if (heap_walk->current >= heap_nodes(h->theHeap))
-        return NULL;        /* done */
+        return NULL; /* done */
 
-    entry = (StoreEntry *) heap_peep(h->theHeap, heap_walk->current++);
+    entry = (StoreEntry *)heap_peep(h->theHeap, heap_walk->current++);
 
     return entry;
 }
 
 static void
-heap_walkDone(RemovalPolicyWalker * walker)
+heap_walkDone(RemovalPolicyWalker *walker)
 {
     RemovalPolicy *policy = walker->_policy;
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
@@ -164,7 +166,7 @@ heap_walkDone(RemovalPolicyWalker * walker)
 }
 
 static RemovalPolicyWalker *
-heap_walkInit(RemovalPolicy * policy)
+heap_walkInit(RemovalPolicy *policy)
 {
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
     RemovalPolicyWalker *walker;
@@ -190,7 +192,7 @@ public:
 };
 
 static StoreEntry *
-heap_purgeNext(RemovalPurgeWalker * walker)
+heap_purgeNext(RemovalPurgeWalker *walker)
 {
     HeapPurgeData *heap_walker = (HeapPurgeData *)walker->_data;
     RemovalPolicy *policy = walker->_policy;
@@ -201,7 +203,7 @@ heap_purgeNext(RemovalPurgeWalker * walker)
 try_again:
 
     if (heap_empty(h->theHeap))
-        return NULL;        /* done */
+        return NULL; /* done */
 
     age = heap_peepminkey(h->theHeap);
 
@@ -221,7 +223,7 @@ try_again:
 }
 
 static void
-heap_purgeDone(RemovalPurgeWalker * walker)
+heap_purgeDone(RemovalPurgeWalker *walker)
 {
     HeapPurgeData *heap_walker = (HeapPurgeData *)walker->_data;
     RemovalPolicy *policy = walker->_policy;
@@ -249,7 +251,7 @@ heap_purgeDone(RemovalPurgeWalker * walker)
 }
 
 static RemovalPurgeWalker *
-heap_purgeInit(RemovalPolicy * policy, int max_scan)
+heap_purgeInit(RemovalPolicy *policy, int max_scan)
 {
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
     RemovalPurgeWalker *walker;
@@ -266,7 +268,7 @@ heap_purgeInit(RemovalPolicy * policy, int max_scan)
 }
 
 static void
-heap_free(RemovalPolicy * policy)
+heap_free(RemovalPolicy *policy)
 {
     HeapPolicyData *h = (HeapPolicyData *)policy->_data;
     /* Make some verification of the policy state */
@@ -280,7 +282,7 @@ heap_free(RemovalPolicy * policy)
 }
 
 RemovalPolicy *
-createRemovalPolicy_heap(wordlist * args)
+createRemovalPolicy_heap(wordlist *args)
 {
     RemovalPolicy *policy;
     HeapPolicyData *heap_data;
@@ -344,4 +346,3 @@ createRemovalPolicy_heap(wordlist * args)
 
     return policy;
 }
-

@@ -18,8 +18,8 @@ class ESIParserClient
 public:
     virtual void start(const char *el, const char **attr, size_t attrCount) = 0;
     virtual void end(const char *el) = 0;
-    virtual void parserDefault (const char *s, int len) =0;
-    virtual void parserComment (const char *s) = 0;
+    virtual void parserDefault(const char *s, int len) = 0;
+    virtual void parserComment(const char *s) = 0;
     virtual ~ESIParserClient() {};
 };
 
@@ -39,15 +39,15 @@ public:
      */
     virtual bool parse(char const *dataToParse, size_t const lengthOfData, bool const endOfStream) = 0;
 
-    virtual long int lineNumber() const =0;
-    virtual char const * errorString() const =0;
+    virtual long int lineNumber() const = 0;
+    virtual char const *errorString() const = 0;
 
 protected:
     ESIParser() {};
 
 private:
     static Register *Parser;
-    static std::list<Register *> & GetRegistry();
+    static std::list<Register *> &GetRegistry();
 };
 
 class ESIParser::Register
@@ -61,14 +61,13 @@ public:
     ESIParser::Pointer (*newParser)(ESIParserClient *aClient);
 };
 
-#define EsiParserDefinition(ThisClass) \
+#define EsiParserDefinition(ThisClass)                                \
     ESIParser::Pointer ThisClass::NewParser(ESIParserClient *aClient) \
-    { \
-    return new ThisClass (aClient); \
+    {                                                                 \
+        return new ThisClass(aClient);                                \
     }
 
 #define EsiParserDeclaration \
     static ESIParser::Pointer NewParser(ESIParserClient *aClient)
 
 #endif /* SQUID_ESIPARSER_H */
-

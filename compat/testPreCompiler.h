@@ -17,10 +17,10 @@
 
 class testPreCompiler : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testPreCompiler );
-    CPPUNIT_TEST( testIfDef );
-    CPPUNIT_TEST( testIfDefAnd );
-    CPPUNIT_TEST( testIfDefOr );
+    CPPUNIT_TEST_SUITE(testPreCompiler);
+    CPPUNIT_TEST(testIfDef);
+    CPPUNIT_TEST(testIfDefAnd);
+    CPPUNIT_TEST(testIfDefOr);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -30,4 +30,3 @@ protected:
 };
 
 #endif /* SQUID_COMPAT_TESTS_TESTPRECOMPILER_H */
-

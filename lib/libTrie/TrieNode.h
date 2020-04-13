@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef   LIBTRIE_TRIENODE_H
-#define   LIBTRIE_TRIENODE_H
+#ifndef LIBTRIE_TRIENODE_H
+#define LIBTRIE_TRIENODE_H
 
 #include "TrieCharTransform.h"
 
@@ -25,20 +25,20 @@ public:
     TrieNode();
     ~TrieNode();
     TrieNode(TrieNode const &);
-    TrieNode &operator= (TrieNode const &);
+    TrieNode &operator=(TrieNode const &);
 
     /* Find a string.
     * If found, return the private data.
     * If not found, return NULL.
     */
-    inline void *find (char const *, size_t, TrieCharTransform *, bool const prefix) const;
+    inline void *find(char const *, size_t, TrieCharTransform *, bool const prefix) const;
 
     /* Add a string.
     * returns false if the string is already
     * present or can't be added.
     */
 
-    bool add (char const *, size_t, void *, TrieCharTransform *);
+    bool add(char const *, size_t, void *, TrieCharTransform *);
 
 private:
     /* 256-way Trie */
@@ -47,7 +47,7 @@ private:
     * internal[0] is the terminal node for
     * a string and may not be used
     */
-    TrieNode * internal[256];
+    TrieNode *internal[256];
 
     /* If a string ends here, non NULL */
     void *_privateData;
@@ -55,11 +55,11 @@ private:
 
 /* recursive. TODO? make iterative */
 void *
-TrieNode::find (char const *aString, size_t theLength, TrieCharTransform *transform, bool const prefix) const
+TrieNode::find(char const *aString, size_t theLength, TrieCharTransform *transform, bool const prefix) const
 {
     if (theLength) {
         int index = -1;
-        unsigned char pos = transform ? (*transform) (*aString) : *aString;
+        unsigned char pos = transform ? (*transform)(*aString) : *aString;
 
         if (internal[pos])
             index = pos;
@@ -82,4 +82,3 @@ TrieNode::find (char const *aString, size_t theLength, TrieCharTransform *transf
     }
 }
 #endif /* LIBTRIE_TRIENODE_H */
-

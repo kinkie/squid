@@ -12,7 +12,7 @@
 
 #include <cppunit/TestAssert.h>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testEnumIterator );
+CPPUNIT_TEST_SUITE_REGISTRATION(testEnumIterator);
 
 enum class TestEnum {
     enumBegin_ = 0,
@@ -78,25 +78,25 @@ testEnumIterator::testBidirectionalIter()
     --i;
     CPPUNIT_ASSERT(*i == TestEnum::zero);
 
-    auto enumBegin=WholeEnum<TestEnum>().begin();
-    auto enumEnd=WholeEnum<TestEnum>().end();
-    i=enumBegin;
-    int count=0;
+    auto enumBegin = WholeEnum<TestEnum>().begin();
+    auto enumEnd = WholeEnum<TestEnum>().end();
+    i = enumBegin;
+    int count = 0;
     while (i != enumEnd) {
         ++i;
         ++count;
-        if (count > 20) // prevent infinite loops in test
+        if (count > 20)  // prevent infinite loops in test
             break;
     }
     while (i != enumBegin) {
         --i;
         ++count;
-        if (count > 20) // prevent infinite loops in test
+        if (count > 20)  // prevent infinite loops in test
             break;
     }
     CPPUNIT_ASSERT_EQUAL(10, count);
 
-    --i; //intentional out-of-bounds
+    --i;  //intentional out-of-bounds
     CPPUNIT_ASSERT(i != enumBegin);
     CPPUNIT_ASSERT(*i != TestEnum::zero);
 }
@@ -108,10 +108,10 @@ testEnumIterator::testRangeFor()
     for (auto e : WholeEnum<TestEnum>()) {
         (void)e;
         ++j;
-        if (j > 20) // prevent infinite loops in test
+        if (j > 20)  // prevent infinite loops in test
             break;
     }
-    CPPUNIT_ASSERT_EQUAL(5,j);
+    CPPUNIT_ASSERT_EQUAL(5, j);
 }
 
 void
@@ -122,22 +122,21 @@ testEnumIterator::testRangeForRange()
     for (auto e : EnumRange(TestEnum::two, TestEnum::four)) {
         (void)e;
         ++j;
-        if (j > 20) // prevent infinite loops in test
+        if (j > 20)  // prevent infinite loops in test
             break;
     }
-    CPPUNIT_ASSERT_EQUAL(2,j);
+    CPPUNIT_ASSERT_EQUAL(2, j);
 }
 
 void
 testEnumIterator::testUnsignedEnum()
 {
     int j = 0;
-    for (auto e = WholeEnum<TestEnum>().rbegin(); e != WholeEnum<TestEnum>().rend(); ++e ) {
+    for (auto e = WholeEnum<TestEnum>().rbegin(); e != WholeEnum<TestEnum>().rend(); ++e) {
         (void)e;
         ++j;
-        if (j > 20) // prevent infinite loops in test
+        if (j > 20)  // prevent infinite loops in test
             break;
     }
-    CPPUNIT_ASSERT_EQUAL(5,j);
+    CPPUNIT_ASSERT_EQUAL(5, j);
 }
-

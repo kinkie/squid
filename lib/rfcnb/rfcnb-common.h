@@ -41,7 +41,7 @@ extern "C" {
 
 typedef struct RFCNB_Pkt {
 
-    char *data;             /* The data in this portion */
+    char *data; /* The data in this portion */
     int len;
     struct RFCNB_Pkt *next;
 
@@ -51,4 +51,3 @@ typedef struct RFCNB_Pkt {
 }
 #endif
 #endif /* _RFCNB_RFCNB_COMMON_H */
-

@@ -45,9 +45,9 @@
 #define rfc1035_unpack_error 15
 
 #if 0
-#define RFC1035_UNPACK_DEBUG  fprintf(stderr, "unpack error at %s:%d\n", __FILE__,__LINE__)
+#define RFC1035_UNPACK_DEBUG fprintf(stderr, "unpack error at %s:%d\n", __FILE__, __LINE__)
 #else
-#define RFC1035_UNPACK_DEBUG  (void)0
+#define RFC1035_UNPACK_DEBUG (void)0
 #endif
 
 /*
@@ -57,7 +57,7 @@
  * Returns number of octets packed (should always be 12)
  */
 int
-rfc1035HeaderPack(char *buf, size_t sz, rfc1035_message * hdr)
+rfc1035HeaderPack(char *buf, size_t sz, rfc1035_message *hdr)
 {
     int off = 0;
     unsigned short s;
@@ -111,7 +111,7 @@ rfc1035LabelPack(char *buf, size_t sz, const char *label)
     if (len > RFC1035_MAXLABELSZ)
         len = RFC1035_MAXLABELSZ;
     assert(sz >= len + 1);
-    *(buf + off) = (char) len;
+    *(buf + off) = (char)len;
     off++;
     memcpy(buf + off, label, len);
     off += len;
@@ -181,7 +181,7 @@ rfc1035QuestionPack(char *buf,
  * Returns 0 (success) or 1 (error)
  */
 int
-rfc1035HeaderUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_message * h)
+rfc1035HeaderUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_message *h)
 {
     unsigned short s;
     unsigned short t;
@@ -260,7 +260,7 @@ rfc1035NameUnpack(const char *buf, size_t sz, unsigned int *off, unsigned short 
             /* blasted compression */
             unsigned short s;
             unsigned int ptr;
-            if (rdepth > 64) {  /* infinite pointer loop */
+            if (rdepth > 64) { /* infinite pointer loop */
                 RFC1035_UNPACK_DEBUG;
                 return 1;
             }
@@ -287,14 +287,14 @@ rfc1035NameUnpack(const char *buf, size_t sz, unsigned int *off, unsigned short 
             return 1;
         } else {
             (*off)++;
-            len = (size_t) c;
+            len = (size_t)c;
             if (len == 0)
                 break;
-            if (len > (ns - no - 1)) {  /* label won't fit */
+            if (len > (ns - no - 1)) { /* label won't fit */
                 RFC1035_UNPACK_DEBUG;
                 return 1;
             }
-            if ((*off) + len >= sz) {   /* message is too short */
+            if ((*off) + len >= sz) { /* message is too short */
                 RFC1035_UNPACK_DEBUG;
                 return 1;
             }
@@ -326,7 +326,7 @@ rfc1035NameUnpack(const char *buf, size_t sz, unsigned int *off, unsigned short 
  * Returns the number of bytes added to the buffer or 0 for error.
  */
 int
-rfc1035RRPack(char *buf, const size_t sz, const rfc1035_rr * RR)
+rfc1035RRPack(char *buf, const size_t sz, const rfc1035_rr *RR)
 {
     unsigned int off;
     uint16_t s;
@@ -338,7 +338,7 @@ rfc1035RRPack(char *buf, const size_t sz, const rfc1035_rr * RR)
      * Make sure the remaining message has enough octets for the
      * rest of the RR fields.
      */
-    if ((off + sizeof(s)*3 + sizeof(i) + RR->rdlength) > sz) {
+    if ((off + sizeof(s) * 3 + sizeof(i) + RR->rdlength) > sz) {
         return 0;
     }
     s = htons(RR->type);
@@ -370,7 +370,7 @@ rfc1035RRPack(char *buf, const size_t sz, const rfc1035_rr * RR)
  * Returns 0 (success) or 1 (error)
  */
 static int
-rfc1035RRUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_rr * RR)
+rfc1035RRUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_rr *RR)
 {
     unsigned short s;
     unsigned int i;
@@ -417,9 +417,9 @@ rfc1035RRUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_rr * RR)
     case RFC1035_TYPE_CNAME:
 #endif
     case RFC1035_TYPE_PTR:
-        RR->rdata = (char*)xmalloc(RFC1035_MAXHOSTNAMESZ);
+        RR->rdata = (char *)xmalloc(RFC1035_MAXHOSTNAMESZ);
         rdata_off = *off;
-        RR->rdlength = 0;   /* Filled in by rfc1035NameUnpack */
+        RR->rdlength = 0; /* Filled in by rfc1035NameUnpack */
         if (rfc1035NameUnpack(buf, sz, &rdata_off, &RR->rdlength, RR->rdata, RFC1035_MAXHOSTNAMESZ, 0)) {
             RFC1035_UNPACK_DEBUG;
             return 1;
@@ -438,7 +438,7 @@ rfc1035RRUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_rr * RR)
         break;
     case RFC1035_TYPE_A:
     default:
-        RR->rdata = (char*)xmalloc(rdlength);
+        RR->rdata = (char *)xmalloc(rdlength);
         memcpy(RR->rdata, buf + (*off), rdlength);
         break;
     }
@@ -487,7 +487,7 @@ rfc1035ErrorMessage(int n)
 }
 
 void
-rfc1035RRDestroy(rfc1035_rr ** rr, int n)
+rfc1035RRDestroy(rfc1035_rr **rr, int n)
 {
     if (*rr == NULL) {
         return;
@@ -511,7 +511,7 @@ rfc1035RRDestroy(rfc1035_rr ** rr, int n)
  * Returns 0 (success) or 1 (error)
  */
 static int
-rfc1035QueryUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_query * query)
+rfc1035QueryUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_query *query)
 {
     unsigned short s;
     if (rfc1035NameUnpack(buf, sz, off, NULL, query->name, RFC1035_MAXHOSTNAMESZ, 0)) {
@@ -534,7 +534,7 @@ rfc1035QueryUnpack(const char *buf, size_t sz, unsigned int *off, rfc1035_query 
 }
 
 void
-rfc1035MessageDestroy(rfc1035_message ** msg)
+rfc1035MessageDestroy(rfc1035_message **msg)
 {
     if (!*msg)
         return;
@@ -554,7 +554,7 @@ rfc1035MessageDestroy(rfc1035_message ** msg)
  * Returns 0 (equal) or !=0 (different)
  */
 int
-rfc1035QueryCompare(const rfc1035_query * a, const rfc1035_query * b)
+rfc1035QueryCompare(const rfc1035_query *a, const rfc1035_query *b)
 {
     size_t la, lb;
     if (a->qtype != b->qtype)
@@ -590,7 +590,7 @@ rfc1035QueryCompare(const rfc1035_query * a, const rfc1035_query * b)
 int
 rfc1035MessageUnpack(const char *buf,
                      size_t sz,
-                     rfc1035_message ** answer)
+                     rfc1035_message **answer)
 {
     unsigned int off = 0;
     unsigned int i, j;
@@ -598,20 +598,20 @@ rfc1035MessageUnpack(const char *buf,
     rfc1035_message *msg = NULL;
     rfc1035_rr *recs = NULL;
     rfc1035_query *querys = NULL;
-    msg = (rfc1035_message*)xcalloc(1, sizeof(*msg));
+    msg = (rfc1035_message *)xcalloc(1, sizeof(*msg));
     if (rfc1035HeaderUnpack(buf + off, sz - off, &off, msg)) {
         RFC1035_UNPACK_DEBUG;
         xfree(msg);
         return -rfc1035_unpack_error;
     }
-    i = (unsigned int) msg->qdcount;
+    i = (unsigned int)msg->qdcount;
     if (i != 1) {
         /* This can not be an answer to our queries.. */
         RFC1035_UNPACK_DEBUG;
         xfree(msg);
         return -rfc1035_unpack_error;
     }
-    querys = msg->query = (rfc1035_query*)xcalloc(i, sizeof(*querys));
+    querys = msg->query = (rfc1035_query *)xcalloc(i, sizeof(*querys));
     for (j = 0; j < i; j++) {
         if (rfc1035QueryUnpack(buf, sz, &off, &querys[j])) {
             RFC1035_UNPACK_DEBUG;
@@ -626,14 +626,14 @@ rfc1035MessageUnpack(const char *buf,
     }
     if (msg->ancount == 0)
         return 0;
-    i = (unsigned int) msg->ancount;
-    recs = msg->answer = (rfc1035_rr*)xcalloc(i, sizeof(*recs));
+    i = (unsigned int)msg->ancount;
+    recs = msg->answer = (rfc1035_rr *)xcalloc(i, sizeof(*recs));
     for (j = 0; j < i; j++) {
-        if (off >= sz) {    /* corrupt packet */
+        if (off >= sz) { /* corrupt packet */
             RFC1035_UNPACK_DEBUG;
             break;
         }
-        if (rfc1035RRUnpack(buf, sz, &off, &recs[j])) {     /* corrupt RR */
+        if (rfc1035RRUnpack(buf, sz, &off, &recs[j])) { /* corrupt RR */
             RFC1035_UNPACK_DEBUG;
             break;
         }
@@ -662,7 +662,7 @@ rfc1035MessageUnpack(const char *buf,
  * Returns the size of the query
  */
 ssize_t
-rfc1035BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, ssize_t edns_sz)
+rfc1035BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, ssize_t edns_sz)
 {
     static rfc1035_message h;
     size_t offset = 0;
@@ -670,8 +670,8 @@ rfc1035BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qi
     h.id = qid;
     h.qr = 0;
     h.rd = 1;
-    h.opcode = 0;       /* QUERY */
-    h.qdcount = (unsigned int) 1;
+    h.opcode = 0; /* QUERY */
+    h.qdcount = (unsigned int)1;
     h.arcount = (edns_sz > 0 ? 1 : 0);
     offset += rfc1035HeaderPack(buf + offset, sz - offset, &h);
     offset += rfc1035QuestionPack(buf + offset,
@@ -701,14 +701,14 @@ rfc1035BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qi
  * Returns the size of the query
  */
 ssize_t
-rfc1035BuildPTRQuery(const struct in_addr addr, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, ssize_t edns_sz)
+rfc1035BuildPTRQuery(const struct in_addr addr, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, ssize_t edns_sz)
 {
     static rfc1035_message h;
     size_t offset = 0;
     static char rev[32];
     unsigned int i;
     memset(&h, '\0', sizeof(h));
-    i = (unsigned int) ntohl(addr.s_addr);
+    i = (unsigned int)ntohl(addr.s_addr);
     snprintf(rev, 32, "%u.%u.%u.%u.in-addr.arpa.",
              i & 255,
              (i >> 8) & 255,
@@ -717,8 +717,8 @@ rfc1035BuildPTRQuery(const struct in_addr addr, char *buf, size_t sz, unsigned s
     h.id = qid;
     h.qr = 0;
     h.rd = 1;
-    h.opcode = 0;       /* QUERY */
-    h.qdcount = (unsigned int) 1;
+    h.opcode = 0; /* QUERY */
+    h.qdcount = (unsigned int)1;
     h.arcount = (edns_sz > 0 ? 1 : 0);
     offset += rfc1035HeaderPack(buf + offset, sz - offset, &h);
     offset += rfc1035QuestionPack(buf + offset,
@@ -787,7 +787,7 @@ main(int argc, char *argv[])
         } else {
             sid = rfc1035BuildAQuery(input, buf, &sz);
         }
-        sendto(s, buf, sz, 0, (struct sockaddr *) &S, sizeof(S));
+        sendto(s, buf, sz, 0, (struct sockaddr *)&S, sizeof(S));
         do {
             fd_set R;
             struct timeval to;
@@ -823,14 +823,14 @@ main(int argc, char *argv[])
                         struct in_addr a;
                         char ipa_str[sizeof(a)];
                         memcpy(&a, answers[i].rdata, 4);
-                        printf("A\t%d\t%s\n", answers[i].ttl, inet_ntop(AF_INET,&a,tmp,sizeof(a)));
+                        printf("A\t%d\t%s\n", answers[i].ttl, inet_ntop(AF_INET, &a, tmp, sizeof(a)));
                     } else if (answers[i].type == RFC1035_TYPE_PTR) {
                         char ptr[128];
                         strncpy(ptr, answers[i].rdata, answers[i].rdlength);
                         printf("PTR\t%d\t%s\n", answers[i].ttl, ptr);
                     } else {
                         fprintf(stderr, "can't print answer type %d\n",
-                                (int) answers[i].type);
+                                (int)answers[i].type);
                     }
                 }
             }
@@ -839,4 +839,3 @@ main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 #endif
-

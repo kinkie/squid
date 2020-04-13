@@ -9,17 +9,16 @@
 #ifndef SQUID_IPC_STORE_MAP_H
 #define SQUID_IPC_STORE_MAP_H
 
+#include "ipc/ReadWriteLock.h"
 #include "ipc/mem/FlexibleArray.h"
 #include "ipc/mem/Pointer.h"
-#include "ipc/ReadWriteLock.h"
 #include "sbuf/SBuf.h"
 #include "store/forward.h"
 #include "store_key_md5.h"
 
 #include <functional>
 
-namespace Ipc
-{
+namespace Ipc {
 
 typedef int32_t StoreMapSliceId;
 
@@ -30,23 +29,30 @@ class StoreMapSlice
 public:
     typedef uint32_t Size;
 
-    StoreMapSlice(): size(0), next(-1) {}
-    StoreMapSlice(const StoreMapSlice &o) {
+    StoreMapSlice() :
+        size(0), next(-1) {}
+    StoreMapSlice(const StoreMapSlice &o)
+    {
         size.exchange(o.size);
         next.exchange(o.next);
     }
 
-    StoreMapSlice &operator =(const StoreMapSlice &o) {
+    StoreMapSlice &operator=(const StoreMapSlice &o)
+    {
         size.store(o.size);
         next.store(o.next);
         return *this;
     }
 
     /// restore default-constructed state
-    void clear() { size = 0; next = -1; }
+    void clear()
+    {
+        size = 0;
+        next = -1;
+    }
 
-    std::atomic<Size> size; ///< slice contents size
-    std::atomic<StoreMapSliceId> next; ///< ID of the next entry slice
+    std::atomic<Size> size;             ///< slice contents size
+    std::atomic<StoreMapSliceId> next;  ///< ID of the next entry slice
 };
 
 /// Maintains shareable information about a StoreEntry as a whole.
@@ -77,19 +83,20 @@ public:
     bool complete() const { return !empty() && !writing(); }
 
 public:
-    mutable ReadWriteLock lock; ///< protects slot data below
-    std::atomic<uint8_t> waitingToBeFreed; ///< may be accessed w/o a lock
+    mutable ReadWriteLock lock;             ///< protects slot data below
+    std::atomic<uint8_t> waitingToBeFreed;  ///< may be accessed w/o a lock
     /// whether StoreMap::abortWriting() was called for a read-locked entry
     std::atomic<uint8_t> writerHalted;
 
     // fields marked with [app] can be modified when appending-while-reading
     // fields marked with [update] can be modified when updating-while-reading
 
-    uint64_t key[2] = {0, 0}; ///< StoreEntry key
+    uint64_t key[2] = {0, 0};  ///< StoreEntry key
 
     // STORE_META_STD TLV field from StoreEntry
     struct Basics {
-        void clear() {
+        void clear()
+        {
             timestamp = 0;
             lastref = 0;
             expires = 0;
@@ -102,7 +109,7 @@ public:
         time_t lastref = 0;
         time_t expires = 0;
         time_t lastmod = 0;
-        std::atomic<uint64_t> swap_file_sz; // [app]
+        std::atomic<uint64_t> swap_file_sz;  // [app]
         uint16_t refcount = 0;
         uint16_t flags = 0;
     } basics;
@@ -122,15 +129,16 @@ class StoreMapItems
 {
 public:
     typedef C Item;
-    typedef Ipc::Mem::Owner< StoreMapItems<Item> > Owner;
+    typedef Ipc::Mem::Owner<StoreMapItems<Item>> Owner;
 
-    explicit StoreMapItems(const int aCapacity): capacity(aCapacity), items(aCapacity) {}
+    explicit StoreMapItems(const int aCapacity) :
+        capacity(aCapacity), items(aCapacity) {}
 
     size_t sharedMemorySize() const { return SharedMemorySize(capacity); }
-    static size_t SharedMemorySize(const int aCapacity) { return sizeof(StoreMapItems<Item>) + aCapacity*sizeof(Item); }
+    static size_t SharedMemorySize(const int aCapacity) { return sizeof(StoreMapItems<Item>) + aCapacity * sizeof(Item); }
 
-    const int capacity; ///< total number of items
-    Ipc::Mem::FlexibleArray<Item> items; ///< storage
+    const int capacity;                   ///< total number of items
+    Ipc::Mem::FlexibleArray<Item> items;  ///< storage
 };
 
 /// StoreMapSlices indexed by their slice ID.
@@ -141,22 +149,22 @@ typedef StoreMapItems<StoreMapSlice> StoreMapSlices;
 class StoreMapAnchors
 {
 public:
-    typedef Ipc::Mem::Owner< StoreMapAnchors > Owner;
+    typedef Ipc::Mem::Owner<StoreMapAnchors> Owner;
 
     explicit StoreMapAnchors(const int aCapacity);
 
     size_t sharedMemorySize() const;
     static size_t SharedMemorySize(const int anAnchorLimit);
 
-    std::atomic<int32_t> count; ///< current number of entries
-    std::atomic<uint32_t> victim; ///< starting point for purge search
-    const int capacity; ///< total number of anchors
-    Ipc::Mem::FlexibleArray<StoreMapAnchor> items; ///< anchors storage
+    std::atomic<int32_t> count;                     ///< current number of entries
+    std::atomic<uint32_t> victim;                   ///< starting point for purge search
+    const int capacity;                             ///< total number of anchors
+    Ipc::Mem::FlexibleArray<StoreMapAnchor> items;  ///< anchors storage
 };
 // TODO: Find an elegant way to use StoreMapItems in StoreMapAnchors
 
 /// StoreMapAnchor positions, indexed by entry "name" (i.e., the entry key hash)
-typedef StoreMapItems< std::atomic<sfileno> > StoreMapFileNos;
+typedef StoreMapItems<std::atomic<sfileno>> StoreMapFileNos;
 
 /// Aggregates information required for updating entry metadata and headers.
 class StoreMapUpdate
@@ -166,14 +174,15 @@ public:
     class Edition
     {
     public:
-        Edition(): anchor(nullptr), fileNo(-1), name(-1), splicingPoint(-1) {}
+        Edition() :
+            anchor(nullptr), fileNo(-1), name(-1), splicingPoint(-1) {}
 
         /// whether this entry edition is currently used/initialized
         explicit operator bool() const { return anchor; }
 
-        StoreMapAnchor *anchor; ///< StoreMap::anchors[fileNo], for convenience/speed
-        sfileno fileNo; ///< StoreMap::fileNos[name], for convenience/speed
-        sfileno name; ///< StoreEntry position in StoreMap::fileNos, for swapping Editions
+        StoreMapAnchor *anchor;  ///< StoreMap::anchors[fileNo], for convenience/speed
+        sfileno fileNo;          ///< StoreMap::fileNos[name], for convenience/speed
+        sfileno name;            ///< StoreEntry position in StoreMap::fileNos, for swapping Editions
 
         /// the last slice in the chain still containing metadata/headers
         StoreMapSliceId splicingPoint;
@@ -183,11 +192,11 @@ public:
     StoreMapUpdate(const StoreMapUpdate &other);
     ~StoreMapUpdate();
 
-    StoreMapUpdate &operator =(const StoreMapUpdate &other) = delete;
+    StoreMapUpdate &operator=(const StoreMapUpdate &other) = delete;
 
-    StoreEntry *entry; ///< the store entry being updated
-    Edition stale; ///< old anchor and chain
-    Edition fresh; ///< new anchor and the updated chain prefix
+    StoreEntry *entry;  ///< the store entry being updated
+    Edition stale;      ///< old anchor and chain
+    Edition fresh;      ///< new anchor and the updated chain prefix
 };
 
 class StoreMapCleaner;
@@ -218,9 +227,10 @@ public:
         FileNos::Owner *fileNos;
         Anchors::Owner *anchors;
         Slices::Owner *slices;
+
     private:
-        Owner(const Owner &); // not implemented
-        Owner &operator =(const Owner &); // not implemented
+        Owner(const Owner &);             // not implemented
+        Owner &operator=(const Owner &);  // not implemented
     };
 
     /// initialize shared memory
@@ -327,22 +337,22 @@ public:
     void importSlice(const SliceId sliceId, const Slice &slice);
 
     /* SwapFilenMax limits the number of entries, but not slices or slots */
-    bool validEntry(const int n) const; ///< whether n is a valid slice coordinate
-    bool validSlice(const int n) const; ///< whether n is a valid slice coordinate
-    int entryCount() const; ///< number of writeable and readable entries
-    int entryLimit() const; ///< maximum entryCount() possible
-    int sliceLimit() const; ///< maximum number of slices possible
+    bool validEntry(const int n) const;  ///< whether n is a valid slice coordinate
+    bool validSlice(const int n) const;  ///< whether n is a valid slice coordinate
+    int entryCount() const;              ///< number of writeable and readable entries
+    int entryLimit() const;              ///< maximum entryCount() possible
+    int sliceLimit() const;              ///< maximum number of slices possible
 
     /// adds approximate current stats to the supplied ones
     void updateStats(ReadWriteLockStats &stats) const;
 
-    StoreMapCleaner *cleaner; ///< notified before a readable entry is freed
+    StoreMapCleaner *cleaner;  ///< notified before a readable entry is freed
 
 protected:
-    const SBuf path; ///< cache_dir path or similar cache name; for logging
-    Mem::Pointer<StoreMapFileNos> fileNos; ///< entry inodes (starting blocks)
-    Mem::Pointer<StoreMapAnchors> anchors; ///< entry inodes (starting blocks)
-    Mem::Pointer<StoreMapSlices> slices; ///< chained entry pieces positions
+    const SBuf path;                        ///< cache_dir path or similar cache name; for logging
+    Mem::Pointer<StoreMapFileNos> fileNos;  ///< entry inodes (starting blocks)
+    Mem::Pointer<StoreMapAnchors> anchors;  ///< entry inodes (starting blocks)
+    Mem::Pointer<StoreMapSlices> slices;    ///< chained entry pieces positions
 
 private:
     /// computes entry name (i.e., key hash) for a given entry key
@@ -361,7 +371,7 @@ private:
     bool openKeyless(Update::Edition &edition);
     void closeForUpdateFinal(Update &update);
 
-    typedef std::function<bool (const sfileno name)> NameFilter; // a "name"-based test
+    typedef std::function<bool(const sfileno name)> NameFilter;  // a "name"-based test
     bool visitVictims(const NameFilter filter);
 
     void freeChain(const sfileno fileno, Anchor &inode, const bool keepLock);
@@ -381,10 +391,9 @@ public:
     virtual void noteFreeMapSlice(const StoreMapSliceId sliceId) = 0;
 };
 
-} // namespace Ipc
+}  // namespace Ipc
 
 // We do not reuse FileMap because we cannot control its size,
 // resulting in sfilenos that are pointing beyond the database.
 
 #endif /* SQUID_IPC_STORE_MAP_H */
-

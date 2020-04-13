@@ -9,6 +9,10 @@
 /* DEBUG: section 50    Log file handling */
 
 #include "squid.h"
+#include "log/ModDaemon.h"
+#include "SquidConfig.h"
+#include "SquidIpc.h"
+#include "SquidTime.h"
 #include "cbdata.h"
 #include "comm/Loops.h"
 #include "fatal.h"
@@ -16,24 +20,20 @@
 #include "globals.h"
 #include "log/Config.h"
 #include "log/File.h"
-#include "log/ModDaemon.h"
-#include "SquidConfig.h"
-#include "SquidIpc.h"
-#include "SquidTime.h"
 
 #include <cerrno>
 
 /* How many buffers to keep before we say we've buffered too much */
-#define LOGFILE_MAXBUFS     128
+#define LOGFILE_MAXBUFS 128
 
 /* Size of the logfile buffer */
 /*
  * For optimal performance this should match LOGFILE_BUFSIZ in logfile-daemon.c
  */
-#define LOGFILE_BUFSZ       32768
+#define LOGFILE_BUFSZ 32768
 
 /* How many seconds between warnings */
-#define LOGFILE_WARN_TIME   30
+#define LOGFILE_WARN_TIME 30
 
 static LOGWRITE logfile_mod_daemon_writeline;
 static LOGLINESTART logfile_mod_daemon_linestart;
@@ -42,7 +42,7 @@ static LOGROTATE logfile_mod_daemon_rotate;
 static LOGFLUSH logfile_mod_daemon_flush;
 static LOGCLOSE logfile_mod_daemon_close;
 
-static void logfile_mod_daemon_append(Logfile * lf, const char *buf, int len);
+static void logfile_mod_daemon_append(Logfile *lf, const char *buf, int len);
 
 struct _l_daemon {
     int rfd, wfd;
@@ -58,31 +58,31 @@ typedef struct _l_daemon l_daemon_t;
 
 /* Internal code */
 static void
-logfileNewBuffer(Logfile * lf)
+logfileNewBuffer(Logfile *lf)
 {
-    l_daemon_t *ll = (l_daemon_t *) lf->data;
+    l_daemon_t *ll = (l_daemon_t *)lf->data;
     logfile_buffer_t *b;
 
     debugs(50, 5, "logfileNewBuffer: " << lf->path << ": new buffer");
 
-    b = static_cast<logfile_buffer_t*>(xcalloc(1, sizeof(logfile_buffer_t)));
+    b = static_cast<logfile_buffer_t *>(xcalloc(1, sizeof(logfile_buffer_t)));
     assert(b != NULL);
-    b->buf = static_cast<char*>(xcalloc(1, LOGFILE_BUFSZ));
+    b->buf = static_cast<char *>(xcalloc(1, LOGFILE_BUFSZ));
     assert(b->buf != NULL);
     b->size = LOGFILE_BUFSZ;
     b->written_len = 0;
     b->len = 0;
     dlinkAddTail(b, &b->node, &ll->bufs);
-    ++ ll->nbufs;
+    ++ll->nbufs;
 }
 
 static void
-logfileFreeBuffer(Logfile * lf, logfile_buffer_t * b)
+logfileFreeBuffer(Logfile *lf, logfile_buffer_t *b)
 {
-    l_daemon_t *ll = (l_daemon_t *) lf->data;
+    l_daemon_t *ll = (l_daemon_t *)lf->data;
     assert(b != NULL);
     dlinkDelete(&b->node, &ll->bufs);
-    -- ll->nbufs;
+    --ll->nbufs;
     xfree(b->buf);
     xfree(b);
 }
@@ -98,10 +98,10 @@ logfileHandleWrite(int, void *data)
      * get a partial write then we'll re-schedule until its completed.
      * Its naive but it'll do for now.
      */
-    if (!ll->bufs.head) // abort if there is nothing pending right now.
+    if (!ll->bufs.head)  // abort if there is nothing pending right now.
         return;
 
-    logfile_buffer_t *b = static_cast<logfile_buffer_t*>(ll->bufs.head->data);
+    logfile_buffer_t *b = static_cast<logfile_buffer_t *>(ll->bufs.head->data);
     assert(b != NULL);
     ll->flush_pending = 0;
 
@@ -115,7 +115,7 @@ logfileHandleWrite(int, void *data)
             ll->flush_pending = 1;
             return;
         }
-        debugs(50, DBG_IMPORTANT,"logfileHandleWrite: " << lf->path << ": error writing (" << xstrerr(xerrno) << ")");
+        debugs(50, DBG_IMPORTANT, "logfileHandleWrite: " << lf->path << ": error writing (" << xstrerr(xerrno) << ")");
         /* XXX should handle this better */
         fatal("I don't handle this error well!");
     }
@@ -144,15 +144,15 @@ logfileHandleWrite(int, void *data)
 }
 
 static void
-logfileQueueWrite(Logfile * lf)
+logfileQueueWrite(Logfile *lf)
 {
-    l_daemon_t *ll = (l_daemon_t *) lf->data;
+    l_daemon_t *ll = (l_daemon_t *)lf->data;
     if (ll->flush_pending || ll->bufs.head == NULL) {
         return;
     }
     ll->flush_pending = 1;
     if (ll->bufs.head) {
-        logfile_buffer_t *b = static_cast<logfile_buffer_t*>(ll->bufs.head->data);
+        logfile_buffer_t *b = static_cast<logfile_buffer_t *>(ll->bufs.head->data);
         if (b->len + 2 <= b->size)
             logfile_mod_daemon_append(lf, "F\n", 2);
     }
@@ -161,9 +161,9 @@ logfileQueueWrite(Logfile * lf)
 }
 
 static void
-logfile_mod_daemon_append(Logfile * lf, const char *buf, int len)
+logfile_mod_daemon_append(Logfile *lf, const char *buf, int len)
 {
-    l_daemon_t *ll = (l_daemon_t *) lf->data;
+    l_daemon_t *ll = (l_daemon_t *)lf->data;
     logfile_buffer_t *b;
     int s;
 
@@ -174,7 +174,7 @@ logfile_mod_daemon_append(Logfile * lf, const char *buf, int len)
     debugs(50, 3, "logfile_mod_daemon_append: " << lf->path << ": appending " << len << " bytes");
     /* Copy what can be copied */
     while (len > 0) {
-        b = static_cast<logfile_buffer_t*>(ll->bufs.tail->data);
+        b = static_cast<logfile_buffer_t *>(ll->bufs.tail->data);
         debugs(50, 3, "logfile_mod_daemon_append: current buffer has " << b->len << " of " << b->size << " bytes before append");
         s = min(len, (b->size - b->len));
         memcpy(b->buf + b->len, buf, s);
@@ -208,7 +208,7 @@ logfileFlushEvent(void *data)
 /* External code */
 
 int
-logfile_mod_daemon_open(Logfile * lf, const char *path, size_t, int)
+logfile_mod_daemon_open(Logfile *lf, const char *path, size_t, int)
 {
     const char *args[5];
     char *tmpbuf;
@@ -221,9 +221,9 @@ logfile_mod_daemon_open(Logfile * lf, const char *path, size_t, int)
     lf->f_flush = logfile_mod_daemon_flush;
     lf->f_rotate = logfile_mod_daemon_rotate;
 
-    cbdataInternalLock(lf); // WTF?
+    cbdataInternalLock(lf);  // WTF?
     debugs(50, DBG_IMPORTANT, "Logfile Daemon: opening log " << path);
-    ll = static_cast<l_daemon_t*>(xcalloc(1, sizeof(*ll)));
+    ll = static_cast<l_daemon_t *>(xcalloc(1, sizeof(*ll)));
     lf->data = ll;
     ll->eol = 1;
     {
@@ -239,7 +239,7 @@ logfile_mod_daemon_open(Logfile * lf, const char *path, size_t, int)
     ll->nbufs = 0;
 
     /* Queue the initial control data */
-    tmpbuf = static_cast<char*>(xmalloc(BUFSIZ));
+    tmpbuf = static_cast<char *>(xmalloc(BUFSIZ));
     snprintf(tmpbuf, BUFSIZ, "r%d\nb%d\n", Config.Log.rotateNumber, Config.onoff.buffered_logs);
     logfile_mod_daemon_append(lf, tmpbuf, strlen(tmpbuf));
     xfree(tmpbuf);
@@ -251,7 +251,7 @@ logfile_mod_daemon_open(Logfile * lf, const char *path, size_t, int)
 }
 
 static void
-logfile_mod_daemon_close(Logfile * lf)
+logfile_mod_daemon_close(Logfile *lf)
 {
     l_daemon_t *ll = static_cast<l_daemon_t *>(lf->data);
     debugs(50, DBG_IMPORTANT, "Logfile Daemon: closing log " << lf->path);
@@ -266,11 +266,11 @@ logfile_mod_daemon_close(Logfile * lf)
     eventDelete(logfileFlushEvent, lf);
     xfree(ll);
     lf->data = NULL;
-    cbdataInternalUnlock(lf); // WTF??
+    cbdataInternalUnlock(lf);  // WTF??
 }
 
 static void
-logfile_mod_daemon_rotate(Logfile * lf, const int16_t)
+logfile_mod_daemon_rotate(Logfile *lf, const int16_t)
 {
     char tb[3];
     debugs(50, DBG_IMPORTANT, "logfileRotate: " << lf->path);
@@ -287,7 +287,7 @@ logfile_mod_daemon_rotate(Logfile * lf, const int16_t)
  * daemon somewhat.
  */
 static void
-logfile_mod_daemon_writeline(Logfile * lf, const char *buf, size_t len)
+logfile_mod_daemon_writeline(Logfile *lf, const char *buf, size_t len)
 {
     l_daemon_t *ll = static_cast<l_daemon_t *>(lf->data);
     /* Make sure the logfile buffer isn't too large */
@@ -304,7 +304,7 @@ logfile_mod_daemon_writeline(Logfile * lf, const char *buf, size_t len)
 }
 
 static void
-logfile_mod_daemon_linestart(Logfile * lf)
+logfile_mod_daemon_linestart(Logfile *lf)
 {
     l_daemon_t *ll = static_cast<l_daemon_t *>(lf->data);
     char tb[2];
@@ -316,7 +316,7 @@ logfile_mod_daemon_linestart(Logfile * lf)
 }
 
 static void
-logfile_mod_daemon_lineend(Logfile * lf)
+logfile_mod_daemon_lineend(Logfile *lf)
 {
     l_daemon_t *ll = static_cast<l_daemon_t *>(lf->data);
     logfile_buffer_t *b;
@@ -324,14 +324,14 @@ logfile_mod_daemon_lineend(Logfile * lf)
     ll->eol = 1;
     /* Kick a write off if the head buffer is -full- */
     if (ll->bufs.head != NULL) {
-        b = static_cast<logfile_buffer_t*>(ll->bufs.head->data);
+        b = static_cast<logfile_buffer_t *>(ll->bufs.head->data);
         if (b->node.next != NULL || !Config.onoff.buffered_logs)
             logfileQueueWrite(lf);
     }
 }
 
 static void
-logfile_mod_daemon_flush(Logfile * lf)
+logfile_mod_daemon_flush(Logfile *lf)
 {
     l_daemon_t *ll = static_cast<l_daemon_t *>(lf->data);
     if (commUnsetNonBlocking(ll->wfd)) {
@@ -346,4 +346,3 @@ logfile_mod_daemon_flush(Logfile * lf)
         return;
     }
 }
-

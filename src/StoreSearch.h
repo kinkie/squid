@@ -9,8 +9,8 @@
 #ifndef SQUID_STORESEARCH_H
 #define SQUID_STORESEARCH_H
 
-#include "base/RefCount.h"
 #include "Store.h"
+#include "base/RefCount.h"
 
 class StoreSearch : public RefCountable
 {
@@ -27,7 +27,7 @@ public:
     /* callback the client when a new StoreEntry is available
      * or an error occurs
      */
-    virtual void next(void (callback)(void *cbdata), void *cbdata) = 0;
+    virtual void next(void(callback)(void *cbdata), void *cbdata) = 0;
     /* return true if a new StoreEntry is immediately available
      * ???- not decided - if false, trigger making a new one available
      * this would be for sync api users that will schedule their own callback
@@ -43,4 +43,3 @@ public:
 typedef RefCount<StoreSearch> StoreSearchPointer;
 
 #endif /* SQUID_STORESEARCH_H */
-

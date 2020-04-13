@@ -10,53 +10,52 @@
 
 #if USE_AUTH
 
+#include "ConfigParser.h"
 #include "auth/Config.h"
 #include "auth/Gadgets.h"
 #include "auth/UserRequest.h"
-#include "ConfigParser.h"
 #include "testAuth.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuth );
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuthConfig );
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuthUserRequest );
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuth);
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuthConfig);
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuthUserRequest);
 #if HAVE_AUTH_MODULE_BASIC
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuthBasicUserRequest );
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuthBasicUserRequest);
 #endif
 #if HAVE_AUTH_MODULE_DIGEST
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuthDigestUserRequest );
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuthDigestUserRequest);
 #endif
 #if HAVE_AUTH_MODULE_NTLM
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuthNTLMUserRequest );
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuthNTLMUserRequest);
 #endif
 #if HAVE_AUTH_MODULE_NEGOTIATE
-CPPUNIT_TEST_SUITE_REGISTRATION( testAuthNegotiateUserRequest );
+CPPUNIT_TEST_SUITE_REGISTRATION(testAuthNegotiateUserRequest);
 #endif
 
 /* Instantiate all auth framework types */
 void
 testAuth::instantiate()
-{}
+{
+}
 
-char const * stub_config="auth_param digest program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd\n"
-                         "auth_param digest children 5\n"
-                         "auth_param digest realm Squid proxy-caching web server\n"
-                         "auth_param digest nonce_garbage_interval 5 minutes\n"
-                         "auth_param digest nonce_max_duration 30 minutes\n"
-                         "auth_param digest nonce_max_count 50\n";
+char const *stub_config = "auth_param digest program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd\n"
+                          "auth_param digest children 5\n"
+                          "auth_param digest realm Squid proxy-caching web server\n"
+                          "auth_param digest nonce_garbage_interval 5 minutes\n"
+                          "auth_param digest nonce_max_duration 30 minutes\n"
+                          "auth_param digest nonce_max_count 50\n";
 
-static
-char const *
+static char const *
 find_proxy_auth(char const *type)
 {
-    char const * proxy_auths[][2]= { {"basic","Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="},
+    char const *proxy_auths[][2] = {{"basic", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="},
 
-        {"digest", "Digest username=\"robertdig\", realm=\"Squid proxy-caching web server\", nonce=\"yy8rQXjEWwixXVBj\", uri=\"/images/bg8.gif\", response=\"f75a7d3edd48d93c681c75dc4fb58700\", qop=auth, nc=00000012, cnonce=\"e2216641961e228e\" "},
-        {"ntlm", "NTLM "},
-        {"negotiate", "Negotiate "}
-    };
+                                    {"digest", "Digest username=\"robertdig\", realm=\"Squid proxy-caching web server\", nonce=\"yy8rQXjEWwixXVBj\", uri=\"/images/bg8.gif\", response=\"f75a7d3edd48d93c681c75dc4fb58700\", qop=auth, nc=00000012, cnonce=\"e2216641961e228e\" "},
+                                    {"ntlm", "NTLM "},
+                                    {"negotiate", "Negotiate "}};
 
-    for (unsigned count = 0; count < 4 ; ++count) {
+    for (unsigned count = 0; count < 4; ++count) {
         if (strcasecmp(type, proxy_auths[count][0]) == 0)
             return proxy_auths[count][1];
     }
@@ -64,8 +63,7 @@ find_proxy_auth(char const *type)
     return NULL;
 }
 
-static
-Auth::Config *
+static Auth::Config *
 getConfig(char const *type_str)
 {
     Auth::ConfigVector &config = Auth::TheConfig;
@@ -89,22 +87,20 @@ getConfig(char const *type_str)
     return scheme;
 }
 
-static
-void
+static void
 setup_scheme(Auth::Config *scheme, char const **params, unsigned param_count)
 {
     Auth::ConfigVector &config = Auth::TheConfig;
 
-    for (unsigned position=0; position < param_count; ++position) {
-        char *param_str=xstrdup(params[position]);
+    for (unsigned position = 0; position < param_count; ++position) {
+        char *param_str = xstrdup(params[position]);
         strtok(param_str, w_space);
         ConfigParser::SetCfgLine(strtok(NULL, ""));
         scheme->parse(scheme, config.size(), param_str);
     }
 }
 
-static
-void
+static void
 fake_auth_setup()
 {
     static bool setup(false);
@@ -116,17 +112,15 @@ fake_auth_setup()
 
     Auth::ConfigVector &config = Auth::TheConfig;
 
-    char const *digest_parms[]= {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd",
-                                 "realm foo"
-                                };
+    char const *digest_parms[] = {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd",
+                                  "realm foo"};
 
-    char const *basic_parms[]= {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd",
-                                "realm foo"
-                               };
+    char const *basic_parms[] = {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd",
+                                 "realm foo"};
 
-    char const *ntlm_parms[]= {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd"};
+    char const *ntlm_parms[] = {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd"};
 
-    char const *negotiate_parms[]= {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd"};
+    char const *negotiate_parms[] = {"program /home/robertc/install/squid/libexec/digest_pw_auth /home/robertc/install/squid/etc/digest.pwd"};
 
     struct _scheme_params {
         char const *name;
@@ -134,26 +128,26 @@ fake_auth_setup()
         unsigned paramlength;
     }
 
-    params[]= { {"digest", digest_parms, 2},
-        {"basic", basic_parms, 2},
-        {"ntlm", ntlm_parms, 1},
-        {"negotiate", negotiate_parms, 1}
-    };
+    params[]
+        = {{"digest", digest_parms, 2},
+           {"basic", basic_parms, 2},
+           {"ntlm", ntlm_parms, 1},
+           {"negotiate", negotiate_parms, 1}};
 
-    for (unsigned scheme=0; scheme < 4; ++scheme) {
+    for (unsigned scheme = 0; scheme < 4; ++scheme) {
         Auth::Config *schemeConfig;
         schemeConfig = getConfig(params[scheme].name);
         if (schemeConfig != NULL)
             setup_scheme(schemeConfig, params[scheme].params,
                          params[scheme].paramlength);
         else
-            fprintf(stderr,"Skipping unknown authentication scheme '%s'.\n",
+            fprintf(stderr, "Skipping unknown authentication scheme '%s'.\n",
                     params[scheme].name);
     }
 
     authenticateInit(&config);
 
-    setup=true;
+    setup = true;
 }
 
 /* Auth::Config::CreateAuthUser works for all
@@ -162,7 +156,7 @@ fake_auth_setup()
 void
 testAuthConfig::create()
 {
-    Debug::Levels[29]=9;
+    Debug::Levels[29] = 9;
     fake_auth_setup();
 
     for (Auth::Scheme::iterator i = Auth::Scheme::GetSchemes().begin(); i != Auth::Scheme::GetSchemes().end(); ++i) {
@@ -179,7 +173,7 @@ testAuthConfig::create()
 void
 testAuthUserRequest::scheme()
 {
-    Debug::Levels[29]=9;
+    Debug::Levels[29] = 9;
     fake_auth_setup();
 
     for (Auth::Scheme::iterator i = Auth::Scheme::GetSchemes().begin(); i != Auth::Scheme::GetSchemes().end(); ++i) {
@@ -199,7 +193,7 @@ void
 testAuthBasicUserRequest::construction()
 {
     AuthBasicUserRequest();
-    AuthBasicUserRequest *temp=new AuthBasicUserRequest();
+    AuthBasicUserRequest *temp = new AuthBasicUserRequest();
     delete temp;
 }
 
@@ -207,7 +201,7 @@ void
 testAuthBasicUserRequest::username()
 {
     AuthUserRequest::Pointer temp = new AuthBasicUserRequest();
-    Auth::Basic::User *basic_auth=new Auth::Basic::User(Auth::Config::Find("basic"));
+    Auth::Basic::User *basic_auth = new Auth::Basic::User(Auth::Config::Find("basic"));
     basic_auth->username("John");
     temp->user(basic_auth);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -223,7 +217,7 @@ void
 testAuthDigestUserRequest::construction()
 {
     AuthDigestUserRequest();
-    AuthDigestUserRequest *temp=new AuthDigestUserRequest();
+    AuthDigestUserRequest *temp = new AuthDigestUserRequest();
     delete temp;
 }
 
@@ -231,7 +225,7 @@ void
 testAuthDigestUserRequest::username()
 {
     AuthUserRequest::Pointer temp = new AuthDigestUserRequest();
-    Auth::Digest::User *duser=new Auth::Digest::User(Auth::Config::Find("digest"));
+    Auth::Digest::User *duser = new Auth::Digest::User(Auth::Config::Find("digest"));
     duser->username("John");
     temp->user(duser);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -247,7 +241,7 @@ void
 testAuthNTLMUserRequest::construction()
 {
     AuthNTLMUserRequest();
-    AuthNTLMUserRequest *temp=new AuthNTLMUserRequest();
+    AuthNTLMUserRequest *temp = new AuthNTLMUserRequest();
     delete temp;
 }
 
@@ -255,7 +249,7 @@ void
 testAuthNTLMUserRequest::username()
 {
     AuthUserRequest::Pointer temp = new AuthNTLMUserRequest();
-    Auth::Ntlm::User *nuser=new Auth::Ntlm::User(Auth::Config::Find("ntlm"));
+    Auth::Ntlm::User *nuser = new Auth::Ntlm::User(Auth::Config::Find("ntlm"));
     nuser->username("John");
     temp->user(nuser);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -271,7 +265,7 @@ void
 testAuthNegotiateUserRequest::construction()
 {
     AuthNegotiateUserRequest();
-    AuthNegotiateUserRequest *temp=new AuthNegotiateUserRequest();
+    AuthNegotiateUserRequest *temp = new AuthNegotiateUserRequest();
     delete temp;
 }
 
@@ -279,7 +273,7 @@ void
 testAuthNegotiateUserRequest::username()
 {
     AuthUserRequest::Pointer temp = new AuthNegotiateUserRequest();
-    Auth::Negotiate::User *nuser=new Auth::Negotiate::User(Auth::Config::Find("negotiate"));
+    Auth::Negotiate::User *nuser = new Auth::Negotiate::User(Auth::Config::Find("negotiate"));
     nuser->username("John");
     temp->user(nuser);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -287,4 +281,3 @@ testAuthNegotiateUserRequest::username()
 
 #endif /* HAVE_AUTH_MODULE_NEGOTIATE */
 #endif /* USE_AUTH */
-

@@ -27,7 +27,7 @@ int HttpSockets[MAXTCPLISTENPORTS];
 AnyP::PortCfg::PortCfg() :
     next(),
     s(),
-    transport(AnyP::PROTO_HTTP,1,1), // "Squid is an HTTP proxy", etc.
+    transport(AnyP::PROTO_HTTP, 1, 1),  // "Squid is an HTTP proxy", etc.
     name(NULL),
     defaultsite(NULL),
     flags(),
@@ -100,4 +100,3 @@ AnyP::PortCfg::detailCodeContext(std::ostream &os) const
         os << Debug::Extra << "listening port address: " << s;
     return os;
 }
-

@@ -22,6 +22,7 @@ public:
     static int const &Instances();
     static int const &Assignments();
     static void Assignments(int const &);
+
 private:
     static void AddInstance();
     static void RemoveInstance();
@@ -49,7 +50,7 @@ HasExplicit::HasExplicit(HasExplicit const &)
 }
 
 HasExplicit &
-HasExplicit::operator= (HasExplicit const &)
+HasExplicit::operator=(HasExplicit const &)
 {
     Assignment();
     return *this;
@@ -94,27 +95,27 @@ HasExplicit::Assignments(int const &newValue)
 void
 CheckHasExplicitWorks()
 {
-    assert (HasExplicit::Instances() == 0);
+    assert(HasExplicit::Instances() == 0);
     HasExplicit *one = new HasExplicit;
-    assert (HasExplicit::Instances() == 1);
+    assert(HasExplicit::Instances() == 1);
     HasExplicit *two = new HasExplicit;
-    assert (HasExplicit::Instances() == 2);
+    assert(HasExplicit::Instances() == 2);
     *two = *one;
-    assert (HasExplicit::Instances() == 2);
-    assert (HasExplicit::Assignments() == 1);
+    assert(HasExplicit::Instances() == 2);
+    assert(HasExplicit::Assignments() == 1);
     *two = *one;
-    assert (HasExplicit::Instances() == 2);
-    assert (HasExplicit::Assignments() == 2);
+    assert(HasExplicit::Instances() == 2);
+    assert(HasExplicit::Assignments() == 2);
     HasExplicit *three = new HasExplicit(*two);
-    assert (HasExplicit::Instances() == 3);
+    assert(HasExplicit::Instances() == 3);
     delete three;
-    assert (HasExplicit::Instances() == 2);
+    assert(HasExplicit::Instances() == 2);
     delete one;
-    assert (HasExplicit::Instances() == 1);
+    assert(HasExplicit::Instances() == 1);
     delete two;
-    assert (HasExplicit::Instances() == 0);
+    assert(HasExplicit::Instances() == 0);
     HasExplicit::Assignments(0);
-    assert (HasExplicit::Assignments() == 0);
+    assert(HasExplicit::Assignments() == 0);
 }
 
 class SyntheticOwnsExplicit
@@ -126,28 +127,28 @@ public:
 void
 CheckSyntheticWorks()
 {
-    assert (HasExplicit::Instances() == 0);
-    assert (HasExplicit::Assignments() == 0);
+    assert(HasExplicit::Instances() == 0);
+    assert(HasExplicit::Assignments() == 0);
     SyntheticOwnsExplicit *one = new SyntheticOwnsExplicit;
-    assert (HasExplicit::Instances() == 1);
+    assert(HasExplicit::Instances() == 1);
     SyntheticOwnsExplicit *two = new SyntheticOwnsExplicit;
-    assert (HasExplicit::Instances() == 2);
+    assert(HasExplicit::Instances() == 2);
     *two = *one;
-    assert (HasExplicit::Instances() == 2);
-    assert (HasExplicit::Assignments() == 1);
+    assert(HasExplicit::Instances() == 2);
+    assert(HasExplicit::Assignments() == 1);
     *two = *one;
-    assert (HasExplicit::Instances() == 2);
-    assert (HasExplicit::Assignments() == 2);
+    assert(HasExplicit::Instances() == 2);
+    assert(HasExplicit::Assignments() == 2);
     SyntheticOwnsExplicit *three = new SyntheticOwnsExplicit(*two);
-    assert (HasExplicit::Instances() == 3);
+    assert(HasExplicit::Instances() == 3);
     delete three;
-    assert (HasExplicit::Instances() == 2);
+    assert(HasExplicit::Instances() == 2);
     delete one;
-    assert (HasExplicit::Instances() == 1);
+    assert(HasExplicit::Instances() == 1);
     delete two;
-    assert (HasExplicit::Instances() == 0);
+    assert(HasExplicit::Instances() == 0);
     HasExplicit::Assignments(0);
-    assert (HasExplicit::Assignments() == 0);
+    assert(HasExplicit::Assignments() == 0);
 }
 
 int
@@ -157,4 +158,3 @@ main(int, char *[])
     CheckSyntheticWorks();
     return EXIT_SUCCESS;
 }
-

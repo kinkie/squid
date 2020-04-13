@@ -19,8 +19,8 @@
 class FileOpeningConfig
 {
 public:
-    static FileOpeningConfig ReadOnly(); // shared reading
-    static FileOpeningConfig ReadWrite(); // exclusive creation and/or reading/writing
+    static FileOpeningConfig ReadOnly();   // shared reading
+    static FileOpeningConfig ReadWrite();  // exclusive creation and/or reading/writing
 
     /* adjustment methods; named to work well with the File::Be::X shorthand */
 
@@ -31,7 +31,11 @@ public:
     FileOpeningConfig &createdIfMissing();
 
     /// enter_suid() to open the file; leaves suid ASAP after that
-    FileOpeningConfig &openedByRoot() { openByRoot = true; return *this; }
+    FileOpeningConfig &openedByRoot()
+    {
+        openByRoot = true;
+        return *this;
+    }
 
     /* add more mode adjustment methods as needed */
 
@@ -40,25 +44,25 @@ private:
 
     /* file opening parameters */
 #if _SQUID_WINDOWS_
-    DWORD desiredAccess = 0; ///< 2nd CreateFile() parameter
-    DWORD shareMode = 0; ///< 3rd CreateFile() parameter
-    DWORD creationDisposition = OPEN_EXISTING; ///< 5th CreateFile() parameter
+    DWORD desiredAccess = 0;                    ///< 2nd CreateFile() parameter
+    DWORD shareMode = 0;                        ///< 3rd CreateFile() parameter
+    DWORD creationDisposition = OPEN_EXISTING;  ///< 5th CreateFile() parameter
 #else
-    mode_t creationMask = 0; ///< umask() parameter; the default is S_IWGRP|S_IWOTH
-    int openFlags = 0; ///< opening flags; 2nd open(2) parameter
-    mode_t openMode = 0644; ///< access mode; 3rd open(2) parameter
+    mode_t creationMask = 0;  ///< umask() parameter; the default is S_IWGRP|S_IWOTH
+    int openFlags = 0;        ///< opening flags; 2nd open(2) parameter
+    mode_t openMode = 0644;   ///< access mode; 3rd open(2) parameter
 #endif
 
     /* file locking (disabled unless lock(n) sets positive lockAttempts) */
 #if _SQUID_WINDOWS_
-    DWORD lockFlags = 0; ///< 2nd LockFileEx() parameter
+    DWORD lockFlags = 0;  ///< 2nd LockFileEx() parameter
 #elif _SQUID_SOLARIS_
-    int lockType = F_UNLCK; ///< flock::type member for fcntl(F_SETLK)
+    int lockType = F_UNLCK;   ///< flock::type member for fcntl(F_SETLK)
 #else
-    int flockMode = LOCK_UN; ///< 2nd flock(2) parameter
+    int flockMode = LOCK_UN;  ///< 2nd flock(2) parameter
 #endif
-    static const unsigned int RetryGapUsec = 500000; /// pause before each lock retry
-    unsigned int lockAttempts = 0; ///< how many times to try locking
+    static const unsigned int RetryGapUsec = 500000;  /// pause before each lock retry
+    unsigned int lockAttempts = 0;                    ///< how many times to try locking
     bool openByRoot = false;
 };
 
@@ -66,19 +70,19 @@ private:
 class File
 {
 public:
-    typedef FileOpeningConfig Be; ///< convenient shorthand for File() callers
+    typedef FileOpeningConfig Be;  ///< convenient shorthand for File() callers
 
     /// \returns nil if File() throws or a new File object (otherwise)
     static File *Optional(const SBuf &aName, const FileOpeningConfig &cfg);
 
-    File(const SBuf &aFilename, const FileOpeningConfig &cfg); ///< opens
-    ~File(); ///< closes
+    File(const SBuf &aFilename, const FileOpeningConfig &cfg);  ///< opens
+    ~File();                                                    ///< closes
 
     /* can move but cannot copy */
     File(const File &) = delete;
-    File &operator = (const File &) = delete;
+    File &operator=(const File &) = delete;
     File(File &&other);
-    File &operator = (File &&other);
+    File &operator=(File &&other);
 
     const SBuf &name() const { return name_; }
 
@@ -86,12 +90,13 @@ public:
 
     /// makes the file size (and the current I/O offset) zero
     void truncate();
-    SBuf readSmall(SBuf::size_type minBytes, SBuf::size_type maxBytes); ///< read(2) for small files
-    void writeAll(const SBuf &data); ///< write(2) with a "wrote everything" check
-    void synchronize(); ///< fsync(2)
+    SBuf readSmall(SBuf::size_type minBytes, SBuf::size_type maxBytes);  ///< read(2) for small files
+    void writeAll(const SBuf &data);                                     ///< write(2) with a "wrote everything" check
+    void synchronize();                                                  ///< fsync(2)
 
 protected:
-    bool isOpen() const {
+    bool isOpen() const
+    {
 #if _SQUID_WINDOWS_
         return fd_ != InvalidHandle;
 #else
@@ -110,7 +115,7 @@ protected:
     SBuf sysCallError(const char *callName, const int savedErrno) const;
 
 private:
-    SBuf name_; ///< location on disk
+    SBuf name_;  ///< location on disk
 
     // Windows-specific HANDLE is needed because LockFileEx() does not take POSIX FDs.
 #if _SQUID_WINDOWS_
@@ -120,8 +125,7 @@ private:
     typedef int Handle;
     static const Handle InvalidHandle = -1;
 #endif
-    Handle fd_ = InvalidHandle; ///< OS-specific file handle
+    Handle fd_ = InvalidHandle;  ///< OS-specific file handle
 };
 
 #endif
-

@@ -9,14 +9,14 @@
 /* DEBUG: section 66    HTTP Header Tools */
 
 #include "squid.h"
+#include "StrList.h"
+#include "SquidString.h"
 #include "base/TextException.h"
 #include "sbuf/SBuf.h"
-#include "SquidString.h"
-#include "StrList.h"
 
 /** appends an item to the list */
 void
-strListAdd(String * str, const char *item, char del)
+strListAdd(String *str, const char *item, char del)
 {
     assert(str && item);
     const auto itemSize = strlen(item);
@@ -34,7 +34,7 @@ strListAdd(String * str, const char *item, char del)
 
 /** returns true iff "m" is a member of the list */
 int
-strListIsMember(const String * list, const SBuf &m, char del)
+strListIsMember(const String *list, const SBuf &m, char del)
 {
     const char *pos = NULL;
     const char *item;
@@ -51,7 +51,7 @@ strListIsMember(const String * list, const SBuf &m, char del)
 
 /** returns true iff "s" is a substring of a member of the list */
 int
-strListIsSubstr(const String * list, const char *s, char del)
+strListIsSubstr(const String *list, const char *s, char del)
 {
     assert(list && del);
     return (list->find(s) != String::npos);
@@ -74,7 +74,7 @@ strListIsSubstr(const String * list, const char *s, char del)
  * init pos with NULL to start iteration.
  */
 int
-strListGetItem(const String * str, char del, const char **item, int *ilen, const char **pos)
+strListGetItem(const String *str, char del, const char **item, int *ilen, const char **pos)
 {
     size_t len;
     /* ',' is always enabled as field delimiter as this is required for
@@ -84,8 +84,7 @@ strListGetItem(const String * str, char del, const char **item, int *ilen, const
     static char delim[3][8] = {
         "\"?,",
         "\"\\",
-        " ?,\t\r\n"
-    };
+        " ?,\t\r\n"};
     int quoted = 0;
     assert(str && item && pos);
 
@@ -102,7 +101,7 @@ strListGetItem(const String * str, char del, const char **item, int *ilen, const
     /* skip leading whitespace and delimiters */
     *pos += strspn(*pos, delim[2]);
 
-    *item = *pos;       /* remember item's start */
+    *item = *pos; /* remember item's start */
 
     /* find next delimiter */
     do {
@@ -115,11 +114,11 @@ strListGetItem(const String * str, char del, const char **item, int *ilen, const
             if (**pos)
                 *pos += 1;
         } else {
-            break;      /* Delimiter found, marking the end of this value */
+            break; /* Delimiter found, marking the end of this value */
         }
     } while (**pos);
 
-    len = *pos - *item;     /* *pos points to del or '\0' */
+    len = *pos - *item; /* *pos points to del or '\0' */
 
     /* rtrim */
     while (len > 0 && xisspace((*item)[len - 1]))
@@ -144,4 +143,3 @@ getListMember(const String &list, const char *key, const char delimiter)
     }
     return SBuf();
 }
-

@@ -9,5 +9,4 @@
 #include "auth/digest/file/digest_common.h"
 
 extern void TextArguments(int argc, char **argv);
-extern void TextHHA1(RequestData * requestData);
-
+extern void TextHHA1(RequestData *requestData);

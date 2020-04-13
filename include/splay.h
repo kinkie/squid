@@ -20,28 +20,30 @@ public:
     typedef V Value;
     typedef int SPLAYCMP(Value const &a, Value const &b);
     typedef void SPLAYFREE(Value &);
-    typedef void SPLAYWALKEE(Value const & nodedata, void *state);
-    static void DefaultFree (Value &aValue) {delete aValue;}
+    typedef void SPLAYWALKEE(Value const &nodedata, void *state);
+    static void DefaultFree(Value &aValue) { delete aValue; }
 
-    SplayNode<V> (Value const &);
+    SplayNode<V>(Value const &);
     Value data;
     mutable SplayNode<V> *left;
     mutable SplayNode<V> *right;
     void destroy(SPLAYFREE * = DefaultFree);
     void walk(SPLAYWALKEE *, void *callerState);
-    SplayNode<V> const * start() const;
-    SplayNode<V> const * finish() const;
+    SplayNode<V> const *start() const;
+    SplayNode<V> const *finish() const;
 
-    SplayNode<V> * remove(const Value data, SPLAYCMP * compare);
+    SplayNode<V> *remove(const Value data, SPLAYCMP *compare);
 
-    SplayNode<V> * insert(Value data, SPLAYCMP * compare);
+    SplayNode<V> *insert(Value data, SPLAYCMP *compare);
 
     /// look in the splay for data for where compare(data,candidate) == true.
     /// return NULL if not found, a pointer to the sought data if found.
-    template <class FindValue> SplayNode<V> * splay(const FindValue &data, int( * compare)(FindValue const &a, Value const &b)) const;
+    template <class FindValue>
+    SplayNode<V> *splay(const FindValue &data, int (*compare)(FindValue const &a, Value const &b)) const;
 
     /// recursively visit left nodes, this node, and then right nodes
-    template <class Visitor> void visit(Visitor &v) const;
+    template <class Visitor>
+    void visit(Visitor &v) const;
 };
 
 typedef SplayNode<void *> splayNode;
@@ -61,9 +63,11 @@ public:
     typedef void SPLAYFREE(Value &);
     typedef SplayIterator<V> iterator;
     typedef const SplayConstIterator<V> const_iterator;
-    Splay():head(NULL), elements (0) {}
+    Splay() :
+        head(NULL), elements(0) {}
 
-    template <class FindValue> Value const *find (FindValue const &, int( * compare)(FindValue const &a, Value const &b)) const;
+    template <class FindValue>
+    Value const *find(FindValue const &, int (*compare)(FindValue const &a, Value const &b)) const;
 
     void insert(Value const &, SPLAYCMP *compare);
 
@@ -71,9 +75,9 @@ public:
 
     void destroy(SPLAYFREE * = SplayNode<V>::DefaultFree);
 
-    SplayNode<V> const * start() const;
+    SplayNode<V> const *start() const;
 
-    SplayNode<V> const * finish() const;
+    SplayNode<V> const *finish() const;
 
     size_t size() const;
 
@@ -84,21 +88,23 @@ public:
     const_iterator end() const;
 
     /// recursively visit all nodes, in left-to-right order
-    template <class Visitor> void visit(Visitor &v) const;
+    template <class Visitor>
+    void visit(Visitor &v) const;
 
 private:
-    mutable SplayNode<V> * head;
+    mutable SplayNode<V> *head;
     size_t elements;
 };
 
 SQUIDCEXTERN int splayLastResult;
 
-template<class V>
-SplayNode<V>::SplayNode (Value const &someData) : data(someData), left(NULL), right (NULL) {}
+template <class V>
+SplayNode<V>::SplayNode(Value const &someData) :
+    data(someData), left(NULL), right(NULL) {}
 
-template<class V>
+template <class V>
 void
-SplayNode<V>::walk(SPLAYWALKEE * walkee, void *state)
+SplayNode<V>::walk(SPLAYWALKEE *walkee, void *state)
 {
     if (left)
         left->walk(walkee, state);
@@ -109,7 +115,7 @@ SplayNode<V>::walk(SPLAYWALKEE * walkee, void *state)
         right->walk(walkee, state);
 }
 
-template<class V>
+template <class V>
 SplayNode<V> const *
 SplayNode<V>::start() const
 {
@@ -119,7 +125,7 @@ SplayNode<V>::start() const
     return this;
 }
 
-template<class V>
+template <class V>
 SplayNode<V> const *
 SplayNode<V>::finish() const
 {
@@ -129,9 +135,9 @@ SplayNode<V>::finish() const
     return this;
 }
 
-template<class V>
+template <class V>
 void
-SplayNode<V>::destroy(SPLAYFREE * free_func)
+SplayNode<V>::destroy(SPLAYFREE *free_func)
 {
     if (left)
         left->destroy(free_func);
@@ -144,9 +150,9 @@ SplayNode<V>::destroy(SPLAYFREE * free_func)
     delete this;
 }
 
-template<class V>
+template <class V>
 SplayNode<V> *
-SplayNode<V>::remove(Value const dataToRemove, SPLAYCMP * compare)
+SplayNode<V>::remove(Value const dataToRemove, SPLAYCMP *compare)
 {
     SplayNode<V> *result = splay(dataToRemove, compare);
 
@@ -166,12 +172,12 @@ SplayNode<V>::remove(Value const dataToRemove, SPLAYCMP * compare)
         return newTop;
     }
 
-    return result;          /* It wasn't there */
+    return result; /* It wasn't there */
 }
 
-template<class V>
+template <class V>
 SplayNode<V> *
-SplayNode<V>::insert(Value dataToInsert, SPLAYCMP * compare)
+SplayNode<V>::insert(Value dataToInsert, SPLAYCMP *compare)
 {
     /* create node to insert */
     SplayNode<V> *newNode = new SplayNode<V>(dataToInsert);
@@ -194,10 +200,10 @@ SplayNode<V>::insert(Value dataToInsert, SPLAYCMP * compare)
     }
 }
 
-template<class V>
-template<class FindValue>
+template <class V>
+template <class FindValue>
 SplayNode<V> *
-SplayNode<V>::splay(FindValue const &dataToFind, int( * compare)(FindValue const &a, Value const &b)) const
+SplayNode<V>::splay(FindValue const &dataToFind, int (*compare)(FindValue const &a, Value const &b)) const
 {
     Value temp = Value();
     SplayNode<V> N(temp);
@@ -217,7 +223,7 @@ SplayNode<V>::splay(FindValue const &dataToFind, int( * compare)(FindValue const
                 break;
 
             if ((splayLastResult = compare(dataToFind, top->left->data)) < 0) {
-                y = top->left;  /* rotate right */
+                y = top->left; /* rotate right */
                 top->left = y->right;
                 y->right = top;
                 top = y;
@@ -226,7 +232,7 @@ SplayNode<V>::splay(FindValue const &dataToFind, int( * compare)(FindValue const
                     break;
             }
 
-            r->left = top;  /* link right */
+            r->left = top; /* link right */
             r = top;
             top = top->left;
         } else if (splayLastResult > 0) {
@@ -251,7 +257,7 @@ SplayNode<V>::splay(FindValue const &dataToFind, int( * compare)(FindValue const
         }
     }
 
-    l->right = top->left;   /* assemble */
+    l->right = top->left; /* assemble */
     r->left = top->right;
     top->left = N.right;
     top->right = N.left;
@@ -282,7 +288,7 @@ Splay<V>::visit(Visitor &visitor) const
 template <class V>
 template <class FindValue>
 typename Splay<V>::Value const *
-Splay<V>::find (FindValue const &value, int( * compare)(FindValue const &a, Value const &b)) const
+Splay<V>::find(FindValue const &value, int (*compare)(FindValue const &a, Value const &b)) const
 {
     if (head == NULL)
         return NULL;
@@ -299,7 +305,7 @@ template <class V>
 void
 Splay<V>::insert(Value const &value, SPLAYCMP *compare)
 {
-    if (find(value, compare) != NULL) // ignore duplicates
+    if (find(value, compare) != NULL)  // ignore duplicates
         return;
 
     if (head == NULL)
@@ -324,7 +330,7 @@ Splay<V>::remove(Value const &value, SPLAYCMP *compare)
 
 template <class V>
 SplayNode<V> const *
-Splay<V>:: start() const
+Splay<V>::start() const
 {
     if (head)
         return head->start();
@@ -334,7 +340,7 @@ Splay<V>:: start() const
 
 template <class V>
 SplayNode<V> const *
-Splay<V>:: finish() const
+Splay<V>::finish() const
 {
     if (head)
         return head->finish();
@@ -344,7 +350,7 @@ Splay<V>:: finish() const
 
 template <class V>
 void
-Splay<V>:: destroy(SPLAYFREE *free_func)
+Splay<V>::destroy(SPLAYFREE *free_func)
 {
     if (head)
         head->destroy(free_func);
@@ -382,11 +388,11 @@ class SplayConstIterator
 
 public:
     typedef const V value_type;
-    SplayConstIterator (SplayNode<V> *aNode);
-    bool operator == (SplayConstIterator const &right) const;
-    SplayConstIterator operator ++ (int dummy);
-    SplayConstIterator &operator ++ ();
-    V const & operator * () const;
+    SplayConstIterator(SplayNode<V> *aNode);
+    bool operator==(SplayConstIterator const &right) const;
+    SplayConstIterator operator++(int dummy);
+    SplayConstIterator &operator++();
+    V const &operator*() const;
 
 private:
     void advance();
@@ -396,14 +402,14 @@ private:
 };
 
 template <class V>
-SplayConstIterator<V>::SplayConstIterator (SplayNode<V> *aNode)
+SplayConstIterator<V>::SplayConstIterator(SplayNode<V> *aNode)
 {
     init(aNode);
 }
 
 template <class V>
 bool
-SplayConstIterator<V>::operator == (SplayConstIterator const &right) const
+SplayConstIterator<V>::operator==(SplayConstIterator const &right) const
 {
     if (toVisit.empty() && right.toVisit.empty())
         return true;
@@ -415,7 +421,7 @@ SplayConstIterator<V>::operator == (SplayConstIterator const &right) const
 
 template <class V>
 SplayConstIterator<V> &
-SplayConstIterator<V>::operator ++ ()
+SplayConstIterator<V>::operator++()
 {
     advance();
     return *this;
@@ -423,7 +429,7 @@ SplayConstIterator<V>::operator ++ ()
 
 template <class V>
 SplayConstIterator<V>
-SplayConstIterator<V>::operator ++ (int dummy)
+SplayConstIterator<V>::operator++(int dummy)
 {
     SplayConstIterator<V> result = *this;
     advance();
@@ -481,15 +487,14 @@ SplayConstIterator<V>::init(SplayNode<V> *head)
 
 template <class V>
 V const &
-SplayConstIterator<V>::operator * () const
+    SplayConstIterator<V>::operator*() const
 {
     /* can't dereference when past the end */
 
     if (toVisit.size() == 0)
-        fatal ("Attempt to dereference SplayConstIterator past-the-end\n");
+        fatal("Attempt to dereference SplayConstIterator past-the-end\n");
 
     return toVisit.top()->data;
 }
 
 #endif /* SQUID_SPLAY_H */
-

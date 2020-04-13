@@ -54,16 +54,44 @@
 #include <thread>
 
 /* A couple of harmless helper macros */
-#define SEND(X) {debug("sending '%s' to squid\n",X); printf(X "\n");}
+#define SEND(X)                              \
+    {                                        \
+        debug("sending '%s' to squid\n", X); \
+        printf(X "\n");                      \
+    }
 #ifdef __GNUC__
-#define SEND2(X,Y...) {debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);}
-#define SEND3(X,Y...) {debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);}
-#define SEND4(X,Y...) {debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);}
+#define SEND2(X, Y...)                          \
+    {                                           \
+        debug("sending '" X "' to squid\n", Y); \
+        printf(X "\n", Y);                      \
+    }
+#define SEND3(X, Y...)                          \
+    {                                           \
+        debug("sending '" X "' to squid\n", Y); \
+        printf(X "\n", Y);                      \
+    }
+#define SEND4(X, Y...)                          \
+    {                                           \
+        debug("sending '" X "' to squid\n", Y); \
+        printf(X "\n", Y);                      \
+    }
 #else
 /* no gcc, no debugging. varargs macros are a gcc extension */
-#define SEND2(X,Y) {debug("sending '" X "' to squid\n",Y); printf(X "\n",Y);}
-#define SEND3(X,Y,Z) {debug("sending '" X "' to squid\n",Y,Z); printf(X "\n",Y,Z);}
-#define SEND4(X,Y,Z,W) {debug("sending '" X "' to squid\n",Y,Z,W); printf(X "\n",Y,Z,W);}
+#define SEND2(X, Y)                             \
+    {                                           \
+        debug("sending '" X "' to squid\n", Y); \
+        printf(X "\n", Y);                      \
+    }
+#define SEND3(X, Y, Z)                             \
+    {                                              \
+        debug("sending '" X "' to squid\n", Y, Z); \
+        printf(X "\n", Y, Z);                      \
+    }
+#define SEND4(X, Y, Z, W)                             \
+    {                                                 \
+        debug("sending '" X "' to squid\n", Y, Z, W); \
+        printf(X "\n", Y, Z, W);                      \
+    }
 #endif
 
 const char *authenticate_ntlm_domain = "WORKGROUP";
@@ -155,21 +183,19 @@ main(int argc, char *argv[])
     debug("%s " VERSION " " SQUID_BUILD_INFO " starting up...\n", my_program_name);
 
     while (fgets(buf, HELPER_INPUT_BUFFER, stdin) != NULL) {
-        user[0] = '\0';     /*no user code */
-        domain[0] = '\0';       /*no domain code */
+        user[0] = '\0';   /*no user code */
+        domain[0] = '\0'; /*no domain code */
 
         if ((p = strchr(buf, '\n')) != NULL)
-            *p = '\0';      /* strip \n */
-        buflen = strlen(buf);   /* keep this so we only scan the buffer for \0 once per loop */
+            *p = '\0';        /* strip \n */
+        buflen = strlen(buf); /* keep this so we only scan the buffer for \0 once per loop */
         ntlmhdr *packet;
         struct base64_decode_ctx ctx;
         base64_decode_init(&ctx);
         size_t dstLen = 0;
-        if (buflen > 3 &&
-                base64_decode_update(&ctx, &dstLen, decodedBuf, buflen-3, buf+3) &&
-                base64_decode_final(&ctx)) {
+        if (buflen > 3 && base64_decode_update(&ctx, &dstLen, decodedBuf, buflen - 3, buf + 3) && base64_decode_final(&ctx)) {
             decodedLen = dstLen;
-            packet = (ntlmhdr*)decodedBuf;
+            packet = (ntlmhdr *)decodedBuf;
         } else {
             packet = NULL;
             decodedLen = 0;
@@ -198,7 +224,7 @@ main(int argc, char *argv[])
                 ntlm_make_challenge(&chal, authenticate_ntlm_domain, NULL, nonce, NTLM_NONCE_LEN, NTLM_NEGOTIATE_ASCII);
             }
             // TODO: find out what this context means, and why only the fake auth helper contains it.
-            chal.context_high = htole32(0x003a<<16);
+            chal.context_high = htole32(0x003a << 16);
 
             len = sizeof(chal) - sizeof(chal.payload) + le16toh(chal.target.maxlen);
 
@@ -206,7 +232,7 @@ main(int argc, char *argv[])
             base64_encode_init(&eCtx);
             char *data = static_cast<char *>(xcalloc(base64_encode_len(len), 1));
             size_t blen = base64_encode_update(&eCtx, data, len, reinterpret_cast<const uint8_t *>(&chal));
-            blen += base64_encode_final(&eCtx, data+blen);
+            blen += base64_encode_final(&eCtx, data + blen);
             if (NTLM_packet_debug_enabled) {
                 printf("TT %.*s\n", (int)blen, data);
                 debug("sending 'TT' to squid with data:\n");
@@ -224,11 +250,11 @@ main(int argc, char *argv[])
                     if (strip_domain_enabled) {
                         SEND2("AF %s", user);
                     } else {
-                        SEND4("AF %s%s%s", domain, (*domain?"\\":""), user);
+                        SEND4("AF %s%s%s", domain, (*domain ? "\\" : ""), user);
                     }
                 } else {
                     lc(user);
-                    SEND4("NA invalid credentials, user=%s%s%s", domain, (*domain?"\\":""), user);
+                    SEND4("NA invalid credentials, user=%s%s%s", domain, (*domain ? "\\" : ""), user);
                 }
             } else {
                 SEND("BH wrong packet type! user=");
@@ -237,4 +263,3 @@ main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
-

@@ -17,9 +17,9 @@
 
 class testCacheManager : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testCacheManager );
-    CPPUNIT_TEST( testCreate );
-    CPPUNIT_TEST( testRegister );
+    CPPUNIT_TEST_SUITE(testCacheManager);
+    CPPUNIT_TEST(testCreate);
+    CPPUNIT_TEST(testRegister);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -31,4 +31,3 @@ protected:
 };
 
 #endif
-

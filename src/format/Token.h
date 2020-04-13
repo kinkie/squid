@@ -24,12 +24,11 @@
  * functionality to produce formatted buffers.
  */
 
-namespace Format
-{
+namespace Format {
 
 class TokenTableEntry;
 
-#define LOG_BUF_SZ (MAX_URL<<2)
+#define LOG_BUF_SZ (MAX_URL << 2)
 
 // XXX: inherit from linked list
 class Token
@@ -61,20 +60,19 @@ public:
             char separator;
         } header;
     } data;
-    int widthMin; ///< minimum field width
-    int widthMax; ///< maximum field width
+    int widthMin;  ///< minimum field width
+    int widthMax;  ///< maximum field width
     enum Quoting quote;
     bool left;
     bool space;
     bool zero;
-    int divisor;    // class invariant: MUST NOT be zero.
-    Token *next;    /* todo: move from linked list to array */
+    int divisor;  // class invariant: MUST NOT be zero.
+    Token *next;  /* todo: move from linked list to array */
 
 private:
     const char *scanForToken(TokenTableEntry const table[], const char *cur);
 };
 
-} // namespace Format
+}  // namespace Format
 
 #endif /* _SQUID_FORMAT_TOKEN_H */
-

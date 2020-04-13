@@ -10,17 +10,17 @@
 
 #include "squid.h"
 #include "AccessLogEntry.h"
+#include "HttpRequest.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
 #include "format/Quoting.h"
 #include "format/Token.h"
 #include "globals.h"
-#include "HttpRequest.h"
 #include "log/File.h"
 #include "log/Formats.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
 
 void
-Log::Format::HttpdCombined(const AccessLogEntry::Pointer &al, Logfile * logfile)
+Log::Format::HttpdCombined(const AccessLogEntry::Pointer &al, Logfile *logfile)
 {
     const char *user_ident = ::Format::QuoteUrlEncodeUsername(al->getClientIdent());
     const char *user_auth = NULL;
@@ -62,7 +62,7 @@ Log::Format::HttpdCombined(const AccessLogEntry::Pointer &al, Logfile * logfile)
                   agent,
                   al->cache.code.c_str(),
                   hier_code_str[al->hier.code],
-                  (Config.onoff.log_mime_hdrs?"":"\n"));
+                  (Config.onoff.log_mime_hdrs ? "" : "\n"));
 
     safe_free(user_ident);
     safe_free(user_auth);
@@ -78,4 +78,3 @@ Log::Format::HttpdCombined(const AccessLogEntry::Pointer &al, Logfile * logfile)
         safe_free(erep);
     }
 }
-

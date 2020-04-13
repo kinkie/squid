@@ -8,6 +8,7 @@
 
 #include "squid.h"
 #include "acl/Acl.h"
+#include "HttpRequest.h"
 #include "acl/FilledChecklist.h"
 #include "auth/Acl.h"
 #include "auth/AclProxyAuth.h"
@@ -15,7 +16,6 @@
 #include "client_side.h"
 #include "fatal.h"
 #include "http/Stream.h"
-#include "HttpRequest.h"
 
 /**
  * \retval ACCESS_AUTH_REQUIRED credentials missing. challenge required.
@@ -32,7 +32,7 @@ AuthenticateAcl(ACLChecklist *ch)
     Http::HdrType headertype;
 
     if (NULL == request) {
-        fatal ("requiresRequest SHOULD have been true for this ACL!!");
+        fatal("requiresRequest SHOULD have been true for this ACL!!");
         return ACCESS_DENIED;
     } else if (request->flags.sslBumped) {
         debugs(28, 5, "SslBumped request: It is an encapsulated request do not authenticate");
@@ -55,8 +55,8 @@ AuthenticateAcl(ACLChecklist *ch)
     /* get authed here */
     /* Note: this fills in auth_user_request when applicable */
     const AuthAclState result = Auth::UserRequest::tryToAuthenticateAndSetAuthUser(
-                                    &checklist->auth_user_request, headertype, request,
-                                    checklist->conn(), checklist->src_addr, checklist->al);
+        &checklist->auth_user_request, headertype, request,
+        checklist->conn(), checklist->src_addr, checklist->al);
     switch (result) {
 
     case AUTH_ACL_CANNOT_AUTHENTICATE:
@@ -72,7 +72,7 @@ AuthenticateAcl(ACLChecklist *ch)
             debugs(28, 4, "returning " << ACCESS_DUNNO << " sending credentials to helper.");
         else
             debugs(28, 2, "cannot go async; returning " << ACCESS_DUNNO);
-        return ACCESS_DUNNO; // XXX: break this down into DUNNO, EXPIRED_OK, EXPIRED_BAD states
+        return ACCESS_DUNNO;  // XXX: break this down into DUNNO, EXPIRED_OK, EXPIRED_BAD states
 
     case AUTH_ACL_CHALLENGE:
         debugs(28, 4, HERE << "returning " << ACCESS_AUTH_REQUIRED << " sending authentication challenge.");
@@ -87,4 +87,3 @@ AuthenticateAcl(ACLChecklist *ch)
         return ACCESS_DENIED;
     }
 }
-

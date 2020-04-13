@@ -19,7 +19,7 @@
 namespace ProxyProtocol {
 
 /// PROXY protocol v1 or v2 header
-class Header: public RefCountable
+class Header : public RefCountable
 {
 public:
     typedef RefCount<Header> Pointer;
@@ -81,7 +81,6 @@ private:
     bool ignoreAddresses_;
 };
 
-} // namespace ProxyProtocol
+}  // namespace ProxyProtocol
 
 #endif
-

@@ -65,4 +65,3 @@ headersEnd(const char *mime, size_t l, bool &containsObsFold)
 
     return 0;
 }
-

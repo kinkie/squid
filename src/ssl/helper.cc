@@ -8,14 +8,14 @@
 
 #include "squid.h"
 #include "../helper.h"
-#include "anyp/PortCfg.h"
-#include "fs_io.h"
-#include "helper/Reply.h"
 #include "SquidConfig.h"
 #include "SquidString.h"
 #include "SquidTime.h"
-#include "ssl/cert_validate_message.h"
+#include "anyp/PortCfg.h"
+#include "fs_io.h"
+#include "helper/Reply.h"
 #include "ssl/Config.h"
+#include "ssl/cert_validate_message.h"
 #include "ssl/helper.h"
 #include "wordlist.h"
 
@@ -26,22 +26,25 @@ Ssl::CertValidationHelper::LruCache *Ssl::CertValidationHelper::HelperCache = nu
 namespace Ssl {
 
 /// Initiator of an Ssl::Helper query.
-class GeneratorRequestor {
+class GeneratorRequestor
+{
 public:
-    GeneratorRequestor(HLPCB *aCallback, void *aData): callback(aCallback), data(aData) {}
+    GeneratorRequestor(HLPCB *aCallback, void *aData) :
+        callback(aCallback), data(aData) {}
     HLPCB *callback;
     CallbackData data;
 };
 
 /// A pending Ssl::Helper request, combining the original and collapsed queries.
-class GeneratorRequest {
+class GeneratorRequest
+{
     CBDATA_CLASS(GeneratorRequest);
 
 public:
     /// adds a GeneratorRequestor
     void emplace(HLPCB *callback, void *data) { requestors.emplace_back(callback, data); }
 
-    SBuf query; ///< Ssl::Helper request message (GeneratorRequests key)
+    SBuf query;  ///< Ssl::Helper request message (GeneratorRequests key)
 
     /// Ssl::Helper request initiators waiting for the same answer (FIFO).
     typedef std::vector<GeneratorRequestor> GeneratorRequestors;
@@ -49,17 +52,17 @@ public:
 };
 
 /// Ssl::Helper query:GeneratorRequest map
-typedef std::unordered_map<SBuf, GeneratorRequest*> GeneratorRequests;
+typedef std::unordered_map<SBuf, GeneratorRequest *> GeneratorRequests;
 
 static void HandleGeneratorReply(void *data, const ::Helper::Reply &reply);
 
-} // namespace Ssl
+}  // namespace Ssl
 
 CBDATA_NAMESPACED_CLASS_INIT(Ssl, GeneratorRequest);
 
 /// prints Ssl::GeneratorRequest for debugging
 static std::ostream &
-operator <<(std::ostream &os, const Ssl::GeneratorRequest &gr)
+operator<<(std::ostream &os, const Ssl::GeneratorRequest &gr)
 {
     return os << "crtGenRq" << gr.query.id.value << "/" << gr.requestors.size();
 }
@@ -69,7 +72,8 @@ static Ssl::GeneratorRequests TheGeneratorRequests;
 
 helper *Ssl::Helper::ssl_crtd = nullptr;
 
-void Ssl::Helper::Init()
+void
+Ssl::Helper::Init()
 {
     assert(ssl_crtd == NULL);
 
@@ -100,7 +104,8 @@ void Ssl::Helper::Init()
     helperOpenServers(ssl_crtd);
 }
 
-void Ssl::Helper::Shutdown()
+void
+Ssl::Helper::Shutdown()
 {
     if (!ssl_crtd)
         return;
@@ -117,9 +122,10 @@ Ssl::Helper::Reconfigure()
     Init();
 }
 
-void Ssl::Helper::Submit(CrtdMessage const & message, HLPCB * callback, void * data)
+void
+Ssl::Helper::Submit(CrtdMessage const &message, HLPCB *callback, void *data)
 {
-    SBuf rawMessage(message.compose().c_str()); // XXX: helpers cannot use SBuf
+    SBuf rawMessage(message.compose().c_str());  // XXX: helpers cannot use SBuf
     rawMessage.append("\n", 1);
 
     const auto pending = TheGeneratorRequests.find(rawMessage);
@@ -148,23 +154,24 @@ void Ssl::Helper::Submit(CrtdMessage const & message, HLPCB * callback, void * d
 static void
 Ssl::HandleGeneratorReply(void *data, const ::Helper::Reply &reply)
 {
-    const std::unique_ptr<Ssl::GeneratorRequest> request(static_cast<Ssl::GeneratorRequest*>(data));
+    const std::unique_ptr<Ssl::GeneratorRequest> request(static_cast<Ssl::GeneratorRequest *>(data));
     assert(request);
     const auto erased = TheGeneratorRequests.erase(request->query);
     assert(erased);
 
-    for (auto &requestor: request->requestors) {
+    for (auto &requestor : request->requestors) {
         if (void *cbdata = requestor.data.validDone()) {
             debugs(83, 5, "to " << cbdata << " in " << *request);
             requestor.callback(cbdata, reply);
         }
     }
 }
-#endif //USE_SSL_CRTD
+#endif  //USE_SSL_CRTD
 
 helper *Ssl::CertValidationHelper::ssl_crt_validator = nullptr;
 
-void Ssl::CertValidationHelper::Init()
+void
+Ssl::CertValidationHelper::Init()
 {
     if (!Ssl::TheConfig.ssl_crt_validator)
         return;
@@ -191,7 +198,7 @@ void Ssl::CertValidationHelper::Init()
     {
         char *tmp = xstrdup(Ssl::TheConfig.ssl_crt_validator);
         char *tmp_begin = tmp;
-        char * token = NULL;
+        char *token = NULL;
         bool parseParams = true;
         while ((token = strwordtok(NULL, &tmp))) {
             if (parseParams) {
@@ -215,7 +222,8 @@ void Ssl::CertValidationHelper::Init()
     HelperCache = new Ssl::CertValidationHelper::LruCache(ttl, cache);
 }
 
-void Ssl::CertValidationHelper::Shutdown()
+void
+Ssl::CertValidationHelper::Shutdown()
 {
     if (!ssl_crt_validator)
         return;
@@ -264,21 +272,20 @@ sslCrtvdHandleReplyWrapper(void *data, const ::Helper::Reply &reply)
     } else if (!reply.other().hasContent()) {
         debugs(83, DBG_IMPORTANT, "\"ssl_crtvd\" helper returned NULL response");
         validationResponse->resultCode = ::Helper::BrokenHelper;
-    } else if (replyMsg.parse(reply.other().content(), reply.other().contentSize()) != Ssl::CrtdMessage::OK ||
-               !replyMsg.parseResponse(*validationResponse, error) ) {
-        debugs(83, DBG_IMPORTANT, "WARNING: Reply from ssl_crtvd for " << " is incorrect");
+    } else if (replyMsg.parse(reply.other().content(), reply.other().contentSize()) != Ssl::CrtdMessage::OK || !replyMsg.parseResponse(*validationResponse, error)) {
+        debugs(83, DBG_IMPORTANT, "WARNING: Reply from ssl_crtvd for "
+                   << " is incorrect");
         debugs(83, DBG_IMPORTANT, "Certificate cannot be validated. ssl_crtvd response: " << replyMsg.getBody());
         validationResponse->resultCode = ::Helper::BrokenHelper;
     } else
         validationResponse->resultCode = reply.result;
 
-    Ssl::CertValidationHelper::CbDialer *dialer = dynamic_cast<Ssl::CertValidationHelper::CbDialer*>(crtdvdData->callback->getDialer());
+    Ssl::CertValidationHelper::CbDialer *dialer = dynamic_cast<Ssl::CertValidationHelper::CbDialer *>(crtdvdData->callback->getDialer());
     Must(dialer);
     dialer->arg1 = validationResponse;
     ScheduleCallHere(crtdvdData->callback);
 
-    if (Ssl::CertValidationHelper::HelperCache &&
-            (validationResponse->resultCode == ::Helper::Okay || validationResponse->resultCode == ::Helper::Error)) {
+    if (Ssl::CertValidationHelper::HelperCache && (validationResponse->resultCode == ::Helper::Okay || validationResponse->resultCode == ::Helper::Error)) {
         Ssl::CertValidationResponse::Pointer *item = new Ssl::CertValidationResponse::Pointer(validationResponse);
         if (!Ssl::CertValidationHelper::HelperCache->add(crtdvdData->query, item))
             delete item;
@@ -287,7 +294,8 @@ sslCrtvdHandleReplyWrapper(void *data, const ::Helper::Reply &reply)
     delete crtdvdData;
 }
 
-void Ssl::CertValidationHelper::Submit(Ssl::CertValidationRequest const &request, AsyncCall::Pointer &callback)
+void
+Ssl::CertValidationHelper::Submit(Ssl::CertValidationRequest const &request, AsyncCall::Pointer &callback)
 {
     Ssl::CertValidationMsg message(Ssl::CrtdMessage::REQUEST);
     message.setCode(Ssl::CertValidationMsg::code_cert_validate);
@@ -299,12 +307,11 @@ void Ssl::CertValidationHelper::Submit(Ssl::CertValidationRequest const &request
     crtdvdData->query.append('\n');
     crtdvdData->callback = callback;
     crtdvdData->ssl = request.ssl;
-    Ssl::CertValidationResponse::Pointer const*validationResponse;
+    Ssl::CertValidationResponse::Pointer const *validationResponse;
 
-    if (CertValidationHelper::HelperCache &&
-            (validationResponse = CertValidationHelper::HelperCache->get(crtdvdData->query))) {
+    if (CertValidationHelper::HelperCache && (validationResponse = CertValidationHelper::HelperCache->get(crtdvdData->query))) {
 
-        CertValidationHelper::CbDialer *dialer = dynamic_cast<CertValidationHelper::CbDialer*>(callback->getDialer());
+        CertValidationHelper::CbDialer *dialer = dynamic_cast<CertValidationHelper::CbDialer *>(callback->getDialer());
         Must(dialer);
         dialer->arg1 = *validationResponse;
         ScheduleCallHere(callback);
@@ -319,11 +326,10 @@ void Ssl::CertValidationHelper::Submit(Ssl::CertValidationRequest const &request
 
     Ssl::CertValidationResponse::Pointer resp = new Ssl::CertValidationResponse(crtdvdData->ssl);
     resp->resultCode = ::Helper::BrokenHelper;
-    Ssl::CertValidationHelper::CbDialer *dialer = dynamic_cast<Ssl::CertValidationHelper::CbDialer*>(callback->getDialer());
+    Ssl::CertValidationHelper::CbDialer *dialer = dynamic_cast<Ssl::CertValidationHelper::CbDialer *>(callback->getDialer());
     Must(dialer);
     dialer->arg1 = resp;
     ScheduleCallHere(callback);
     delete crtdvdData;
     return;
 }
-

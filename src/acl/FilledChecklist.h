@@ -29,7 +29,7 @@ class HttpReply;
     ACLChecklist filled with specific data, representing Squid and transaction
     state for access checks along with some data-specific checking methods
  */
-class ACLFilledChecklist: public ACLChecklist
+class ACLFilledChecklist : public ACLChecklist
 {
     CBDATA_CLASS(ACLFilledChecklist);
 
@@ -45,7 +45,7 @@ public:
 
 public:
     /// The client connection manager
-    ConnStateData * conn() const;
+    ConnStateData *conn() const;
 
     /// The client side fd. It uses conn() if available
     int fd() const;
@@ -95,15 +95,15 @@ public:
     /// certificate is retrieved via ALE or ConnStateData::serverBump.
     Security::CertPointer serverCert;
 
-    AccessLogEntry::Pointer al; ///< info for the future access.log, and external ACL
+    AccessLogEntry::Pointer al;  ///< info for the future access.log, and external ACL
 
     ExternalACLEntryPointer extacl_entry;
 
     err_type requestErrorType;
 
 private:
-    ConnStateData * conn_;          /**< hack for ident and NTLM */
-    int fd_;                        /**< may be available when conn_ is not */
+    ConnStateData *conn_; /**< hack for ident and NTLM */
+    int fd_;              /**< may be available when conn_ is not */
     bool destinationDomainChecked_;
     bool sourceDomainChecked_;
     /// not implemented; will cause link failures if used
@@ -113,13 +113,12 @@ private:
 };
 
 /// convenience and safety wrapper for dynamic_cast<ACLFilledChecklist*>
-inline
-ACLFilledChecklist *Filled(ACLChecklist *checklist)
+inline ACLFilledChecklist *
+Filled(ACLChecklist *checklist)
 {
     // this should always be safe because ACLChecklist is an abstract class
     // and ACLFilledChecklist is its only [concrete] child
-    return dynamic_cast<ACLFilledChecklist*>(checklist);
+    return dynamic_cast<ACLFilledChecklist *>(checklist);
 }
 
 #endif /* SQUID_ACLFILLED_CHECKLIST_H */
-

@@ -20,7 +20,8 @@ class SBufEqual
 public:
     explicit SBufEqual(const SBuf &reference, SBufCaseSensitive sensitivity = caseSensitive) :
         reference_(reference), sensitivity_(sensitivity) {}
-    bool operator() (const SBuf & checking) { return checking.compare(reference_,sensitivity_) == 0; }
+    bool operator()(const SBuf &checking) { return checking.compare(reference_, sensitivity_) == 0; }
+
 private:
     SBuf reference_;
     SBufCaseSensitive sensitivity_;
@@ -32,7 +33,8 @@ class SBufStartsWith
 public:
     explicit SBufStartsWith(const SBuf &prefix, SBufCaseSensitive sensitivity = caseSensitive) :
         prefix_(prefix), sensitivity_(sensitivity) {}
-    bool operator() (const SBuf & checking) { return checking.startsWith(prefix_,sensitivity_); }
+    bool operator()(const SBuf &checking) { return checking.startsWith(prefix_, sensitivity_); }
+
 private:
     SBuf prefix_;
     SBufCaseSensitive sensitivity_;
@@ -47,9 +49,11 @@ class SBufAddLength
 public:
     explicit SBufAddLength(const SBuf &separator) :
         separatorLen_(separator.length()) {}
-    SBuf::size_type operator()(const SBuf::size_type sz, const SBuf & item) {
+    SBuf::size_type operator()(const SBuf::size_type sz, const SBuf &item)
+    {
         return sz + item.length() + separatorLen_;
     }
+
 private:
     SBuf::size_type separatorLen_;
 };
@@ -64,10 +68,10 @@ private:
  * \return the modified dest
  */
 template <class ContainerIterator>
-SBuf&
+SBuf &
 JoinContainerIntoSBuf(SBuf &dest, const ContainerIterator &begin,
-                      const ContainerIterator &end, const SBuf& separator,
-                      const SBuf& prefix = SBuf(), const SBuf& suffix = SBuf())
+                      const ContainerIterator &end, const SBuf &separator,
+                      const SBuf &prefix = SBuf(), const SBuf &suffix = SBuf())
 {
     if (begin == end) {
         dest.append(prefix).append(suffix);
@@ -75,9 +79,7 @@ JoinContainerIntoSBuf(SBuf &dest, const ContainerIterator &begin,
     }
 
     // optimization: pre-calculate needed storage
-    const SBuf::size_type totalContainerSize =
-        std::accumulate(begin, end, 0, SBufAddLength(separator)) +
-        dest.length() + prefix.length() + suffix.length();
+    const SBuf::size_type totalContainerSize = std::accumulate(begin, end, 0, SBufAddLength(separator)) + dest.length() + prefix.length() + suffix.length();
     SBufReservationRequirements req;
     req.minSpace = totalContainerSize;
     dest.reserve(req);
@@ -96,8 +98,8 @@ JoinContainerIntoSBuf(SBuf &dest, const ContainerIterator &begin,
 template <class ContainerIterator>
 SBuf
 JoinContainerToSBuf(const ContainerIterator &begin,
-                    const ContainerIterator &end, const SBuf& separator,
-                    const SBuf& prefix = SBuf(), const SBuf& suffix = SBuf())
+                    const ContainerIterator &end, const SBuf &separator,
+                    const SBuf &prefix = SBuf(), const SBuf &suffix = SBuf())
 {
     SBuf rv;
     return JoinContainerIntoSBuf(rv, begin, end, separator, prefix, suffix);
@@ -106,8 +108,7 @@ JoinContainerToSBuf(const ContainerIterator &begin,
 namespace std {
 /// default hash functor to support std::unordered_map<SBuf,*>
 template <>
-struct hash<SBuf>
-{
+struct hash<SBuf> {
     size_t operator()(const SBuf &) const noexcept;
 };
 }
@@ -126,4 +127,3 @@ public:
 };
 
 #endif /* SQUID_SBUFALGOS_H_ */
-

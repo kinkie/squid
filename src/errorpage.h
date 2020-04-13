@@ -8,19 +8,19 @@
 
 /* DEBUG: section 04    Error Generation */
 
-#ifndef   SQUID_ERRORPAGE_H
-#define   SQUID_ERRORPAGE_H
+#ifndef SQUID_ERRORPAGE_H
+#define SQUID_ERRORPAGE_H
 
+#include "SquidString.h"
 #include "cbdata.h"
 #include "comm/forward.h"
 #include "err_detail_type.h"
 #include "err_type.h"
-#include "http/forward.h"
 #include "http/StatusCode.h"
+#include "http/forward.h"
 #include "ip/Address.h"
 #include "log/forward.h"
 #include "sbuf/SBuf.h"
-#include "SquidString.h"
 /* auth/UserRequest.h is empty unless USE_AUTH is defined */
 #include "auth/UserRequest.h"
 #if USE_OPENSSL
@@ -83,7 +83,7 @@ namespace ErrorPage {
 
 class Build;
 
-} // namespace ErrorPage
+}  // namespace ErrorPage
 
 /// \ingroup ErrorPageAPI
 class ErrorState
@@ -92,11 +92,11 @@ class ErrorState
 
 public:
     /// creates an error of type other than ERR_RELAY_REMOTE
-    ErrorState(err_type type, Http::StatusCode, HttpRequest * request, const AccessLogEntryPointer &al);
-    ErrorState() = delete; // not implemented.
+    ErrorState(err_type type, Http::StatusCode, HttpRequest *request, const AccessLogEntryPointer &al);
+    ErrorState() = delete;  // not implemented.
 
     /// creates an ERR_RELAY_REMOTE error
-    ErrorState(HttpRequest * request, HttpReply *);
+    ErrorState(HttpRequest *request, HttpReply *);
 
     ~ErrorState();
 
@@ -109,7 +109,7 @@ public:
     HttpReply *BuildHttpReply(void);
 
     /// set error type-specific detail code
-    void detailError(int dCode) {detailCode = dCode;}
+    void detailError(int dCode) { detailCode = dCode; }
 
     /// ensures that a future BuildHttpReply() is likely to succeed
     void validate();
@@ -147,7 +147,8 @@ private:
     /// React to a compile() error, throwing if buildContext allows.
     /// \param msg description of what went wrong
     /// \param near approximate start of the problematic input
-    void noteBuildError(const char *msg, const char *near) {
+    void noteBuildError(const char *msg, const char *near)
+    {
         noteBuildError_(msg, near, false);
     }
 
@@ -156,7 +157,8 @@ private:
     /// Should eventually be replaced with noteBuildError().
     /// \param msg description of what went wrong
     /// \param near approximate start of the problematic input
-    void bypassBuildErrorXXX(const char *msg, const char *near) {
+    void bypassBuildErrorXXX(const char *msg, const char *near)
+    {
         noteBuildError_(msg, near, true);
     }
 
@@ -165,7 +167,7 @@ private:
      * Writes output into the given MemBuf.
      \retval 0 successful completion.
      */
-    int Dump(MemBuf * mb);
+    int Dump(MemBuf *mb);
 
 public:
     err_type type = ERR_NONE;
@@ -179,7 +181,7 @@ public:
     char *url = nullptr;
     int xerrno = 0;
     unsigned short port = 0;
-    String dnsError; ///< DNS lookup error message
+    String dnsError;  ///< DNS lookup error message
     time_t ttl = 0;
 
     Ip::Address src_addr;
@@ -198,7 +200,7 @@ public:
     char *request_hdrs = nullptr;
     char *err_msg = nullptr; /* Preformatted error message from the cache */
 
-    AccessLogEntryPointer ale; ///< transaction details (or nil)
+    AccessLogEntryPointer ale;  ///< transaction details (or nil)
 
 #if USE_OPENSSL
     Ssl::ErrorDetail *detail = nullptr;
@@ -212,7 +214,7 @@ public:
 private:
     void noteBuildError_(const char *msg, const char *near, const bool forceBypass);
 
-    static const SBuf LogformatMagic; ///< marks each embedded logformat entry
+    static const SBuf LogformatMagic;  ///< marks each embedded logformat entry
 };
 
 /**
@@ -272,7 +274,7 @@ void errorAppendEntry(StoreEntry *entry, ErrorState *err);
 /// allocates a new slot for the error page
 err_type errorReservePageId(const char *page_name, const SBuf &cfgLocation);
 
-const char *errorPageName(int pageId); ///< error ID to string
+const char *errorPageName(int pageId);  ///< error ID to string
 
 /**
  \ingroup ErrorPageAPI
@@ -287,7 +289,7 @@ public:
     virtual ~TemplateFile() {}
 
     /// return true if the data loaded from disk without any problem
-    bool loaded() const {return wasLoaded;}
+    bool loaded() const { return wasLoaded; }
 
     /**
      * Load the page_name template from a file which  probably exist at:
@@ -313,11 +315,11 @@ public:
     bool loadFromFile(const char *path);
 
     /// The language used for the template
-    const char *language() {return errLanguage.termedBuf();}
+    const char *language() { return errLanguage.termedBuf(); }
 
-    SBuf filename; ///< where the template was loaded from
+    SBuf filename;  ///< where the template was loaded from
 
-    bool silent; ///< Whether to print error messages on cache.log file or not. It is user defined.
+    bool silent;  ///< Whether to print error messages on cache.log file or not. It is user defined.
 
 protected:
     /// post-process the loaded template
@@ -333,11 +335,11 @@ protected:
      */
     bool tryLoadTemplate(const char *lang);
 
-    SBuf template_; ///< raw template contents
-    bool wasLoaded; ///< True if the template data read from disk without any problem
-    String errLanguage; ///< The error language of the template.
-    String templateName; ///< The name of the template
-    err_type templateCode; ///< The internal code for this template.
+    SBuf template_;         ///< raw template contents
+    bool wasLoaded;         ///< True if the template data read from disk without any problem
+    String errLanguage;     ///< The error language of the template.
+    String templateName;    ///< The name of the template
+    err_type templateCode;  ///< The internal code for this template.
 };
 
 /**
@@ -356,4 +358,3 @@ protected:
 bool strHdrAcptLangGetItem(const String &hdr, char *lang, int langLen, size_t &pos);
 
 #endif /* SQUID_ERRORPAGE_H */
-

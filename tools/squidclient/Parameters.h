@@ -15,7 +15,8 @@
 class Parameters
 {
 public:
-    Parameters() : verbosityLevel(0) {}
+    Parameters() :
+        verbosityLevel(0) {}
 
     /**
      * What verbosity level to display.
@@ -28,11 +29,13 @@ public:
 };
 
 /// display debug messages at varying verbosity levels
-#define debugVerbose(LEVEL, MESSAGE) \
-    while ((LEVEL) <= scParams.verbosityLevel) {std::cerr << MESSAGE << std::endl; break;}
+#define debugVerbose(LEVEL, MESSAGE)             \
+    while ((LEVEL) <= scParams.verbosityLevel) { \
+        std::cerr << MESSAGE << std::endl;       \
+        break;                                   \
+    }
 
 /// global squidcleint parameters
 extern Parameters scParams;
 
 #endif /* _SQUID_TOOLS_SQUIDCLIENT_PARAMETERS_H */
-

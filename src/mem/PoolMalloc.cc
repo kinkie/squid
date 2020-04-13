@@ -58,9 +58,9 @@ MemPoolMalloc::deallocate(void *obj, bool aggressive)
 
 /* TODO extract common logic to MemAllocate */
 int
-MemPoolMalloc::getStats(MemPoolStats * stats, int accumulate)
+MemPoolMalloc::getStats(MemPoolStats *stats, int accumulate)
 {
-    if (!accumulate)    /* need skip memset for GlobalStats accumulation */
+    if (!accumulate) /* need skip memset for GlobalStats accumulation */
         memset(stats, 0, sizeof(MemPoolStats));
 
     stats->pool = this;
@@ -89,7 +89,8 @@ MemPoolMalloc::getInUseCount()
     return meter.inuse.currentLevel();
 }
 
-MemPoolMalloc::MemPoolMalloc(char const *aLabel, size_t aSize) : MemImplementingAllocator(aLabel, aSize)
+MemPoolMalloc::MemPoolMalloc(char const *aLabel, size_t aSize) :
+    MemImplementingAllocator(aLabel, aSize)
 {
 }
 
@@ -106,7 +107,7 @@ MemPoolMalloc::idleTrigger(int shift) const
 }
 
 void
-MemPoolMalloc::clean(time_t)
+    MemPoolMalloc::clean(time_t)
 {
     while (!freelist.empty()) {
         void *obj = freelist.top();
@@ -116,4 +117,3 @@ MemPoolMalloc::clean(time_t)
         xfree(obj);
     }
 }
-

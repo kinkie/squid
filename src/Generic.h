@@ -20,18 +20,20 @@ struct unary_function {
 };
 
 template <class L, class T>
-T& for_each(L const &head, T& visitor)
+T &
+for_each(L const &head, T &visitor)
 {
-    for (L const *node = &head; node; node=node->next)
+    for (L const *node = &head; node; node = node->next)
         visitor(*node);
 
     return visitor;
 }
 
 template <class T>
-T& for_each(dlink_list const &collection, T& visitor)
+T &
+for_each(dlink_list const &collection, T &visitor)
 {
-    for (dlink_node const *node = collection.head; node; node=node->next)
+    for (dlink_node const *node = collection.head; node; node = node->next)
         visitor(*(typename T::argument_type const *)node->data);
 
     return visitor;
@@ -46,30 +48,32 @@ class InstanceToSingletonAdapter : public C
 {
 
 public:
-    void *operator new (size_t byteCount) { return ::operator new (byteCount);}
+    void *operator new(size_t byteCount) { return ::operator new(byteCount); }
 
-    void operator delete (void *address) { ::operator delete (address);}
+    void operator delete(void *address) { ::operator delete(address); }
 
-    InstanceToSingletonAdapter(C const *instance) : theInstance (instance) {}
+    InstanceToSingletonAdapter(C const *instance) :
+        theInstance(instance) {}
 
-    C const * operator-> () const {return theInstance; }
+    C const *operator->() const { return theInstance; }
 
-    C * operator-> () {return const_cast<C *>(theInstance); }
+    C *operator->() { return const_cast<C *>(theInstance); }
 
-    C const & operator * () const {return *theInstance; }
+    C const &operator*() const { return *theInstance; }
 
-    C & operator * () {return *const_cast<C *>(theInstance); }
+    C &operator*() { return *const_cast<C *>(theInstance); }
 
-    operator C const * () const {return theInstance;}
+    operator C const *() const { return theInstance; }
 
-    operator C *() {return const_cast<C *>(theInstance);}
+    operator C *() { return const_cast<C *>(theInstance); }
 
 private:
     C const *theInstance;
 };
 
 template <class InputIterator, class Visitor>
-Visitor& for_each(InputIterator from, InputIterator to, Visitor& visitor)
+Visitor &
+for_each(InputIterator from, InputIterator to, Visitor &visitor)
 {
     while (!(from == to)) {
         typename InputIterator::value_type &value = *from;
@@ -83,9 +87,11 @@ Visitor& for_each(InputIterator from, InputIterator to, Visitor& visitor)
 /* generic ostream printer */
 template <class Pointer>
 struct PointerPrinter {
-    PointerPrinter(std::ostream &astream, std::string aDelimiter) : os(astream), delimiter (aDelimiter) {}
+    PointerPrinter(std::ostream &astream, std::string aDelimiter) :
+        os(astream), delimiter(aDelimiter) {}
 
-    void operator () (Pointer aNode) {
+    void operator()(Pointer aNode)
+    {
         os << *aNode << delimiter;
     }
 
@@ -94,4 +100,3 @@ struct PointerPrinter {
 };
 
 #endif /* SQUID_GENERIC_H */
-

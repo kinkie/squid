@@ -26,7 +26,7 @@ public:
         destroyedCount(0),
         busyDestroyedCount(0)
     {
-        hdrUCountDistr.enumInit(32);    /* not a real enum */
+        hdrUCountDistr.enumInit(32); /* not a real enum */
         fieldTypeDistr.enumInit(Http::HdrType::enumEnd_);
         ccTypeDistr.enumInit(HttpHdrCcType::CC_ENUM_END);
         scTypeDistr.enumInit(SC_ENUM_END);
@@ -42,7 +42,7 @@ public:
         busyDestroyedCount(0)
     {
         assert(label);
-        hdrUCountDistr.enumInit(32);    /* not a real enum */
+        hdrUCountDistr.enumInit(32); /* not a real enum */
         fieldTypeDistr.enumInit(Http::HdrType::enumEnd_);
         ccTypeDistr.enumInit(HttpHdrCcType::CC_ENUM_END);
         scTypeDistr.enumInit(SC_ENUM_END);
@@ -68,4 +68,3 @@ public:
 };
 
 #endif /* HTTPHEADERSTAT_H_ */
-

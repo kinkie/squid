@@ -7,22 +7,22 @@
  */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "Debug.h"
 #include "http/one/TeChunkedParser.h"
-#include "http/one/Tokenizer.h"
-#include "http/ProtocolVersion.h"
+#include "Debug.h"
 #include "MemBuf.h"
-#include "parser/Tokenizer.h"
 #include "Parsing.h"
-#include "sbuf/Stream.h"
 #include "SquidConfig.h"
+#include "base/TextException.h"
+#include "http/ProtocolVersion.h"
+#include "http/one/Tokenizer.h"
+#include "parser/Tokenizer.h"
+#include "sbuf/Stream.h"
 
-Http::One::TeChunkedParser::TeChunkedParser():
+Http::One::TeChunkedParser::TeChunkedParser() :
     customExtensionValueParser(nullptr)
 {
     // chunked encoding only exists in HTTP/1.1
-    Http1::Parser::msgProtocol_ = Http::ProtocolVersion(1,1);
+    Http1::Parser::msgProtocol_ = Http::ProtocolVersion(1, 1);
 
     clear();
 }
@@ -44,9 +44,9 @@ Http::One::TeChunkedParser::clear()
 bool
 Http::One::TeChunkedParser::parse(const SBuf &aBuf)
 {
-    buf_ = aBuf; // sync buffers first so calls to remaining() work properly if nothing done.
+    buf_ = aBuf;  // sync buffers first so calls to remaining() work properly if nothing done.
 
-    if (buf_.isEmpty()) // nothing to do (yet)
+    if (buf_.isEmpty())  // nothing to do (yet)
         return false;
 
     debugs(74, DBG_DATA, "Parse buf={length=" << aBuf.length() << ", data='" << aBuf << "'}");
@@ -69,7 +69,7 @@ Http::One::TeChunkedParser::parse(const SBuf &aBuf)
         if (parsingStage_ == Http1::HTTP_PARSE_CHUNK && !parseChunkBody(tok))
             return false;
 
-        if (parsingStage_ == Http1::HTTP_PARSE_MIME && !grabMimeBlock("Trailers", 64*1024 /* 64KB max */))
+        if (parsingStage_ == Http1::HTTP_PARSE_MIME && !grabMimeBlock("Trailers", 64 * 1024 /* 64KB max */))
             return false;
 
         // loop for as many chunks as we can
@@ -89,7 +89,7 @@ Http::One::TeChunkedParser::needsMoreSpace() const
 bool
 Http::One::TeChunkedParser::parseChunkSize(Tokenizer &tok)
 {
-    Must(theChunkSize <= 0); // Should(), really
+    Must(theChunkSize <= 0);  // Should(), really
 
     int64_t size = -1;
     if (tok.int64(size, 16, false) && !tok.atEnd()) {
@@ -97,18 +97,18 @@ Http::One::TeChunkedParser::parseChunkSize(Tokenizer &tok)
             throw TexcHere("negative chunk size");
 
         theChunkSize = theLeftBodySize = size;
-        debugs(94,7, "found chunk: " << theChunkSize);
-        buf_ = tok.remaining(); // parse checkpoint
+        debugs(94, 7, "found chunk: " << theChunkSize);
+        buf_ = tok.remaining();  // parse checkpoint
         parsingStage_ = Http1::HTTP_PARSE_CHUNK_EXT;
         return true;
 
     } else if (tok.atEnd()) {
-        return false; // need more data
+        return false;  // need more data
     }
 
     // else error
     throw TexcHere("corrupted chunk size");
-    return false; // should not be reachable
+    return false;  // should not be reachable
 }
 
 /// Parses "[chunk-ext] CRLF" from RFC 7230 section 4.1.1:
@@ -120,13 +120,13 @@ Http::One::TeChunkedParser::parseChunkMetadataSuffix(Tokenizer &tok)
     // Code becomes much simpler when incremental parsing functions throw on
     // bad or insufficient input, like in the code below. TODO: Expand up.
     try {
-        parseChunkExtensions(tok); // a possibly empty chunk-ext list
+        parseChunkExtensions(tok);  // a possibly empty chunk-ext list
         skipLineTerminator(tok);
         buf_ = tok.remaining();
         parsingStage_ = theChunkSize ? Http1::HTTP_PARSE_CHUNK : Http1::HTTP_PARSE_MIME;
         return true;
     } catch (const InsufficientInput &) {
-        tok.reset(buf_); // backtrack to the last commit point
+        tok.reset(buf_);  // backtrack to the last commit point
         return false;
     }
     // other exceptions bubble up to kill message parsing
@@ -138,13 +138,13 @@ void
 Http::One::TeChunkedParser::parseChunkExtensions(Tokenizer &tok)
 {
     do {
-        ParseBws(tok); // Bug 4492: IBM_HTTP_Server sends SP after chunk-size
+        ParseBws(tok);  // Bug 4492: IBM_HTTP_Server sends SP after chunk-size
 
         if (!tok.skip(';'))
-            return; // reached the end of extensions (if any)
+            return;  // reached the end of extensions (if any)
 
         parseOneChunkExtension(tok);
-        buf_ = tok.remaining(); // got one extension
+        buf_ = tok.remaining();  // got one extension
     } while (true);
 }
 
@@ -160,14 +160,14 @@ Http::One::ChunkExtensionValueParser::Ignore(Tokenizer &tok, const SBuf &extName
 void
 Http::One::TeChunkedParser::parseOneChunkExtension(Tokenizer &tok)
 {
-    ParseBws(tok); // Bug 4492: ICAP servers send SP before chunk-ext-name
+    ParseBws(tok);  // Bug 4492: ICAP servers send SP before chunk-ext-name
 
     const auto extName = tok.prefix("chunk-ext-name", CharacterSet::TCHAR);
 
     ParseBws(tok);
 
     if (!tok.skip('='))
-        return; // parsed a valueless chunk-ext
+        return;  // parsed a valueless chunk-ext
 
     ParseBws(tok);
 
@@ -182,7 +182,7 @@ bool
 Http::One::TeChunkedParser::parseChunkBody(Tokenizer &tok)
 {
     if (theLeftBodySize > 0) {
-        buf_ = tok.remaining(); // sync buffers before buf_ use
+        buf_ = tok.remaining();  // sync buffers before buf_ use
 
         // TODO fix type mismatches and casting for these
         const size_t availSize = min(theLeftBodySize, (uint64_t)buf_.length());
@@ -192,7 +192,7 @@ Http::One::TeChunkedParser::parseChunkBody(Tokenizer &tok)
         buf_.consume(safeSize);
         theLeftBodySize -= safeSize;
 
-        tok.reset(buf_); // sync buffers after consume()
+        tok.reset(buf_);  // sync buffers after consume()
     }
 
     if (theLeftBodySize == 0)
@@ -206,18 +206,16 @@ Http::One::TeChunkedParser::parseChunkBody(Tokenizer &tok)
 bool
 Http::One::TeChunkedParser::parseChunkEnd(Tokenizer &tok)
 {
-    Must(theLeftBodySize == 0); // Should(), really
+    Must(theLeftBodySize == 0);  // Should(), really
 
     try {
         skipLineTerminator(tok);
-        buf_ = tok.remaining(); // parse checkpoint
-        theChunkSize = 0; // done with the current chunk
+        buf_ = tok.remaining();  // parse checkpoint
+        theChunkSize = 0;        // done with the current chunk
         parsingStage_ = Http1::HTTP_PARSE_CHUNK_SZ;
         return true;
-    }
-    catch (const InsufficientInput &) {
+    } catch (const InsufficientInput &) {
         return false;
     }
     // other exceptions bubble up to kill message parsing
 }
-

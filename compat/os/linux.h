@@ -25,8 +25,8 @@
  * res_init() is just a macro re-definition of __res_init on Linux (Debian/Ubuntu)
  */
 #if !defined(HAVE_RES_INIT) && defined(HAVE___RES_INIT) && !defined(res_init)
-#define res_init  __res_init
-#define HAVE_RES_INIT  HAVE___RES_INIT
+#define res_init __res_init
+#define HAVE_RES_INIT HAVE___RES_INIT
 #endif
 
 /*
@@ -87,4 +87,3 @@ typedef uint32_t __u32;
 
 #endif /* _SQUID_LINUX_ */
 #endif /* SQUID_OS_LINUX_H */
-

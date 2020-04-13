@@ -9,16 +9,15 @@
 #ifndef SQUID_SRC_HTTP_STATEFLAGS_H
 #define SQUID_SRC_HTTP_STATEFLAGS_H
 
-namespace Http
-{
+namespace Http {
 
 class StateFlags
 {
 public:
-    unsigned int front_end_https = 0; ///< send "Front-End-Https: On" header (off/on/auto=2)
-    bool keepalive = false; ///< whether to keep the connection persistent
+    unsigned int front_end_https = 0;  ///< send "Front-End-Https: On" header (off/on/auto=2)
+    bool keepalive = false;            ///< whether to keep the connection persistent
     bool only_if_cached = false;
-    bool handling1xx = false;       ///< we are ignoring or forwarding 1xx response
+    bool handling1xx = false;  ///< we are ignoring or forwarding 1xx response
     bool headers_parsed = false;
 
     /// Whether the next TCP hop is a cache_peer, including originserver
@@ -44,12 +43,11 @@ public:
     bool abuse_detected = false;
     bool request_sent = false;
     bool do_next_read = false;
-    bool chunked = false;           ///< reading a chunked response; TODO: rename
-    bool chunked_request = false;   ///< writing a chunked request
-    bool sentLastChunk = false;     ///< do not try to write last-chunk again
+    bool chunked = false;          ///< reading a chunked response; TODO: rename
+    bool chunked_request = false;  ///< writing a chunked request
+    bool sentLastChunk = false;    ///< do not try to write last-chunk again
 };
 
-} // namespace Http
+}  // namespace Http
 
 #endif /* SQUID_SRC_HTTP_STATEFLAGS_H */
-

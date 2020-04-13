@@ -31,8 +31,7 @@ static int make_num(const char *s);
 
 static const char *month_names[12] = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 static int
 make_num(const char *s)
@@ -77,7 +76,8 @@ tmSaneValues(struct tm *tm)
 
 static struct tm *
 parse_date_elements(const char *day, const char *month, const char *year,
-                    const char *aTime, const char *zone) {
+                    const char *aTime, const char *zone)
+{
     static struct tm tm;
     char *t;
     memset(&tm, 0, sizeof(tm));
@@ -108,7 +108,8 @@ parse_date_elements(const char *day, const char *month, const char *year,
 }
 
 static struct tm *
-parse_date(const char *str) {
+parse_date(const char *str)
+{
     struct tm *tm;
     static char tmp[64];
     char *t;
@@ -226,4 +227,3 @@ main()
 }
 
 #endif
-

@@ -19,31 +19,28 @@
 class HttpRequest;
 class StoreEntry;
 
-namespace Auth
-{
-namespace Ntlm
-{
+namespace Auth {
+namespace Ntlm {
 
-/** NTLM Authentication configuration data */
-class Config : public Auth::SchemeConfig
-{
-public:
-    virtual bool active() const;
-    virtual bool configured() const;
-    virtual Auth::UserRequest::Pointer decode(char const *proxy_auth, const HttpRequest *request, const char *requestRealm);
-    virtual void done();
-    virtual void rotateHelpers();
-    virtual void fixHeader(Auth::UserRequest::Pointer, HttpReply *, Http::HdrType, HttpRequest *);
-    virtual void init(Auth::SchemeConfig *);
-    virtual void registerWithCacheManager(void);
-    virtual const char * type() const;
-};
+    /** NTLM Authentication configuration data */
+    class Config : public Auth::SchemeConfig
+    {
+    public:
+        virtual bool active() const;
+        virtual bool configured() const;
+        virtual Auth::UserRequest::Pointer decode(char const *proxy_auth, const HttpRequest *request, const char *requestRealm);
+        virtual void done();
+        virtual void rotateHelpers();
+        virtual void fixHeader(Auth::UserRequest::Pointer, HttpReply *, Http::HdrType, HttpRequest *);
+        virtual void init(Auth::SchemeConfig *);
+        virtual void registerWithCacheManager(void);
+        virtual const char *type() const;
+    };
 
-} // namespace Ntlm
-} // namespace Auth
+}  // namespace Ntlm
+}  // namespace Auth
 
 extern statefulhelper *ntlmauthenticators;
 
 #endif /* HAVE_AUTH_MODULE_NTLM */
 #endif
-

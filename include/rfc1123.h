@@ -21,4 +21,3 @@ extern time_t parse_rfc1123(const char *str);
 }
 #endif
 #endif /* _SQUID_RFC1123_H */
-

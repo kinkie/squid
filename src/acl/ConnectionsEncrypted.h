@@ -12,8 +12,7 @@
 #include "acl/Acl.h"
 #include "acl/Checklist.h"
 
-namespace Acl
-{
+namespace Acl {
 
 class ConnectionsEncrypted : public ACL
 {
@@ -23,20 +22,19 @@ public:
     ConnectionsEncrypted(char const *);
     ConnectionsEncrypted(ConnectionsEncrypted const &);
     virtual ~ConnectionsEncrypted();
-    ConnectionsEncrypted &operator =(ConnectionsEncrypted const &);
+    ConnectionsEncrypted &operator=(ConnectionsEncrypted const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
+    virtual bool empty() const;
 
 protected:
     char const *class_;
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACL_CONNECTIONS_ENCRYPTED_H */
-

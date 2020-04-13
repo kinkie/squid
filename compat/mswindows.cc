@@ -90,9 +90,9 @@ kill(pid_t pid, int sig)
     char ProcessNameToCheck[MAX_PATH];
 
     if (sig == 0) {
-        if ((hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
-                                    PROCESS_VM_READ,
-                                    FALSE, pid)) == NULL)
+        if ((hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                                    FALSE, pid))
+            == NULL)
             return -1;
         else {
             CloseHandle(hProcess);
@@ -111,7 +111,7 @@ int
 gettimeofday(struct timeval *pcur_time, void *tzp)
 {
     struct _timeb current;
-    struct timezone *tz = (struct timezone *) tzp;
+    struct timezone *tz = (struct timezone *)tzp;
 
     _ftime(&current);
 
@@ -135,11 +135,11 @@ WIN32_ftruncate(int fd, off_t size)
     if (fd < 0)
         return -1;
 
-    hfile = (HANDLE) _get_osfhandle(fd);
+    hfile = (HANDLE)_get_osfhandle(fd);
     curpos = SetFilePointer(hfile, 0, NULL, FILE_CURRENT);
     if (curpos == 0xFFFFFFFF
-            || SetFilePointer(hfile, size, NULL, FILE_BEGIN) == 0xFFFFFFFF
-            || !SetEndOfFile(hfile)) {
+        || SetFilePointer(hfile, size, NULL, FILE_BEGIN) == 0xFFFFFFFF
+        || !SetEndOfFile(hfile)) {
         int error = GetLastError();
 
         switch (error) {
@@ -176,13 +176,15 @@ WIN32_truncate(const char *pathname, off_t length)
 #endif /* !_SQUID_MINGW_ */
 
 struct passwd *
-getpwnam(char *unused) {
+getpwnam(char *unused)
+{
     static struct passwd pwd = {NULL, NULL, 100, 100, NULL, NULL, NULL};
     return &pwd;
 }
 
 struct group *
-getgrnam(char *unused) {
+getgrnam(char *unused)
+{
     static struct group grp = {NULL, NULL, 100, NULL};
     return &grp;
 }
@@ -191,9 +193,7 @@ getgrnam(char *unused) {
 int
 _free_osfhnd(int filehandle)
 {
-    if (((unsigned) filehandle < SQUID_MAXFD) &&
-            (_osfile(filehandle) & FOPEN) &&
-            (_osfhnd(filehandle) != (long) INVALID_HANDLE_VALUE)) {
+    if (((unsigned)filehandle < SQUID_MAXFD) && (_osfile(filehandle) & FOPEN) && (_osfhnd(filehandle) != (long)INVALID_HANDLE_VALUE)) {
         switch (filehandle) {
         case 0:
             SetStdHandle(STD_INPUT_HANDLE, NULL);
@@ -205,11 +205,11 @@ _free_osfhnd(int filehandle)
             SetStdHandle(STD_ERROR_HANDLE, NULL);
             break;
         }
-        _osfhnd(filehandle) = (long) INVALID_HANDLE_VALUE;
+        _osfhnd(filehandle) = (long)INVALID_HANDLE_VALUE;
         return (0);
     } else {
-        errno = EBADF;      /* bad handle */
-        _doserrno = 0L;     /* not an OS error */
+        errno = EBADF;  /* bad handle */
+        _doserrno = 0L; /* not an OS error */
         return -1;
     }
 }
@@ -265,8 +265,7 @@ static struct errorentry errortable[] = {
     {ERROR_ALREADY_EXISTS, EEXIST},
     {ERROR_FILENAME_EXCED_RANGE, ENOENT},
     {ERROR_NESTING_NOT_ALLOWED, EAGAIN},
-    {ERROR_NOT_ENOUGH_QUOTA, ENOMEM}
-};
+    {ERROR_NOT_ENOUGH_QUOTA, ENOMEM}};
 
 #define MIN_EXEC_ERROR ERROR_INVALID_STARTING_CODESEG
 #define MAX_EXEC_ERROR ERROR_INFLOOP_IN_RELOC_CHAIN
@@ -312,7 +311,7 @@ void
 syslog(int priority, const char *fmt, ...)
 {
     WORD logtype;
-    char *str=static_cast<char *>(xmalloc(SYSLOG_MAX_MSG_SIZE));
+    char *str = static_cast<char *>(xmalloc(SYSLOG_MAX_MSG_SIZE));
     int str_len;
     va_list ap;
 
@@ -320,7 +319,7 @@ syslog(int priority, const char *fmt, ...)
         return;
 
     va_start(ap, fmt);
-    str_len = vsnprintf(str, SYSLOG_MAX_MSG_SIZE-1, fmt, ap);
+    str_len = vsnprintf(str, SYSLOG_MAX_MSG_SIZE - 1, fmt, ap);
     va_end(ap);
 
     if (str_len < 0) {
@@ -355,4 +354,3 @@ syslog(int priority, const char *fmt, ...)
 
 /* note: this is all MSWindows-specific code; all of it should be conditional */
 #endif /* _SQUID_WINDOWS_ */
-

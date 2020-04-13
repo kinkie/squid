@@ -43,13 +43,13 @@
  * - initial version (Richard Huveneers <Richard.Huveneers@hekkihek.hacom.nl>)
  */
 
-#include <unistd.h>
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
+#include <unistd.h>
 
-#define ACCESS_LOCAL_DIR        "/var/lib/httpd/htdocs/local/rredir"
-#define REDIRECT_TO_URL         "http://www.hacom.nl/local/rredir"
-#define BUFFER_SIZE             (16*1024)
+#define ACCESS_LOCAL_DIR "/var/lib/httpd/htdocs/local/rredir"
+#define REDIRECT_TO_URL "http://www.hacom.nl/local/rredir"
+#define BUFFER_SIZE (16 * 1024)
 
 int
 main()
@@ -93,18 +93,17 @@ main()
 
         /* map filename to lower case */
         for (t = s; *t != '\0'; t++)
-            *t = (char) tolower((int) *t);
+            *t = (char)tolower((int)*t);
 
         /* check for a local copy of this file */
         if (access(s, R_OK) == 0) {
-            (void) printf("%s/%s\n", REDIRECT_TO_URL, s);
+            (void)printf("%s/%s\n", REDIRECT_TO_URL, s);
             continue;
         }
-dont_redirect:
+    dont_redirect:
         tlu = 0;
-        (void) printf("\n");
+        (void)printf("\n");
     }
 
     return EXIT_SUCCESS;
 }
-

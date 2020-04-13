@@ -34,10 +34,10 @@ typedef enum {
     ERR_URN_RESOLVE,
 
     /* HTTP Errors */
-    ERR_ONLY_IF_CACHED_MISS,    /* failure to satisfy only-if-cached request */
+    ERR_ONLY_IF_CACHED_MISS, /* failure to satisfy only-if-cached request */
     ERR_TOO_BIG,
     ERR_INVALID_RESP,
-    ERR_UNSUP_HTTPVERSION,     /* HTTP version is not supported */
+    ERR_UNSUP_HTTPVERSION, /* HTTP version is not supported */
     ERR_INVALID_REQ,
     ERR_UNSUP_REQ,
     ERR_INVALID_URL,
@@ -52,11 +52,11 @@ typedef enum {
     ERR_FTP_PUT_ERROR,
     ERR_FTP_NOT_FOUND,
     ERR_FTP_FORBIDDEN,
-    ERR_FTP_PUT_CREATED,        /* !error,a note that the file was created */
-    ERR_FTP_PUT_MODIFIED,       /* modified, !created */
+    ERR_FTP_PUT_CREATED,  /* !error,a note that the file was created */
+    ERR_FTP_PUT_MODIFIED, /* modified, !created */
 
     /* ESI Errors */
-    ERR_ESI,                    /* Failure to perform ESI processing */
+    ERR_ESI, /* Failure to perform ESI processing */
 
     /* ICAP Errors */
     ERR_ICAP_FAILURE,
@@ -65,19 +65,19 @@ typedef enum {
     ERR_GATEWAY_FAILURE,
 
     /* Special Cases */
-    ERR_DIR_LISTING,            /* Display of remote directory (FTP, Gopher) */
-    ERR_SQUID_SIGNATURE,        /* not really an error */
+    ERR_DIR_LISTING,     /* Display of remote directory (FTP, Gopher) */
+    ERR_SQUID_SIGNATURE, /* not really an error */
     ERR_SHUTTING_DOWN,
     ERR_PROTOCOL_UNKNOWN,
 
     // NOTE: error types defined below TCP_RESET are optional and do not generate
     //       a log warning if the files are missing
-    TCP_RESET,                  // Send TCP RST packet instead of error page
+    TCP_RESET,  // Send TCP RST packet instead of error page
 
-    ERR_SECURE_ACCEPT_FAIL, // Rejects the SSL connection instead of error page
-    ERR_REQUEST_START_TIMEOUT, // Aborts the connection instead of error page
-    ERR_REQUEST_PARSE_TIMEOUT, // Aborts the connection instead of error page
-    ERR_RELAY_REMOTE, // Sends server reply instead of error page
+    ERR_SECURE_ACCEPT_FAIL,     // Rejects the SSL connection instead of error page
+    ERR_REQUEST_START_TIMEOUT,  // Aborts the connection instead of error page
+    ERR_REQUEST_PARSE_TIMEOUT,  // Aborts the connection instead of error page
+    ERR_RELAY_REMOTE,           // Sends server reply instead of error page
 
     /* Cache Manager GUI can install a manager index/home page */
     MGR_INDEX,
@@ -87,8 +87,7 @@ typedef enum {
 
 extern const char *err_type_str[];
 
-inline
-err_type
+inline err_type
 errorTypeByName(const char *name)
 {
     for (int i = 0; i < ERR_MAX; ++i)
@@ -97,8 +96,7 @@ errorTypeByName(const char *name)
     return ERR_MAX;
 }
 
-inline
-const char *
+inline const char *
 errorTypeName(err_type err)
 {
     if (err < ERR_NONE || err >= ERR_MAX)
@@ -107,4 +105,3 @@ errorTypeName(err_type err)
 }
 
 #endif /* _SQUID_ERR_TYPE_H */
-

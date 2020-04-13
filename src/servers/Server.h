@@ -11,13 +11,13 @@
 #ifndef SQUID_SERVERS_SERVER_H
 #define SQUID_SERVERS_SERVER_H
 
-#include "anyp/forward.h"
-#include "anyp/ProtocolVersion.h"
-#include "base/AsyncJob.h"
 #include "BodyPipe.h"
-#include "comm/Write.h"
 #include "CommCalls.h"
 #include "Pipeline.h"
+#include "anyp/ProtocolVersion.h"
+#include "anyp/forward.h"
+#include "base/AsyncJob.h"
+#include "comm/Write.h"
 #include "sbuf/SBuf.h"
 #include "servers/forward.h"
 
@@ -54,7 +54,7 @@ public:
     virtual void afterClientRead() = 0;
 
     /// whether Comm::Read() is scheduled
-    bool reading() const {return reader != NULL;}
+    bool reading() const { return reader != NULL; }
 
     /// cancels Comm::Read() if it is scheduled
     void stopReading();
@@ -66,14 +66,16 @@ public:
     virtual void writeSomeData() {}
 
     /// schedule some data for a Comm::Write()
-    void write(MemBuf *mb) {
+    void write(MemBuf *mb)
+    {
         typedef CommCbMemFunT<Server, CommIoCbParams> Dialer;
         writer = JobCallback(33, 5, Dialer, this, Server::clientWriteDone);
         Comm::Write(clientConnection, mb, writer);
     }
 
     /// schedule some data for a Comm::Write()
-    void write(char *buf, int len) {
+    void write(char *buf, int len)
+    {
         typedef CommCbMemFunT<Server, CommIoCbParams> Dialer;
         writer = JobCallback(33, 5, Dialer, this, Server::clientWriteDone);
         Comm::Write(clientConnection, buf, len, writer, nullptr);
@@ -83,13 +85,12 @@ public:
     virtual void afterClientWrite(size_t) {}
 
     /// whether Comm::Write() is scheduled
-    bool writing() const {return writer != NULL;}
+    bool writing() const { return writer != NULL; }
 
-// XXX: should be 'protected:' for child access only,
-//      but all sorts of code likes to play directly
-//      with the I/O buffers and socket.
+    // XXX: should be 'protected:' for child access only,
+    //      but all sorts of code likes to play directly
+    //      with the I/O buffers and socket.
 public:
-
     /// grows the available read buffer space (if possible)
     void maybeMakeSpaceAvailable();
 
@@ -109,7 +110,7 @@ public:
     /// read I/O buffer for the client connection
     SBuf inBuf;
 
-    bool receivedFirstByte_; ///< true if at least one byte received on this connection
+    bool receivedFirstByte_;  ///< true if at least one byte received on this connection
 
     /// set of requests waiting to be serviced
     Pipeline pipeline;
@@ -121,9 +122,8 @@ protected:
     /// Log the current [attempt at] transaction if nobody else will.
     virtual void checkLogging() = 0;
 
-    AsyncCall::Pointer reader; ///< set when we are reading
-    AsyncCall::Pointer writer; ///< set when we are writing
+    AsyncCall::Pointer reader;  ///< set when we are reading
+    AsyncCall::Pointer writer;  ///< set when we are writing
 };
 
 #endif /* SQUID_SERVERS_SERVER_H */
-

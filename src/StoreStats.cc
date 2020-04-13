@@ -13,7 +13,7 @@
 #include "tools.h"
 
 StoreInfoStats &
-StoreInfoStats::operator +=(const StoreInfoStats &stats)
+StoreInfoStats::operator+=(const StoreInfoStats &stats)
 {
     swap.size += stats.swap.size;
     swap.capacity += stats.swap.capacity;
@@ -27,13 +27,13 @@ StoreInfoStats::operator +=(const StoreInfoStats &stats)
     // If workers share memory, we will get shared stats from those workers
     // and non-shared stats from other processes. Ignore order and also
     // ignore other processes stats because they are zero in most setups.
-    if (stats.mem.shared) { // workers share memory
+    if (stats.mem.shared) {  // workers share memory
         // use the latest reported stats, they all should be about the same
         mem.shared = true;
         mem.size = stats.mem.size;
         mem.capacity = stats.mem.capacity;
         mem.count = stats.mem.count;
-    } else if (!mem.shared) { // do not corrupt shared stats, if any
+    } else if (!mem.shared) {  // do not corrupt shared stats, if any
         // workers do not share so we must add everything up
         mem.size += stats.mem.size;
         mem.capacity += stats.mem.capacity;
@@ -52,4 +52,3 @@ StoreIoStats::StoreIoStats()
 {
     memset(this, 0, sizeof(*this));
 }
-

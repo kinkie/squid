@@ -9,56 +9,61 @@
 /* DEBUG: section 64    HTTP Range Header */
 
 #include "squid.h"
-#include "fatal.h"
 #include "HttpHeader.h"
 #include "HttpHeaderRange.h"
+#include "fatal.h"
 
 /** \todo CLEANUP: This file should be called something_stub.cc */
 
-void httpHeaderPutStr(HttpHeader * hdr, Http::HdrType type, const char *str)
+void
+httpHeaderPutStr(HttpHeader *hdr, Http::HdrType type, const char *str)
 {
-    fatal ("dummy function\n");
+    fatal("dummy function\n");
 }
 
-HttpHeaderEntry *httpHeaderGetEntry(const HttpHeader * hdr, HttpHeaderPos * pos)
+HttpHeaderEntry *
+httpHeaderGetEntry(const HttpHeader *hdr, HttpHeaderPos *pos)
 {
-    fatal ("dummy function\n");
+    fatal("dummy function\n");
     return NULL;
 }
 
-String httpHeaderGetList(const HttpHeader * hdr, Http::HdrType id)
+String
+httpHeaderGetList(const HttpHeader *hdr, Http::HdrType id)
 {
-    fatal ("dummy function\n");
+    fatal("dummy function\n");
     return String();
 }
 
-int httpHeaderHas(const HttpHeader * hdr, Http::HdrType type)
+int
+httpHeaderHas(const HttpHeader *hdr, Http::HdrType type)
 {
-    fatal ("dummy function\n");
+    fatal("dummy function\n");
     return 0;
 }
 
-void httpHeaderPutContRange(HttpHeader * hdr, const HttpHdrContRange * cr)
+void
+httpHeaderPutContRange(HttpHeader *hdr, const HttpHdrContRange *cr)
 {
-    fatal ("dummy function\n");
+    fatal("dummy function\n");
 }
 
 void
 testRangeParser(char const *rangestring)
 {
-    String aString (rangestring);
-    HttpHdrRange *range = HttpHdrRange::ParseCreate (&aString);
+    String aString(rangestring);
+    HttpHdrRange *range = HttpHdrRange::ParseCreate(&aString);
 
     if (!range)
         exit(EXIT_FAILURE);
 
     HttpHdrRange copy(*range);
 
-    assert (copy.specs.size() == range->specs.size());
+    assert(copy.specs.size() == range->specs.size());
 
     HttpHdrRange::iterator pos = range->begin();
 
-    assert (*pos);
+    assert(*pos);
 
     delete range;
 }
@@ -66,8 +71,8 @@ testRangeParser(char const *rangestring)
 HttpHdrRange *
 rangeFromString(char const *rangestring)
 {
-    String aString (rangestring);
-    HttpHdrRange *range = HttpHdrRange::ParseCreate (&aString);
+    String aString(rangestring);
+    HttpHdrRange *range = HttpHdrRange::ParseCreate(&aString);
 
     if (!range)
         exit(EXIT_FAILURE);
@@ -76,10 +81,10 @@ rangeFromString(char const *rangestring)
 }
 
 void
-testRangeIter ()
+testRangeIter()
 {
-    HttpHdrRange *range=rangeFromString("bytes=0-3, 1-, -2");
-    assert (range->specs.size() == 3);
+    HttpHdrRange *range = rangeFromString("bytes=0-3, 1-, -2");
+    assert(range->specs.size() == 3);
     size_t counter = 0;
     HttpHdrRange::iterator i = range->begin();
 
@@ -88,19 +93,19 @@ testRangeIter ()
         ++i;
     }
 
-    assert (counter == 3);
+    assert(counter == 3);
     i = range->begin();
-    assert (i - range->begin() == 0);
+    assert(i - range->begin() == 0);
     ++i;
-    assert (i - range->begin() == 1);
-    assert (i - range->end() == -2);
+    assert(i - range->begin() == 1);
+    assert(i - range->end() == -2);
 }
 
 void
 testRangeCanonization()
 {
-    HttpHdrRange *range=rangeFromString("bytes=0-3, 1-, -2");
-    assert (range->specs.size() == 3);
+    HttpHdrRange *range = rangeFromString("bytes=0-3, 1-, -2");
+    assert(range->specs.size() == 3);
 
     /* 0-3 needs a content length of 4 */
     /* This passes in the extant code - but should it? */
@@ -108,13 +113,13 @@ testRangeCanonization()
     if (!range->canonize(3))
         exit(EXIT_FAILURE);
 
-    assert (range->specs.size() == 3);
+    assert(range->specs.size() == 3);
 
     delete range;
 
-    range=rangeFromString("bytes=0-3, 1-, -2");
+    range = rangeFromString("bytes=0-3, 1-, -2");
 
-    assert (range->specs.size() == 3);
+    assert(range->specs.size() == 3);
 
     /* 0-3 needs a content length of 4 */
     if (!range->canonize(4))
@@ -122,9 +127,9 @@ testRangeCanonization()
 
     delete range;
 
-    range=rangeFromString("bytes=3-6");
+    range = rangeFromString("bytes=3-6");
 
-    assert (range->specs.size() == 1);
+    assert(range->specs.size() == 1);
 
     /* 3-6 needs a content length of 4 or more */
     if (range->canonize(3))
@@ -132,9 +137,9 @@ testRangeCanonization()
 
     delete range;
 
-    range=rangeFromString("bytes=3-6");
+    range = rangeFromString("bytes=3-6");
 
-    assert (range->specs.size() == 1);
+    assert(range->specs.size() == 1);
 
     /* 3-6 needs a content length of 4 or more */
     if (!range->canonize(4))
@@ -142,14 +147,14 @@ testRangeCanonization()
 
     delete range;
 
-    range=rangeFromString("bytes=1-1,2-3");
+    range = rangeFromString("bytes=1-1,2-3");
 
-    assert (range->specs.size()== 2);
+    assert(range->specs.size() == 2);
 
     if (!range->canonize(4))
         exit(EXIT_FAILURE);
 
-    assert (range->specs.size() == 2);
+    assert(range->specs.size() == 2);
 
     delete range;
 }
@@ -177,4 +182,3 @@ main(int argc, char **argv)
     }
     return EXIT_SUCCESS;
 }
-

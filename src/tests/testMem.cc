@@ -7,15 +7,15 @@
  */
 
 #include "squid.h"
-#include "mem/forward.h"
-#include "mem/Pool.h"
 #include "tests/testMem.h"
+#include "mem/Pool.h"
+#include "mem/forward.h"
 #include "unitTestMain.h"
 
 #include <iostream>
 #include <stdexcept>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testMem );
+CPPUNIT_TEST_SUITE_REGISTRATION(testMem);
 
 class SomethingToAlloc
 {
@@ -66,4 +66,3 @@ testMem::testMemProxy()
     CPPUNIT_ASSERT_EQUAL(otherthing, something);
     CPPUNIT_ASSERT_EQUAL(otherthing->aValue, 0);
 }
-

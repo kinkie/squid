@@ -9,17 +9,17 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
+#include "auth/AclProxyAuth.h"
+#include "HttpRequest.h"
 #include "acl/FilledChecklist.h"
 #include "acl/RegexData.h"
 #include "acl/UserData.h"
 #include "auth/Acl.h"
-#include "auth/AclProxyAuth.h"
 #include "auth/Gadgets.h"
 #include "auth/User.h"
 #include "auth/UserRequest.h"
 #include "client_side.h"
 #include "http/Stream.h"
-#include "HttpRequest.h"
 
 ACLProxyAuth::~ACLProxyAuth()
 {
@@ -29,12 +29,14 @@ ACLProxyAuth::~ACLProxyAuth()
 ACLProxyAuth::ACLProxyAuth(ACLData<char const *> *newData, char const *theType) :
     data(newData),
     type_(theType)
-{}
+{
+}
 
 ACLProxyAuth::ACLProxyAuth(ACLProxyAuth const &old) :
     data(old.data->clone()),
     type_(old.type_)
-{}
+{
+}
 
 ACLProxyAuth &
 ACLProxyAuth::operator=(ACLProxyAuth const &rhs)
@@ -74,7 +76,7 @@ ACLProxyAuth::match(ACLChecklist *checklist)
         return matchProxyAuth(checklist);
 
     case ACCESS_DENIED:
-        return 0; // non-match
+        return 0;  // non-match
 
     case ACCESS_DUNNO:
     case ACCESS_AUTH_REQUIRED:
@@ -83,7 +85,7 @@ ACLProxyAuth::match(ACLChecklist *checklist)
         // async authentication is not in progress, then we are done.
         if (checklist->keepMatching())
             checklist->markFinished(answer, "AuthenticateAcl exception");
-        return -1; // other
+        return -1;  // other
     }
 }
 
@@ -139,7 +141,7 @@ ProxyAuthLookup::checkForAsync(ACLChecklist *cl) const
 void
 ProxyAuthLookup::LookupDone(void *data)
 {
-    ACLFilledChecklist *checklist = Filled(static_cast<ACLChecklist*>(data));
+    ACLFilledChecklist *checklist = Filled(static_cast<ACLChecklist *>(data));
 
     if (checklist->auth_user_request == NULL || !checklist->auth_user_request->valid() || checklist->conn() == NULL) {
         /* credentials could not be checked either way
@@ -165,7 +167,7 @@ int
 ACLProxyAuth::matchForCache(ACLChecklist *cl)
 {
     ACLFilledChecklist *checklist = Filled(cl);
-    assert (checklist->auth_user_request != NULL);
+    assert(checklist->auth_user_request != NULL);
     return data->match(checklist->auth_user_request->username());
 }
 
@@ -187,4 +189,3 @@ ACLProxyAuth::matchProxyAuth(ACLChecklist *cl)
     checklist->auth_user_request = NULL;
     return result;
 }
-

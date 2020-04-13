@@ -20,10 +20,10 @@
 #else
 #if HAVE_STDARG_H
 #include <stdarg.h>
-#define HAVE_STDARGS            /* let's hope that works everywhere (mj) */
+#define HAVE_STDARGS /* let's hope that works everywhere (mj) */
 #define VA_LOCAL_DECL va_list ap;
 #define VA_START(f) va_start(ap, f)
-#define VA_SHIFT(v,t) ;         /* no-op for ANSI */
+#define VA_SHIFT(v, t) ; /* no-op for ANSI */
 #define VA_END va_end(ap)
 
 #else /* !HAVE_STDARG_H */
@@ -31,8 +31,8 @@
 #include <varargs.h>
 #undef HAVE_STDARGS
 #define VA_LOCAL_DECL va_list ap;
-#define VA_START(f) va_start(ap)        /* f is ignored! */
-#define VA_SHIFT(v,t) v = va_arg(ap,t)
+#define VA_START(f) va_start(ap) /* f is ignored! */
+#define VA_SHIFT(v, t) v = va_arg(ap, t)
 #define VA_END va_end(ap)
 
 #else /* !HAVE_VARARGS_H*/
@@ -47,4 +47,3 @@
 #endif
 
 #endif /* _SQUID_STDVARARGS_H */
-

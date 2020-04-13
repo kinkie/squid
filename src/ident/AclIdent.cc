@@ -27,13 +27,16 @@ ACLIdent::~ACLIdent()
     delete data;
 }
 
-ACLIdent::ACLIdent(ACLData<char const *> *newData, char const *newType) : data (newData), type_ (newType) {}
+ACLIdent::ACLIdent(ACLData<char const *> *newData, char const *newType) :
+    data(newData), type_(newType) {}
 
-ACLIdent::ACLIdent (ACLIdent const &old) : data (old.data->clone()), type_ (old.type_)
-{}
+ACLIdent::ACLIdent(ACLIdent const &old) :
+    data(old.data->clone()), type_(old.type_)
+{
+}
 
 ACLIdent &
-ACLIdent::operator= (ACLIdent const &rhs)
+ACLIdent::operator=(ACLIdent const &rhs)
 {
     data = rhs.data->clone();
     type_ = rhs.type_;
@@ -78,7 +81,7 @@ ACLIdent::match(ACLChecklist *cl)
         }
         // else fall through to ACCESS_DUNNO failure below
     } else {
-        debugs(28, DBG_IMPORTANT, HERE << "Can't start ident lookup. No client connection" );
+        debugs(28, DBG_IMPORTANT, HERE << "Can't start ident lookup. No client connection");
         // fall through to ACCESS_DUNNO failure below
     }
 
@@ -93,7 +96,7 @@ ACLIdent::dump() const
 }
 
 bool
-ACLIdent::empty () const
+ACLIdent::empty() const
 {
     return data->empty();
 }
@@ -113,20 +116,20 @@ IdentLookup::Instance()
 }
 
 void
-IdentLookup::checkForAsync(ACLChecklist *cl)const
+IdentLookup::checkForAsync(ACLChecklist *cl) const
 {
     ACLFilledChecklist *checklist = Filled(cl);
     const ConnStateData *conn = checklist->conn();
     // check that ACLIdent::match() tested this lookup precondition
     assert(conn && Comm::IsConnOpen(conn->clientConnection));
-    debugs(28, 3, HERE << "Doing ident lookup" );
+    debugs(28, 3, HERE << "Doing ident lookup");
     Ident::Start(checklist->conn()->clientConnection, LookupDone, checklist);
 }
 
 void
 IdentLookup::LookupDone(const char *ident, void *data)
 {
-    ACLFilledChecklist *checklist = Filled(static_cast<ACLChecklist*>(data));
+    ACLFilledChecklist *checklist = Filled(static_cast<ACLChecklist *>(data));
 
     if (ident) {
         xstrncpy(checklist->rfc931, ident, USER_IDENT_SZ);
@@ -145,4 +148,3 @@ IdentLookup::LookupDone(const char *ident, void *data)
 }
 
 #endif /* USE_IDENT */
-

@@ -39,18 +39,18 @@ public:
     virtual char const *typeString() const;
     virtual void parseFlags();
 
-    virtual bool requiresRequest() const {return matcher->requiresRequest();}
+    virtual bool requiresRequest() const { return matcher->requiresRequest(); }
 
-    virtual bool requiresReply() const {return matcher->requiresReply();}
+    virtual bool requiresReply() const { return matcher->requiresReply(); }
 
-    virtual void prepareForUse() { data->prepareForUse();}
+    virtual void prepareForUse() { data->prepareForUse(); }
     virtual const Acl::Options &options() { return matcher->options(); }
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
-    virtual int match (M const &);
+    virtual int match(M const &);
     virtual SBufList dump() const;
-    virtual bool empty () const;
-    virtual bool valid () const;
+    virtual bool empty() const;
+    virtual bool valid() const;
 
 private:
     ACLData<MatchType> *data;
@@ -67,8 +67,10 @@ ACLStrategised<MatchType>::~ACLStrategised()
 }
 
 template <class MatchType>
-ACLStrategised<MatchType>::ACLStrategised(ACLData<MatchType> *newData, ACLStrategy<MatchType> *theStrategy, char const *theType): data(newData), type_(theType), matcher(theStrategy)
-{}
+ACLStrategised<MatchType>::ACLStrategised(ACLData<MatchType> *newData, ACLStrategy<MatchType> *theStrategy, char const *theType) :
+    data(newData), type_(theType), matcher(theStrategy)
+{
+}
 
 template <class MatchType>
 char const *
@@ -102,7 +104,7 @@ template <class MatchType>
 int
 ACLStrategised<MatchType>::match(ACLChecklist *cl)
 {
-    ACLFilledChecklist *checklist = dynamic_cast<ACLFilledChecklist*>(cl);
+    ACLFilledChecklist *checklist = dynamic_cast<ACLFilledChecklist *>(cl);
     assert(checklist);
     return matcher->match(data, checklist);
 }
@@ -123,10 +125,9 @@ ACLStrategised<MatchType>::dump() const
 
 template <class MatchType>
 bool
-ACLStrategised<MatchType>::valid () const
+ACLStrategised<MatchType>::valid() const
 {
     return matcher->valid();
 }
 
 #endif /* SQUID_ACLSTRATEGISED_H */
-

@@ -13,7 +13,10 @@
 
 #include "helper.h"
 
-enum TimeoutAction {toutActBypass, toutActFail, toutActRetry, toutActUseConfiguredResponse};
+enum TimeoutAction { toutActBypass,
+                     toutActFail,
+                     toutActRetry,
+                     toutActUseConfiguredResponse };
 
 class ClientHttpRequest;
 
@@ -24,4 +27,3 @@ void redirectStart(ClientHttpRequest *, HLPCB *, void *);
 void storeIdStart(ClientHttpRequest *, HLPCB *, void *);
 
 #endif /* SQUID_REDIRECT_H_ */
-

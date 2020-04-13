@@ -21,11 +21,13 @@ class AclDenyInfoList
     MEMPROXY_CLASS(AclDenyInfoList);
 
 public:
-    AclDenyInfoList(const char *t, const SBuf &aCfgLocation) {
+    AclDenyInfoList(const char *t, const SBuf &aCfgLocation)
+    {
         err_page_name = xstrdup(t);
         err_page_id = errorReservePageId(t, aCfgLocation);
     }
-    ~AclDenyInfoList() {
+    ~AclDenyInfoList()
+    {
         xfree(err_page_name);
         while (next) {
             auto *a = next;
@@ -36,9 +38,8 @@ public:
     }
     err_type err_page_id = ERR_NONE;
     char *err_page_name = nullptr;
-    SBufList acl_list; ///< ACL names in configured order
+    SBufList acl_list;  ///< ACL names in configured order
     AclDenyInfoList *next = nullptr;
 };
 
 #endif /* SQUID_ACLDENYINFOLIST_H_ */
-

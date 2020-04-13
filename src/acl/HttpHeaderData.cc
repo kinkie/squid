@@ -9,14 +9,14 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Acl.h"
-#include "acl/Checklist.h"
 #include "acl/HttpHeaderData.h"
-#include "acl/RegexData.h"
-#include "base/RegexPattern.h"
 #include "ConfigParser.h"
 #include "Debug.h"
 #include "HttpHeaderTools.h"
+#include "acl/Acl.h"
+#include "acl/Checklist.h"
+#include "acl/RegexData.h"
+#include "base/RegexPattern.h"
 #include "sbuf/SBuf.h"
 #include "sbuf/StringConvert.h"
 
@@ -26,8 +26,10 @@
  * TODO: This can be generalised by making the type of the regex_rule into a
  * template parameter - so that we can use different rules types in future.
  */
-ACLHTTPHeaderData::ACLHTTPHeaderData() : hdrId(Http::HdrType::BAD_HDR), regex_rule(new ACLRegexData)
-{}
+ACLHTTPHeaderData::ACLHTTPHeaderData() :
+    hdrId(Http::HdrType::BAD_HDR), regex_rule(new ACLRegexData)
+{
+}
 
 ACLHTTPHeaderData::~ACLHTTPHeaderData()
 {
@@ -35,7 +37,7 @@ ACLHTTPHeaderData::~ACLHTTPHeaderData()
 }
 
 bool
-ACLHTTPHeaderData::match(HttpHeader* hdr)
+ACLHTTPHeaderData::match(HttpHeader *hdr)
 {
     if (hdr == NULL)
         return false;
@@ -68,7 +70,7 @@ ACLHTTPHeaderData::dump() const
 void
 ACLHTTPHeaderData::parse()
 {
-    char* t = ConfigParser::strtokFile();
+    char *t = ConfigParser::strtokFile();
     if (!t) {
         debugs(28, DBG_CRITICAL, "ERROR: " << cfg_filename << " line " << config_lineno << ": " << config_input_line);
         debugs(28, DBG_CRITICAL, "ERROR: Missing header name in ACL");
@@ -93,14 +95,13 @@ ACLHTTPHeaderData::empty() const
     return (hdrId == Http::HdrType::BAD_HDR && hdrName.isEmpty()) || regex_rule->empty();
 }
 
-ACLData<HttpHeader*> *
+ACLData<HttpHeader *> *
 ACLHTTPHeaderData::clone() const
 {
     /* Header's don't clone yet. */
-    ACLHTTPHeaderData * result = new ACLHTTPHeaderData;
+    ACLHTTPHeaderData *result = new ACLHTTPHeaderData;
     result->regex_rule = regex_rule->clone();
     result->hdrId = hdrId;
     result->hdrName = hdrName;
     return result;
 }
-

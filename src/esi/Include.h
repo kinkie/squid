@@ -41,15 +41,15 @@ public:
     ESIInclude(esiTreeParentPtr, int attributes, const char **attr, ESIContext *);
     ~ESIInclude();
     void render(ESISegment::Pointer);
-    esiProcessResult_t process (int dovars);
+    esiProcessResult_t process(int dovars);
     Pointer makeCacheable() const;
     Pointer makeUsable(esiTreeParentPtr, ESIVarState &) const;
-    void subRequestDone (ESIStreamContext::Pointer, bool);
+    void subRequestDone(ESIStreamContext::Pointer, bool);
 
     struct {
-        int onerrorcontinue:1; /* on error return zero data */
-        int failed:1; /* Failed to process completely */
-        int finished:1; /* Finished getting subrequest data */
+        int onerrorcontinue : 1; /* on error return zero data */
+        int failed : 1;          /* Failed to process completely */
+        int finished : 1;        /* Finished getting subrequest data */
     } flags;
     ESIStreamContext::Pointer src;
     ESIStreamContext::Pointer alt;
@@ -61,7 +61,7 @@ public:
     void finish();
 
 private:
-    void Start (ESIStreamContext::Pointer, char const *, ESIVarState *);
+    void Start(ESIStreamContext::Pointer, char const *, ESIVarState *);
     esiTreeParentPtr parent;
     void start();
     bool started;
@@ -72,4 +72,3 @@ private:
 };
 
 #endif /* SQUID_ESIINCLUDE_H */
-

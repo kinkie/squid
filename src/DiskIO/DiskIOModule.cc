@@ -29,7 +29,7 @@
 #include "DiskIO/Mmapped/MmappedDiskIOModule.h"
 #endif
 
-std::vector<DiskIOModule*> *DiskIOModule::_Modules = NULL;
+std::vector<DiskIOModule *> *DiskIOModule::_Modules = NULL;
 
 //DiskIOModule() : initialised (false) {}
 
@@ -78,7 +78,7 @@ DiskIOModule::ModuleAdd(DiskIOModule &instance)
         ++i;
     }
 
-    GetModules().push_back (&instance);
+    GetModules().push_back(&instance);
 }
 
 std::vector<DiskIOModule *> const &
@@ -87,7 +87,7 @@ DiskIOModule::Modules()
     return GetModules();
 }
 
-std::vector<DiskIOModule*> &
+std::vector<DiskIOModule *> &
 DiskIOModule::GetModules()
 {
     if (!_Modules)
@@ -124,7 +124,7 @@ DiskIOModule *
 DiskIOModule::FindDefault()
 {
     /** Best IO options are in order: */
-    DiskIOModule * result;
+    DiskIOModule *result;
     result = Find("DiskThreads");
     if (NULL == result)
         result = Find("DiskDaemon");
@@ -134,4 +134,3 @@ DiskIOModule::FindDefault()
         result = Find("Blocking");
     return result;
 }
-

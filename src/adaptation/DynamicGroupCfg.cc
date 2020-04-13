@@ -13,7 +13,7 @@
 void
 Adaptation::DynamicGroupCfg::add(const String &item)
 {
-    if (services.empty()) { // first item
+    if (services.empty()) {  // first item
         id = item;
     } else {
         id.append(',');
@@ -28,4 +28,3 @@ Adaptation::DynamicGroupCfg::clear()
     id.clean();
     services.clear();
 }
-

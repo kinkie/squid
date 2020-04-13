@@ -9,17 +9,15 @@
 #ifndef SQUID_FTP_ELEMENTS_H
 #define SQUID_FTP_ELEMENTS_H
 
-#include "http/forward.h"
 #include "http/StatusCode.h"
+#include "http/forward.h"
 #include "sbuf/forward.h"
 
-namespace AnyP
-{
+namespace AnyP {
 class ProtocolVersion;
 }
 
-namespace Ftp
-{
+namespace Ftp {
 
 /// Protocol version to use in Http::Message structures wrapping FTP messages.
 AnyP::ProtocolVersion ProtocolVersion();
@@ -50,9 +48,12 @@ const SBuf &cmdStou();
 const SBuf &cmdUser();
 
 /// whether this is an informational 1xx response status code
-inline bool Is1xx(const int sc) { return Http::scContinue <= sc && sc < Http::scOkay; }
+inline bool
+Is1xx(const int sc)
+{
+    return Http::scContinue <= sc && sc < Http::scOkay;
+}
 
-} // namespace Ftp
+}  // namespace Ftp
 
 #endif /* SQUID_FTP_ELEMENTS_H */
-

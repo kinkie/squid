@@ -13,8 +13,7 @@
 
 #include <deque>
 
-namespace Comm
-{
+namespace Comm {
 
 /**
  * FIFO Queue holding listener socket handlers which have been activated
@@ -49,7 +48,6 @@ private:
     std::deque<TcpAcceptor::Pointer> deferred_;
 };
 
-}; // namespace Comm
+};  // namespace Comm
 
 #endif /* _SQUID_SRC_COMM_ACCEPT_LIMITER_H */
-

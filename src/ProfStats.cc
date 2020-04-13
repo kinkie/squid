@@ -12,11 +12,11 @@
 
 #if USE_XPROF_STATS
 
+#include "SquidMath.h"
+#include "Store.h"
 #include "event.h"
 #include "mgr/Registration.h"
 #include "profiler/Profiler.h"
-#include "SquidMath.h"
-#include "Store.h"
 
 /* Private stuff */
 
@@ -41,10 +41,10 @@ static TimersArray *xprof_stats_avg5hour = NULL;
 static TimersArray *xprof_stats_avg24hour = NULL;
 
 static xprof_stats_node *sortlist[XPROF_LAST + 2];
-static void xprof_summary(StoreEntry * sentry);
+static void xprof_summary(StoreEntry *sentry);
 
 static void
-xprof_reset(xprof_stats_data * head)
+xprof_reset(xprof_stats_data *head)
 {
     head->summ = 0;
     head->count = 0;
@@ -56,7 +56,7 @@ xprof_reset(xprof_stats_data * head)
 }
 
 static void
-xprof_move(xprof_stats_data * head, xprof_stats_data * hist)
+xprof_move(xprof_stats_data *head, xprof_stats_data *hist)
 {
     memcpy(hist, head, sizeof(xprof_stats_data));
 }
@@ -64,8 +64,8 @@ xprof_move(xprof_stats_data * head, xprof_stats_data * hist)
 static int
 xprof_comp(const void *A, const void *B)
 {
-    const xprof_stats_node *ii = *(static_cast<const xprof_stats_node * const *>(A));
-    const xprof_stats_node *jj = *(static_cast<const xprof_stats_node * const *>(B));
+    const xprof_stats_node *ii = *(static_cast<const xprof_stats_node *const *>(A));
+    const xprof_stats_node *jj = *(static_cast<const xprof_stats_node *const *>(B));
 
     if (ii->hist.summ < jj->hist.summ)
         return (1);
@@ -77,19 +77,19 @@ xprof_comp(const void *A, const void *B)
 }
 
 static void
-xprof_sorthist(TimersArray * xprof_list)
+xprof_sorthist(TimersArray *xprof_list)
 {
     for (int i = 0; i < XPROF_LAST; ++i) {
         sortlist[i] = xprof_list[i];
     }
 
-    qsort(&sortlist[XPROF_PROF_UNACCOUNTED+1], XPROF_LAST - XPROF_PROF_UNACCOUNTED+1, sizeof(xprof_stats_node *), xprof_comp);
+    qsort(&sortlist[XPROF_PROF_UNACCOUNTED + 1], XPROF_LAST - XPROF_PROF_UNACCOUNTED + 1, sizeof(xprof_stats_node *), xprof_comp);
 }
 
 static double time_frame;
 
 static void
-xprof_show_item(StoreEntry * sentry, const char *name, xprof_stats_data * hist)
+xprof_show_item(StoreEntry *sentry, const char *name, xprof_stats_data *hist)
 {
     storeAppendPrintf(sentry,
                       "%s\t %" PRIu64 "\t %" PRIu64 "\t %" PRIu64 "\t %" PRIu64 "\t %" PRIu64 "\t %.2f\t %6.3f\t\n",
@@ -100,11 +100,11 @@ xprof_show_item(StoreEntry * sentry, const char *name, xprof_stats_data * hist)
                       hist->count ? hist->summ / hist->count : 0,
                       hist->worst,
                       hist->count / time_frame,
-                      Math::doublePercent((double) hist->summ, (double) hist->delta));
+                      Math::doublePercent((double)hist->summ, (double)hist->delta));
 }
 
 static void
-xprof_summary_item(StoreEntry * sentry, char const *descr, TimersArray * list)
+xprof_summary_item(StoreEntry *sentry, char const *descr, TimersArray *list)
 {
     int i;
     xprof_stats_node **hist;
@@ -118,14 +118,13 @@ xprof_summary_item(StoreEntry * sentry, char const *descr, TimersArray * list)
     if (!hist[0]->hist.delta)
         show = &hist[0]->accu;
 
-    time_frame = (double) show->delta / (double) xprof_average_delta;
+    time_frame = (double)show->delta / (double)xprof_average_delta;
 
     storeAppendPrintf(sentry, "\n%s:", descr);
 
     storeAppendPrintf(sentry, " (Cumulated time: %" PRIu64 ", %.2f sec)\n",
                       show->delta,
-                      time_frame
-                     );
+                      time_frame);
 
     storeAppendPrintf(sentry,
                       "Probe Name\t  Events\t cumulated time \t best case \t average \t worst case\t Rate / sec \t %% in int\n");
@@ -156,7 +155,7 @@ xprof_summary_item(StoreEntry * sentry, char const *descr, TimersArray * list)
 }
 
 static void
-xprof_average(TimersArray ** list, int secs)
+xprof_average(TimersArray **list, int secs)
 {
     int i;
     TimersArray *head = xprof_Timers;
@@ -208,7 +207,7 @@ xprof_average(TimersArray ** list, int secs)
 }
 
 void
-xprof_summary(StoreEntry * sentry)
+xprof_summary(StoreEntry *sentry)
 {
     hrtime_t now = get_tick();
 
@@ -218,7 +217,7 @@ xprof_summary(StoreEntry * sentry)
     storeAppendPrintf(sentry,
                       "Probe Name\t Event Count\t last Interval \t Avg Interval \t since squid start \t (since system boot) \n");
     storeAppendPrintf(sentry, "Total\t %lu\t %" PRIu64 " \t %" PRIu64 " \t %" PRIu64 " \t %" PRIu64 "\n",
-                      (long unsigned) xprof_events,
+                      (long unsigned)xprof_events,
                       xprof_delta,
                       xprof_average_delta,
                       now - xprof_verystart,
@@ -264,7 +263,7 @@ xprof_Init(void)
 
     xprof_inited = 1;
 
-    xprofRegisterWithCacheManager(); //moved here so it's not double-init'ed
+    xprofRegisterWithCacheManager();  //moved here so it's not double-init'ed
 }
 
 void
@@ -308,4 +307,3 @@ xprof_event(void *data)
 }
 
 #endif /* USE_XPROF_STATS */
-

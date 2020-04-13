@@ -11,13 +11,13 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS
-#include "acl/Acl.h"
-#include "acl/Gadgets.h"
 #include "ConfigParser.h"
 #include "DelayConfig.h"
 #include "DelayPool.h"
 #include "DelayPools.h"
 #include "Store.h"
+#include "acl/Acl.h"
+#include "acl/Gadgets.h"
 
 void
 DelayConfig::parsePoolCount()
@@ -97,7 +97,7 @@ DelayConfig::freePoolCount()
 }
 
 void
-DelayConfig::dumpPoolCount(StoreEntry * entry, const char *name) const
+DelayConfig::dumpPoolCount(StoreEntry *entry, const char *name) const
 {
     int i;
 
@@ -109,8 +109,7 @@ DelayConfig::dumpPoolCount(StoreEntry * entry, const char *name) const
     storeAppendPrintf(entry, "%s %d\n", name, DelayPools::pools());
 
     for (i = 0; i < DelayPools::pools(); ++i)
-        DelayPools::delay_data[i].dump (entry, i);
+        DelayPools::delay_data[i].dump(entry, i);
 }
 
 #endif /* USE_DELAY_POOLS */
-

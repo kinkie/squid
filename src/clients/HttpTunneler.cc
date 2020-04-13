@@ -7,23 +7,23 @@
  */
 
 #include "squid.h"
-#include "CachePeer.h"
 #include "clients/HttpTunneler.h"
+#include "CachePeer.h"
+#include "HttpRequest.h"
+#include "SquidConfig.h"
+#include "StatCounters.h"
 #include "comm/Read.h"
 #include "comm/Write.h"
 #include "errorpage.h"
 #include "fd.h"
 #include "fde.h"
 #include "http.h"
-#include "http/one/ResponseParser.h"
 #include "http/StateFlags.h"
-#include "HttpRequest.h"
-#include "SquidConfig.h"
-#include "StatCounters.h"
+#include "http/one/ResponseParser.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Http, Tunneler);
 
-Http::Tunneler::Tunneler(const Comm::ConnectionPointer &conn, const HttpRequest::Pointer &req, AsyncCall::Pointer &aCallback, time_t timeout, const AccessLogEntryPointer &alp):
+Http::Tunneler::Tunneler(const Comm::ConnectionPointer &conn, const HttpRequest::Pointer &req, AsyncCall::Pointer &aCallback, time_t timeout, const AccessLogEntryPointer &alp) :
     AsyncJob("Http::Tunneler"),
     connection(conn),
     request(req),
@@ -34,7 +34,7 @@ Http::Tunneler::Tunneler(const Comm::ConnectionPointer &conn, const HttpRequest:
     requestWritten(false),
     tunnelEstablished(false)
 {
-    debugs(83, 5, "Http::Tunneler constructed, this=" << (void*)this);
+    debugs(83, 5, "Http::Tunneler constructed, this=" << (void *)this);
     // detect callers supplying cb dialers that are not our CbDialer
     assert(request);
     assert(connection);
@@ -45,7 +45,7 @@ Http::Tunneler::Tunneler(const Comm::ConnectionPointer &conn, const HttpRequest:
 
 Http::Tunneler::~Tunneler()
 {
-    debugs(83, 5, "Http::Tunneler destructed, this=" << (void*)this);
+    debugs(83, 5, "Http::Tunneler destructed, this=" << (void *)this);
 }
 
 bool
@@ -74,7 +74,7 @@ Http::Tunneler::start()
     Must(lifetimeLimit >= 0);
 
     const auto peer = connection->getPeer();
-    Must(peer); // bail if our peer was reconfigured away
+    Must(peer);  // bail if our peer was reconfigured away
     request->prepForPeering(*peer);
 
     watchForClosures();
@@ -86,7 +86,7 @@ void
 Http::Tunneler::handleConnectionClosure(const CommCloseCbParams &params)
 {
     mustStop("server connection gone");
-    callback = nullptr; // the caller must monitor closures
+    callback = nullptr;  // the caller must monitor closures
 }
 
 /// make sure we quit if/when the connection is gone
@@ -105,7 +105,7 @@ Http::Tunneler::watchForClosures()
 }
 
 void
-Http::Tunneler::handleException(const std::exception& e)
+Http::Tunneler::handleException(const std::exception &e)
 {
     debugs(83, 2, e.what() << status());
     connection->close();
@@ -140,7 +140,7 @@ Http::Tunneler::writeRequest()
         mb.appendf("CONNECT %s HTTP/1.1\r\n", url.c_str());
         HttpHeader hdr_out(hoRequest);
         HttpStateData::httpBuildRequestHeader(request.getRaw(),
-                                              nullptr, // StoreEntry
+                                              nullptr,  // StoreEntry
                                               al,
                                               &hdr_out,
                                               flags);
@@ -155,8 +155,8 @@ Http::Tunneler::writeRequest()
         throw;
     }
 
-    debugs(11, 2, "Tunnel Server REQUEST: " << connection <<
-           ":\n----------\n" << mb.buf << "\n----------");
+    debugs(11, 2, "Tunnel Server REQUEST: " << connection << ":\n----------\n"
+                                            << mb.buf << "\n----------");
     fd_note(connection->fd, "Tunnel Server CONNECT");
 
     typedef CommCbMemFunT<Http::Tunneler, CommIoCbParams> Dialer;
@@ -218,7 +218,7 @@ Http::Tunneler::handleReadyRead(const CommIoCbParams &io)
         delayId.bytesIn(rd.size);
 #endif
         statCounter.server.all.kbytes_in += rd.size;
-        statCounter.server.other.kbytes_in += rd.size; // TODO: other or http?
+        statCounter.server.other.kbytes_in += rd.size;  // TODO: other or http?
         request->hier.notePeerRead();
         handleResponse(false);
         return;
@@ -231,7 +231,7 @@ Http::Tunneler::handleReadyRead(const CommIoCbParams &io)
     }
 
     // case Comm::COMM_ERROR:
-    default: // no other flags should ever occur
+    default:  // no other flags should ever occur
     {
         const auto error = new ErrorState(ERR_READ_ERROR, Http::scBadGateway, request.getRaw(), al);
         error->xerrno = rd.xerrno;
@@ -240,7 +240,7 @@ Http::Tunneler::handleReadyRead(const CommIoCbParams &io)
     }
     }
 
-    assert(false); // not reached
+    assert(false);  // not reached
 }
 
 void
@@ -267,7 +267,7 @@ Http::Tunneler::handleResponse(const bool eof)
     if (hp == nullptr)
         hp = new Http1::ResponseParser;
 
-    auto parsedOk = hp->parse(readBuf); // may be refined below
+    auto parsedOk = hp->parse(readBuf);  // may be refined below
     readBuf = hp->remaining();
     if (hp->needsMoreData()) {
         if (!eof) {
@@ -304,9 +304,8 @@ Http::Tunneler::handleResponse(const bool eof)
     request->hier.peer_reply_status = rep->sline.status();
 
     debugs(11, 2, "Tunnel Server " << connection);
-    debugs(11, 2, "Tunnel Server RESPONSE:\n---------\n" <<
-           Raw(nullptr, readBuf.rawContent(), rep->hdr_sz).minLevel(2).gap(false) <<
-           "----------");
+    debugs(11, 2, "Tunnel Server RESPONSE:\n---------\n"
+               << Raw(nullptr, readBuf.rawContent(), rep->hdr_sz).minLevel(2).gap(false) << "----------");
 
     // bail if we did not get an HTTP 200 (Connection Established) response
     if (rep->sline.status() != Http::scOkay) {
@@ -362,7 +361,7 @@ Http::Tunneler::swanSong()
     if (callback) {
         if (requestWritten && tunnelEstablished) {
             assert(answer().positive());
-            callBack(); // success
+            callBack();  // success
         } else {
             // we should have bailed when we discovered the job-killing problem
             debugs(83, DBG_IMPORTANT, "BUG: Unexpected state while establishing a CONNECT tunnel " << connection << status());
@@ -391,12 +390,15 @@ Http::Tunneler::status() const
     // TODO: redesign AsyncJob::status() API to avoid
     // id and stop reason reporting duplication.
     buf.append(" [state:", 8);
-    if (requestWritten) buf.append("w", 1); // request sent
-    if (tunnelEstablished) buf.append("t", 1); // tunnel established
-    if (!callback) buf.append("x", 1); // caller informed
+    if (requestWritten)
+        buf.append("w", 1);  // request sent
+    if (tunnelEstablished)
+        buf.append("t", 1);  // tunnel established
+    if (!callback)
+        buf.append("x", 1);  // caller informed
     if (stopReason != nullptr) {
         buf.append(" stopped, reason:", 16);
-        buf.appendf("%s",stopReason);
+        buf.appendf("%s", stopReason);
     }
     if (connection != nullptr)
         buf.appendf(" FD %d", connection->fd);
@@ -405,4 +407,3 @@ Http::Tunneler::status() const
 
     return buf.content();
 }
-

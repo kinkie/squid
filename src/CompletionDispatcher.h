@@ -18,7 +18,6 @@ class CompletionDispatcher
 {
 
 public:
-
     virtual ~CompletionDispatcher() {}
 
     /* dispatch events. This should return true if there were events dispatched
@@ -28,4 +27,3 @@ public:
 };
 
 #endif /* SQUID_COMPLETIONDISPATCHER_H */
-

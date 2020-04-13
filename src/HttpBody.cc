@@ -9,14 +9,13 @@
 /* DEBUG: section 56    HTTP Message Body */
 
 #include "squid.h"
-#include "base/Packable.h"
 #include "HttpBody.h"
+#include "base/Packable.h"
 
 void
-HttpBody::packInto(Packable * p) const
+HttpBody::packInto(Packable *p) const
 {
     assert(p);
     if (const auto size = contentSize())
         p->append(content(), size);
 }
-

@@ -13,22 +13,22 @@
  * See acl.c for access control and client_side.c for auditing */
 
 #include "squid.h"
-#include "auth/Gadgets.h"
 #include "auth/negotiate/Config.h"
+#include "HttpHeaderTools.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "SquidTime.h"
+#include "Store.h"
+#include "auth/Gadgets.h"
+#include "auth/State.h"
 #include "auth/negotiate/Scheme.h"
 #include "auth/negotiate/User.h"
 #include "auth/negotiate/UserRequest.h"
-#include "auth/State.h"
 #include "cache_cf.h"
 #include "client_side.h"
 #include "helper.h"
 #include "http/Stream.h"
-#include "HttpHeaderTools.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 #include "mgr/Registration.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "wordlist.h"
 
 static AUTHSSTATS authenticateNegotiateStats;
@@ -94,7 +94,7 @@ Auth::Negotiate::Config::init(Auth::SchemeConfig *)
             negotiateauthenticators = new statefulhelper("negotiateauthenticator");
 
         if (!proxy_auth_cache)
-            proxy_auth_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+            proxy_auth_cache = hash_create((HASHCMP *)strcmp, 7921, hash_string);
 
         assert(proxy_auth_cache);
 
@@ -135,7 +135,7 @@ Auth::Negotiate::Config::configured() const
 }
 
 void
-Auth::Negotiate::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request, HttpReply *rep, Http::HdrType reqType, HttpRequest * request)
+Auth::Negotiate::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request, HttpReply *rep, Http::HdrType reqType, HttpRequest *request)
 {
     if (!authenticateProgram)
         return;
@@ -165,7 +165,7 @@ Auth::Negotiate::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request,
              * tied to it, even if MAYBE the client could handle it - Kinkie */
             rep->header.delByName("keep-alive");
             request->flags.proxyKeepalive = false;
-        /* fall through */
+            /* fall through */
 
         case Auth::Ok:
             /* Special case: authentication finished OK but disallowed by ACL.
@@ -203,7 +203,7 @@ Auth::Negotiate::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request,
 }
 
 static void
-authenticateNegotiateStats(StoreEntry * sentry)
+authenticateNegotiateStats(StoreEntry *sentry)
 {
     if (negotiateauthenticators)
         negotiateauthenticators->packStatsInto(sentry, "Negotiate Authenticator Statistics");
@@ -229,4 +229,3 @@ Auth::Negotiate::Config::decode(char const *proxy_auth, const HttpRequest *, con
     debugs(29, 9, HERE << "decode Negotiate authentication");
     return auth_user_request;
 }
-

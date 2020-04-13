@@ -15,8 +15,7 @@
 #include "auth/SchemeConfig.h"
 #include "auth/SchemesConfig.h"
 
-namespace Auth
-{
+namespace Auth {
 
 class Config
 {
@@ -51,8 +50,7 @@ public:
 
 extern Auth::Config TheConfig;
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* SQUID_SRC_AUTH_CONFIG_H */
-

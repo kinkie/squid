@@ -13,7 +13,8 @@
 #include "globals.h" /* for Squid_MaxFD */
 
 // pre-allocates descriptor store and index for Squid_MaxFD descriptors
-DescriptorSet::DescriptorSet(): descriptors_(NULL), index_(NULL),
+DescriptorSet::DescriptorSet() :
+    descriptors_(NULL), index_(NULL),
     capacity_(0), size_(0)
 {
     // we allocate once and never realloc, at least for now
@@ -37,27 +38,27 @@ DescriptorSet::~DescriptorSet()
 bool
 DescriptorSet::add(int fd)
 {
-    assert(0 <= fd && fd < capacity_); // \todo: replace with Must()
+    assert(0 <= fd && fd < capacity_);  // \todo: replace with Must()
 
     if (has(fd))
-        return false; // already have it
+        return false;  // already have it
 
-    assert(size_ < capacity_); // \todo: replace with Must()
+    assert(size_ < capacity_);  // \todo: replace with Must()
     const int pos = size_;
     ++size_;
     index_[fd] = pos;
     descriptors_[pos] = fd;
-    return true; // really added
+    return true;  // really added
 }
 
 /// deletes if there; returns true if deleted
 bool
 DescriptorSet::del(int fd)
 {
-    assert(0 <= fd && fd < capacity_); // \todo: here and below, use Must()
+    assert(0 <= fd && fd < capacity_);  // \todo: here and below, use Must()
 
     if (!has(fd))
-        return false; // we do not have it
+        return false;  // we do not have it
 
     assert(!empty());
     const int delPos = index_[fd];
@@ -65,9 +66,9 @@ DescriptorSet::del(int fd)
 
     // move the last descriptor to the deleted fd position
     // to avoid skipping deleted descriptors in pop()
-    const int lastPos = size_-1;
+    const int lastPos = size_ - 1;
     const int lastFd = descriptors_[lastPos];
-    assert(delPos <= lastPos); // may be the same
+    assert(delPos <= lastPos);  // may be the same
     descriptors_[delPos] = lastFd;
     index_[lastFd] = delPos;
 
@@ -75,7 +76,7 @@ DescriptorSet::del(int fd)
     index_[fd] = -1;
     --size_;
 
-    return true; // really added
+    return true;  // really added
 }
 
 /// ejects one descriptor in unspecified order
@@ -83,7 +84,7 @@ int
 DescriptorSet::pop()
 {
     assert(!empty());
-    const int lastPos =--size_;
+    const int lastPos = --size_;
     const int lastFd = descriptors_[lastPos];
     assert(0 <= lastFd && lastFd < capacity_);
 
@@ -100,4 +101,3 @@ DescriptorSet::print(std::ostream &os) const
     // \todo add "name" if the set is used for more than just half-closed FDs
     os << size_ << " FDs";
 }
-

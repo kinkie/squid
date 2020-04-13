@@ -9,16 +9,16 @@
 /* DEBUG: section 93    eCAP Interface */
 
 #include "squid.h"
-#include <libecap/adapter/service.h>
-#include <libecap/common/names.h>
-#include <libecap/common/registry.h>
 #include "adaptation/ecap/Host.h"
-#include "adaptation/ecap/MessageRep.h"
-#include "adaptation/ecap/ServiceRep.h"
-#include "base/TextException.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "MasterXaction.h"
+#include "adaptation/ecap/MessageRep.h"
+#include "adaptation/ecap/ServiceRep.h"
+#include "base/TextException.h"
+#include <libecap/adapter/service.h>
+#include <libecap/common/names.h>
+#include <libecap/common/registry.h>
 
 const libecap::Name Adaptation::Ecap::protocolInternal("internal", libecap::Name::NextId());
 const libecap::Name Adaptation::Ecap::protocolCacheObj("cache_object", libecap::Name::NextId());
@@ -84,9 +84,8 @@ EssentialVersion(const SBuf &raw)
     // all libecap x.y.* releases are supposed to be compatible so we strip
     // everything after the second period
     const SBuf::size_type minorPos = raw.find('.');
-    const SBuf::size_type microPos = minorPos == SBuf::npos ?
-                                     SBuf::npos : raw.find('.', minorPos+1);
-    return raw.substr(0, microPos); // becomes raw if microPos is npos
+    const SBuf::size_type microPos = minorPos == SBuf::npos ? SBuf::npos : raw.find('.', minorPos + 1);
+    return raw.substr(0, microPos);  // becomes raw if microPos is npos
 }
 
 /// If "their" libecap version is not compatible with what Squid has been built
@@ -95,8 +94,7 @@ static bool
 SupportedVersion(const char *vTheir, const char *them)
 {
     if (!vTheir || !*vTheir) {
-        debugs(93, DBG_CRITICAL, "ERROR: Cannot use " << them <<
-               " with libecap prior to v1.0.");
+        debugs(93, DBG_CRITICAL, "ERROR: Cannot use " << them << " with libecap prior to v1.0.");
         return false;
     }
 
@@ -105,11 +103,9 @@ SupportedVersion(const char *vTheir, const char *them)
     debugs(93, 2, them << " with libecap v" << vTheir << "; us: v" << vSupported);
 
     if (EssentialVersion(SBuf(vTheir)) == EssentialVersion(vSupported))
-        return true; // their version is supported
+        return true;  // their version is supported
 
-    debugs(93, DBG_CRITICAL, "ERROR: Cannot use " << them <<
-           " with libecap v" << vTheir <<
-           ": incompatible with supported libecap v" << vSupported);
+    debugs(93, DBG_CRITICAL, "ERROR: Cannot use " << them << " with libecap v" << vTheir << ": incompatible with supported libecap v" << vSupported);
     return false;
 }
 
@@ -132,25 +128,23 @@ static int
 SquidLogLevel(libecap::LogVerbosity lv)
 {
     if (lv.critical())
-        return DBG_CRITICAL; // is it a good idea to ignore other flags?
+        return DBG_CRITICAL;  // is it a good idea to ignore other flags?
 
     if (lv.large())
-        return DBG_DATA; // is it a good idea to ignore other flags?
+        return DBG_DATA;  // is it a good idea to ignore other flags?
 
     if (lv.application())
         return lv.normal() ? DBG_IMPORTANT : 2;
 
-    return 2 + 2*lv.debugging() + 3*lv.operation() + 2*lv.xaction();
+    return 2 + 2 * lv.debugging() + 3 * lv.operation() + 2 * lv.xaction();
 }
 
 std::ostream *
 Adaptation::Ecap::Host::openDebug(libecap::LogVerbosity lv)
 {
     const int squidLevel = SquidLogLevel(lv);
-    const int squidSection = 93; // XXX: this should be a global constant
-    return Debug::Enabled(squidSection, squidLevel) ?
-           &Debug::Start(squidSection, squidLevel) :
-           nullptr;
+    const int squidSection = 93;  // XXX: this should be a global constant
+    return Debug::Enabled(squidSection, squidLevel) ? &Debug::Start(squidSection, squidLevel) : nullptr;
 }
 
 void
@@ -176,10 +170,8 @@ Adaptation::Ecap::Host::newResponse() const
 void
 Adaptation::Ecap::Host::Register()
 {
-    if (!TheHost && SupportedVersion(libecap::VersionString(),
-                                     "Squid executable dynamically linked")) {
+    if (!TheHost && SupportedVersion(libecap::VersionString(), "Squid executable dynamically linked")) {
         TheHost.reset(new Adaptation::Ecap::Host);
         libecap::RegisterHost(TheHost);
     }
 }
-

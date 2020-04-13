@@ -17,10 +17,10 @@
 #include "comm/forward.h"
 #include "dlink.h"
 #include "helper/ChildConfig.h"
-#include "helper/forward.h"
 #include "helper/Reply.h"
 #include "helper/Request.h"
 #include "helper/ReservationId.h"
+#include "helper/forward.h"
 #include "ip/Address.h"
 #include "sbuf/SBuf.h"
 
@@ -32,13 +32,15 @@
 class Packable;
 class wordlist;
 
-namespace Helper
-{
+namespace Helper {
 /// Holds the  required data to serve a helper request.
-class Xaction {
+class Xaction
+{
     MEMPROXY_CLASS(Helper::Xaction);
+
 public:
-    Xaction(HLPCB *c, void *d, const char *b): request(c, d, b) {}
+    Xaction(HLPCB *c, void *d, const char *b) :
+        request(c, d, b) {}
     Helper::Request request;
     Helper::Reply reply;
 };
@@ -76,7 +78,8 @@ public:
         timeout(0),
         retryTimedOut(false),
         retryBrokenHelper(false),
-        eom('\n') {
+        eom('\n')
+    {
         memset(&stats, 0, sizeof(stats));
     }
     ~helper();
@@ -85,7 +88,7 @@ public:
     Helper::Xaction *nextRequest();
 
     /// If possible, submit request. Otherwise, either kill Squid or return false.
-    bool trySubmit(const char *buf, HLPCB * callback, void *data);
+    bool trySubmit(const char *buf, HLPCB *callback, void *data);
 
     /// Submits a request to the helper or add it to the queue if none of
     /// the servers is available.
@@ -107,18 +110,18 @@ public:
     dlink_list servers;
     std::queue<Helper::Xaction *> queue;
     const char *id_name;
-    Helper::ChildConfig childs;    ///< Configuration settings for number running.
+    Helper::ChildConfig childs;  ///< Configuration settings for number running.
     int ipc_type;
     Ip::Address addr;
-    unsigned int droppedRequests; ///< requests not sent during helper overload
-    time_t overloadStart; ///< when the helper became overloaded (zero if it is not)
+    unsigned int droppedRequests;  ///< requests not sent during helper overload
+    time_t overloadStart;          ///< when the helper became overloaded (zero if it is not)
     time_t last_queue_warn;
     time_t last_restart;
-    time_t timeout; ///< Requests timeout
-    bool retryTimedOut; ///< Whether the timed-out requests must retried
-    bool retryBrokenHelper; ///< Whether the requests must retried on BH replies
-    SBuf onTimedOutResponse; ///< The response to use when helper response timedout
-    char eom;   ///< The char which marks the end of (response) message, normally '\n'
+    time_t timeout;           ///< Requests timeout
+    bool retryTimedOut;       ///< Whether the timed-out requests must retried
+    bool retryBrokenHelper;   ///< Whether the requests must retried on BH replies
+    SBuf onTimedOutResponse;  ///< The response to use when helper response timedout
+    char eom;                 ///< The char which marks the end of (response) message, normally '\n'
 
     struct _stats {
         int requests;
@@ -129,12 +132,12 @@ public:
     } stats;
 
 protected:
-    friend void helperSubmit(helper * hlp, const char *buf, HLPCB * callback, void *data);
+    friend void helperSubmit(helper *hlp, const char *buf, HLPCB *callback, void *data);
     bool queueFull() const;
     bool overloaded() const;
     void syncQueueStats();
     bool prepSubmit();
-    void submit(const char *buf, HLPCB * callback, void *data);
+    void submit(const char *buf, HLPCB *callback, void *data);
 };
 
 class statefulhelper : public helper
@@ -144,31 +147,32 @@ class statefulhelper : public helper
 public:
     typedef std::unordered_map<Helper::ReservationId, helper_stateful_server *> Reservations;
 
-    inline statefulhelper(const char *name) : helper(name) {}
+    inline statefulhelper(const char *name) :
+        helper(name) {}
     inline ~statefulhelper() {}
 
 public:
     /// reserve the given server
-    void reserveServer(helper_stateful_server * srv);
+    void reserveServer(helper_stateful_server *srv);
 
     /// undo reserveServer(), clear the reservation and kick the queue
     void cancelReservation(const Helper::ReservationId reservation);
 
 private:
-    friend void helperStatefulSubmit(statefulhelper * hlp, const char *buf, HLPCB * callback, void *data, const Helper::ReservationId & reservation);
+    friend void helperStatefulSubmit(statefulhelper *hlp, const char *buf, HLPCB *callback, void *data, const Helper::ReservationId &reservation);
 
     /// \return the previously reserved server (if the reservation is still valid) or nil
-    helper_stateful_server *findServer(const Helper::ReservationId & reservation);
+    helper_stateful_server *findServer(const Helper::ReservationId &reservation);
 
-    void submit(const char *buf, HLPCB * callback, void *data, const Helper::ReservationId & reservation);
-    bool trySubmit(const char *buf, HLPCB * callback, void *data, const Helper::ReservationId & reservation);
+    void submit(const char *buf, HLPCB *callback, void *data, const Helper::ReservationId &reservation);
+    bool trySubmit(const char *buf, HLPCB *callback, void *data, const Helper::ReservationId &reservation);
 
     ///< reserved servers indexed by reservation IDs
     Reservations reservations;
 };
 
 /// represents a single helper process abstraction
-class HelperServerBase: public CbdataParent
+class HelperServerBase : public CbdataParent
 {
 public:
     virtual ~HelperServerBase();
@@ -223,14 +227,14 @@ public:
     } flags;
 
     typedef std::list<Helper::Xaction *> Requests;
-    Requests requests; ///< requests in order of submission/expiration
+    Requests requests;  ///< requests in order of submission/expiration
 
     struct {
-        uint64_t uses;     //< requests sent to this helper
-        uint64_t replies;  //< replies received from this helper
-        uint64_t pending;  //< queued lookups waiting to be sent to this helper
-        uint64_t releases; //< times release() has been called on this helper (if stateful)
-        uint64_t timedout; //< requests which timed-out
+        uint64_t uses;      //< requests sent to this helper
+        uint64_t replies;   //< replies received from this helper
+        uint64_t pending;   //< queued lookups waiting to be sent to this helper
+        uint64_t releases;  //< times release() has been called on this helper (if stateful)
+        uint64_t timedout;  //< requests which timed-out
     } stats;
     void initStats();
 };
@@ -263,7 +267,7 @@ public:
 
     // STL says storing std::list iterators is safe when changing the list
     typedef std::map<uint64_t, Requests::iterator> RequestIndex;
-    RequestIndex requestsIndex; ///< maps request IDs to requests
+    RequestIndex requestsIndex;  ///< maps request IDs to requests
 
     virtual ~helper_server();
     /// Search in queue for the request with requestId, return the related
@@ -277,9 +281,9 @@ public:
     void checkForTimedOutRequests(bool const retry);
 
     /*HelperServerBase API*/
-    virtual bool reserved() override {return false;}
+    virtual bool reserved() override { return false; }
     virtual void dropQueued() override;
-    virtual helper *getParent() const override {return parent;}
+    virtual helper *getParent() const override { return parent; }
 
     /// Read timeout handler
     static void requestTimeout(const CommTimeoutCbParams &io);
@@ -300,8 +304,8 @@ public:
     void clearReservation();
 
     /* HelperServerBase API */
-    virtual bool reserved() override {return reservationId.reserved();}
-    virtual helper *getParent() const override {return parent;}
+    virtual bool reserved() override { return reservationId.reserved(); }
+    virtual helper *getParent() const override { return parent; }
 
     /// close handler to handle exited server processes
     static void HelperServerClosed(helper_stateful_server *srv);
@@ -312,17 +316,16 @@ public:
     // client keeps the reservation ID as a proof of her reservation. If a
     // reservation expires, and the server is reserved for another client, then
     // the reservation ID presented by the late client will not match ours.
-    Helper::ReservationId reservationId; ///< "confirmation ID" of the last
-    time_t reservationStart; ///< when the last `reservation` was made
+    Helper::ReservationId reservationId;  ///< "confirmation ID" of the last
+    time_t reservationStart;              ///< when the last `reservation` was made
 };
 
 /* helper.c */
-void helperOpenServers(helper * hlp);
-void helperStatefulOpenServers(statefulhelper * hlp);
-void helperSubmit(helper * hlp, const char *buf, HLPCB * callback, void *data);
-void helperStatefulSubmit(statefulhelper * hlp, const char *buf, HLPCB * callback, void *data, uint64_t reservation);
-void helperShutdown(helper * hlp);
-void helperStatefulShutdown(statefulhelper * hlp);
+void helperOpenServers(helper *hlp);
+void helperStatefulOpenServers(statefulhelper *hlp);
+void helperSubmit(helper *hlp, const char *buf, HLPCB *callback, void *data);
+void helperStatefulSubmit(statefulhelper *hlp, const char *buf, HLPCB *callback, void *data, uint64_t reservation);
+void helperShutdown(helper *hlp);
+void helperStatefulShutdown(statefulhelper *hlp);
 
 #endif /* SQUID_HELPER_H */
-

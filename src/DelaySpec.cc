@@ -11,16 +11,18 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS
-#include "cache_cf.h"
 #include "DelaySpec.h"
 #include "Parsing.h"
 #include "Store.h"
+#include "cache_cf.h"
 
-DelaySpec::DelaySpec() : restore_bps(-1), max_bytes (-1)
-{}
+DelaySpec::DelaySpec() :
+    restore_bps(-1), max_bytes(-1)
+{
+}
 
 void
-DelaySpec::stats (StoreEntry * sentry, char const *label) const
+DelaySpec::stats(StoreEntry *sentry, char const *label) const
 {
     if (restore_bps == -1) {
         storeAppendPrintf(sentry, "\t%s:\n\t\tDisabled.\n\n", label);
@@ -33,7 +35,7 @@ DelaySpec::stats (StoreEntry * sentry, char const *label) const
 }
 
 void
-DelaySpec::dump (StoreEntry *entry) const
+DelaySpec::dump(StoreEntry *entry) const
 {
     storeAppendPrintf(entry, " %d/%" PRId64 "", restore_bps, max_bytes);
 }
@@ -61,7 +63,7 @@ DelaySpec::parse()
         debugs(77, DBG_CRITICAL, "ERROR: invalid delay rate '" << token << "'. Expecting restore/max or 'none'.");
         self_destruct();
     }
-    p++; // increment past the '/'
+    p++;  // increment past the '/'
 
     // parse the rest into max_bytes
     if (!StringToInt64(p, max_bytes, NULL, 10)) {
@@ -71,4 +73,3 @@ DelaySpec::parse()
 }
 
 #endif
-

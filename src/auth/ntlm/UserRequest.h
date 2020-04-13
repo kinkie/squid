@@ -12,57 +12,55 @@
 #if HAVE_AUTH_MODULE_NTLM
 
 #include "auth/UserRequest.h"
-#include "helper/forward.h"
 #include "helper/ReservationId.h"
+#include "helper/forward.h"
 
 class ConnStateData;
 class HttpReply;
 class HttpRequest;
 
-namespace Auth
-{
-namespace Ntlm
-{
+namespace Auth {
+namespace Ntlm {
 
-class UserRequest : public Auth::UserRequest
-{
-    MEMPROXY_CLASS(Auth::Ntlm::UserRequest);
+    class UserRequest : public Auth::UserRequest
+    {
+        MEMPROXY_CLASS(Auth::Ntlm::UserRequest);
 
-public:
-    UserRequest();
-    virtual ~UserRequest();
-    virtual int authenticated() const;
-    virtual void authenticate(HttpRequest * request, ConnStateData * conn, Http::HdrType type);
-    virtual Auth::Direction module_direction();
-    virtual void startHelperLookup(HttpRequest *req, AccessLogEntry::Pointer &al, AUTHCB *, void *);
-    virtual const char *credentialsStr();
+    public:
+        UserRequest();
+        virtual ~UserRequest();
+        virtual int authenticated() const;
+        virtual void authenticate(HttpRequest *request, ConnStateData *conn, Http::HdrType type);
+        virtual Auth::Direction module_direction();
+        virtual void startHelperLookup(HttpRequest *req, AccessLogEntry::Pointer &al, AUTHCB *, void *);
+        virtual const char *credentialsStr();
 
-    virtual const char * connLastHeader();
+        virtual const char *connLastHeader();
 
-    virtual void releaseAuthServer(); ///< Release authserver NTLM helpers properly when finished or abandoning.
+        virtual void releaseAuthServer();  ///< Release authserver NTLM helpers properly when finished or abandoning.
 
-    /* our current blob to pass to the client */
-    char *server_blob;
+        /* our current blob to pass to the client */
+        char *server_blob;
 
-    /* our current blob to pass to the server */
-    char *client_blob;
+        /* our current blob to pass to the server */
+        char *client_blob;
 
-    /* currently waiting for helper response */
-    unsigned char waiting;
+        /* currently waiting for helper response */
+        unsigned char waiting;
 
-    /* need access to the request flags to mess around on pconn failure */
-    HttpRequest *request;
+        /* need access to the request flags to mess around on pconn failure */
+        HttpRequest *request;
 
-    /// a helper-issued reservation locking the helper state between
-    /// HTTP requests
-    Helper::ReservationId reservationId;
-private:
-    static HLPCB HandleReply;
-};
+        /// a helper-issued reservation locking the helper state between
+        /// HTTP requests
+        Helper::ReservationId reservationId;
 
-} // namespace Ntlm
-} // namespace Auth
+    private:
+        static HLPCB HandleReply;
+    };
+
+}  // namespace Ntlm
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_NTLM */
 #endif /* _SQUID_SRC_AUTH_NTLM_USERREQUEST_H */
-

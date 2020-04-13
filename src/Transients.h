@@ -9,10 +9,10 @@
 #ifndef SQUID_TRANSIENTS_H
 #define SQUID_TRANSIENTS_H
 
+#include "Store.h"
+#include "ipc/StoreMap.h"
 #include "ipc/mem/Page.h"
 #include "ipc/mem/PageStack.h"
-#include "ipc/StoreMap.h"
-#include "Store.h"
 #include "store/Controlled.h"
 #include "store/forward.h"
 #include <vector>
@@ -23,16 +23,16 @@ typedef Ipc::StoreMap TransientsMap;
 /// those entries were [fully] cached. This SMP-shared table is necessary to
 /// * sync an entry-writing worker with entry-reading worker(s); and
 /// * sync an entry-deleting worker with both entry-reading/writing workers.
-class Transients: public Store::Controlled, public Ipc::StoreMapCleaner
+class Transients : public Store::Controlled, public Ipc::StoreMapCleaner
 {
 public:
     /// shared entry metadata, used for synchronization
     class EntryStatus
     {
     public:
-        bool abortedByWriter = false; ///< whether the entry was aborted
-        bool waitingToBeFreed = false; ///< whether the entry was marked for deletion
-        bool collapsed = false; ///< whether the entry allows collapsing
+        bool abortedByWriter = false;   ///< whether the entry was aborted
+        bool waitingToBeFreed = false;  ///< whether the entry was marked for deletion
+        bool collapsed = false;         ///< whether the entry allows collapsing
     };
 
     Transients();
@@ -46,7 +46,7 @@ public:
 
     /// start listening for remote DELETE requests targeting either a complete
     /// StoreEntry (ioReading) or a being-formed miss StoreEntry (ioWriting)
-    void monitorIo(StoreEntry*, const cache_key*, const Store::IoStatus);
+    void monitorIo(StoreEntry *, const cache_key *, const Store::IoStatus);
 
     /// called when the in-transit entry has been successfully cached
     void completeWriting(const StoreEntry &e);
@@ -94,7 +94,7 @@ public:
     static bool Enabled() { return EntryLimit(); }
 
 protected:
-    void addEntry(StoreEntry*, const cache_key *, const Store::IoStatus);
+    void addEntry(StoreEntry *, const cache_key *, const Store::IoStatus);
 
     // Ipc::StoreMapCleaner API
     virtual void noteFreeMapSlice(const Ipc::StoreMapSliceId sliceId) override;
@@ -103,7 +103,7 @@ private:
     /// shared packed info indexed by Store keys, for creating new StoreEntries
     TransientsMap *map;
 
-    typedef std::vector<StoreEntry*> Locals;
+    typedef std::vector<StoreEntry *> Locals;
     /// local collapsed reader and writer entries, indexed by transient ID,
     /// for syncing old StoreEntries
     Locals *locals;
@@ -112,4 +112,3 @@ private:
 // TODO: Why use Store as a base? We are not really a cache.
 
 #endif /* SQUID_TRANSIENTS_H */
-

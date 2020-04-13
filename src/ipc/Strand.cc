@@ -9,17 +9,17 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/Subscription.h"
-#include "base/TextException.h"
+#include "ipc/Strand.h"
 #include "CacheManager.h"
 #include "CollapsedForwarding.h"
+#include "base/Subscription.h"
+#include "base/TextException.h"
 #include "comm/Connection.h"
 #include "fatal.h"
 #include "globals.h"
 #include "ipc/Kids.h"
 #include "ipc/Messages.h"
 #include "ipc/SharedListen.h"
-#include "ipc/Strand.h"
 #include "ipc/StrandCoord.h"
 #include "ipc/StrandSearch.h"
 #include "mgr/Forwarder.h"
@@ -36,19 +36,21 @@
 
 CBDATA_NAMESPACED_CLASS_INIT(Ipc, Strand);
 
-Ipc::Strand::Strand():
+Ipc::Strand::Strand() :
     Port(MakeAddr(strandAddrLabel, KidIdentifier)),
     isRegistered(false)
 {
 }
 
-void Ipc::Strand::start()
+void
+Ipc::Strand::start()
 {
     Port::start();
     registerSelf();
 }
 
-void Ipc::Strand::registerSelf()
+void
+Ipc::Strand::registerSelf()
 {
     debugs(54, 6, HERE);
     Must(!isRegistered);
@@ -57,10 +59,11 @@ void Ipc::Strand::registerSelf()
     TypedMsgHdr message;
     ann.pack(message);
     SendMessage(Port::CoordinatorAddr(), message);
-    setTimeout(6, "Ipc::Strand::timeoutHandler"); // TODO: make 6 configurable?
+    setTimeout(6, "Ipc::Strand::timeoutHandler");  // TODO: make 6 configurable?
 }
 
-void Ipc::Strand::receive(const TypedMsgHdr &message)
+void
+Ipc::Strand::receive(const TypedMsgHdr &message)
 {
     debugs(54, 6, HERE << message.type());
     switch (message.type()) {
@@ -86,14 +89,12 @@ void Ipc::Strand::receive(const TypedMsgHdr &message)
     case mtCacheMgrRequest: {
         const Mgr::Request req(message);
         handleCacheMgrRequest(req);
-    }
-    break;
+    } break;
 
     case mtCacheMgrResponse: {
         const Mgr::Response resp(message);
         handleCacheMgrResponse(resp);
-    }
-    break;
+    } break;
 
     case mtCollapsedForwardingNotification:
         CollapsedForwarding::HandleNotification(message);
@@ -103,14 +104,12 @@ void Ipc::Strand::receive(const TypedMsgHdr &message)
     case mtSnmpRequest: {
         const Snmp::Request req(message);
         handleSnmpRequest(req);
-    }
-    break;
+    } break;
 
     case mtSnmpResponse: {
         const Snmp::Response resp(message);
         handleSnmpResponse(resp);
-    }
-    break;
+    } break;
 #endif
 
     default:
@@ -119,12 +118,13 @@ void Ipc::Strand::receive(const TypedMsgHdr &message)
     }
 }
 
-void Ipc::Strand::handleRegistrationResponse(const HereIamMessage &msg)
+void
+Ipc::Strand::handleRegistrationResponse(const HereIamMessage &msg)
 {
     // handle registration response from the coordinator; it could be stale
     if (msg.strand.kidId == KidIdentifier && msg.strand.pid == getpid()) {
         debugs(54, 6, "kid" << KidIdentifier << " registered");
-        clearTimeout(); // we are done
+        clearTimeout();  // we are done
     } else {
         // could be an ACK to the registration message of our dead predecessor
         debugs(54, 6, "kid" << KidIdentifier << " is not yet registered");
@@ -132,36 +132,39 @@ void Ipc::Strand::handleRegistrationResponse(const HereIamMessage &msg)
     }
 }
 
-void Ipc::Strand::handleCacheMgrRequest(const Mgr::Request& request)
+void
+Ipc::Strand::handleCacheMgrRequest(const Mgr::Request &request)
 {
-    Mgr::Action::Pointer action =
-        CacheManager::GetInstance()->createRequestedAction(request.params);
+    Mgr::Action::Pointer action = CacheManager::GetInstance()->createRequestedAction(request.params);
     action->respond(request);
 }
 
-void Ipc::Strand::handleCacheMgrResponse(const Mgr::Response& response)
+void
+Ipc::Strand::handleCacheMgrResponse(const Mgr::Response &response)
 {
     Mgr::Forwarder::HandleRemoteAck(response.requestId);
 }
 
 #if SQUID_SNMP
-void Ipc::Strand::handleSnmpRequest(const Snmp::Request& request)
+void
+Ipc::Strand::handleSnmpRequest(const Snmp::Request &request)
 {
     debugs(54, 6, HERE);
     Snmp::SendResponse(request.requestId, request.pdu);
 }
 
-void Ipc::Strand::handleSnmpResponse(const Snmp::Response& response)
+void
+Ipc::Strand::handleSnmpResponse(const Snmp::Response &response)
 {
     debugs(54, 6, HERE);
     Snmp::Forwarder::HandleRemoteAck(response.requestId);
 }
 #endif
 
-void Ipc::Strand::timedout()
+void
+Ipc::Strand::timedout()
 {
     debugs(54, 6, HERE << isRegistered);
     if (!isRegistered)
         fatalf("kid%d registration timed out", KidIdentifier);
 }
-

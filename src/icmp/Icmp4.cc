@@ -17,8 +17,8 @@
 #include "Debug.h"
 #include "Icmp4.h"
 #include "IcmpPinger.h"
-#include "leakcheck.h"
 #include "SquidTime.h"
+#include "leakcheck.h"
 
 static const char *
 IcmpPacketType(uint8_t v)
@@ -41,8 +41,7 @@ IcmpPacketType(uint8_t v)
         "Timestamp Reply",
         "Info Request",
         "Info Reply",
-        "Out of Range Type"
-    };
+        "Out of Range Type"};
 
     if (v > 17) {
         static char buf[50];
@@ -53,7 +52,8 @@ IcmpPacketType(uint8_t v)
     return icmpPktStr[v];
 }
 
-Icmp4::Icmp4() : Icmp()
+Icmp4::Icmp4() :
+    Icmp()
 {
     ;
 }
@@ -93,7 +93,7 @@ Icmp4::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
 
     memset(pkt, '\0', MAX_PKT4_SZ);
 
-    icmp = (struct icmphdr *) (void *) pkt;
+    icmp = (struct icmphdr *)(void *)pkt;
 
     /*
      * cevans - beware signed/unsigned issues in untrusted data from
@@ -108,12 +108,12 @@ Icmp4::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
     icmp->icmp_code = 0;
     icmp->icmp_cksum = 0;
     icmp->icmp_id = icmp_ident;
-    icmp->icmp_seq = (unsigned short) icmp_pkts_sent;
+    icmp->icmp_seq = (unsigned short)icmp_pkts_sent;
     ++icmp_pkts_sent;
 
     // Construct ICMP packet data content
-    echo = (icmpEchoData *) (icmp + 1);
-    echo->opcode = (unsigned char) opcode;
+    echo = (icmpEchoData *)(icmp + 1);
+    echo->opcode = (unsigned char)opcode;
     memcpy(&echo->tv, &current_time, sizeof(struct timeval));
 
     icmp_pktsize += sizeof(struct timeval) + sizeof(char);
@@ -127,16 +127,16 @@ Icmp4::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
         icmp_pktsize += len;
     }
 
-    icmp->icmp_cksum = CheckSum((unsigned short *) icmp, icmp_pktsize);
+    icmp->icmp_cksum = CheckSum((unsigned short *)icmp, icmp_pktsize);
 
     to.getAddrInfo(S);
-    ((sockaddr_in*)S->ai_addr)->sin_port = 0;
+    ((sockaddr_in *)S->ai_addr)->sin_port = 0;
     assert(icmp_pktsize <= MAX_PKT4_SZ);
 
     debugs(42, 5, HERE << "Send ICMP packet to " << to << ".");
 
     x = sendto(icmp_sock,
-               (const void *) pkt,
+               (const void *)pkt,
                icmp_pktsize,
                0,
                S->ai_addr,
@@ -200,7 +200,7 @@ Icmp4::Recv(void)
 
     debugs(42, 8, HERE << n << " bytes from " << preply.from);
 
-    ip = (struct iphdr *) (void *) pkt;
+    ip = (struct iphdr *)(void *)pkt;
 
 #if HAVE_STRUCT_IPHDR_IP_HL
 
@@ -218,7 +218,7 @@ Icmp4::Recv(void)
 #endif
 #endif /* HAVE_STRUCT_IPHDR_IP_HL */
 
-    icmp = (struct icmphdr *) (void *) (pkt + iphdrlen);
+    icmp = (struct icmphdr *)(void *)(pkt + iphdrlen);
 
     if (icmp->icmp_type != ICMP_ECHOREPLY) {
         Ip::Address::FreeAddr(from);
@@ -230,7 +230,7 @@ Icmp4::Recv(void)
         return;
     }
 
-    echo = (icmpEchoData *) (void *) (icmp + 1);
+    echo = (icmpEchoData *)(void *)(icmp + 1);
 
     preply.opcode = echo->opcode;
 
@@ -248,11 +248,10 @@ Icmp4::Recv(void)
         return;
     }
 
-    control.SendResult(preply, (sizeof(pingerReplyData) - MAX_PKT4_SZ + preply.psize) );
+    control.SendResult(preply, (sizeof(pingerReplyData) - MAX_PKT4_SZ + preply.psize));
 
     Log(preply.from, icmp->icmp_type, IcmpPacketType(icmp->icmp_type), preply.rtt, preply.hops);
     Ip::Address::FreeAddr(from);
 }
 
 #endif /* USE_ICMP */
-

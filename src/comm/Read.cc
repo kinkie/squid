@@ -9,18 +9,18 @@
 /* DEBUG: section 05    Socket Functions */
 
 #include "squid.h"
+#include "comm/Read.h"
+#include "CommCalls.h"
+#include "Debug.h"
+#include "SquidConfig.h"
+#include "StatCounters.h"
 #include "comm.h"
 #include "comm/IoCallback.h"
 #include "comm/Loops.h"
-#include "comm/Read.h"
 #include "comm_internal.h"
-#include "CommCalls.h"
-#include "Debug.h"
 #include "fd.h"
 #include "fde.h"
 #include "sbuf/SBuf.h"
-#include "SquidConfig.h"
-#include "StatCounters.h"
 
 // Does comm check this fd for read readiness?
 // Note that when comm is not monitoring, there can be a pending callback
@@ -81,7 +81,7 @@ Comm::Flag
 Comm::ReadNow(CommIoCbParams &params, SBuf &buf)
 {
     /* Attempt a read */
-    ++ statCounter.syscalls.sock.reads;
+    ++statCounter.syscalls.sock.reads;
     SBuf::size_type sz = buf.spaceSize();
     if (params.size > 0 && params.size < sz)
         sz = params.size;
@@ -92,22 +92,22 @@ Comm::ReadNow(CommIoCbParams &params, SBuf &buf)
 
     debugs(5, 3, params.conn << ", size " << sz << ", retval " << retval << ", errno " << params.xerrno);
 
-    if (retval > 0) { // data read most common case
+    if (retval > 0) {  // data read most common case
         buf.rawAppendFinish(inbuf, retval);
         fd_bytes(params.conn->fd, retval, FD_READ);
         params.flag = Comm::OK;
         params.size = retval;
 
-    } else if (retval == 0) { // remote closure (somewhat less) common
+    } else if (retval == 0) {  // remote closure (somewhat less) common
         // Note - read 0 == socket EOF, which is a valid read.
         params.flag = Comm::ENDFILE;
 
-    } else if (retval < 0) { // connection errors are worst-case
+    } else if (retval < 0) {  // connection errors are worst-case
         debugs(5, 3, params.conn << " Comm::COMM_ERROR: " << xstrerr(params.xerrno));
         if (ignoreErrno(params.xerrno))
-            params.flag =  Comm::INPROGRESS;
+            params.flag = Comm::INPROGRESS;
         else
-            params.flag =  Comm::COMM_ERROR;
+            params.flag = Comm::COMM_ERROR;
     }
 
     return params.flag;
@@ -125,7 +125,7 @@ Comm::ReadNow(CommIoCbParams &params, SBuf &buf)
 void
 Comm::HandleRead(int fd, void *data)
 {
-    Comm::IoCallback *ccb = (Comm::IoCallback *) data;
+    Comm::IoCallback *ccb = (Comm::IoCallback *)data;
 
     assert(data == COMMIO_FD_READCB(fd));
     assert(ccb->active());
@@ -139,7 +139,7 @@ Comm::HandleRead(int fd, void *data)
 
     /* For legacy callers : Attempt a read */
     // Keep in sync with Comm::ReadNow()!
-    ++ statCounter.syscalls.sock.reads;
+    ++statCounter.syscalls.sock.reads;
     int xerrno = errno = 0;
     int retval = FD_READ_METHOD(fd, ccb->buf, ccb->size);
     xerrno = errno;
@@ -191,7 +191,7 @@ comm_read_cancel(int fd, IOCB *callback, void *data)
     }
 
     typedef CommCbFunPtrCallT<CommIoCbPtrFun> Call;
-    Call *call = dynamic_cast<Call*>(cb->callback.getRaw());
+    Call *call = dynamic_cast<Call *>(cb->callback.getRaw());
     if (!call) {
         debugs(5, 4, "fails: FD " << fd << " lacks callback");
         return;
@@ -252,4 +252,3 @@ Comm::MortalReadTimeout(const time_t startTime, const time_t lifetimeLimit)
     } else
         return ::Config.Timeout.read;
 }
-

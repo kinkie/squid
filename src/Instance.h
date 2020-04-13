@@ -30,7 +30,6 @@ void WriteOurPid();
 /// Throws if PID file maintenance is disabled.
 pid_t Other();
 
-} // namespace Instance
+}  // namespace Instance
 
 #endif
-

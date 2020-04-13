@@ -9,9 +9,9 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/TextException.h"
 #include "ipc/TypedMsgHdr.h"
 #include "SquidString.h"
+#include "base/TextException.h"
 #include "tools.h"
 
 #include <cstring>
@@ -25,13 +25,14 @@ Ipc::TypedMsgHdr::TypedMsgHdr()
 Ipc::TypedMsgHdr::TypedMsgHdr(const TypedMsgHdr &tmh)
 {
     clear();
-    operator =(tmh);
+    operator=(tmh);
 }
 
-Ipc::TypedMsgHdr &Ipc::TypedMsgHdr::operator =(const TypedMsgHdr &tmh)
+Ipc::TypedMsgHdr &
+Ipc::TypedMsgHdr::operator=(const TypedMsgHdr &tmh)
 {
-    if (this != &tmh) { // skip assignment to self
-        memcpy(static_cast<msghdr*>(this), static_cast<const msghdr*>(&tmh), sizeof(msghdr));
+    if (this != &tmh) {  // skip assignment to self
+        memcpy(static_cast<msghdr *>(this), static_cast<const msghdr *>(&tmh), sizeof(msghdr));
         name = tmh.name;
         memcpy(&ios, &tmh.ios, sizeof(ios));
         data = tmh.data;
@@ -46,7 +47,7 @@ void
 Ipc::TypedMsgHdr::clear()
 {
     // may be called from the constructor, with object fields uninitialized
-    memset(static_cast<msghdr*>(this), 0, sizeof(msghdr));
+    memset(static_cast<msghdr *>(this), 0, sizeof(msghdr));
     memset(&name, 0, sizeof(name));
     memset(&ios, 0, sizeof(ios));
     data = DataBuffer();
@@ -55,15 +56,16 @@ Ipc::TypedMsgHdr::clear()
 }
 
 // update msghdr and ios pointers based on msghdr counters
-void Ipc::TypedMsgHdr::sync()
+void
+Ipc::TypedMsgHdr::sync()
 {
-    if (msg_name) { // we have a name
+    if (msg_name) {  // we have a name
         msg_name = &name;
     } else {
         Must(!msg_namelen && !msg_name);
     }
 
-    if (msg_iov) { // we have a data component
+    if (msg_iov) {  // we have a data component
         Must(msg_iovlen == 1);
         msg_iov = ios;
         ios[0].iov_base = &data;
@@ -72,7 +74,7 @@ void Ipc::TypedMsgHdr::sync()
         Must(!msg_iovlen && !msg_iov);
     }
 
-    if (msg_control) { // we have a control component
+    if (msg_control) {  // we have a control component
         Must(msg_controllen > 0);
         msg_control = &ctrl;
     } else {
@@ -89,7 +91,7 @@ Ipc::TypedMsgHdr::type() const
 }
 
 void
-Ipc::TypedMsgHdr::address(const struct sockaddr_un& addr)
+Ipc::TypedMsgHdr::address(const struct sockaddr_un &addr)
 {
     allocName();
     name = addr;
@@ -194,9 +196,7 @@ bool
 Ipc::TypedMsgHdr::hasFd() const
 {
     struct cmsghdr *cmsg = CMSG_FIRSTHDR(this);
-    return cmsg &&
-           cmsg->cmsg_level == SOL_SOCKET &&
-           cmsg->cmsg_type == SCM_RIGHTS;
+    return cmsg && cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS;
 }
 
 void
@@ -213,7 +213,7 @@ Ipc::TypedMsgHdr::putFd(int fd)
     cmsg->cmsg_type = SCM_RIGHTS;
     cmsg->cmsg_len = CMSG_LEN(sizeof(int) * fdCount);
 
-    int *fdStore = reinterpret_cast<int*>(SQUID_CMSG_DATA(cmsg));
+    int *fdStore = reinterpret_cast<int *>(SQUID_CMSG_DATA(cmsg));
     memcpy(fdStore, &fd, fdCount * sizeof(int));
     msg_controllen = cmsg->cmsg_len;
 
@@ -231,7 +231,7 @@ Ipc::TypedMsgHdr::getFd() const
     Must(cmsg->cmsg_type == SCM_RIGHTS);
 
     const int fdCount = 1;
-    const int *fdStore = reinterpret_cast<const int*>(SQUID_CMSG_DATA(cmsg));
+    const int *fdStore = reinterpret_cast<const int *>(SQUID_CMSG_DATA(cmsg));
     int fd = -1;
     memcpy(&fd, fdStore, fdCount * sizeof(int));
     return fd;
@@ -266,7 +266,7 @@ Ipc::TypedMsgHdr::allocName()
 {
     Must(!msg_name && !msg_namelen);
     msg_name = &name;
-    msg_namelen = sizeof(name); // is that the right size?
+    msg_namelen = sizeof(name);  // is that the right size?
 }
 
 void
@@ -276,4 +276,3 @@ Ipc::TypedMsgHdr::allocControl()
     msg_control = &ctrl;
     msg_controllen = sizeof(ctrl);
 }
-

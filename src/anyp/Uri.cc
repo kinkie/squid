@@ -10,25 +10,21 @@
 
 #include "squid.h"
 #include "anyp/Uri.h"
-#include "globals.h"
 #include "HttpRequest.h"
-#include "parser/Tokenizer.h"
-#include "rfc1738.h"
 #include "SquidConfig.h"
 #include "SquidString.h"
+#include "globals.h"
+#include "parser/Tokenizer.h"
+#include "rfc1738.h"
 
-static const char valid_hostname_chars_u[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789-._"
-    "[:]"
-    ;
-static const char valid_hostname_chars[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789-."
-    "[:]"
-    ;
+static const char valid_hostname_chars_u[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                             "abcdefghijklmnopqrstuvwxyz"
+                                             "0123456789-._"
+                                             "[:]";
+static const char valid_hostname_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                           "abcdefghijklmnopqrstuvwxyz"
+                                           "0123456789-."
+                                           "[:]";
 
 const SBuf &
 AnyP::Uri::Asterisk()
@@ -200,7 +196,7 @@ urlAppendDomain(char *host)
  * then rather than a URL a hostname:port is looked for.
  */
 bool
-AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
+AnyP::Uri::parse(const HttpRequestMethod &method, const SBuf &rawUrl)
 {
     try {
 
@@ -221,8 +217,7 @@ AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
             return false;
         }
 
-        if ((method == Http::METHOD_OPTIONS || method == Http::METHOD_TRACE) &&
-                Asterisk().cmp(rawUrl) == 0) {
+        if ((method == Http::METHOD_OPTIONS || method == Http::METHOD_TRACE) && Asterisk().cmp(rawUrl) == 0) {
             // XXX: these methods might also occur in HTTPS traffic. Handle this better.
             setScheme(AnyP::PROTO_HTTP, nullptr);
             port(getScheme().defaultPort());
@@ -257,10 +252,10 @@ AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
             scheme = uriParseScheme(tok);
 
             if (scheme == AnyP::PROTO_NONE)
-                return false; // invalid scheme
+                return false;  // invalid scheme
 
             if (scheme == AnyP::PROTO_URN) {
-                parseUrn(tok); // throws on any error
+                parseUrn(tok);  // throws on any error
                 return true;
             }
 
@@ -315,17 +310,17 @@ AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
             }
             *dst = '\0';
 
-            foundPort = scheme.defaultPort(); // may be reset later
+            foundPort = scheme.defaultPort();  // may be reset later
 
             /* Is there any login information? (we should eventually parse it above) */
             t = strrchr(foundHost, '@');
             if (t != NULL) {
-                strncpy((char *) login, (char *) foundHost, sizeof(login)-1);
-                login[sizeof(login)-1] = '\0';
+                strncpy((char *)login, (char *)foundHost, sizeof(login) - 1);
+                login[sizeof(login) - 1] = '\0';
                 t = strrchr(login, '@');
                 *t = 0;
-                strncpy((char *) foundHost, t + 1, sizeof(foundHost)-1);
-                foundHost[sizeof(foundHost)-1] = '\0';
+                strncpy((char *)foundHost, t + 1, sizeof(foundHost) - 1);
+                foundHost[sizeof(foundHost) - 1] = '\0';
                 // Bug 4498: URL-unescape the login info after extraction
                 rfc1738_unescape(login);
             }
@@ -354,7 +349,7 @@ AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
             } else {
                 t = strrchr(foundHost, ':');
 
-                if (t != strchr(foundHost,':') ) {
+                if (t != strchr(foundHost, ':')) {
                     /* RFC 2732 states IPv6 "SHOULD" be bracketed. allowing for times when its not. */
                     /* RFC 3986 'update' simply modifies this to an "is" with no emphasis at all! */
                     /* therefore we MUST accept the case where they are not bracketed at all. */
@@ -394,8 +389,7 @@ AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
 
         debugs(23, 3, "Split URL '" << rawUrl << "' into proto='" << scheme.image() << "', host='" << foundHost << "', port='" << foundPort << "', path='" << urlpath << "'");
 
-        if (Config.onoff.check_hostnames &&
-                strspn(foundHost, Config.onoff.allow_underscore ? valid_hostname_chars_u : valid_hostname_chars) != strlen(foundHost)) {
+        if (Config.onoff.check_hostnames && strspn(foundHost, Config.onoff.allow_underscore ? valid_hostname_chars_u : valid_hostname_chars) != strlen(foundHost)) {
             debugs(23, DBG_IMPORTANT, MYNAME << "Illegal character in hostname '" << foundHost << "'");
             return false;
         }
@@ -491,7 +485,7 @@ AnyP::Uri::parse(const HttpRequestMethod& method, const SBuf &rawUrl)
 void
 AnyP::Uri::parseUrn(Parser::Tokenizer &tok)
 {
-    static const auto nidChars = CharacterSet("NID","-") + CharacterSet::ALPHA + CharacterSet::DIGIT;
+    static const auto nidChars = CharacterSet("NID", "-") + CharacterSet::ALPHA + CharacterSet::DIGIT;
     static const auto alphanum = (CharacterSet::ALPHA + CharacterSet::DIGIT).rename("alphanum");
     SBuf nid;
     if (!tok.prefix(nid, nidChars, 32))
@@ -513,7 +507,7 @@ AnyP::Uri::parseUrn(Parser::Tokenizer &tok)
     host(nid.c_str());
     // TODO validate path characters
     path(tok.remaining());
-    debugs(23, 3, "Split URI into proto=urn, nid=" << nid << ", " << Raw("path",path().rawContent(),path().length()));
+    debugs(23, 3, "Split URI into proto=urn, nid=" << nid << ", " << Raw("path", path().rawContent(), path().length()));
 }
 
 void
@@ -534,7 +528,7 @@ AnyP::Uri::authority(bool requirePort) const
         authorityHttp_ = authorityWithPort_;
 
         // authorityForm_ only has :port if it is non-default
-        authorityWithPort_.appendf(":%u",port());
+        authorityWithPort_.appendf(":%u", port());
         if (port() != getScheme().defaultPort())
             authorityHttp_ = authorityWithPort_;
     }
@@ -550,11 +544,10 @@ AnyP::Uri::absolute() const
         absolute_.reserveCapacity(MAX_URL);
 
         absolute_.append(getScheme().image());
-        absolute_.append(":",1);
+        absolute_.append(":", 1);
         if (getScheme() != AnyP::PROTO_URN) {
             absolute_.append("//", 2);
-            const bool allowUserInfo = getScheme() == AnyP::PROTO_FTP ||
-                                       getScheme() == AnyP::PROTO_UNKNOWN;
+            const bool allowUserInfo = getScheme() == AnyP::PROTO_FTP || getScheme() == AnyP::PROTO_UNKNOWN;
 
             if (allowUserInfo && !userInfo().isEmpty()) {
                 absolute_.append(userInfo());
@@ -581,7 +574,7 @@ urlCanonicalCleanWithoutRequest(const SBuf &url, const HttpRequestMethod &method
     LOCAL_ARRAY(char, buf, MAX_URL);
 
     snprintf(buf, sizeof(buf), SQUIDSBUFPH, SQUIDSBUFPRINT(url));
-    buf[sizeof(buf)-1] = '\0';
+    buf[sizeof(buf) - 1] = '\0';
 
     // URN, CONNECT method, and non-stripped URIs can go straight out
     if (Config.onoff.strip_query_terms && !(method == Http::METHOD_CONNECT || scheme == AnyP::PROTO_URN)) {
@@ -605,7 +598,7 @@ urlCanonicalCleanWithoutRequest(const SBuf &url, const HttpRequestMethod &method
  * Luckily we can leverage the others instead of duplicating.
  */
 const char *
-urlCanonicalFakeHttps(const HttpRequest * request)
+urlCanonicalFakeHttps(const HttpRequest *request)
 {
     LOCAL_ARRAY(char, buf, MAX_URL);
 
@@ -637,7 +630,8 @@ urlIsRelative(const char *url)
         return (false);
     }
 
-    for (p = url; *p != '\0' && *p != ':' && *p != '/'; ++p);
+    for (p = url; *p != '\0' && *p != ':' && *p != '/'; ++p)
+        ;
 
     if (*p == ':') {
         return (false);
@@ -659,7 +653,7 @@ urlIsRelative(const char *url)
  * memory using safe_free().
  */
 char *
-urlMakeAbsolute(const HttpRequest * req, const char *relUrl)
+urlMakeAbsolute(const HttpRequest *req, const char *relUrl)
 {
 
     if (req->method.id() == Http::METHOD_CONNECT) {
@@ -676,7 +670,7 @@ urlMakeAbsolute(const HttpRequest * req, const char *relUrl)
         return (urlbuf);
     }
 
-    SBuf authorityForm = req->url.authority(); // host[:port]
+    SBuf authorityForm = req->url.authority();  // host[:port]
     const SBuf &scheme = req->url.getScheme().image();
     size_t urllen = snprintf(urlbuf, MAX_URL, SQUIDSBUFPH "://" SQUIDSBUFPH "%s" SQUIDSBUFPH,
                              SQUIDSBUFPRINT(scheme),
@@ -706,7 +700,7 @@ urlMakeAbsolute(const HttpRequest * req, const char *relUrl)
                 // XXX: crops bits in the middle of the combined URL.
                 lastSlashPos = MAX_URL - urllen - 1;
             }
-            SBufToCstring(&urlbuf[urllen], path.substr(0,lastSlashPos));
+            SBufToCstring(&urlbuf[urllen], path.substr(0, lastSlashPos));
             urllen += lastSlashPos;
             if (urllen + 1 < MAX_URL) {
                 xstrncpy(&urlbuf[urllen], relUrl, MAX_URL - urllen - 1);
@@ -772,14 +766,15 @@ matchDomainName(const char *h, const char *d, MatchDomainNameFlags flags)
             if ('.' == d[0]) {
                 if (flags & mdnRejectSubsubDomains) {
                     // Check for sub-sub domain and reject
-                    while(--hl >= 0 && h[hl] != '.');
+                    while (--hl >= 0 && h[hl] != '.')
+                        ;
                     if (hl < 0) {
                         // No sub-sub domain found, but reject if there is a
                         // leading dot in given host string (which is removed
                         // before the check is started).
                         return hostIncludesSubdomains ? 1 : 0;
                     } else
-                        return 1; // sub-sub domain, reject
+                        return 1;  // sub-sub domain, reject
                 } else
                     return 0;
             } else
@@ -815,7 +810,7 @@ matchDomainName(const char *h, const char *d, MatchDomainNameFlags flags)
  * return true if we can serve requests for this method.
  */
 int
-urlCheckRequest(const HttpRequest * r)
+urlCheckRequest(const HttpRequest *r)
 {
     int rc = 0;
     /* protocol "independent" methods
@@ -903,10 +898,10 @@ class URLHostName
 {
 
 public:
-    char * extract(char const *url);
+    char *extract(char const *url);
 
 private:
-    static char Host [SQUIDHOSTNAMELEN];
+    static char Host[SQUIDHOSTNAMELEN];
     void init(char const *);
     void findHostStart();
     void trimTrailingChars();
@@ -994,7 +989,7 @@ AnyP::Uri::Uri(AnyP::UriScheme const &aScheme) :
     hostIsNumeric_(false),
     port_(0)
 {
-    *host_=0;
+    *host_ = 0;
 }
 
 // TODO: fix code duplication with AnyP::Uri::parse()
@@ -1021,15 +1016,14 @@ AnyP::Uri::cleanup(const char *uri)
         cleanedUri = xstrndup(rfc1738_do_escape(choppedUri ? choppedUri : uri, flags), MAX_URL);
         cleanedUri[pos] = '\0';
         xfree(choppedUri);
-    }
-    break;
+    } break;
 
     case URI_WHITESPACE_DENY:
     case URI_WHITESPACE_STRIP:
     default: {
         // TODO: avoid duplication with urlParse()
         const char *t;
-        char *tmp_uri = static_cast<char*>(xmalloc(strlen(uri) + 1));
+        char *tmp_uri = static_cast<char *>(xmalloc(strlen(uri) + 1));
         char *q = tmp_uri;
         t = uri;
         while (*t) {
@@ -1042,11 +1036,9 @@ AnyP::Uri::cleanup(const char *uri)
         *q = '\0';
         cleanedUri = xstrndup(rfc1738_escape_unescaped(tmp_uri), MAX_URL);
         xfree(tmp_uri);
-    }
-    break;
+    } break;
     }
 
     assert(cleanedUri);
     return cleanedUri;
 }
-

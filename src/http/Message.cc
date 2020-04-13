@@ -9,21 +9,22 @@
 /* DEBUG: section 74    HTTP Message */
 
 #include "squid.h"
-#include "Debug.h"
-#include "http/ContentLengthInterpreter.h"
 #include "http/Message.h"
-#include "http/one/Parser.h"
+#include "Debug.h"
 #include "HttpHdrCc.h"
 #include "HttpHeaderTools.h"
 #include "MemBuf.h"
+#include "SquidConfig.h"
+#include "http/ContentLengthInterpreter.h"
+#include "http/one/Parser.h"
 #include "mime_header.h"
 #include "profiler/Profiler.h"
-#include "SquidConfig.h"
 
-Http::Message::Message(http_hdr_owner_type owner):
+Http::Message::Message(http_hdr_owner_type owner) :
     http_ver(Http::ProtocolVersion()),
     header(owner)
-{}
+{
+}
 
 Http::Message::~Message()
 {
@@ -55,17 +56,17 @@ httpMsgIsolateStart(const char **parse_start, const char **blk_start, const char
 {
     int slen = strcspn(*parse_start, "\r\n");
 
-    if (!(*parse_start)[slen])  /* no CRLF found */
+    if (!(*parse_start)[slen]) /* no CRLF found */
         return 0;
 
     *blk_start = *parse_start;
 
     *blk_end = *blk_start + slen;
 
-    while (**blk_end == '\r')   /* CR */
+    while (**blk_end == '\r') /* CR */
         ++(*blk_end);
 
-    if (**blk_end == '\n')      /* LF */
+    if (**blk_end == '\n') /* LF */
         ++(*blk_end);
 
     *parse_start = *blk_end;
@@ -104,7 +105,7 @@ Http::Message::parse(const char *buf, const size_t sz, bool eof, Http::StatusCod
     if (hdr_len <= 0) {
         debugs(58, 3, "failed to find end of headers (eof: " << eof << ") in '" << buf << "'");
 
-        if (eof) // iff we have seen the end, this is an error
+        if (eof)  // iff we have seen the end, this is an error
             *error = Http::scInvalidHeader;
 
         return false;
@@ -112,7 +113,7 @@ Http::Message::parse(const char *buf, const size_t sz, bool eof, Http::StatusCod
 
     const int res = httpMsgParseStep(buf, sz, eof);
 
-    if (res < 0) { // error
+    if (res < 0) {  // error
         debugs(58, 3, "cannot parse isolated headers in '" << buf << "'");
         *error = Http::scInvalidHeader;
         return false;
@@ -121,16 +122,15 @@ Http::Message::parse(const char *buf, const size_t sz, bool eof, Http::StatusCod
     if (res == 0) {
         debugs(58, 2, "strange, need more data near '" << buf << "'");
         *error = Http::scInvalidHeader;
-        return false; // but this should not happen due to headersEnd() above
+        return false;  // but this should not happen due to headersEnd() above
     }
 
     assert(res > 0);
     debugs(58, 9, "success (" << hdr_len << " bytes) near '" << buf << "'");
 
     if (hdr_sz != (int)hdr_len) {
-        debugs(58, DBG_IMPORTANT, "internal Http::Message::parse vs. headersEnd error: " <<
-               hdr_sz << " != " << hdr_len);
-        hdr_sz = (int)hdr_len; // because old http.cc code used hdr_len
+        debugs(58, DBG_IMPORTANT, "internal Http::Message::parse vs. headersEnd error: " << hdr_sz << " != " << hdr_len);
+        hdr_sz = (int)hdr_len;  // because old http.cc code used hdr_len
     }
 
     return true;
@@ -252,7 +252,7 @@ Http::Message::httpMsgParseError()
 void
 Http::Message::setContentLength(int64_t clen)
 {
-    header.delById(Http::HdrType::CONTENT_LENGTH); // if any
+    header.delById(Http::HdrType::CONTENT_LENGTH);  // if any
     header.putInt64(Http::HdrType::CONTENT_LENGTH, clen);
     content_length = clen;
 }
@@ -260,7 +260,7 @@ Http::Message::setContentLength(int64_t clen)
 bool
 Http::Message::persistent() const
 {
-    if (http_ver > Http::ProtocolVersion(1,0)) {
+    if (http_ver > Http::ProtocolVersion(1, 0)) {
         /*
          * for modern versions of HTTP: persistent unless there is
          * a "Connection: close" header.
@@ -296,4 +296,3 @@ Http::Message::firstLineBuf(MemBuf &mb)
 {
     packFirstLineInto(&mb, true);
 }
-

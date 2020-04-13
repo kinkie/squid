@@ -10,21 +10,21 @@
 #define SQUID_MEMOBJECT_H
 
 #include "CommRead.h"
-#include "dlink.h"
-#include "http/RequestMethod.h"
 #include "RemovalPolicy.h"
 #include "SquidString.h"
-#include "stmem.h"
-#include "store/forward.h"
 #include "StoreIOBuffer.h"
 #include "StoreIOState.h"
-#include "typedefs.h" //for IRCB
+#include "dlink.h"
+#include "http/RequestMethod.h"
+#include "stmem.h"
+#include "store/forward.h"
+#include "typedefs.h"  //for IRCB
 
 #if USE_DELAY_POOLS
 #include "DelayId.h"
 #endif
 
-typedef void STMCB (void *data, StoreIOBuffer wroteBuffer);
+typedef void STMCB(void *data, StoreIOBuffer wroteBuffer);
 typedef void STABH(void *);
 
 class store_client;
@@ -65,7 +65,8 @@ public:
 
     /// \returns the updated-by-304(s) response (if it exists)
     /// \returns baseReply() (otherwise)
-    const HttpReply &freshestReply() const {
+    const HttpReply &freshestReply() const
+    {
         if (updatedReply_)
             return *updatedReply_;
         else
@@ -89,8 +90,8 @@ public:
     /// for other entries: whether our entry was updated as "old"
     bool appliedUpdates = false;
 
-    void stat (MemBuf * mb) const;
-    int64_t endOffset () const;
+    void stat(MemBuf *mb) const;
+    int64_t endOffset() const;
 
     /// sets baseReply().hdr_sz (i.e. written reply headers size) to endOffset()
     void markEndOfReplyHeaders();
@@ -108,7 +109,7 @@ public:
      */
     int64_t objectBytesOnDisk() const;
     int64_t policyLowestOffsetToKeep(bool swap) const;
-    int64_t availableForSwapOut() const; ///< buffered bytes we have not swapped out yet
+    int64_t availableForSwapOut() const;  ///< buffered bytes we have not swapped out yet
     void trimSwappable();
     void trimUnSwappable();
     bool isContiguous() const;
@@ -140,21 +141,24 @@ public:
     int64_t inmem_lo = 0;
     dlink_list clients;
 
-    size_t clientCount() const {return nclients;}
+    size_t clientCount() const { return nclients; }
 
-    bool clientIsFirst(void *sc) const {return (clients.head && sc == clients.head->data);}
+    bool clientIsFirst(void *sc) const { return (clients.head && sc == clients.head->data); }
 
     int nclients = 0;
 
     class SwapOut
     {
     public:
-        int64_t queue_offset = 0; ///< number of bytes sent to SwapDir for writing
+        int64_t queue_offset = 0;  ///< number of bytes sent to SwapDir for writing
         StoreIOState::Pointer sio;
 
         /// Decision states for StoreEntry::swapoutPossible() and related code.
-        typedef enum { swNeedsCheck = 0, swImpossible = -1, swPossible = +1, swStarted } Decision;
-        Decision decision = swNeedsCheck; ///< current decision state
+        typedef enum { swNeedsCheck = 0,
+                       swImpossible = -1,
+                       swPossible = +1,
+                       swStarted } Decision;
+        Decision decision = swNeedsCheck;  ///< current decision state
     };
 
     SwapOut swapout;
@@ -170,21 +174,21 @@ public:
     class XitTable
     {
     public:
-        int32_t index = -1; ///< entry position inside the in-transit table
-        Io io = ioUndecided; ///< current I/O state
+        int32_t index = -1;   ///< entry position inside the in-transit table
+        Io io = ioUndecided;  ///< current I/O state
     };
-    XitTable xitTable; ///< current [shared] memory caching state for the entry
+    XitTable xitTable;  ///< current [shared] memory caching state for the entry
 
     /// State of an entry with regards to the [shared] memory caching.
     class MemCache
     {
     public:
-        int32_t index = -1; ///< entry position inside the memory cache
-        int64_t offset = 0; ///< bytes written/read to/from the memory cache so far
+        int32_t index = -1;  ///< entry position inside the memory cache
+        int64_t offset = 0;  ///< bytes written/read to/from the memory cache so far
 
-        Io io = ioUndecided; ///< current I/O state
+        Io io = ioUndecided;  ///< current I/O state
     };
-    MemCache memCache; ///< current [shared] memory caching state for the entry
+    MemCache memCache;  ///< current [shared] memory caching state for the entry
 
     HttpRequestPointer request;
 
@@ -211,11 +215,11 @@ public:
     void kickReads();
 
 private:
-    HttpReplyPointer reply_; ///< \see baseReply()
-    HttpReplyPointer updatedReply_; ///< \see updatedReply()
+    HttpReplyPointer reply_;         ///< \see baseReply()
+    HttpReplyPointer updatedReply_;  ///< \see updatedReply()
 
-    mutable String storeId_; ///< StoreId for our entry (usually request URI)
-    mutable String logUri_;  ///< URI used for logging (usually request URI)
+    mutable String storeId_;  ///< StoreId for our entry (usually request URI)
+    mutable String logUri_;   ///< URI used for logging (usually request URI)
 
     DeferredReadManager deferredReads;
 };
@@ -224,4 +228,3 @@ private:
 extern RemovalPolicy *mem_policy;
 
 #endif /* SQUID_MEMOBJECT_H */
-

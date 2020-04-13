@@ -13,8 +13,7 @@
 
 class SBuf;
 
-namespace Ip
-{
+namespace Ip {
 
 /// a netfilter mark/mask pair
 class NfMarkConfig
@@ -23,7 +22,8 @@ public:
     /// creates an empty object
     NfMarkConfig() {}
     /// creates an object with specified mark and mask
-    NfMarkConfig(nfmark_t mark_val, nfmark_t mask_val): mark(mark_val), mask(mask_val) {}
+    NfMarkConfig(nfmark_t mark_val, nfmark_t mask_val) :
+        mark(mark_val), mask(mask_val) {}
 
     /// parses a token and returns an object, expects a "mark[/mask]" format
     static NfMarkConfig Parse(const SBuf &token);
@@ -42,9 +42,8 @@ public:
     nfmark_t mask = 0xffffffff;
 };
 
-} // namespace Ip
+}  // namespace Ip
 
-std::ostream &operator <<(std::ostream &os, const Ip::NfMarkConfig connmark);
+std::ostream &operator<<(std::ostream &os, const Ip::NfMarkConfig connmark);
 
-#endif // SQUID_NFMARKCONFIG_H
-
+#endif  // SQUID_NFMARKCONFIG_H

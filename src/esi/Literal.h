@@ -25,14 +25,14 @@ public:
     ~esiLiteral();
 
     void render(ESISegment::Pointer);
-    esiProcessResult_t process (int dovars);
+    esiProcessResult_t process(int dovars);
     Pointer makeCacheable() const;
     Pointer makeUsable(esiTreeParentPtr, ESIVarState &) const;
     /* optimise copies away later */
     ESISegment::Pointer buffer;
 
     struct {
-        int donevars:1;
+        int donevars : 1;
     } flags;
 
     ESIVarState *varState;
@@ -43,4 +43,3 @@ private:
 };
 
 #endif /* SQUID_ESILITERAL_H */
-

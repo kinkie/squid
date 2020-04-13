@@ -48,26 +48,26 @@ extern "C" {
 
 /* An SNMP PDU */
 struct snmp_pdu {
-    int command;        /* Type of this PDU */
-    struct sockaddr_in address;     /* Address of peer */
+    int command;                /* Type of this PDU */
+    struct sockaddr_in address; /* Address of peer */
 
-    int reqid;          /* Integer32: Request id */
-    int errstat;        /* INTEGER:   Error status */
-    int errindex;       /* INTEGER:   Error index */
+    int reqid;    /* Integer32: Request id */
+    int errstat;  /* INTEGER:   Error status */
+    int errindex; /* INTEGER:   Error index */
 
     /* SNMPv2 Bulk Request */
-    int non_repeaters;      /* INTEGER: */
-    int max_repetitions;    /* INTEGER: */
+    int non_repeaters;   /* INTEGER: */
+    int max_repetitions; /* INTEGER: */
 
-    struct variable_list *variables;    /* Variable Bindings */
+    struct variable_list *variables; /* Variable Bindings */
 
     /* Trap information */
-    oid *enterprise;        /* System OID */
+    oid *enterprise; /* System OID */
     int enterprise_length;
-    struct sockaddr_in agent_addr;      /* address of object generating trap */
-    int trap_type;      /* generic trap type */
-    int specific_type;      /* specific type */
-    u_int time;         /* Uptime */
+    struct sockaddr_in agent_addr; /* address of object generating trap */
+    int trap_type;                 /* generic trap type */
+    int specific_type;             /* specific type */
+    u_int time;                    /* Uptime */
 };
 
 struct snmp_pdu *snmp_pdu_create(int);
@@ -89,24 +89,24 @@ void snmp_add_null_var(struct snmp_pdu *, oid *, int);
  *
  * PDU Types
  */
-#define SNMP_PDU_GET        (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x0)
-#define SNMP_PDU_GETNEXT    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x1)
-#define SNMP_PDU_RESPONSE   (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x2)
+#define SNMP_PDU_GET (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x0)
+#define SNMP_PDU_GETNEXT (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x1)
+#define SNMP_PDU_RESPONSE (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x2)
 #ifdef UNUSED_CODE
-#define SNMP_PDU_SET        (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x3)
-#define TRP_REQ_MSG     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x4)   /*Obsolete */
+#define SNMP_PDU_SET (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x3)
+#define TRP_REQ_MSG (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x4) /*Obsolete */
 #endif
-#define SNMP_PDU_GETBULK    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x5)
+#define SNMP_PDU_GETBULK (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x5)
 #ifdef UNUSED_CODE
-#define SNMP_PDU_INFORM     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x6)
-#define SNMP_PDU_V2TRAP     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x7)
-#define SNMP_PDU_REPORT     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x8)
+#define SNMP_PDU_INFORM (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x6)
+#define SNMP_PDU_V2TRAP (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x7)
+#define SNMP_PDU_REPORT (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x8)
 #endif
 #define MAX_BINDINGS 2147483647 /* PDU Defaults */
-#define SNMP_DEFAULT_ERRSTAT        -1
-#define SNMP_DEFAULT_ERRINDEX       -1
-#define SNMP_DEFAULT_ADDRESS        0
-#define SNMP_DEFAULT_REQID      0
+#define SNMP_DEFAULT_ERRSTAT -1
+#define SNMP_DEFAULT_ERRINDEX -1
+#define SNMP_DEFAULT_ADDRESS 0
+#define SNMP_DEFAULT_REQID 0
 
 /* RFC 1907: Management Information Base for SNMPv2
  *
@@ -115,13 +115,13 @@ void snmp_add_null_var(struct snmp_pdu *, oid *, int);
  * Trap Types
  */
 #if UNUSED_CODE
-#define SNMP_TRAP_COLDSTART             (0x0)
-#define SNMP_TRAP_WARMSTART             (0x1)
-#define SNMP_TRAP_LINKDOWN              (0x2)
-#define SNMP_TRAP_LINKUP                (0x3)
+#define SNMP_TRAP_COLDSTART (0x0)
+#define SNMP_TRAP_WARMSTART (0x1)
+#define SNMP_TRAP_LINKDOWN (0x2)
+#define SNMP_TRAP_LINKUP (0x3)
 #define SNMP_TRAP_AUTHENTICATIONFAILURE (0x4)
-#define SNMP_TRAP_EGPNEIGHBORLOSS       (0x5)
-#define SNMP_TRAP_ENTERPRISESPECIFIC    (0x6)
+#define SNMP_TRAP_EGPNEIGHBORLOSS (0x5)
+#define SNMP_TRAP_ENTERPRISESPECIFIC (0x6)
 #endif
 
 #ifdef __cplusplus
@@ -129,4 +129,3 @@ void snmp_add_null_var(struct snmp_pdu *, oid *, int);
 #endif
 
 #endif /* SQUID_SNMP_PDU_H */
-

@@ -23,7 +23,8 @@ namespace Dns {
 class CachedIp
 {
 public:
-    explicit CachedIp(const Ip::Address &anIp): ip(anIp) {}
+    explicit CachedIp(const Ip::Address &anIp) :
+        ip(anIp) {}
 
     /// whether the address is currently deemed problematic for any reason
     bool bad() const { return bad_; }
@@ -37,7 +38,7 @@ public:
     Ip::Address ip;
 
 private:
-    bool bad_ = false; ///< whether the address is currently deemed problematic
+    bool bad_ = false;  ///< whether the address is currently deemed problematic
 };
 
 class IpsIterator;
@@ -58,15 +59,15 @@ public:
     /// does not auto-rotate IPs but calling markAsBad() may change the answer
     const Ip::Address &current() const { return ips.at(goodPosition).ip; }
 
-    bool empty() const noexcept { return ips.empty(); } ///< whether we cached no IPs at all
-    size_t size() const noexcept { return ips.size(); } ///< all cached IPs
-    size_t badCount() const noexcept { return badCount_; } ///< bad IPs
+    bool empty() const noexcept { return ips.empty(); }     ///< whether we cached no IPs at all
+    size_t size() const noexcept { return ips.size(); }     ///< all cached IPs
+    size_t badCount() const noexcept { return badCount_; }  ///< bad IPs
 
-    inline IpsSelector<GoodIpsIterator> good() const; ///< good IPs
-    inline IpsSelector<IpsIterator> goodAndBad() const; ///< all IPs
+    inline IpsSelector<GoodIpsIterator> good() const;    ///< good IPs
+    inline IpsSelector<IpsIterator> goodAndBad() const;  ///< all IPs
 
     typedef std::vector<CachedIp> Storage;
-    const Storage &raw() const { return ips; } ///< all cached entries
+    const Storage &raw() const { return ips; }  ///< all cached entries
 
     /// Finds and marks the given address as bad, adjusting current() if needed.
     /// Has no effect if the search fails or the found address is already bad.
@@ -94,11 +95,12 @@ private:
     // Memory- and speed-optimized for "a few (and usually just one)" IPs,
     // the vast majority of which are "good". The current implementation
     // does linear searches and often reallocs when adding IPs.
-    Storage ips; ///< good and bad IPs
+    Storage ips;  ///< good and bad IPs
 
-    template <class Iterator> friend class IpsSelector;
-    size_t goodPosition = 0; ///< position of the IP returned by current()
-    size_t badCount_ = 0; ///< number of IPs that are currently marked as bad
+    template <class Iterator>
+    friend class IpsSelector;
+    size_t goodPosition = 0;  ///< position of the IP returned by current()
+    size_t badCount_ = 0;     ///< number of IPs that are currently marked as bad
 };
 
 // The CachedIps class keeps meta information about individual IP addresses
@@ -120,21 +122,32 @@ public:
     using pointer = value_type *;
     using reference = value_type &;
 
-    IpsIterator(const Raw &raw, const size_t): position_(raw.cbegin()) {}
+    IpsIterator(const Raw &raw, const size_t) :
+        position_(raw.cbegin()) {}
     // special constructor for end() iterator
-    explicit IpsIterator(const Raw &raw): position_(raw.cend()) {}
+    explicit IpsIterator(const Raw &raw) :
+        position_(raw.cend()) {}
 
-    reference operator *() const { return position_->ip; }
-    pointer operator ->() const { return &position_->ip; }
+    reference operator*() const { return position_->ip; }
+    pointer operator->() const { return &position_->ip; }
 
-    IpsIterator& operator++() { ++position_; return *this; }
-    IpsIterator operator++(int) { const auto oldMe = *this; ++(*this); return oldMe; }
+    IpsIterator &operator++()
+    {
+        ++position_;
+        return *this;
+    }
+    IpsIterator operator++(int)
+    {
+        const auto oldMe = *this;
+        ++(*this);
+        return oldMe;
+    }
 
-    bool operator ==(const IpsIterator them) const { return position_ == them.position_; }
-    bool operator !=(const IpsIterator them) const { return !(*this == them); }
+    bool operator==(const IpsIterator them) const { return position_ == them.position_; }
+    bool operator!=(const IpsIterator them) const { return !(*this == them); }
 
 private:
-    RawIterator position_; ///< current iteration location
+    RawIterator position_;  ///< current iteration location
 };
 
 /// Iterates over good IPs in CachedIps, starting at the so called current one.
@@ -150,27 +163,47 @@ public:
     using pointer = value_type *;
     using reference = value_type &;
 
-    GoodIpsIterator(const Raw &raw, const size_t currentPos): raw_(raw), position_(currentPos), processed_(0) { sync(); }
+    GoodIpsIterator(const Raw &raw, const size_t currentPos) :
+        raw_(raw), position_(currentPos), processed_(0) { sync(); }
     // special constructor for end() iterator
-    explicit GoodIpsIterator(const Raw &raw): raw_(raw), position_(0), processed_(raw.size()) {}
+    explicit GoodIpsIterator(const Raw &raw) :
+        raw_(raw), position_(0), processed_(raw.size()) {}
 
-    reference operator *() const { return current().ip; }
-    pointer operator ->() const { return &current().ip; }
+    reference operator*() const { return current().ip; }
+    pointer operator->() const { return &current().ip; }
 
-    GoodIpsIterator& operator++() { next(); sync(); return *this; }
-    GoodIpsIterator operator++(int) { const auto oldMe = *this; ++(*this); return oldMe; }
+    GoodIpsIterator &operator++()
+    {
+        next();
+        sync();
+        return *this;
+    }
+    GoodIpsIterator operator++(int)
+    {
+        const auto oldMe = *this;
+        ++(*this);
+        return oldMe;
+    }
 
-    bool operator ==(const GoodIpsIterator them) const { return processed_ == them.processed_; }
-    bool operator !=(const GoodIpsIterator them) const { return !(*this == them); }
+    bool operator==(const GoodIpsIterator them) const { return processed_ == them.processed_; }
+    bool operator!=(const GoodIpsIterator them) const { return !(*this == them); }
 
 private:
     const CachedIp &current() const { return raw_[position_ % raw_.size()]; }
-    void next() { ++position_; ++processed_; }
-    void sync() { while (processed_ < raw_.size() && current().bad()) next(); }
+    void next()
+    {
+        ++position_;
+        ++processed_;
+    }
+    void sync()
+    {
+        while (processed_ < raw_.size() && current().bad())
+            next();
+    }
 
-    const Raw &raw_; ///< CachedIps being iterated
-    size_t position_; ///< current iteration location, modulo raw.size()
-    size_t processed_; ///< number of visited positions, including skipped ones
+    const Raw &raw_;    ///< CachedIps being iterated
+    size_t position_;   ///< current iteration location, modulo raw.size()
+    size_t processed_;  ///< number of visited positions, including skipped ones
 };
 
 /// Makes "which IPs to iterate" decision explicit in range-based for loops.
@@ -179,7 +212,8 @@ template <class Iterator>
 class IpsSelector
 {
 public:
-    explicit IpsSelector(const CachedIps &ips): ips_(ips) {}
+    explicit IpsSelector(const CachedIps &ips) :
+        ips_(ips) {}
 
     Iterator cbegin() const noexcept { return Iterator(ips_.raw(), ips_.goodPosition); }
     Iterator cend() const noexcept { return Iterator(ips_.raw()); }
@@ -187,11 +221,11 @@ public:
     Iterator end() const noexcept { return cend(); }
 
 private:
-    const CachedIps &ips_; ///< master IP storage we are wrapping
+    const CachedIps &ips_;  ///< master IP storage we are wrapping
 };
 
 /// an interface for receiving IP::Addresses from nbgethostbyname()
-class IpReceiver: public virtual CbdataParent
+class IpReceiver : public virtual CbdataParent
 {
 public:
     virtual ~IpReceiver() {}
@@ -212,14 +246,14 @@ public:
 /// initiate an (often) asynchronous DNS lookup; the `receiver` gets the results
 void nbgethostbyname(const char *name, const CbcPointer<IpReceiver> &receiver);
 
-} // namespace Dns
+}  // namespace Dns
 
-typedef Dns::CachedIps ipcache_addrs; ///< deprecated alias
+typedef Dns::CachedIps ipcache_addrs;  ///< deprecated alias
 
 typedef void IPH(const ipcache_addrs *, const Dns::LookupDetails &details, void *);
 
 void ipcache_purgelru(void *);
-void ipcache_nbgethostbyname(const char *name, IPH * handler, void *handlerData);
+void ipcache_nbgethostbyname(const char *name, IPH *handler, void *handlerData);
 const ipcache_addrs *ipcache_gethostbyname(const char *, int flags);
 void ipcacheInvalidate(const char *);
 void ipcacheInvalidateNegative(const char *);
@@ -231,7 +265,7 @@ void ipcache_restart(void);
 int ipcacheAddEntryFromHosts(const char *name, const char *ipaddr);
 
 inline std::ostream &
-operator <<(std::ostream &os, const Dns::CachedIps &ips)
+operator<<(std::ostream &os, const Dns::CachedIps &ips)
 {
     ips.reportCurrent(os);
     return os;
@@ -252,4 +286,3 @@ Dns::CachedIps::goodAndBad() const
 }
 
 #endif /* _SQUID_IPCACHE_H */
-

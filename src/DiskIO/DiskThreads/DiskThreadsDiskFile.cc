@@ -9,16 +9,16 @@
 /* DEBUG: section 79    Disk IO Routines */
 
 #include "squid.h"
+#include "DiskThreadsDiskFile.h"
 #include "DiskIO/IORequestor.h"
 #include "DiskIO/ReadRequest.h"
 #include "DiskIO/WriteRequest.h"
-#include "DiskThreadsDiskFile.h"
-#include "fd.h"
-#include "fs_io.h"
 #include "Generic.h"
-#include "globals.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "fd.h"
+#include "fs_io.h"
+#include "globals.h"
 
 #include <cerrno>
 
@@ -72,11 +72,11 @@ DiskThreadsDiskFile::open(int flags, mode_t mode, RefCount<IORequestor> callback
 }
 
 void
-DiskThreadsDiskFile::read(ReadRequest * request)
+DiskThreadsDiskFile::read(ReadRequest *request)
 {
     debugs(79, 3, "DiskThreadsDiskFile::read: " << this << ", size " << request->len);
-    assert (fd > -1);
-    assert (ioRequestor.getRaw());
+    assert(fd > -1);
+    assert(ioRequestor.getRaw());
     ++statCounter.syscalls.disk.reads;
     ++inProgressIOs;
 #if ASYNC_READ
@@ -115,7 +115,7 @@ DiskThreadsDiskFile::create(int flags, mode_t mode, RefCount<IORequestor> callba
 
 #else
 
-    openDone (fd, NULL, fd, 0);
+    openDone(fd, NULL, fd, 0);
 
 #endif
 }
@@ -130,7 +130,7 @@ void
 DiskThreadsDiskFile::OpenDone(int fd, void *cbdata, const char *buf, int aio_return, int aio_errno)
 {
     DiskThreadsDiskFile *myFile = static_cast<DiskThreadsDiskFile *>(cbdata);
-    myFile->openDone (fd, buf, aio_return, aio_errno);
+    myFile->openDone(fd, buf, aio_return, aio_errno);
 }
 
 void
@@ -158,7 +158,8 @@ DiskThreadsDiskFile::openDone(int, const char *, int anFD, int errflag)
     debugs(79, 3, "DiskThreadsDiskFile::openDone: exiting");
 }
 
-void DiskThreadsDiskFile::doClose()
+void
+DiskThreadsDiskFile::doClose()
 {
     if (fd > -1) {
         ++statCounter.syscalls.disk.closes;
@@ -184,12 +185,12 @@ DiskThreadsDiskFile::close()
 
     if (!ioInProgress()) {
         doClose();
-        assert (ioRequestor != NULL);
+        assert(ioRequestor != NULL);
         ioRequestor->closeCompleted();
         return;
     } else {
-        debugs(79, DBG_CRITICAL, HERE << "DiskThreadsDiskFile::close: " <<
-               "did NOT close because ioInProgress() is true.  now what?");
+        debugs(79, DBG_CRITICAL, HERE << "DiskThreadsDiskFile::close: "
+                                      << "did NOT close because ioInProgress() is true.  now what?");
     }
 }
 
@@ -201,7 +202,7 @@ DiskThreadsDiskFile::canRead() const
 }
 
 void
-DiskThreadsDiskFile::write(WriteRequest * writeRequest)
+DiskThreadsDiskFile::write(WriteRequest *writeRequest)
 {
     debugs(79, 3, "DiskThreadsDiskFile::write: FD " << fd);
     ++statCounter.syscalls.disk.writes;
@@ -239,8 +240,8 @@ void
 DiskThreadsDiskFile::ReadDone(int fd, const char *buf, int len, int errflag, void *my_data)
 #endif
 {
-    IoResult<ReadRequest> * result = static_cast<IoResult<ReadRequest> *>(my_data);
-    assert (result);
+    IoResult<ReadRequest> *result = static_cast<IoResult<ReadRequest> *>(my_data);
+    assert(result);
     result->file->readDone(fd, buf, len, errflag, result->request);
     delete result;
 }
@@ -249,7 +250,7 @@ void
 DiskThreadsDiskFile::readDone(int rvfd, const char *buf, int len, int errflag, RefCount<ReadRequest> request)
 {
     debugs(79, 3, "DiskThreadsDiskFile::readDone: FD " << rvfd);
-    assert (fd == rvfd);
+    assert(fd == rvfd);
 
     ssize_t rlen;
 
@@ -257,7 +258,7 @@ DiskThreadsDiskFile::readDone(int rvfd, const char *buf, int len, int errflag, R
         debugs(79, 3, "DiskThreadsDiskFile::readDone: got failure (" << errflag << ")");
         rlen = -1;
     } else {
-        rlen = (ssize_t) len;
+        rlen = (ssize_t)len;
     }
 
 #if ASYNC_READ
@@ -272,7 +273,7 @@ DiskThreadsDiskFile::readDone(int rvfd, const char *buf, int len, int errflag, R
 #else
 
     if (errflag == DISK_EOF)
-        errflag = DISK_OK;  /* EOF is signalled by len == 0, not errors... */
+        errflag = DISK_OK; /* EOF is signalled by len == 0, not errors... */
 
 #endif
 
@@ -284,13 +285,13 @@ DiskThreadsDiskFile::readDone(int rvfd, const char *buf, int len, int errflag, R
 void
 DiskThreadsDiskFile::
 #if ASYNC_WRITE
-WriteDone(int fd, void *my_data, const char *buf, int len, int errflag)
+    WriteDone(int fd, void *my_data, const char *buf, int len, int errflag)
 #else
-WriteDone(int fd, int errflag, size_t len, void *my_data)
+    WriteDone(int fd, int errflag, size_t len, void *my_data)
 #endif
 {
-    IoResult<WriteRequest> * result = static_cast<IoResult<WriteRequest> *>(my_data);
-    assert (result);
+    IoResult<WriteRequest> *result = static_cast<IoResult<WriteRequest> *>(my_data);
+    assert(result);
     result->file->writeDone(fd, errflag, len, result->request);
     delete result;
 }
@@ -298,7 +299,7 @@ WriteDone(int fd, int errflag, size_t len, void *my_data)
 void
 DiskThreadsDiskFile::writeDone(int rvfd, int errflag, size_t len, RefCount<WriteRequest> request)
 {
-    assert (rvfd == fd);
+    assert(rvfd == fd);
     static int loop_detect = 0;
 
 #if ASYNC_WRITE
@@ -327,4 +328,3 @@ DiskThreadsDiskFile::writeDone(int rvfd, int errflag, size_t len, RefCount<Write
 template <class RT>
 cbdata_type IoResult<RT>::CBDATA_IoResult = CBDATA_UNKNOWN;
 /** \endcond */
-

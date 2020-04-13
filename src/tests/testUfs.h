@@ -17,13 +17,12 @@
 
 class testUfs : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testUfs );
-    CPPUNIT_TEST( testUfsSearch );
-    CPPUNIT_TEST( testUfsDefaultEngine );
+    CPPUNIT_TEST_SUITE(testUfs);
+    CPPUNIT_TEST(testUfsSearch);
+    CPPUNIT_TEST(testUfsDefaultEngine);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-
 protected:
     void commonInit();
     void testUfsSearch();
@@ -31,4 +30,3 @@ protected:
 };
 
 #endif
-

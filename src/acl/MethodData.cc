@@ -9,9 +9,9 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/MethodData.h"
 #include "ConfigParser.h"
+#include "acl/Checklist.h"
 #include "http/RequestMethod.h"
 
 int ACLMethodData::ThePurgeCount = 0;
@@ -59,7 +59,7 @@ ACLMethodData::parse()
         m.HttpRequestMethodXXX(t);
         values.push_back(m);
         if (values.back() == Http::METHOD_PURGE)
-            ++ThePurgeCount; // configuration code wants to know
+            ++ThePurgeCount;  // configuration code wants to know
     }
 }
 
@@ -69,4 +69,3 @@ ACLMethodData::clone() const
     assert(values.empty());
     return new ACLMethodData(*this);
 }
-

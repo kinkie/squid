@@ -9,9 +9,9 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/TextException.h"
 #include "CpuAffinitySet.h"
 #include "Debug.h"
+#include "base/TextException.h"
 #include "util.h"
 
 #include <cerrno>
@@ -26,27 +26,31 @@ CpuAffinitySet::CpuAffinitySet()
 void
 CpuAffinitySet::apply()
 {
-    Must(CPU_COUNT(&theCpuSet) > 0); // CPU affinity mask set
+    Must(CPU_COUNT(&theCpuSet) > 0);  // CPU affinity mask set
     Must(!applied());
 
     bool success = false;
     if (sched_getaffinity(0, sizeof(theOrigCpuSet), &theOrigCpuSet)) {
         int xerrno = errno;
         debugs(54, DBG_IMPORTANT, "ERROR: failed to get CPU affinity for "
-               "process PID " << getpid() << ", ignoring CPU affinity for "
-               "this process: " << xstrerr(xerrno));
+                                  "process PID "
+                   << getpid() << ", ignoring CPU affinity for "
+                                  "this process: "
+                   << xstrerr(xerrno));
     } else {
         cpu_set_t cpuSet;
         memcpy(&cpuSet, &theCpuSet, sizeof(cpuSet));
-        (void) CPU_AND(&cpuSet, &cpuSet, &theOrigCpuSet);
+        (void)CPU_AND(&cpuSet, &cpuSet, &theOrigCpuSet);
         if (CPU_COUNT(&cpuSet) <= 0) {
             debugs(54, DBG_IMPORTANT, "ERROR: invalid CPU affinity for process "
-                   "PID " << getpid() << ", may be caused by an invalid core in "
-                   "'cpu_affinity_map' or by external affinity restrictions");
+                                      "PID "
+                       << getpid() << ", may be caused by an invalid core in "
+                                      "'cpu_affinity_map' or by external affinity restrictions");
         } else if (sched_setaffinity(0, sizeof(cpuSet), &cpuSet)) {
             int xerrno = errno;
             debugs(54, DBG_IMPORTANT, "ERROR: failed to set CPU affinity for "
-                   "process PID " << getpid() << ": " << xstrerr(xerrno));
+                                      "process PID "
+                       << getpid() << ": " << xstrerr(xerrno));
         } else
             success = true;
     }
@@ -61,8 +65,8 @@ CpuAffinitySet::undo()
         if (sched_setaffinity(0, sizeof(theOrigCpuSet), &theOrigCpuSet)) {
             int xerrno = errno;
             debugs(54, DBG_IMPORTANT, "ERROR: failed to restore original CPU "
-                   "affinity for process PID " << getpid() << ": " <<
-                   xstrerr(xerrno));
+                                      "affinity for process PID "
+                       << getpid() << ": " << xstrerr(xerrno));
         }
         CPU_ZERO(&theOrigCpuSet);
     }
@@ -82,4 +86,3 @@ CpuAffinitySet::set(const cpu_set_t &aCpuSet)
 {
     memcpy(&theCpuSet, &aCpuSet, sizeof(theCpuSet));
 }
-

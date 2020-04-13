@@ -12,7 +12,8 @@
 #include "enums.h" /* for clientStream_status_t */
 
 class Lock;
-template <class C> class RefCount;
+template <class C>
+class RefCount;
 
 typedef RefCount<Lock> ClientStreamData;
 
@@ -35,4 +36,3 @@ typedef void CSD(clientStreamNode *, ClientHttpRequest *);
 typedef clientStream_status_t CSS(clientStreamNode *, ClientHttpRequest *);
 
 #endif /* SQUID_CLIENTSTREAM_FORWARD_H */
-

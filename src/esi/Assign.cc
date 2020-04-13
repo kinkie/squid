@@ -15,10 +15,10 @@
  */
 #if (USE_SQUID_ESI == 1)
 
+#include "HttpReply.h"
 #include "esi/Assign.h"
 #include "esi/Context.h"
 #include "esi/Sequence.h"
-#include "HttpReply.h"
 
 ESIAssign::~ESIAssign()
 {
@@ -26,27 +26,30 @@ ESIAssign::~ESIAssign()
         delete value;
 }
 
-ESIAssign::ESIAssign (ESIAssign const &old) : parent (NULL), varState (NULL), name (old.name), value (old.value ? new ESIVariableExpression (*old.value): NULL), variable (NULL), unevaluatedVariable(old.unevaluatedVariable)
-{}
+ESIAssign::ESIAssign(ESIAssign const &old) :
+    parent(NULL), varState(NULL), name(old.name), value(old.value ? new ESIVariableExpression(*old.value) : NULL), variable(NULL), unevaluatedVariable(old.unevaluatedVariable)
+{
+}
 
-ESIAssign::ESIAssign (esiTreeParentPtr aParent, int attrcount, char const **attr, ESIContext *aContext) : parent (aParent), varState (NULL), name(), value (NULL), variable (NULL), unevaluatedVariable()
+ESIAssign::ESIAssign(esiTreeParentPtr aParent, int attrcount, char const **attr, ESIContext *aContext) :
+    parent(aParent), varState(NULL), name(), value(NULL), variable(NULL), unevaluatedVariable()
 {
     /* TODO: grab content IFF no value was specified */
-    assert (aContext);
+    assert(aContext);
 
     for (int i = 0; i < attrcount && attr[i]; i += 2) {
-        if (!strcmp(attr[i],"name")) {
+        if (!strcmp(attr[i], "name")) {
             /* the variables name is ...  */
-            debugs(86, 5, "ESIAssign::ESIAssign: Variable name '" << attr[i+1] << "'");
+            debugs(86, 5, "ESIAssign::ESIAssign: Variable name '" << attr[i + 1] << "'");
             /* If there are duplicate name attributes, we simply use the
              * last one
              */
-            name = attr[i+1];
-        } else if (!strcmp(attr[i],"value")) {
+            name = attr[i + 1];
+        } else if (!strcmp(attr[i], "value")) {
             /* short form assignment:  */
-            debugs(86, 5, "ESIAssign::ESIAssign: Unevaluated variable '" << attr[i+1] << "'");
+            debugs(86, 5, "ESIAssign::ESIAssign: Unevaluated variable '" << attr[i + 1] << "'");
             /* Again, if there are duplicate attributes, we use the last */
-            unevaluatedVariable = attr[i+1];
+            unevaluatedVariable = attr[i + 1];
         } else {
             /* ignore mistyped attributes. TODO:? error on these for user feedback - config parameter needed
              */
@@ -60,38 +63,38 @@ void
 ESIAssign::evaluateVariable()
 {
     if (variable.getRaw())
-        variable->process (false);
+        variable->process(false);
 
     variable = NULL;
 
     if (unevaluatedVariable.size()) {
         varState->feedData(unevaluatedVariable.rawBuf(), unevaluatedVariable.size());
-        char const *result = varState->extractChar ();
+        char const *result = varState->extractChar();
 
         /* Consider activating this, when we want to evaluate variables to a
          * value
          */
         // setTestResult(ESIExpression::Evaluate (expression));
 
-        value = new ESIVariableExpression (result);
+        value = new ESIVariableExpression(result);
 
-        safe_free (result);
+        safe_free(result);
     }
 }
 
 void
-ESIAssign::provideData (ESISegment::Pointer data, ESIElement * source)
+ESIAssign::provideData(ESISegment::Pointer data, ESIElement *source)
 {
-    assert (source == variable.getRaw());
+    assert(source == variable.getRaw());
     char *result = data->listToChar();
     unevaluatedVariable = result;
-    safe_free (result);
+    safe_free(result);
 }
 
 esiProcessResult_t
-ESIAssign::process (int dovars)
+ESIAssign::process(int dovars)
 {
-    assert (varState);
+    assert(varState);
 
     if (!value)
         evaluateVariable();
@@ -99,7 +102,7 @@ ESIAssign::process (int dovars)
     if (!value)
         return ESI_PROCESS_COMPLETE;
 
-    varState->addVariable (name.rawBuf(), name.size(), value);
+    varState->addVariable(name.rawBuf(), name.size(), value);
 
     value = NULL;
 
@@ -109,13 +112,14 @@ ESIAssign::process (int dovars)
 }
 
 void
-ESIAssign::render(ESISegment::Pointer)
-{}
+    ESIAssign::render(ESISegment::Pointer)
+{
+}
 
 ESIAssign::Pointer
 ESIAssign::makeCacheable() const
 {
-    ESIAssign *result = new ESIAssign (*this);
+    ESIAssign *result = new ESIAssign(*this);
 
     if (variable.getRaw())
         result->variable = variable->makeCacheable();
@@ -126,7 +130,7 @@ ESIAssign::makeCacheable() const
 ESIAssign::Pointer
 ESIAssign::makeUsable(esiTreeParentPtr aParent, ESIVarState &aVarState) const
 {
-    ESIAssign *result = new ESIAssign (*this);
+    ESIAssign *result = new ESIAssign(*this);
     result->parent = aParent;
     result->varState = cbdataReference(&aVarState);
 
@@ -140,7 +144,7 @@ void
 ESIAssign::finish()
 {
     if (varState)
-        cbdataReferenceDone (varState);
+        cbdataReferenceDone(varState);
 
     if (parent.getRaw())
         parent = NULL;
@@ -155,23 +159,25 @@ ESIAssign::addElement(ESIElement::Pointer anElement)
         return true;
 
     if (!variable.getRaw())
-        variable = new esiSequence (this, false);
+        variable = new esiSequence(this, false);
 
-    return variable->addElement (anElement);
+    return variable->addElement(anElement);
 }
 
 ESIVariableExpression::~ESIVariableExpression()
-{}
+{
+}
 
-ESIVariableExpression::ESIVariableExpression (String const &aString) : expression (aString)
-{}
+ESIVariableExpression::ESIVariableExpression(String const &aString) :
+    expression(aString)
+{
+}
 
 void
-ESIVariableExpression::eval (ESIVarState &state, char const *subref, char const *defaultOnEmpty) const
+ESIVariableExpression::eval(ESIVarState &state, char const *subref, char const *defaultOnEmpty) const
 {
     /* XXX: Implement evaluation of the expression */
-    ESISegment::ListAppend (state.getOutput(), expression.rawBuf(), expression.size());
+    ESISegment::ListAppend(state.getOutput(), expression.rawBuf(), expression.size());
 }
 
 #endif /* USE_SQUID_ESI == 1 */
-

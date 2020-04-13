@@ -9,9 +9,9 @@
 /* DEBUG: section 57    HTTP Status-line */
 
 #include "squid.h"
-#include "base/Packable.h"
-#include "Debug.h"
 #include "http/StatusLine.h"
+#include "Debug.h"
+#include "base/Packable.h"
 
 void
 Http::StatusLine::init()
@@ -43,7 +43,7 @@ Http::StatusLine::reason() const
 }
 
 void
-Http::StatusLine::packInto(Packable * p) const
+Http::StatusLine::packInto(Packable *p) const
 {
     assert(p);
 
@@ -55,7 +55,7 @@ Http::StatusLine::packInto(Packable * p) const
         if (++reports <= 100)
             debugs(57, DBG_IMPORTANT, "BUG: Generated response lacks status code");
         packedStatus = Http::scInternalServerError;
-        packedReason = Http::StatusCodeString(packedStatus); // ignore custom reason_ (if any)
+        packedReason = Http::StatusCodeString(packedStatus);  // ignore custom reason_ (if any)
     }
 
     /* local constants */
@@ -66,14 +66,14 @@ Http::StatusLine::packInto(Packable * p) const
     /* handle ICY protocol status line specially. Pass on the bad format. */
     if (protocol == AnyP::PROTO_ICY) {
         debugs(57, 9, "packing sline " << this << " using " << p << ":");
-        debugs(57, 9, "FORMAT=" << IcyStatusLineFormat );
+        debugs(57, 9, "FORMAT=" << IcyStatusLineFormat);
         debugs(57, 9, "ICY " << packedStatus << " " << packedReason);
         p->appendf(IcyStatusLineFormat, packedStatus, packedReason);
         return;
     }
 
     debugs(57, 9, "packing sline " << this << " using " << p << ":");
-    debugs(57, 9, "FORMAT=" << Http1StatusLineFormat );
+    debugs(57, 9, "FORMAT=" << Http1StatusLineFormat);
     debugs(57, 9, "HTTP/" << version.major << "." << version.minor << " " << packedStatus << " " << packedReason);
     p->appendf(Http1StatusLineFormat, version.major, version.minor, packedStatus, packedReason);
 }
@@ -85,7 +85,7 @@ Http::StatusLine::packInto(Packable * p) const
 bool
 Http::StatusLine::parse(const String &protoPrefix, const char *start, const char * /*end*/)
 {
-    status_ = Http::scInvalidHeader;    /* Squid header parsing error */
+    status_ = Http::scInvalidHeader; /* Squid header parsing error */
 
     // XXX: Http::Message::parse() has a similar check but is using
     // casesensitive comparison (which is required by HTTP errata?)
@@ -121,6 +121,5 @@ Http::StatusLine::parse(const String &protoPrefix, const char *start, const char
 
     /* we ignore 'reason-phrase' */
     /* Should assert start < end ? */
-    return true;            /* success */
+    return true; /* success */
 }
-

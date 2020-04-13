@@ -14,12 +14,11 @@
 #include "mgr/Action.h"
 #include "mgr/ActionCreator.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// function-based cache manager Action; a wrapper for so called legacy actions
 /// that do everything using a single OBJH function
-class FunAction: public Action
+class FunAction : public Action
 {
 protected:
     FunAction(const CommandPointer &cmd, OBJH *aHandler);
@@ -28,7 +27,7 @@ public:
     static Pointer Create(const CommandPointer &cmd, OBJH *aHandler);
 
     /* Action API */
-    virtual void respond(const Request& request);
+    virtual void respond(const Request &request);
     // we cannot aggregate because we do not even know what the handler does
     virtual bool aggregatable() const { return false; }
 
@@ -37,25 +36,26 @@ protected:
     virtual void dump(StoreEntry *entry);
 
 private:
-    OBJH *handler; ///< legacy function that collects and dumps info
+    OBJH *handler;  ///< legacy function that collects and dumps info
 };
 
 /// creates FunAction using ActionCreator API
-class FunActionCreator: public ActionCreator
+class FunActionCreator : public ActionCreator
 {
 public:
-    explicit FunActionCreator(OBJH *aHandler): handler(aHandler) {}
+    explicit FunActionCreator(OBJH *aHandler) :
+        handler(aHandler) {}
 
     /* ActionCreator API */
-    virtual Action::Pointer create(const CommandPointer &cmd) const {
+    virtual Action::Pointer create(const CommandPointer &cmd) const
+    {
         return FunAction::Create(cmd, handler);
     }
 
 private:
-    OBJH *handler; ///< legacy function to pass to the FunAction wrapper
+    OBJH *handler;  ///< legacy function to pass to the FunAction wrapper
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_FUN_ACTION_H */
-

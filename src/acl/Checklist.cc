@@ -10,8 +10,8 @@
 
 #include "squid.h"
 #include "acl/Checklist.h"
-#include "acl/Tree.h"
 #include "Debug.h"
+#include "acl/Tree.h"
 #include "profiler/Profiler.h"
 
 #include <algorithm>
@@ -23,7 +23,7 @@ ACLChecklist::prepNonBlocking()
     assert(accessList);
 
     if (callerGone()) {
-        checkCallback(ACCESS_DUNNO); // the answer does not really matter
+        checkCallback(ACCESS_DUNNO);  // the answer does not really matter
         return false;
     }
 
@@ -57,7 +57,7 @@ ACLChecklist::completeNonBlocking()
 void
 ACLChecklist::markFinished(const Acl::Answer &finalAnswer, const char *reason)
 {
-    assert (!finished() && !asyncInProgress());
+    assert(!finished() && !asyncInProgress());
     finished_ = true;
     answer_ = finalAnswer;
     debugs(28, 3, HERE << this << " answer " << answer_ << " for " << reason);
@@ -134,17 +134,17 @@ ACLChecklist::goAsync(AsyncState *state)
             return false;
     }
 
-    asyncLoc_ = matchLoc_; // prevent async loops
+    asyncLoc_ = matchLoc_;  // prevent async loops
     ++asyncLoopDepth_;
 
     asyncStage_ = asyncStarting;
     changeState(state);
-    state->checkForAsync(this); // this is supposed to go async
+    state->checkForAsync(this);  // this is supposed to go async
 
     // Did AsyncState object actually go async? If not, tell the caller.
     if (asyncStage_ != asyncStarting) {
         assert(asyncStage_ == asyncFailed);
-        asyncStage_ = asyncNone; // sanity restored
+        asyncStage_ = asyncNone;  // sanity restored
         return false;
     }
 
@@ -175,9 +175,9 @@ ACLChecklist::checkCallback(Acl::Answer answer)
 }
 
 ACLChecklist::ACLChecklist() :
-    accessList (NULL),
-    callback (NULL),
-    callback_data (NULL),
+    accessList(NULL),
+    callback(NULL),
+    callback_data(NULL),
     asyncCaller_(false),
     occupied_(false),
     finished_(false),
@@ -190,7 +190,7 @@ ACLChecklist::ACLChecklist() :
 
 ACLChecklist::~ACLChecklist()
 {
-    assert (!asyncInProgress());
+    assert(!asyncInProgress());
 
     changeAcl(nullptr);
 
@@ -206,20 +206,20 @@ ACLChecklist::NullState::Instance()
 void
 ACLChecklist::NullState::checkForAsync(ACLChecklist *) const
 {
-    assert(false); // or the Checklist will never get out of the async state
+    assert(false);  // or the Checklist will never get out of the async state
 }
 
 ACLChecklist::NullState ACLChecklist::NullState::_instance;
 
 void
-ACLChecklist::changeState (AsyncState *newState)
+ACLChecklist::changeState(AsyncState *newState)
 {
     /* only change from null to active and back again,
      * not active to active.
      * relax this once conversion to states is complete
      * RBC 02 2003
      */
-    assert (state_ == NullState::Instance() || newState == NullState::Instance());
+    assert(state_ == NullState::Instance() || newState == NullState::Instance());
     state_ = newState;
 }
 
@@ -235,7 +235,7 @@ ACLChecklist::asyncState() const
  * NP: this should probably be made Async now.
  */
 void
-ACLChecklist::nonBlockingCheck(ACLCB * callback_, void *callback_data_)
+ACLChecklist::nonBlockingCheck(ACLCB *callback_, void *callback_data_)
 {
     preCheck("slow rules");
     callback = callback_;
@@ -252,10 +252,10 @@ ACLChecklist::nonBlockingCheck(ACLCB * callback_, void *callback_data_)
     }
 
     if (prepNonBlocking()) {
-        matchAndFinish(); // calls markFinished() on success
+        matchAndFinish();  // calls markFinished() on success
         if (!asyncInProgress())
             completeNonBlocking();
-    } // else checkCallback() has been called
+    }  // else checkCallback() has been called
 }
 
 void
@@ -264,8 +264,8 @@ ACLChecklist::resumeNonBlockingCheck(AsyncState *state)
     assert(asyncState() == state);
     changeState(NullState::Instance());
 
-    if (asyncStage_ == asyncStarting) { // oops, we did not really go async
-        asyncStage_ = asyncFailed; // goAsync() checks for that
+    if (asyncStage_ == asyncStarting) {  // oops, we did not really go async
+        asyncStage_ = asyncFailed;       // goAsync() checks for that
         // Do not fall through to resume checks from the async callback. Let
         // the still-pending(!) goAsync() notice and notify its caller instead.
         return;
@@ -276,13 +276,13 @@ ACLChecklist::resumeNonBlockingCheck(AsyncState *state)
     assert(!matchPath.empty());
 
     if (!prepNonBlocking())
-        return; // checkCallback() has been called
+        return;  // checkCallback() has been called
 
     if (!finished())
         matchAndFinish();
 
     if (asyncInProgress())
-        assert(!matchPath.empty()); // we have breadcrumbs to resume matching
+        assert(!matchPath.empty());  // we have breadcrumbs to resume matching
     else
         completeNonBlocking();
 }
@@ -300,12 +300,12 @@ ACLChecklist::matchAndFinish()
         result = top.parent->resumeMatchingAt(this, top.position);
     }
 
-    if (result) // the entire tree matched
+    if (result)  // the entire tree matched
         markFinished(accessList->winningAction(), "match");
 }
 
 Acl::Answer const &
-ACLChecklist::fastCheck(const Acl::Tree * list)
+ACLChecklist::fastCheck(const Acl::Tree *list)
 {
     PROF_start(aclCheckFast);
 
@@ -314,12 +314,12 @@ ACLChecklist::fastCheck(const Acl::Tree * list)
 
     // Concurrent checks are not supported, but sequential checks are, and they
     // may use a mixture of fastCheck(void) and fastCheck(list) calls.
-    const Acl::Tree * const savedList = changeAcl(list);
+    const Acl::Tree *const savedList = changeAcl(list);
 
     // assume DENY/ALLOW on mis/matches due to action-free accessList
     // matchAndFinish() takes care of the ALLOW case
     if (accessList && cbdataReferenceValid(accessList))
-        matchAndFinish(); // calls markFinished() on success
+        matchAndFinish();  // calls markFinished() on success
     if (!finished())
         markFinished(ACCESS_DENIED, "ACLs failed to match");
 
@@ -343,7 +343,7 @@ ACLChecklist::fastCheck()
     debugs(28, 5, "aclCheckFast: list: " << accessList);
     const Acl::Tree *acl = cbdataReference(accessList);
     if (acl != NULL && cbdataReferenceValid(acl)) {
-        matchAndFinish(); // calls markFinished() on success
+        matchAndFinish();  // calls markFinished() on success
 
         // if finished (on a match or in exceptional cases), stop
         if (finished()) {
@@ -370,17 +370,15 @@ ACLChecklist::fastCheck()
 void
 ACLChecklist::calcImplicitAnswer()
 {
-    const auto lastAction = (accessList && cbdataReferenceValid(accessList)) ?
-                            accessList->lastAction() : Acl::Answer(ACCESS_DUNNO);
+    const auto lastAction = (accessList && cbdataReferenceValid(accessList)) ? accessList->lastAction() : Acl::Answer(ACCESS_DUNNO);
     auto implicitRuleAnswer = Acl::Answer(ACCESS_DUNNO);
-    if (lastAction == ACCESS_DENIED) // reverse last seen "deny"
+    if (lastAction == ACCESS_DENIED)  // reverse last seen "deny"
         implicitRuleAnswer = Acl::Answer(ACCESS_ALLOWED);
-    else if (lastAction == ACCESS_ALLOWED) // reverse last seen "allow"
+    else if (lastAction == ACCESS_ALLOWED)  // reverse last seen "allow"
         implicitRuleAnswer = Acl::Answer(ACCESS_DENIED);
     // else we saw no rules and will respond with ACCESS_DUNNO
 
-    debugs(28, 3, HERE << this << " NO match found, last action " <<
-           lastAction << " so returning " << implicitRuleAnswer);
+    debugs(28, 3, HERE << this << " NO match found, last action " << lastAction << " so returning " << implicitRuleAnswer);
     markFinished(implicitRuleAnswer, "implicit rule won");
 }
 
@@ -403,4 +401,3 @@ ACLChecklist::banAction(const Acl::Answer &action)
 {
     bannedActions_.push_back(action);
 }
-

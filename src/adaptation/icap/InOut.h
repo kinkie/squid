@@ -16,55 +16,56 @@
 // as the "cause". ICAP transactions use this class to store virgin
 // and adapted HTTP messages.
 
-namespace Adaptation
-{
-namespace Icap
-{
+namespace Adaptation {
+namespace Icap {
 
-class InOut
-{
+    class InOut
+    {
 
-public:
-    // TODO: s/Header/Message/i ?
-    typedef Http::Message Header;
+    public:
+        // TODO: s/Header/Message/i ?
+        typedef Http::Message Header;
 
-    InOut(): header(0), cause(0) {}
+        InOut() :
+            header(0), cause(0) {}
 
-    ~InOut() {
-        HTTPMSGUNLOCK(cause);
-        HTTPMSGUNLOCK(header);
-    }
-
-    void setCause(HttpRequest *r) {
-        if (r) {
+        ~InOut()
+        {
             HTTPMSGUNLOCK(cause);
-            cause = r;
-            HTTPMSGLOCK(cause);
-        } else {
-            assert(!cause);
+            HTTPMSGUNLOCK(header);
         }
-    }
 
-    void setHeader(Header *h) {
-        HTTPMSGUNLOCK(header);
-        header = h;
-        HTTPMSGLOCK(header);
-        body_pipe = header->body_pipe;
-    }
+        void setCause(HttpRequest *r)
+        {
+            if (r) {
+                HTTPMSGUNLOCK(cause);
+                cause = r;
+                HTTPMSGLOCK(cause);
+            } else {
+                assert(!cause);
+            }
+        }
 
-public:
-    // virgin or adapted message being worked on
-    Header *header;   // parsed HTTP status/request line and headers
+        void setHeader(Header *h)
+        {
+            HTTPMSGUNLOCK(header);
+            header = h;
+            HTTPMSGLOCK(header);
+            body_pipe = header->body_pipe;
+        }
 
-    // HTTP request header for HTTP responses (the cause of the response)
-    HttpRequest *cause;
+    public:
+        // virgin or adapted message being worked on
+        Header *header;  // parsed HTTP status/request line and headers
 
-    // Copy of header->body_pipe, in case somebody moves the original.
-    BodyPipe::Pointer body_pipe;
-};
+        // HTTP request header for HTTP responses (the cause of the response)
+        HttpRequest *cause;
 
-} // namespace Icap
-} // namespace Adaptation
+        // Copy of header->body_pipe, in case somebody moves the original.
+        BodyPipe::Pointer body_pipe;
+    };
+
+}  // namespace Icap
+}  // namespace Adaptation
 
 #endif /* SQUID_ICAPINOUT_H */
-

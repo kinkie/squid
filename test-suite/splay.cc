@@ -25,15 +25,17 @@ class intnode
 {
 
 public:
-    intnode() : i(0) {}
+    intnode() :
+        i(0) {}
 
-    intnode (int anInt) : i (anInt) {}
+    intnode(int anInt) :
+        i(anInt) {}
 
     int i;
 };
 
 int
-compareintvoid(void * const &a, void * const &n)
+compareintvoid(void *const &a, void *const &n)
 {
     intnode *A = (intnode *)a;
     intnode *B = (intnode *)n;
@@ -41,7 +43,7 @@ compareintvoid(void * const &a, void * const &n)
 }
 
 int
-compareint(intnode * const &a, intnode * const &b)
+compareint(intnode *const &a, intnode *const &b)
 {
     return a->i - b->i;
 }
@@ -59,8 +61,8 @@ public:
     static void CheckNode(intnode const &);
 };
 
-int SplayCheck::LastValue (0);
-bool SplayCheck::ExpectedFail (false);
+int SplayCheck::LastValue(0);
+bool SplayCheck::ExpectedFail(false);
 
 void
 SplayCheck::BeginWalk()
@@ -86,32 +88,32 @@ SplayCheck::CheckNode(intnode const &A)
     } else
         /* success */
         if (ExpectedFail)
-            exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     LastValue = A.i;
 }
 
 void
-SplayCheck::WalkNode (intnode *const &a, void *)
+SplayCheck::WalkNode(intnode *const &a, void *)
 {
-    CheckNode (*a);
+    CheckNode(*a);
 }
 
 void
-SplayCheck::WalkNodeRef (intnode const &a, void *)
+SplayCheck::WalkNodeRef(intnode const &a, void *)
 {
-    CheckNode (a);
+    CheckNode(a);
 }
 
 void
-destintvoid(void * &data)
+destintvoid(void *&data)
 {
     intnode *i = (intnode *)data;
-    xfree (i);
+    xfree(i);
 }
 
 void
-destint(intnode * &data)
+destint(intnode *&data)
 {
     delete data;
 }
@@ -123,15 +125,16 @@ compareintref(intnode const &a, intnode const &b)
 }
 
 void
-destintref (intnode &)
-{}
+destintref(intnode &)
+{
+}
 
 int
 main(int, char *[])
 {
     std::mt19937 generator;
     xuniform_int_distribution<int> distribution;
-    auto nextRandom = std::bind (distribution, generator);
+    auto nextRandom = std::bind(distribution, generator);
 
     {
         /* test void * splay containers */
@@ -143,7 +146,7 @@ main(int, char *[])
             if (top)
                 top = top->insert(I, compareintvoid);
             else
-                top = new splayNode(static_cast<void*>(new intnode(101)));
+                top = new splayNode(static_cast<void *>(new intnode(101)));
         }
 
         SplayCheck::BeginWalk();
@@ -159,7 +162,7 @@ main(int, char *[])
         /* intnode* */
         SplayNode<intnode *> *safeTop = new SplayNode<intnode *>(new intnode(101));
 
-        for ( int i = 0; i < 100; ++i) {
+        for (int i = 0; i < 100; ++i) {
             intnode *I;
             I = new intnode;
             I->i = nextRandom();
@@ -220,9 +223,9 @@ main(int, char *[])
         {
             intnode I;
             I.i = 50;
-            safeTop->insert (I, compareintref);
+            safeTop->insert(I, compareintref);
             I.i = 10000000;
-            safeTop->insert (I, compareintref);
+            safeTop->insert(I, compareintref);
         }
 
         if (!safeTop->start())
@@ -249,7 +252,7 @@ main(int, char *[])
         if (aSplay.size() != 0)
             exit(EXIT_FAILURE);
 
-        aSplay.insert (new intnode(5), compareint);
+        aSplay.insert(new intnode(5), compareint);
 
         if (aSplay.start() == NULL)
             exit(EXIT_FAILURE);
@@ -270,4 +273,3 @@ main(int, char *[])
 
     return EXIT_SUCCESS;
 }
-

@@ -14,8 +14,7 @@
 #include "base/Lock.h"
 #include "client_side.h"
 
-namespace Ftp
-{
+namespace Ftp {
 
 typedef enum {
     fssBegin,
@@ -36,23 +35,24 @@ typedef enum {
 // TODO: This should become a part of MasterXaction when we start sending
 // master transactions to the clients/ code.
 /// Transaction information shared among our FTP client and server jobs.
-class MasterState: public RefCountable
+class MasterState : public RefCountable
 {
 public:
     typedef RefCount<MasterState> Pointer;
 
-    MasterState(): serverState(fssBegin), clientReadGreeting(false), userDataDone(0) {}
+    MasterState() :
+        serverState(fssBegin), clientReadGreeting(false), userDataDone(0) {}
 
-    Ip::Address clientDataAddr; ///< address of our FTP client data connection
-    SBuf workingDir; ///< estimated current working directory for URI formation
-    ServerState serverState; ///< what our FTP server is doing
-    bool clientReadGreeting; ///< whether our FTP client read their FTP server greeting
+    Ip::Address clientDataAddr;  ///< address of our FTP client data connection
+    SBuf workingDir;             ///< estimated current working directory for URI formation
+    ServerState serverState;     ///< what our FTP server is doing
+    bool clientReadGreeting;     ///< whether our FTP client read their FTP server greeting
     /// Squid will send or has sent this final status code to the FTP client
     int userDataDone;
 };
 
 /// Manages a control connection from an FTP client.
-class Server: public ConnStateData
+class Server : public ConnStateData
 {
     CBDATA_CHILD(Server);
 
@@ -74,7 +74,7 @@ public:
 
     // This is a pointer in hope to minimize future changes when MasterState
     // becomes a part of MasterXaction. Guaranteed not to be nil.
-    MasterState::Pointer master; ///< info shared among our FTP client and server jobs
+    MasterState::Pointer master;  ///< info shared among our FTP client and server jobs
 
 protected:
     friend void StartListening();
@@ -178,18 +178,18 @@ private:
     void shovelUploadData();
     void resetLogin(const char *reason);
 
-    SBuf uri; ///< a URI reconstructed from various FTP message details
-    SBuf host; ///< intended dest. of a transparently intercepted FTP conn
-    bool gotEpsvAll; ///< restrict data conn setup commands to just EPSV
-    AsyncCall::Pointer onDataAcceptCall; ///< who to call upon data conn acceptance
-    Comm::ConnectionPointer dataListenConn; ///< data connection listening socket
-    Comm::ConnectionPointer dataConn; ///< data connection
-    char uploadBuf[CLIENT_REQ_BUF_SZ]; ///< data connection input buffer
-    size_t uploadAvailSize; ///< number of yet unused uploadBuf bytes
+    SBuf uri;                                ///< a URI reconstructed from various FTP message details
+    SBuf host;                               ///< intended dest. of a transparently intercepted FTP conn
+    bool gotEpsvAll;                         ///< restrict data conn setup commands to just EPSV
+    AsyncCall::Pointer onDataAcceptCall;     ///< who to call upon data conn acceptance
+    Comm::ConnectionPointer dataListenConn;  ///< data connection listening socket
+    Comm::ConnectionPointer dataConn;        ///< data connection
+    char uploadBuf[CLIENT_REQ_BUF_SZ];       ///< data connection input buffer
+    size_t uploadAvailSize;                  ///< number of yet unused uploadBuf bytes
 
-    AsyncCall::Pointer listener; ///< set when we are passively listening
-    AsyncCall::Pointer connector; ///< set when we are actively connecting
-    AsyncCall::Pointer reader; ///< set when we are reading FTP data
+    AsyncCall::Pointer listener;   ///< set when we are passively listening
+    AsyncCall::Pointer connector;  ///< set when we are actively connecting
+    AsyncCall::Pointer reader;     ///< set when we are reading FTP data
 
     /// whether we wait for the origin data transfer to end
     bool waitingForOrigin;
@@ -200,7 +200,6 @@ private:
     HttpReply::Pointer delayedReply;
 };
 
-} // namespace Ftp
+}  // namespace Ftp
 
 #endif /* SQUID_SERVERS_FTP_SERVER_H */
-

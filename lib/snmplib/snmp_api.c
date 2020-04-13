@@ -103,8 +103,7 @@
  * occurs, -1 is returned.  If all goes well, 0 is returned.
  */
 int
-snmp_build(session, pdu, packet, out_length)
-struct snmp_session *session;
+    snmp_build(session, pdu, packet, out_length) struct snmp_session *session;
 struct snmp_pdu *pdu;
 u_char *packet;
 int *out_length;
@@ -130,9 +129,9 @@ int *out_length;
  * are encountered, NULL is returned.  If not, the community is.
  */
 u_char *
-snmp_parse(struct snmp_session * session,
-           struct snmp_pdu * pdu,
-           u_char * data,
+snmp_parse(struct snmp_session *session,
+           struct snmp_pdu *pdu,
+           u_char *data,
            int length)
 {
     u_char Community[128];
@@ -146,11 +145,11 @@ snmp_parse(struct snmp_session * session,
     if (data == NULL)
         return (NULL);
 
-    bufp = (u_char *) xmalloc(CommunityLen + 1);
+    bufp = (u_char *)xmalloc(CommunityLen + 1);
     if (bufp == NULL)
         return (NULL);
 
-    strncpy((char *) bufp, (char *) Community, CommunityLen);
+    strncpy((char *)bufp, (char *)Community, CommunityLen);
     bufp[CommunityLen] = '\0';
 
     session->community = bufp;
@@ -158,4 +157,3 @@ snmp_parse(struct snmp_session * session,
 
     return (bufp);
 }
-

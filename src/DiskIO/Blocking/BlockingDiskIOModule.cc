@@ -23,13 +23,15 @@ BlockingDiskIOModule::GetInstance()
 
 void
 BlockingDiskIOModule::init()
-{}
+{
+}
 
 void
 BlockingDiskIOModule::gracefulShutdown()
-{}
+{
+}
 
-DiskIOStrategy*
+DiskIOStrategy *
 BlockingDiskIOModule::createStrategy()
 {
     return new BlockingIOStrategy();
@@ -38,8 +40,7 @@ BlockingDiskIOModule::createStrategy()
 BlockingDiskIOModule BlockingDiskIOModule::Instance;
 
 char const *
-BlockingDiskIOModule::type () const
+BlockingDiskIOModule::type() const
 {
     return "Blocking";
 }
-

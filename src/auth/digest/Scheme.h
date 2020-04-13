@@ -13,37 +13,33 @@
 
 #include "auth/Scheme.h"
 
-namespace Auth
-{
-namespace Digest
-{
+namespace Auth {
+namespace Digest {
 
-/// \ingroup AuthAPI
-class Scheme : public Auth::Scheme
-{
+    /// \ingroup AuthAPI
+    class Scheme : public Auth::Scheme
+    {
 
-public:
-    static Auth::Scheme::Pointer GetInstance();
-    Scheme() {};
-    virtual ~Scheme() {}
+    public:
+        static Auth::Scheme::Pointer GetInstance();
+        Scheme() {};
+        virtual ~Scheme() {}
 
-    /* per scheme */
-    virtual char const *type () const;
-    virtual void shutdownCleanup();
-    virtual Auth::SchemeConfig *createConfig();
+        /* per scheme */
+        virtual char const *type() const;
+        virtual void shutdownCleanup();
+        virtual Auth::SchemeConfig *createConfig();
 
-    /* Not implemented */
-    Scheme(Scheme const &);
-    Scheme &operator=(Scheme const &);
+        /* Not implemented */
+        Scheme(Scheme const &);
+        Scheme &operator=(Scheme const &);
 
-private:
-    static Auth::Scheme::Pointer _instance;
+    private:
+        static Auth::Scheme::Pointer _instance;
+    };
 
-};
-
-} // namespace Digest
-} // namespace Auth
+}  // namespace Digest
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_DIGEST */
 #endif /* SQUID_AUTH_DIGEST_SCHEME_H */
-

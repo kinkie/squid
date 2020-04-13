@@ -9,14 +9,14 @@
 /* DEBUG: section 50    Log file handling */
 
 #include "squid.h"
+#include "log/ModStdio.h"
+#include "SquidConfig.h"
 #include "fatal.h"
 #include "fd.h"
 #include "fde.h"
 #include "fs_io.h"
 #include "globals.h"
 #include "log/File.h"
-#include "log/ModStdio.h"
-#include "SquidConfig.h"
 
 #include <cerrno>
 
@@ -32,11 +32,11 @@ typedef struct {
  * than its length argument.
  */
 static void
-logfileWriteWrapper(Logfile * lf, const void *buf, size_t len)
+logfileWriteWrapper(Logfile *lf, const void *buf, size_t len)
 {
-    l_stdio_t *ll = (l_stdio_t *) lf->data;
+    l_stdio_t *ll = (l_stdio_t *)lf->data;
     size_t s;
-    s = FD_WRITE_METHOD(ll->fd, (char const *) buf, len);
+    s = FD_WRITE_METHOD(ll->fd, (char const *)buf, len);
     int xerrno = errno;
     fd_bytes(ll->fd, s, FD_WRITE);
 
@@ -50,9 +50,9 @@ logfileWriteWrapper(Logfile * lf, const void *buf, size_t len)
 }
 
 static void
-logfile_mod_stdio_writeline(Logfile * lf, const char *buf, size_t len)
+logfile_mod_stdio_writeline(Logfile *lf, const char *buf, size_t len)
 {
-    l_stdio_t *ll = (l_stdio_t *) lf->data;
+    l_stdio_t *ll = (l_stdio_t *)lf->data;
 
     if (0 == ll->bufsz) {
         /* buffering disabled */
@@ -74,7 +74,7 @@ logfile_mod_stdio_writeline(Logfile * lf, const char *buf, size_t len)
 
     assert(ll->offset >= 0);
 
-    assert((size_t) ll->offset <= ll->bufsz);
+    assert((size_t)ll->offset <= ll->bufsz);
 }
 
 static void
@@ -83,31 +83,31 @@ logfile_mod_stdio_linestart(Logfile *)
 }
 
 static void
-logfile_mod_stdio_lineend(Logfile * lf)
+logfile_mod_stdio_lineend(Logfile *lf)
 {
     lf->f_flush(lf);
 }
 
 static void
-logfile_mod_stdio_flush(Logfile * lf)
+logfile_mod_stdio_flush(Logfile *lf)
 {
-    l_stdio_t *ll = (l_stdio_t *) lf->data;
+    l_stdio_t *ll = (l_stdio_t *)lf->data;
     if (0 == ll->offset)
         return;
-    logfileWriteWrapper(lf, ll->buf, (size_t) ll->offset);
+    logfileWriteWrapper(lf, ll->buf, (size_t)ll->offset);
     ll->offset = 0;
 }
 
 static void
-logfile_mod_stdio_rotate(Logfile * lf, const int16_t nRotate)
+logfile_mod_stdio_rotate(Logfile *lf, const int16_t nRotate)
 {
 #ifdef S_ISREG
 
     struct stat sb;
 #endif
 
-    l_stdio_t *ll = (l_stdio_t *) lf->data;
-    const char *realpath = lf->path+6; // skip 'stdio:' prefix.
+    l_stdio_t *ll = (l_stdio_t *)lf->data;
+    const char *realpath = lf->path + 6;  // skip 'stdio:' prefix.
     assert(realpath);
 
 #ifdef S_ISREG
@@ -126,7 +126,7 @@ logfile_mod_stdio_rotate(Logfile * lf, const int16_t nRotate)
     for (int16_t i = nRotate; i > 1;) {
         --i;
         SBuf from(basePath);
-        from.appendf(".%d", i-1);
+        from.appendf(".%d", i - 1);
         SBuf to(basePath);
         to.appendf(".%d", i);
         FileRename(from, to);
@@ -136,7 +136,7 @@ logfile_mod_stdio_rotate(Logfile * lf, const int16_t nRotate)
     /* Rotate the current log to .0 */
     logfileFlush(lf);
 
-    file_close(ll->fd);     /* always close */
+    file_close(ll->fd); /* always close */
 
     if (nRotate > 0) {
         SBuf to(basePath);
@@ -155,9 +155,9 @@ logfile_mod_stdio_rotate(Logfile * lf, const int16_t nRotate)
 }
 
 static void
-logfile_mod_stdio_close(Logfile * lf)
+logfile_mod_stdio_close(Logfile *lf)
 {
-    l_stdio_t *ll = (l_stdio_t *) lf->data;
+    l_stdio_t *ll = (l_stdio_t *)lf->data;
     lf->f_flush(lf);
 
     if (ll->fd >= 0)
@@ -174,7 +174,7 @@ logfile_mod_stdio_close(Logfile * lf)
  * This code expects the path to be a writable filename
  */
 int
-logfile_mod_stdio_open(Logfile * lf, const char *path, size_t bufsz, int fatal_flag)
+logfile_mod_stdio_open(Logfile *lf, const char *path, size_t bufsz, int fatal_flag)
 {
     lf->f_close = logfile_mod_stdio_close;
     lf->f_linewrite = logfile_mod_stdio_writeline;
@@ -183,7 +183,7 @@ logfile_mod_stdio_open(Logfile * lf, const char *path, size_t bufsz, int fatal_f
     lf->f_flush = logfile_mod_stdio_flush;
     lf->f_rotate = logfile_mod_stdio_rotate;
 
-    l_stdio_t *ll = static_cast<l_stdio_t*>(xcalloc(1, sizeof(*ll)));
+    l_stdio_t *ll = static_cast<l_stdio_t *>(xcalloc(1, sizeof(*ll)));
     lf->data = ll;
 
     ll->fd = file_open(path, O_WRONLY | O_CREAT | O_TEXT);
@@ -193,12 +193,14 @@ logfile_mod_stdio_open(Logfile * lf, const char *path, size_t bufsz, int fatal_f
         if (ENOENT == xerrno && fatal_flag) {
             fatalf("Cannot open '%s' because\n"
                    "\tthe parent directory does not exist.\n"
-                   "\tPlease create the directory.\n", path);
+                   "\tPlease create the directory.\n",
+                   path);
         } else if (EACCES == xerrno && fatal_flag) {
             fatalf("Cannot open '%s' for writing.\n"
                    "\tThe parent directory must be writeable by the\n"
                    "\tuser '%s', which is the cache_effective_user\n"
-                   "\tset in squid.conf.", path, Config.effectiveUser);
+                   "\tset in squid.conf.",
+                   path, Config.effectiveUser);
         } else if (EISDIR == xerrno && fatal_flag) {
             fatalf("Cannot open '%s' because it is a directory, not a file.\n", path);
         } else {
@@ -207,9 +209,8 @@ logfile_mod_stdio_open(Logfile * lf, const char *path, size_t bufsz, int fatal_f
         }
     }
     if (bufsz > 0) {
-        ll->buf = static_cast<char*>(xmalloc(bufsz));
+        ll->buf = static_cast<char *>(xmalloc(bufsz));
         ll->bufsz = bufsz;
     }
     return 1;
 }
-

@@ -9,24 +9,26 @@
 /* DEBUG: section 01    Main Loop */
 
 #include "squid.h"
-#include "AsyncEngine.h"
-#include "base/AsyncCallQueue.h"
-#include "Debug.h"
 #include "EventLoop.h"
-#include "fatal.h"
+#include "AsyncEngine.h"
+#include "Debug.h"
 #include "SquidTime.h"
+#include "base/AsyncCallQueue.h"
+#include "fatal.h"
 
 EventLoop *EventLoop::Running = NULL;
 
-EventLoop::EventLoop() : errcount(0), last_loop(false), timeService(NULL),
+EventLoop::EventLoop() :
+    errcount(0), last_loop(false), timeService(NULL),
     primaryEngine(NULL),
     loop_delay(EVENT_LOOP_TIMEOUT),
     error(false),
     runOnceResult(false)
-{}
+{
+}
 
 void
-EventLoop::checkEngine(AsyncEngine * engine, bool const primary)
+EventLoop::checkEngine(AsyncEngine *engine, bool const primary)
 {
     int requested_delay;
 
@@ -80,7 +82,8 @@ EventLoop::run()
     assert(!Running);
     Running = this;
 
-    while (!runOnce());
+    while (!runOnce())
+        ;
 
     Running = NULL;
 }
@@ -146,10 +149,10 @@ EventLoop::dispatchCalls()
 }
 
 void
-EventLoop::setPrimaryEngine(AsyncEngine * engine)
+EventLoop::setPrimaryEngine(AsyncEngine *engine)
 {
     for (engine_vector::iterator i = engines.begin();
-            i != engines.end(); ++i)
+         i != engines.end(); ++i)
         if (*i == engine) {
             primaryEngine = engine;
             return;
@@ -169,4 +172,3 @@ EventLoop::stop()
 {
     last_loop = true;
 }
-

@@ -98,4 +98,3 @@ squid_strnstr(const char *s, const char *find, size_t slen)
 
 #endif /* !HAVE_STRNSTR */
 #endif /* SQUID_COMPAT_STRNSTR_CC_ */
-

@@ -30,12 +30,12 @@ extern "C" {
 #else
 #include <tchar.h>
 #endif
-#include <windows.h>
 #include <ntsecapi.h>
 #include <security.h>
 #include <sspi.h>
+#include <windows.h>
 
-typedef char * SSP_blobP;
+typedef char *SSP_blobP;
 
 #define WINNT_SECURITY_DLL "security.dll"
 #define WIN2K_SECURITY_DLL "secur32.dll"
@@ -54,9 +54,9 @@ HMODULE LoadSecurityDll(int, const char *);
 void UnloadSecurityDll(void);
 BOOL WINAPI SSP_LogonUser(PTSTR, PTSTR, PTSTR);
 BOOL WINAPI SSP_ValidateNTLMCredentials(PVOID, int, char *);
-const char * WINAPI SSP_ValidateNegotiateCredentials(PVOID, int, PBOOL, int *, char *);
-const char * WINAPI SSP_MakeChallenge(PVOID, int);
-const char * WINAPI SSP_MakeNegotiateBlob(PVOID, int, PBOOL, int *, char *);
+const char *WINAPI SSP_ValidateNegotiateCredentials(PVOID, int, PBOOL, int *, char *);
+const char *WINAPI SSP_MakeChallenge(PVOID, int);
+const char *WINAPI SSP_MakeNegotiateBlob(PVOID, int, PBOOL, int *, char *);
 
 extern BOOL Use_Unicode;
 extern BOOL NTLM_LocalCall;
@@ -67,4 +67,3 @@ extern BOOL NTLM_LocalCall;
 
 #endif /* _SQUID_WINDOWS_ */
 #endif /* LIBSSPWIN32_H_ */
-

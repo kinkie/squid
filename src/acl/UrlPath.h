@@ -15,9 +15,8 @@ class ACLUrlPathStrategy : public ACLStrategy<char const *>
 {
 
 public:
-    virtual int match (ACLData<char const *> * &, ACLFilledChecklist *);
-    virtual bool requiresRequest() const {return true;}
+    virtual int match(ACLData<char const *> *&, ACLFilledChecklist *);
+    virtual bool requiresRequest() const { return true; }
 };
 
 #endif /* SQUID_ACLURLPATH_H */
-

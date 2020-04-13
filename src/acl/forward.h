@@ -19,8 +19,7 @@ class ACLList;
 class AclDenyInfoList;
 class AclSizeLimit;
 
-namespace Acl
-{
+namespace Acl {
 
 class Address;
 class Answer;
@@ -33,7 +32,7 @@ class Tree;
 /// prepares to parse ACLs configuration
 void Init(void);
 
-} // namespace Acl
+}  // namespace Acl
 
 typedef void ACLCB(Acl::Answer, void *);
 
@@ -48,4 +47,3 @@ class ExternalACLEntry;
 typedef RefCount<ExternalACLEntry> ExternalACLEntryPointer;
 
 #endif /* SQUID_ACL_FORWARD_H */
-

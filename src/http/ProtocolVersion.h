@@ -11,14 +11,13 @@
 
 #include "anyp/ProtocolVersion.h"
 
-namespace Http
-{
+namespace Http {
 
 /// HTTP version label information
 inline AnyP::ProtocolVersion
 ProtocolVersion(unsigned int aMajor, unsigned int aMinor)
 {
-    return AnyP::ProtocolVersion(AnyP::PROTO_HTTP,aMajor,aMinor);
+    return AnyP::ProtocolVersion(AnyP::PROTO_HTTP, aMajor, aMinor);
 }
 
 /**
@@ -31,10 +30,9 @@ ProtocolVersion(unsigned int aMajor, unsigned int aMinor)
 inline AnyP::ProtocolVersion
 ProtocolVersion()
 {
-    return AnyP::ProtocolVersion(AnyP::PROTO_HTTP,1,1);
+    return AnyP::ProtocolVersion(AnyP::PROTO_HTTP, 1, 1);
 }
 
-}; // namespace Http
+};  // namespace Http
 
 #endif /* SQUID_HTTP_PROTOCOLVERSION_H */
-

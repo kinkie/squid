@@ -9,16 +9,16 @@
 /* DEBUG: section 19    Store Memory Primitives */
 
 #include "squid.h"
-#include "comm/Connection.h"
+#include "MemObject.h"
 #include "Generic.h"
-#include "globals.h"
 #include "HttpReply.h"
 #include "MemBuf.h"
-#include "MemObject.h"
-#include "profiler/Profiler.h"
 #include "SquidConfig.h"
 #include "Store.h"
 #include "StoreClient.h"
+#include "comm/Connection.h"
+#include "globals.h"
+#include "profiler/Profiler.h"
 
 #if USE_DELAY_POOLS
 #include "DelayPools.h"
@@ -34,7 +34,7 @@ url_checksum(const char *url)
     SquidMD5_CTX M;
     static unsigned char digest[16];
     SquidMD5Init(&M);
-    SquidMD5Update(&M, (unsigned char *) url, strlen(url));
+    SquidMD5Update(&M, (unsigned char *)url, strlen(url));
     SquidMD5Final(digest, &M);
     memcpy(&ck, digest, sizeof(ck));
     return ck;
@@ -42,7 +42,7 @@ url_checksum(const char *url)
 
 #endif
 
-RemovalPolicy * mem_policy = NULL;
+RemovalPolicy *mem_policy = NULL;
 
 size_t
 MemObject::inUseCount()
@@ -84,7 +84,7 @@ MemObject::setUris(char const *aStoreId, char const *aLogUri, const HttpRequestM
 
     // fast pointer comparison for a common storeCreateEntry(url,url,...) case
     if (!aLogUri || aLogUri == aStoreId)
-        logUri_.clean(); // use storeId_ by default to minimize copying
+        logUri_.clean();  // use storeId_ by default to minimize copying
     else
         logUri_ = aLogUri;
 
@@ -112,7 +112,7 @@ MemObject::~MemObject()
     checkUrlChecksum();
 #endif
 
-    if (!shutting_down) { // Store::Root() is FATALly missing during shutdown
+    if (!shutting_down) {  // Store::Root() is FATALly missing during shutdown
         assert(xitTable.index < 0);
         assert(memCache.index < 0);
         assert(swapout.sio == NULL);
@@ -129,7 +129,7 @@ MemObject::~MemObject()
 
 #endif
 
-    ctx_exit(ctx);              /* must exit before we free mem->url */
+    ctx_exit(ctx); /* must exit before we free mem->url */
 }
 
 HttpReply &
@@ -156,9 +156,9 @@ MemObject::write(const StoreIOBuffer &writeBuffer)
     /* We don't separate out mime headers yet, so ensure that the first
      * write is at offset 0 - where they start
      */
-    assert (data_hdr.endOffset() || writeBuffer.offset == 0);
+    assert(data_hdr.endOffset() || writeBuffer.offset == 0);
 
-    assert (data_hdr.write (writeBuffer));
+    assert(data_hdr.write(writeBuffer));
     PROF_stop(MemObject_write);
 }
 
@@ -171,7 +171,7 @@ MemObject::dump() const
     debugs(20, DBG_IMPORTANT, "MemObject->data.origin_offset: " << (data_hdr.head ? data_hdr.head->nodeBuffer.offset : 0));
 #endif
 
-    debugs(20, DBG_IMPORTANT, "MemObject->start_ping: " << start_ping.tv_sec  << "."<< std::setfill('0') << std::setw(6) << start_ping.tv_usec);
+    debugs(20, DBG_IMPORTANT, "MemObject->start_ping: " << start_ping.tv_sec << "." << std::setfill('0') << std::setw(6) << start_ping.tv_usec);
     debugs(20, DBG_IMPORTANT, "MemObject->inmem_hi: " << data_hdr.endOffset());
     debugs(20, DBG_IMPORTANT, "MemObject->inmem_lo: " << inmem_lo);
     debugs(20, DBG_IMPORTANT, "MemObject->nclients: " << nclients);
@@ -184,9 +184,11 @@ MemObject::dump() const
 }
 
 struct LowestMemReader : public unary_function<store_client, void> {
-    LowestMemReader(int64_t seed):current(seed) {}
+    LowestMemReader(int64_t seed) :
+        current(seed) {}
 
-    void operator() (store_client const &x) {
+    void operator()(store_client const &x)
+    {
         if (x.memReaderHasLowerOffset(current))
             current = x.copyInto.offset;
     }
@@ -195,9 +197,11 @@ struct LowestMemReader : public unary_function<store_client, void> {
 };
 
 struct StoreClientStats : public unary_function<store_client, void> {
-    StoreClientStats(MemBuf *anEntry):where(anEntry),index(0) {}
+    StoreClientStats(MemBuf *anEntry) :
+        where(anEntry), index(0) {}
 
-    void operator()(store_client const &x) {
+    void operator()(store_client const &x)
+    {
         x.dumpStats(where, index);
         ++index;
     }
@@ -207,7 +211,7 @@ struct StoreClientStats : public unary_function<store_client, void> {
 };
 
 void
-MemObject::stat(MemBuf * mb) const
+MemObject::stat(MemBuf *mb) const
 {
     mb->appendf("\t" SQUIDSBUFPH " %s\n", SQUIDSBUFPRINT(method.image()), logUri());
     if (!vary_headers.isEmpty())
@@ -217,7 +221,7 @@ MemObject::stat(MemBuf * mb) const
     mb->appendf("\tswapout: %" PRId64 " bytes queued\n", swapout.queue_offset);
 
     if (swapout.sio.getRaw())
-        mb->appendf("\tswapout: %" PRId64 " bytes written\n", (int64_t) swapout.sio->offset());
+        mb->appendf("\tswapout: %" PRId64 " bytes written\n", (int64_t)swapout.sio->offset());
 
     if (xitTable.index >= 0)
         mb->appendf("\ttransient index: %d state: %d\n", xitTable.index, xitTable.io);
@@ -232,7 +236,7 @@ MemObject::stat(MemBuf * mb) const
 }
 
 int64_t
-MemObject::endOffset () const
+MemObject::endOffset() const
 {
     return data_hdr.endOffset();
 }
@@ -297,9 +301,9 @@ MemObject::reset()
 int64_t
 MemObject::lowestMemReaderOffset() const
 {
-    LowestMemReader lowest (endOffset() + 1);
+    LowestMemReader lowest(endOffset() + 1);
 
-    for_each <LowestMemReader>(clients, lowest);
+    for_each<LowestMemReader>(clients, lowest);
 
     return lowest.current;
 }
@@ -309,12 +313,10 @@ bool
 MemObject::readAheadPolicyCanRead() const
 {
     const auto savedHttpHeaders = baseReply().hdr_sz;
-    const bool canRead = endOffset() - savedHttpHeaders <
-                         lowestMemReaderOffset() + Config.readAheadGap;
+    const bool canRead = endOffset() - savedHttpHeaders < lowestMemReaderOffset() + Config.readAheadGap;
 
     if (!canRead) {
-        debugs(19, 5, "no: " << endOffset() << '-' << savedHttpHeaders <<
-               " < " << lowestMemReaderOffset() << '+' << Config.readAheadGap);
+        debugs(19, 5, "no: " << endOffset() << '-' << savedHttpHeaders << " < " << lowestMemReaderOffset() << '+' << Config.readAheadGap);
     }
 
     return canRead;
@@ -329,7 +331,7 @@ MemObject::addClient(store_client *aClient)
 
 #if URL_CHECKSUM_DEBUG
 void
-MemObject::checkUrlChecksum () const
+MemObject::checkUrlChecksum() const
 {
     assert(chksum == url_checksum(urlXXX()));
 }
@@ -374,9 +376,7 @@ MemObject::policyLowestOffsetToKeep(bool swap) const
      */
     int64_t lowest_offset = lowestMemReaderOffset();
 
-    if (endOffset() < lowest_offset ||
-            endOffset() - inmem_lo > (int64_t)Config.Store.maxInMemObjSize ||
-            (swap && !Config.onoff.memory_cache_first))
+    if (endOffset() < lowest_offset || endOffset() - inmem_lo > (int64_t)Config.Store.maxInMemObjSize || (swap && !Config.onoff.memory_cache_first))
         return lowest_offset;
 
     return inmem_lo;
@@ -411,18 +411,18 @@ void
 MemObject::trimUnSwappable()
 {
     if (const int64_t new_mem_lo = policyLowestOffsetToKeep(false)) {
-        assert (new_mem_lo > 0);
+        assert(new_mem_lo > 0);
         data_hdr.freeDataUpto(new_mem_lo);
         inmem_lo = new_mem_lo;
-    } // else we should not trim anything at this time
+    }  // else we should not trim anything at this time
 }
 
 bool
 MemObject::isContiguous() const
 {
-    bool result = data_hdr.hasContigousContentRange (Range<int64_t>(inmem_lo, endOffset()));
+    bool result = data_hdr.hasContigousContentRange(Range<int64_t>(inmem_lo, endOffset()));
     /* XXX : make this higher level */
-    debugs (19, result ? 4 :3, "MemObject::isContiguous: Returning " << (result ? "true" : "false"));
+    debugs(19, result ? 4 : 3, "MemObject::isContiguous: Returning " << (result ? "true" : "false"));
     return result;
 }
 
@@ -432,7 +432,7 @@ MemObject::mostBytesWanted(int max, bool ignoreDelayPools) const
 #if USE_DELAY_POOLS
     if (!ignoreDelayPools) {
         /* identify delay id with largest allowance */
-        DelayId largestAllowance = mostBytesAllowed ();
+        DelayId largestAllowance = mostBytesAllowed();
         return largestAllowance.bytesWanted(0, max);
     }
 #endif
@@ -446,7 +446,7 @@ MemObject::setNoDelay(bool const newValue)
 #if USE_DELAY_POOLS
 
     for (dlink_node *node = clients.head; node; node = node->next) {
-        store_client *sc = (store_client *) node->data;
+        store_client *sc = (store_client *)node->data;
         sc->delayId.setNoDelay(newValue);
     }
 
@@ -482,7 +482,7 @@ MemObject::mostBytesAllowed() const
     DelayId result;
 
     for (dlink_node *node = clients.head; node; node = node->next) {
-        store_client *sc = (store_client *) node->data;
+        store_client *sc = (store_client *)node->data;
 #if 0
         /* This test is invalid because the client may be writing data
          * and thus will want data immediately.
@@ -515,4 +515,3 @@ MemObject::availableForSwapOut() const
 {
     return endOffset() - swapout.queue_offset;
 }
-

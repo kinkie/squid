@@ -11,8 +11,8 @@
 
 #include "clients/Client.h"
 #include "comm.h"
-#include "http/forward.h"
 #include "http/StateFlags.h"
+#include "http/forward.h"
 #include "sbuf/SBuf.h"
 
 class FwdState;
@@ -23,49 +23,51 @@ class HttpStateData : public Client
     CBDATA_CLASS(HttpStateData);
 
 public:
-
     /// assists in making and relaying entry caching/sharing decision
     class ReuseDecision
     {
     public:
-        enum Answers { reuseNot = 0, cachePositively, cacheNegatively, doNotCacheButShare };
+        enum Answers { reuseNot = 0,
+                       cachePositively,
+                       cacheNegatively,
+                       doNotCacheButShare };
 
         ReuseDecision(const StoreEntry *e, const Http::StatusCode code);
         /// stores the corresponding decision
         Answers make(const Answers ans, const char *why);
 
-        Answers answer; ///< the decision id
-        const char *reason; ///< the decision reason
-        const StoreEntry *entry; ///< entry for debugging
-        const Http::StatusCode statusCode; ///< HTTP status for debugging
+        Answers answer;                     ///< the decision id
+        const char *reason;                 ///< the decision reason
+        const StoreEntry *entry;            ///< entry for debugging
+        const Http::StatusCode statusCode;  ///< HTTP status for debugging
     };
 
     HttpStateData(FwdState *);
     ~HttpStateData();
 
-    static void httpBuildRequestHeader(HttpRequest * request,
-                                       StoreEntry * entry,
+    static void httpBuildRequestHeader(HttpRequest *request,
+                                       StoreEntry *entry,
                                        const AccessLogEntryPointer &al,
-                                       HttpHeader * hdr_out,
+                                       HttpHeader *hdr_out,
                                        const Http::StateFlags &flags);
 
-    virtual const Comm::ConnectionPointer & dataConnection() const;
+    virtual const Comm::ConnectionPointer &dataConnection() const;
     /* should be private */
     bool sendRequest();
     void processReplyHeader();
     void processReplyBody();
     void readReply(const CommIoCbParams &io);
-    virtual void maybeReadVirginBody(); // read response data from the network
+    virtual void maybeReadVirginBody();  // read response data from the network
 
     // Checks whether the response is cacheable/shareable.
     ReuseDecision::Answers reusableReply(ReuseDecision &decision);
 
-    CachePeer *_peer;       /* CachePeer request made to */
-    int eof;            /* reached end-of-object? */
-    int lastChunk;      /* reached last chunk of a chunk-encoded reply */
+    CachePeer *_peer; /* CachePeer request made to */
+    int eof;          /* reached end-of-object? */
+    int lastChunk;    /* reached last chunk of a chunk-encoded reply */
     Http::StateFlags flags;
     size_t read_sz;
-    SBuf inBuf;                ///< I/O buffer for receiving server responses
+    SBuf inBuf;  ///< I/O buffer for receiving server responses
     bool ignoreCacheControl;
     bool surrogateNoStore;
 
@@ -100,12 +102,12 @@ private:
     virtual void start();
     virtual void haveParsedReplyHeaders();
     virtual bool getMoreRequestBody(MemBuf &buf);
-    virtual void closeServer(); // end communication with the server
-    virtual bool doneWithServer() const; // did we end communication?
-    virtual void abortAll(const char *reason); // abnormal termination
+    virtual void closeServer();                 // end communication with the server
+    virtual bool doneWithServer() const;        // did we end communication?
+    virtual void abortAll(const char *reason);  // abnormal termination
     virtual bool mayReadVirginReplyBody() const;
 
-    void abortTransaction(const char *reason) { abortAll(reason); } // abnormal termination
+    void abortTransaction(const char *reason) { abortAll(reason); }  // abnormal termination
 
     /**
      * determine if read buffer can have space made available
@@ -134,8 +136,8 @@ private:
     void httpStateConnClosed(const CommCloseCbParams &params);
     void httpTimeout(const CommTimeoutCbParams &params);
 
-    mb_size_t buildRequestPrefix(MemBuf * mb);
-    static bool decideIfWeDoRanges (HttpRequest * orig_request);
+    mb_size_t buildRequestPrefix(MemBuf *mb);
+    static bool decideIfWeDoRanges(HttpRequest *orig_request);
     bool peerSupportsConnectionPinning() const;
 
     /// Parser being used at present to parse the HTTP/ICY server response.
@@ -152,11 +154,10 @@ private:
     bool sawDateGoBack;
 };
 
-std::ostream &operator <<(std::ostream &os, const HttpStateData::ReuseDecision &d);
+std::ostream &operator<<(std::ostream &os, const HttpStateData::ReuseDecision &d);
 
-int httpCachable(const HttpRequestMethod&);
+int httpCachable(const HttpRequestMethod &);
 void httpStart(FwdState *);
-SBuf httpMakeVaryMark(HttpRequest * request, HttpReply const * reply);
+SBuf httpMakeVaryMark(HttpRequest *request, HttpReply const *reply);
 
 #endif /* SQUID_HTTP_H */
-

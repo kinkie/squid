@@ -7,10 +7,10 @@
  */
 
 #include "squid.h"
-#include "cache_cf.h"
+#include "format/Config.h"
 #include "ConfigParser.h"
 #include "Debug.h"
-#include "format/Config.h"
+#include "cache_cf.h"
 #include <list>
 
 Format::FmtConfig Format::TheConfig;
@@ -53,4 +53,3 @@ Format::FmtConfig::registerTokens(const SBuf &nsName, TokenTableEntry const *tok
     else
         debugs(0, DBG_CRITICAL, "BUG: format tokens for '" << nsName << "' missing!");
 }
-

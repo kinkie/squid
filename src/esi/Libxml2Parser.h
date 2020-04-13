@@ -56,7 +56,7 @@ public:
     /* true on success */
     bool parse(char const *dataToParse, size_t const lengthOfData, bool const endOfStream);
     long int lineNumber() const;
-    char const * errorString() const;
+    char const *errorString() const;
 
     ESIParserClient *getClient() { return theClient; }
 
@@ -71,4 +71,3 @@ private:
 #endif /* USE_SQUID_ESI */
 
 #endif /* SQUID_ESILIBXML2PARSER_H */
-

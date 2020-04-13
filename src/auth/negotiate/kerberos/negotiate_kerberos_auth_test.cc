@@ -100,7 +100,7 @@ LogTime()
 
     gettimeofday(&now, NULL);
     if (now.tv_sec != last_t) {
-        tm = localtime((const time_t *) &now.tv_sec);
+        tm = localtime((const time_t *)&now.tv_sec);
         strftime(buf, 127, "%Y/%m/%d %H:%M:%S", tm);
         last_t = now.tv_sec;
     }
@@ -108,7 +108,7 @@ LogTime()
 }
 
 #ifndef gss_mech_spnego
-static gss_OID_desc _gss_mech_spnego = {6, (void *) "\x2b\x06\x01\x05\x05\x02"};
+static gss_OID_desc _gss_mech_spnego = {6, (void *)"\x2b\x06\x01\x05\x05\x02"};
 gss_OID gss_mech_spnego = &_gss_mech_spnego;
 #endif
 
@@ -131,7 +131,7 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status,
                                           GSS_C_GSS_CODE, GSS_C_NULL_OID, &msg_ctx, &status_string);
             if (maj_stat == GSS_S_COMPLETE && status_string.length > 0) {
                 if (sizeof(buf) > len + status_string.length + 1) {
-                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *) status_string.value);
+                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *)status_string.value);
                     len += status_string.length;
                 }
             } else
@@ -149,7 +149,7 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status,
                                           GSS_C_MECH_CODE, GSS_C_NULL_OID, &msg_ctx, &status_string);
             if (maj_stat == GSS_S_COMPLETE && status_string.length > 0) {
                 if (sizeof(buf) > len + status_string.length) {
-                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *) status_string.value);
+                    snprintf(buf + len, (sizeof(buf) - len), "%s", (char *)status_string.value);
                     len += status_string.length;
                 }
             } else
@@ -183,8 +183,8 @@ squid_kerb_proxy_auth(char *proxy)
         return NULL;
     }
     service.value = xmalloc(strlen("HTTP") + strlen(proxy) + 2);
-    snprintf((char *) service.value, strlen("HTTP") + strlen(proxy) + 2, "%s@%s", "HTTP", proxy);
-    service.length = strlen((char *) service.value);
+    snprintf((char *)service.value, strlen("HTTP") + strlen(proxy) + 2, "%s@%s", "HTTP", proxy);
+    service.length = strlen((char *)service.value);
 
     major_status = gss_import_name(&minor_status, &service,
                                    gss_nt_service_name, &server_name);
@@ -200,11 +200,11 @@ squid_kerb_proxy_auth(char *proxy)
                                             &input_token, NULL, &output_token, NULL, NULL);
 
         if (!check_gss_err(major_status, minor_status, "gss_init_sec_context()") && output_token.length) {
-            token = (char *) xcalloc(base64_encode_len(output_token.length), 1);
+            token = (char *)xcalloc(base64_encode_len(output_token.length), 1);
             struct base64_encode_ctx ctx;
             base64_encode_init(&ctx);
-            size_t blen = base64_encode_update(&ctx, token, output_token.length, reinterpret_cast<const uint8_t*>(output_token.value));
-            blen += base64_encode_final(&ctx, token+blen);
+            size_t blen = base64_encode_update(&ctx, token, output_token.length, reinterpret_cast<const uint8_t *>(output_token.value));
+            blen += base64_encode_final(&ctx, token + blen);
         }
     }
 
@@ -231,13 +231,13 @@ main(int argc, char *argv[])
     if (argc == 3) {
         count = atoi(argv[2]);
         while (count > 0) {
-            Token = (const char *) squid_kerb_proxy_auth(argv[1]);
+            Token = (const char *)squid_kerb_proxy_auth(argv[1]);
             fprintf(stdout, "YR %s\n", Token ? Token : "NULL");
             --count;
         }
         fprintf(stdout, "QQ\n");
     } else {
-        Token = (const char *) squid_kerb_proxy_auth(argv[1]);
+        Token = (const char *)squid_kerb_proxy_auth(argv[1]);
         fprintf(stdout, "Token: %s\n", Token ? Token : "NULL");
     }
 
@@ -253,4 +253,3 @@ main(int argc, char *argv[])
 }
 
 #endif /* HAVE_GSSAPI */
-

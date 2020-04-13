@@ -9,13 +9,13 @@
 /* DEBUG: section 79    Squid-side Disk I/O functions. */
 
 #include "squid.h"
-#include "DiskThreadsDiskFile.h"
 #include "DiskThreadsIOStrategy.h"
-#include "fde.h"
-#include "mgr/Registration.h"
+#include "DiskThreadsDiskFile.h"
 #include "SquidConfig.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "fde.h"
+#include "mgr/Registration.h"
 
 /* squidaio_ctrl_t uses explicit alloc()/freeOne().
  * XXX: convert to MEMPROXY_CLASS() API
@@ -71,7 +71,7 @@ DiskThreadsIOStrategy::callback()
         if ((resultp = squidaio_poll_done()) == NULL)
             break;
 
-        ctrlp = (squidaio_ctrl_t *) resultp->data;
+        ctrlp = (squidaio_ctrl_t *)resultp->data;
 
         switch (resultp->result_type) {
 
@@ -106,7 +106,7 @@ DiskThreadsIOStrategy::callback()
         }
 
         if (ctrlp == NULL)
-            continue;       /* XXX Should not happen */
+            continue; /* XXX Should not happen */
 
         dlinkDelete(&ctrlp->node, &used_list);
 
@@ -149,7 +149,7 @@ void
 DiskThreadsIOStrategy::sync()
 {
     if (!initialised)
-        return;         /* nothing to do then */
+        return; /* nothing to do then */
 
     /* Flush all pending operations */
     debugs(32, 2, "aioSync: flushing pending I/O operations");
@@ -163,10 +163,11 @@ DiskThreadsIOStrategy::sync()
 
 DiskThreadsIOStrategy::DiskThreadsIOStrategy() :
     initialised(false)
-{}
+{
+}
 
 void
-DiskThreadsIOStrategy::aioStats(StoreEntry * sentry)
+DiskThreadsIOStrategy::aioStats(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "ASYNC IO Counters:\n");
     storeAppendPrintf(sentry, "  Operation\t# Requests\tNumber serviced\n");
@@ -219,7 +220,7 @@ DiskThreadsIOStrategy::load()
 }
 
 DiskFile::Pointer
-DiskThreadsIOStrategy::newFile (char const *path)
+DiskThreadsIOStrategy::newFile(char const *path)
 {
     if (shedLoad()) {
         return NULL;
@@ -240,4 +241,3 @@ DiskThreadsIOStrategy::unlinkFile(char const *path)
     ++statCounter.syscalls.disk.unlinks;
     aioUnlink(path, NULL, NULL);
 }
-

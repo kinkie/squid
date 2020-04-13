@@ -9,15 +9,15 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
+#include "store/Disks.h"
 #include "Debug.h"
-#include "globals.h"
-#include "profiler/Profiler.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "globals.h"
+#include "profiler/Profiler.h"
 #include "store/Disk.h"
-#include "store/Disks.h"
 #include "swap_log_op.h"
-#include "util.h" // for tvSubDsec() which should be in SquidTime.h
+#include "util.h"  // for tvSubDsec() which should be in SquidTime.h
 
 static STDIRSELECT storeDirSelectSwapDirRoundRobin;
 static STDIRSELECT storeDirSelectSwapDirLeastLoad;
@@ -51,7 +51,7 @@ objectSizeForDirSelection(const StoreEntry &entry)
  * overloaded.
  */
 static int
-storeDirSelectSwapDirRoundRobin(const StoreEntry * e)
+storeDirSelectSwapDirRoundRobin(const StoreEntry *e)
 {
     const int64_t objsize = objectSizeForDirSelection(*e);
 
@@ -63,7 +63,7 @@ storeDirSelectSwapDirRoundRobin(const StoreEntry * e)
 
     for (int i = 0; i < Config.cacheSwap.n_configured; ++i) {
         const int dirn = (firstCandidate + i) % Config.cacheSwap.n_configured;
-        const SwapDir *sd = dynamic_cast<SwapDir*>(INDEXSD(dirn));
+        const SwapDir *sd = dynamic_cast<SwapDir *>(INDEXSD(dirn));
 
         int load = 0;
         if (!sd->canStore(*e, objsize, load))
@@ -93,7 +93,7 @@ storeDirSelectSwapDirRoundRobin(const StoreEntry * e)
  * we sort out the real usefulness of this algorithm.
  */
 static int
-storeDirSelectSwapDirLeastLoad(const StoreEntry * e)
+storeDirSelectSwapDirLeastLoad(const StoreEntry *e)
 {
     int64_t most_free = 0;
     int64_t best_objsize = -1;
@@ -126,8 +126,7 @@ storeDirSelectSwapDirLeastLoad(const StoreEntry * e)
             if (best_objsize != -1) {
                 // cache_dir with the smallest max-size gets the known-size object
                 // cache_dir with the largest max-size gets the unknown-size object
-                if ((objsize != -1 && SD->maxObjectSize() > best_objsize) ||
-                        (objsize == -1 && SD->maxObjectSize() < best_objsize))
+                if ((objsize != -1 && SD->maxObjectSize() > best_objsize) || (objsize == -1 && SD->maxObjectSize() < best_objsize))
                     continue;
             }
 
@@ -148,7 +147,7 @@ storeDirSelectSwapDirLeastLoad(const StoreEntry * e)
     return dirn;
 }
 
-Store::Disks::Disks():
+Store::Disks::Disks() :
     largestMinimumObjectSize(-1),
     largestMaximumObjectSize(-1),
     secondLargestMaximumObjectSize(-1)
@@ -192,7 +191,7 @@ Store::Disks::callback()
             result += temp_result;
 
             if (j > 100)
-                fatal ("too much io\n");
+                fatal("too much io\n");
         }
     } while (j > 0);
 
@@ -224,7 +223,7 @@ Store::Disks::get(const cache_key *key)
         static int idx = 0;
         for (int n = 0; n < cacheDirs; ++n) {
             idx = (idx + 1) % cacheDirs;
-            SwapDir *sd = dynamic_cast<SwapDir*>(INDEXSD(idx));
+            SwapDir *sd = dynamic_cast<SwapDir *>(INDEXSD(idx));
             if (!sd->active())
                 continue;
 
@@ -235,8 +234,7 @@ Store::Disks::get(const cache_key *key)
         }
     }
 
-    debugs(20, 6, "none of " << Config.cacheSwap.n_configured <<
-           " cache_dirs have " << storeKeyText(key));
+    debugs(20, 6, "none of " << Config.cacheSwap.n_configured << " cache_dirs have " << storeKeyText(key));
     return nullptr;
 }
 
@@ -253,16 +251,14 @@ Store::Disks::init()
     /* this is very bogus, its specific to the any Store maintaining an
      * in-core index, not global */
     size_t buckets = (Store::Root().maxSize() + Config.memMaxSize) / Config.Store.avgObjectSize;
-    debugs(20, DBG_IMPORTANT, "Swap maxSize " << (Store::Root().maxSize() >> 10) <<
-           " + " << ( Config.memMaxSize >> 10) << " KB, estimated " << buckets << " objects");
+    debugs(20, DBG_IMPORTANT, "Swap maxSize " << (Store::Root().maxSize() >> 10) << " + " << (Config.memMaxSize >> 10) << " KB, estimated " << buckets << " objects");
     buckets /= Config.Store.objectsPerBucket;
     debugs(20, DBG_IMPORTANT, "Target number of buckets: " << buckets);
     /* ideally the full scan period should be configurable, for the
      * moment it remains at approximately 24 hours.  */
     store_hash_buckets = storeKeyHashBuckets(buckets);
     debugs(20, DBG_IMPORTANT, "Using " << store_hash_buckets << " Store buckets");
-    debugs(20, DBG_IMPORTANT, "Max Mem  size: " << ( Config.memMaxSize >> 10) << " KB" <<
-           (Config.memShared ? " [shared]" : ""));
+    debugs(20, DBG_IMPORTANT, "Max Mem  size: " << (Config.memMaxSize >> 10) << " KB" << (Config.memShared ? " [shared]" : ""));
     debugs(20, DBG_IMPORTANT, "Max Swap size: " << (Store::Root().maxSize() >> 10) << " KB");
 
     store_table = hash_create(storeKeyHashCmp,
@@ -371,7 +367,7 @@ Store::Disks::updateLimits()
 
         const auto diskMaxObjectSize = disk.maxObjectSize();
         if (diskMaxObjectSize > largestMaximumObjectSize) {
-            if (largestMaximumObjectSize >= 0) // was set
+            if (largestMaximumObjectSize >= 0)  // was set
                 secondLargestMaximumObjectSize = largestMaximumObjectSize;
             largestMaximumObjectSize = diskMaxObjectSize;
         }
@@ -410,8 +406,7 @@ Store::Disks::accumulateMore(const StoreEntry &entry) const
      * allow swap out now. The disk will quit swapping out if the entry
      * eventually grows too big for its selected cache_dir.
      */
-    debugs(20, 3, "no: " << accumulated << '>' <<
-           secondLargestMaximumObjectSize << ',' << largestMinimumObjectSize);
+    debugs(20, 3, "no: " << accumulated << '>' << secondLargestMaximumObjectSize << ',' << largestMinimumObjectSize);
     return 0;
 }
 
@@ -432,7 +427,7 @@ Store::Disks::getStats(StoreInfoStats &stats) const
 }
 
 void
-Store::Disks::stat(StoreEntry & output) const
+Store::Disks::stat(StoreEntry &output) const
 {
     int i;
 
@@ -486,7 +481,8 @@ Store::Disks::sync()
 }
 
 void
-Store::Disks::evictCached(StoreEntry &e) {
+Store::Disks::evictCached(StoreEntry &e)
+{
     if (e.hasDisk()) {
         // TODO: move into Fs::Ufs::UFSSwapDir::evictCached()
         if (!EBIT_TEST(e.flags, KEY_PRIVATE)) {
@@ -532,16 +528,14 @@ Store::Disks::anchorToCache(StoreEntry &entry, bool &inSync)
         }
     }
 
-    debugs(20, 4, "none of " << Config.cacheSwap.n_configured <<
-           " cache_dirs have " << entry);
+    debugs(20, 4, "none of " << Config.cacheSwap.n_configured << " cache_dirs have " << entry);
     return false;
 }
 
 bool
 Store::Disks::updateAnchored(StoreEntry &entry)
 {
-    return entry.hasDisk() &&
-           Dir(entry.swap_dirn).updateAnchored(entry);
+    return entry.hasDisk() && Dir(entry.swap_dirn).updateAnchored(entry);
 }
 
 bool
@@ -651,8 +645,7 @@ storeDirWriteCleanLogs(int reopen)
 
             if ((++n & 0xFFFF) == 0) {
                 getCurrentTime();
-                debugs(20, DBG_IMPORTANT, "  " << std::setw(7) << n  <<
-                       " entries written so far.");
+                debugs(20, DBG_IMPORTANT, "  " << std::setw(7) << n << " entries written so far.");
             }
         }
     }
@@ -669,8 +662,7 @@ storeDirWriteCleanLogs(int reopen)
     dt = tvSubDsec(start, current_time);
 
     debugs(20, DBG_IMPORTANT, "  Finished.  Wrote " << n << " entries.");
-    debugs(20, DBG_IMPORTANT, "  Took "<< std::setw(3)<< std::setprecision(2) << dt <<
-           " seconds ("<< std::setw(6) << ((double) n / (dt > 0.0 ? dt : 1.0)) << " entries/sec).");
+    debugs(20, DBG_IMPORTANT, "  Took " << std::setw(3) << std::setprecision(2) << dt << " seconds (" << std::setw(6) << ((double)n / (dt > 0.0 ? dt : 1.0)) << " entries/sec).");
 
     return n;
 }
@@ -730,9 +722,9 @@ free_cachedir(Store::DiskConfig *swap)
  *   2.  It MUST have a valid (> -1) swap_filen.
  */
 void
-storeDirSwapLog(const StoreEntry * e, int op)
+storeDirSwapLog(const StoreEntry *e, int op)
 {
-    assert (e);
+    assert(e);
     assert(!EBIT_TEST(e->flags, KEY_PRIVATE));
     assert(e->hasDisk());
     /*
@@ -744,12 +736,7 @@ storeDirSwapLog(const StoreEntry * e, int op)
 
     assert(op > SWAP_LOG_NOP && op < SWAP_LOG_MAX);
 
-    debugs(20, 3, "storeDirSwapLog: " <<
-           swap_log_op_str[op] << " " <<
-           e->getMD5Text() << " " <<
-           e->swap_dirn << " " <<
-           std::hex << std::uppercase << std::setfill('0') << std::setw(8) << e->swap_filen);
+    debugs(20, 3, "storeDirSwapLog: " << swap_log_op_str[op] << " " << e->getMD5Text() << " " << e->swap_dirn << " " << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << e->swap_filen);
 
     dynamic_cast<SwapDir *>(INDEXSD(e->swap_dirn))->logEntry(*e, op);
 }
-

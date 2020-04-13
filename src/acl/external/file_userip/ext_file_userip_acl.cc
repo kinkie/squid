@@ -47,8 +47,8 @@
 #endif
 
 struct ip_user_dict {
-    unsigned long address; // IP address (assumes IPv4)
-    unsigned long netmask; // IP netmask
+    unsigned long address;  // IP address (assumes IPv4)
+    unsigned long netmask;  // IP netmask
     char *username;
     struct ip_user_dict *next_entry;
 };
@@ -59,7 +59,7 @@ struct ip_user_dict *load_dict(FILE *);
 int dict_lookup(struct ip_user_dict *, char *, char *);
 
 /** Size of lines read from the dictionary file */
-#define DICT_BUFFER_SIZE    8196
+#define DICT_BUFFER_SIZE 8196
 
 /** This function parses the dictionary file and loads it
  * in memory. All IP addresses are processed with a bitwise AND
@@ -69,18 +69,19 @@ int dict_lookup(struct ip_user_dict *, char *, char *);
  * It returns a pointer to the first entry of the linked list
  */
 struct ip_user_dict *
-load_dict(FILE * FH) {
-    struct ip_user_dict *current_entry; /* the structure used to
+load_dict(FILE *FH)
+{
+    struct ip_user_dict *current_entry;      /* the structure used to
                        store data */
-    struct ip_user_dict *first_entry = NULL;    /* the head of the
+    struct ip_user_dict *first_entry = NULL; /* the head of the
                            linked list */
-    char line[DICT_BUFFER_SIZE]; /* the buffer for the lines read
+    char line[DICT_BUFFER_SIZE];             /* the buffer for the lines read
                    from the dict file */
-    char *tmpbuf;           /* for the address before the
+    char *tmpbuf;                            /* for the address before the
                    bitwise AND */
 
     /* the pointer to the first entry in the linked list */
-    first_entry = static_cast<struct ip_user_dict*>(xmalloc(sizeof(struct ip_user_dict)));
+    first_entry = static_cast<struct ip_user_dict *>(xmalloc(sizeof(struct ip_user_dict)));
     current_entry = first_entry;
 
     unsigned int lineCount = 0;
@@ -90,8 +91,8 @@ load_dict(FILE * FH) {
             continue;
         }
 
-        char *cp; // a char pointer used to parse each line.
-        if ((cp = strchr (line, '\n')) != NULL) {
+        char *cp;  // a char pointer used to parse each line.
+        if ((cp = strchr(line, '\n')) != NULL) {
             /* chop \n characters */
             *cp = '\0';
         }
@@ -106,15 +107,14 @@ load_dict(FILE * FH) {
             }
 
             /* look for a netmask */
-            if ((cp = strtok (line, "/")) != NULL) {
+            if ((cp = strtok(line, "/")) != NULL) {
                 /* store the ip address in a temporary buffer */
                 tmpbuf = cp;
-                cp = strtok (NULL, "/");
+                cp = strtok(NULL, "/");
                 if (cp != NULL) {
                     /* if we have a slash in the lhs, we have a netmask */
                     current_entry->netmask = (inet_addr(cp));
-                    current_entry->address =
-                        (((inet_addr (tmpbuf))) & current_entry->netmask);
+                    current_entry->address = (((inet_addr(tmpbuf))) & current_entry->netmask);
                 } else {
                     /* when there's no slash, we figure the netmask is /32 */
                     current_entry->address = (inet_addr(tmpbuf));
@@ -122,16 +122,13 @@ load_dict(FILE * FH) {
                 }
             }
             /* get space for the username */
-            current_entry->username =
-                (char*)calloc(strlen(username) + 1, sizeof(char));
+            current_entry->username = (char *)calloc(strlen(username) + 1, sizeof(char));
             strcpy(current_entry->username, username);
 
             /* get space and point current_entry to the new entry */
-            current_entry->next_entry =
-                static_cast<struct ip_user_dict*>(xmalloc(sizeof(struct ip_user_dict)));
+            current_entry->next_entry = static_cast<struct ip_user_dict *>(xmalloc(sizeof(struct ip_user_dict)));
             current_entry = current_entry->next_entry;
         }
-
     }
 
     /* Return a pointer to the first entry linked list */
@@ -154,15 +151,14 @@ dict_lookup(struct ip_user_dict *first_entry, char *username,
               current_entry->username, current_entry->address,
               current_entry->netmask);
 
-        if ((inet_addr (address) & (unsigned long) current_entry->
-                netmask) == current_entry->address) {
+        if ((inet_addr(address) & (unsigned long)current_entry->netmask) == current_entry->address) {
             /* If the username contains an @ we assume it?s a group and
                call the corresponding function */
-            if ((strchr (current_entry->username, '@')) == NULL) {
-                if ((match_user (current_entry->username, username)) == 1)
+            if ((strchr(current_entry->username, '@')) == NULL) {
+                if ((match_user(current_entry->username, username)) == 1)
                     return 1;
             } else {
-                if ((match_group (current_entry->username, username)) == 1)
+                if ((match_group(current_entry->username, username)) == 1)
                     return 1;
             }
         }
@@ -184,13 +180,13 @@ match_user(char *dict_username, char *username)
         }
     }
     return 0;
-}               /* match_user */
+} /* match_user */
 
 int
 match_group(char *dict_group, char *username)
 {
-    struct group *g;        /* a struct to hold group entries */
-    ++dict_group;           /* the @ should be the first char
+    struct group *g; /* a struct to hold group entries */
+    ++dict_group;    /* the @ should be the first char
                    so we rip it off by incrementing
                    * the pointer by one */
 
@@ -205,18 +201,17 @@ match_group(char *dict_group, char *username)
         }
     }
     return 0;
-
 }
 
 static void
 usage(const char *program_name)
 {
-    fprintf (stderr, "Usage:\n%s [-d] -f <configuration file>\n",
-             program_name);
+    fprintf(stderr, "Usage:\n%s [-d] -f <configuration file>\n",
+            program_name);
 }
 
 int
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
     char *filename = NULL;
     char *program_name = argv[0];
@@ -226,7 +221,7 @@ main (int argc, char *argv[])
     struct ip_user_dict *current_entry;
     int ch;
 
-    setvbuf (stdout, NULL, _IOLBF, 0);
+    setvbuf(stdout, NULL, _IOLBF, 0);
     while ((ch = getopt(argc, argv, "df:h")) != -1) {
         switch (ch) {
         case 'f':
@@ -258,7 +253,7 @@ main (int argc, char *argv[])
     current_entry = load_dict(FH);
 
     while (fgets(line, HELPER_INPUT_BUFFER, stdin)) {
-        if ((cp = strchr (line, '\n')) == NULL) {
+        if ((cp = strchr(line, '\n')) == NULL) {
             /* too large message received.. skip and deny */
             fprintf(stderr, "%s: ERROR: Input Too Large: %s\n", program_name, line);
             while (fgets(line, sizeof(line), stdin)) {
@@ -288,7 +283,6 @@ main (int argc, char *argv[])
         }
     }
 
-    fclose (FH);
+    fclose(FH);
     return EXIT_SUCCESS;
 }
-

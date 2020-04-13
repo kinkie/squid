@@ -9,23 +9,21 @@
 #ifndef _SQUID_SRC_HELPER_RESULTCODE_H
 #define _SQUID_SRC_HELPER_RESULTCODE_H
 
-namespace Helper
-{
+namespace Helper {
 
 /// enumeration value for the helper response 'result' field.
 enum ResultCode {
-    Unknown,      // no result code received, or unknown result code
-    Okay,         // "OK" indicating success/positive result
-    Error,        // "ERR" indicating success/negative result
-    BrokenHelper, // "BH" indicating failure due to helper internal problems.
-    TimedOut,     // Request timedout
+    Unknown,       // no result code received, or unknown result code
+    Okay,          // "OK" indicating success/positive result
+    Error,         // "ERR" indicating success/negative result
+    BrokenHelper,  // "BH" indicating failure due to helper internal problems.
+    TimedOut,      // Request timedout
 
     // result codes for backward compatibility with NTLM/Negotiate
     // TODO: migrate to a variant of the above results with kv-pair parameters
     TT
 };
 
-} // namespace Helper
+}  // namespace Helper
 
 #endif /* _SQUID_SRC_HELPER_RESULTCODE_H */
-

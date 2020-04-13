@@ -47,4 +47,3 @@
 #endif
 
 #endif /* _SQUID_COMPAT_XIS_H */
-

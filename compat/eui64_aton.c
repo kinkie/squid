@@ -131,17 +131,16 @@ eui64_aton(const char *a, struct eui64 *e)
     return (-1);
 
 good:
-    e->octet[0]=o0;
-    e->octet[1]=o1;
-    e->octet[2]=o2;
-    e->octet[3]=o3;
-    e->octet[4]=o4;
-    e->octet[5]=o5;
-    e->octet[6]=o6;
-    e->octet[7]=o7;
+    e->octet[0] = o0;
+    e->octet[1] = o1;
+    e->octet[2] = o2;
+    e->octet[3] = o3;
+    e->octet[4] = o4;
+    e->octet[5] = o5;
+    e->octet[6] = o6;
+    e->octet[7] = o7;
 
     return (0);
 }
 
 #endif /* !SQUID_EUI64_ATON */
-

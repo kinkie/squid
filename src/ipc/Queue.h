@@ -9,8 +9,8 @@
 #ifndef SQUID_IPC_QUEUE_H
 #define SQUID_IPC_QUEUE_H
 
-#include "base/InstanceId.h"
 #include "Debug.h"
+#include "base/InstanceId.h"
 #include "ipc/mem/FlexibleArray.h"
 #include "ipc/mem/Pointer.h"
 #include "util.h"
@@ -19,15 +19,14 @@
 
 class String;
 
-namespace Ipc
-{
+namespace Ipc {
 
 /// State of the reading end of a queue (i.e., of the code calling pop()).
 /// Multiple queues attached to one reader share this state.
 class QueueReader
 {
 public:
-    QueueReader(); // the initial state is "blocked without a signal"
+    QueueReader();  // the initial state is "blocked without a signal"
 
     /// whether the reader is waiting for a notification signal
     bool blocked() const { return popBlocked.load(); }
@@ -43,15 +42,19 @@ public:
     bool raiseSignal() { return blocked() && !popSignal.exchange(true); }
 
     /// marks sent reader notification as received (also removes pop blocking)
-    void clearSignal() { unblock(); popSignal.store(false); }
+    void clearSignal()
+    {
+        unblock();
+        popSignal.store(false);
+    }
 
 private:
-    std::atomic<bool> popBlocked; ///< whether the reader is blocked on pop()
-    std::atomic<bool> popSignal; ///< whether writer has sent and reader has not received notification
+    std::atomic<bool> popBlocked;  ///< whether the reader is blocked on pop()
+    std::atomic<bool> popSignal;   ///< whether writer has sent and reader has not received notification
 
 public:
-    typedef std::atomic<int> Rate; ///< pop()s per second
-    Rate rateLimit; ///< pop()s per second limit if positive
+    typedef std::atomic<int> Rate;  ///< pop()s per second
+    Rate rateLimit;                 ///< pop()s per second limit if positive
 
     // we need a signed atomic type because balance may get negative
     typedef std::atomic<int> AtomicSignedMsec;
@@ -71,8 +74,8 @@ public:
     size_t sharedMemorySize() const;
     static size_t SharedMemorySize(const int capacity);
 
-    const int theCapacity; /// number of readers
-    Ipc::Mem::FlexibleArray<QueueReader> theReaders; /// readers
+    const int theCapacity;                            /// number of readers
+    Ipc::Mem::FlexibleArray<QueueReader> theReaders;  /// readers
 };
 
 /**
@@ -89,8 +92,12 @@ class OneToOneUniQueue
 {
 public:
     // pop() and push() exceptions; TODO: use TextException instead
-    class Full {};
-    class ItemTooLarge {};
+    class Full
+    {
+    };
+    class ItemTooLarge
+    {
+    };
 
     OneToOneUniQueue(const unsigned int aMaxItemSize, const int aCapacity);
 
@@ -106,22 +113,24 @@ public:
     static int Items2Bytes(const unsigned int maxItemSize, const int size);
 
     /// returns true iff the value was set; [un]blocks the reader as needed
-    template<class Value> bool pop(Value &value, QueueReader *const reader = NULL);
+    template <class Value>
+    bool pop(Value &value, QueueReader *const reader = NULL);
 
     /// returns true iff the caller must notify the reader of the pushed item
-    template<class Value> bool push(const Value &value, QueueReader *const reader = NULL);
+    template <class Value>
+    bool push(const Value &value, QueueReader *const reader = NULL);
 
     /// returns true iff the value was set; the value may be stale!
-    template<class Value> bool peek(Value &value) const;
+    template <class Value>
+    bool peek(Value &value) const;
 
 private:
+    unsigned int theIn;   ///< input index, used only in push()
+    unsigned int theOut;  ///< output index, used only in pop()
 
-    unsigned int theIn; ///< input index, used only in push()
-    unsigned int theOut; ///< output index, used only in pop()
-
-    std::atomic<uint32_t> theSize; ///< number of items in the queue
-    const unsigned int theMaxItemSize; ///< maximum item size
-    const uint32_t theCapacity; ///< maximum number of items, i.e. theBuffer size
+    std::atomic<uint32_t> theSize;      ///< number of items in the queue
+    const unsigned int theMaxItemSize;  ///< maximum item size
+    const uint32_t theCapacity;         ///< maximum number of items, i.e. theBuffer size
 
     char theBuffer[];
 };
@@ -135,14 +144,14 @@ public:
     size_t sharedMemorySize() const;
     static size_t SharedMemorySize(const int capacity, const unsigned int maxItemSize, const int queueCapacity);
 
-    const OneToOneUniQueue &operator [](const int index) const;
-    inline OneToOneUniQueue &operator [](const int index);
+    const OneToOneUniQueue &operator[](const int index) const;
+    inline OneToOneUniQueue &operator[](const int index);
 
 private:
     inline const OneToOneUniQueue &front() const;
 
 public:
-    const int theCapacity; /// number of OneToOneUniQueues
+    const int theCapacity;  /// number of OneToOneUniQueues
 };
 
 /**
@@ -159,13 +168,16 @@ public:
     void clearReaderSignal(const int remoteProcessId);
 
     /// picks a process and calls OneToOneUniQueue::pop() using its queue
-    template <class Value> bool pop(int &remoteProcessId, Value &value);
+    template <class Value>
+    bool pop(int &remoteProcessId, Value &value);
 
     /// calls OneToOneUniQueue::push() using the given process queue
-    template <class Value> bool push(const int remoteProcessId, const Value &value);
+    template <class Value>
+    bool push(const int remoteProcessId, const Value &value);
 
     /// peeks at the item likely to be pop()ed next
-    template<class Value> bool peek(int &remoteProcessId, Value &value) const;
+    template <class Value>
+    bool peek(int &remoteProcessId, Value &value) const;
 
     /// returns local reader's balance
     QueueReader::Balance &localBalance() { return localReader().balance; }
@@ -204,10 +216,10 @@ protected:
     virtual int remotesIdOffset() const = 0;
 
 protected:
-    const int theLocalProcessId; ///< process ID of this queue
+    const int theLocalProcessId;  ///< process ID of this queue
 
 private:
-    int theLastPopProcessId; ///< the ID of the last process we tried to pop() from
+    int theLastPopProcessId;  ///< the ID of the last process we tried to pop() from
 };
 
 /**
@@ -218,7 +230,7 @@ private:
  * communicate. Process in each group has a unique integer ID in
  * [groupIdOffset, groupIdOffset + groupSize) range.
  */
-class FewToFewBiQueue: public BaseMultiQueue
+class FewToFewBiQueue : public BaseMultiQueue
 {
 public:
     typedef OneToOneUniQueue::Full Full;
@@ -252,7 +264,8 @@ public:
 
     static Owner *Init(const String &id, const int groupASize, const int groupAIdOffset, const int groupBSize, const int groupBIdOffset, const unsigned int maxItemSize, const int capacity);
 
-    enum Group { groupA = 0, groupB = 1 };
+    enum Group { groupA = 0,
+                 groupB = 1 };
     FewToFewBiQueue(const String &id, const Group aLocalGroup, const int aLocalProcessId);
 
     /// maximum number of items in the queue
@@ -260,7 +273,8 @@ public:
 
     /// finds the oldest item in incoming and outgoing queues between
     /// us and the given remote process
-    template<class Value> bool findOldest(const int remoteProcessId, Value &value) const;
+    template <class Value>
+    bool findOldest(const int remoteProcessId, Value &value) const;
 
 protected:
     virtual const OneToOneUniQueue &inQueue(const int remoteProcessId) const;
@@ -279,11 +293,11 @@ private:
     Group remoteGroup() const { return theLocalGroup == groupA ? groupB : groupA; }
 
 private:
-    const Mem::Pointer<Metadata> metadata; ///< shared metadata
-    const Mem::Pointer<OneToOneUniQueues> queues; ///< unidirection one-to-one queues
-    const Mem::Pointer<QueueReaders> readers; ///< readers array
+    const Mem::Pointer<Metadata> metadata;         ///< shared metadata
+    const Mem::Pointer<OneToOneUniQueues> queues;  ///< unidirection one-to-one queues
+    const Mem::Pointer<QueueReaders> readers;      ///< readers array
 
-    const Group theLocalGroup; ///< group of this queue
+    const Group theLocalGroup;  ///< group of this queue
 };
 
 /**
@@ -292,7 +306,7 @@ private:
  * process (including itself). Each process has a unique integer ID in
  * [processIdOffset, processIdOffset + processCount) range.
  */
-class MultiQueue: public BaseMultiQueue
+class MultiQueue : public BaseMultiQueue
 {
 public:
     typedef OneToOneUniQueue::Full Full;
@@ -340,9 +354,9 @@ private:
     const QueueReader &reader(const int processId) const;
 
 private:
-    const Mem::Pointer<Metadata> metadata; ///< shared metadata
-    const Mem::Pointer<OneToOneUniQueues> queues; ///< unidirection one-to-one queues
-    const Mem::Pointer<QueueReaders> readers; ///< readers array
+    const Mem::Pointer<Metadata> metadata;         ///< shared metadata
+    const Mem::Pointer<OneToOneUniQueues> queues;  ///< unidirection one-to-one queues
+    const Mem::Pointer<QueueReaders> readers;      ///< readers array
 };
 
 // OneToOneUniQueue
@@ -413,7 +427,7 @@ OneToOneUniQueue::push(const Value &value, QueueReader *const reader)
 // OneToOneUniQueues
 
 inline OneToOneUniQueue &
-OneToOneUniQueues::operator [](const int index)
+    OneToOneUniQueues::operator[](const int index)
 {
     return const_cast<OneToOneUniQueue &>((*const_cast<const OneToOneUniQueues *>(this))[index]);
 }
@@ -421,8 +435,7 @@ OneToOneUniQueues::operator [](const int index)
 inline const OneToOneUniQueue &
 OneToOneUniQueues::front() const
 {
-    const char *const queue =
-        reinterpret_cast<const char *>(this) + sizeof(*this);
+    const char *const queue = reinterpret_cast<const char *>(this) + sizeof(*this);
     return *reinterpret_cast<const OneToOneUniQueue *>(queue);
 }
 
@@ -443,7 +456,7 @@ BaseMultiQueue::pop(int &remoteProcessId, Value &value)
             return true;
         }
     }
-    return false; // no process had anything to pop
+    return false;  // no process had anything to pop
 }
 
 template <class Value>
@@ -461,7 +474,7 @@ bool
 BaseMultiQueue::peek(int &remoteProcessId, Value &value) const
 {
     // mimic FewToFewBiQueue::pop() but quit just before popping
-    int popProcessId = theLastPopProcessId; // preserve for future pop()
+    int popProcessId = theLastPopProcessId;  // preserve for future pop()
     for (int i = 0; i < remotesCount(); ++i) {
         if (++popProcessId >= remotesIdOffset() + remotesCount())
             popProcessId = remotesIdOffset();
@@ -471,7 +484,7 @@ BaseMultiQueue::peek(int &remoteProcessId, Value &value) const
             return true;
         }
     }
-    return false; // most likely, no process had anything to pop
+    return false;  // most likely, no process had anything to pop
 }
 
 // FewToFewBiQueue
@@ -486,19 +499,16 @@ FewToFewBiQueue::findOldest(const int remoteProcessId, Value &value) const
 
     // we need the oldest value, so start with the incoming, them-to-us queue:
     const OneToOneUniQueue &in = inQueue(remoteProcessId);
-    debugs(54, 2, HERE << "peeking from " << remoteProcessId << " to " <<
-           theLocalProcessId << " at " << in.size());
+    debugs(54, 2, HERE << "peeking from " << remoteProcessId << " to " << theLocalProcessId << " at " << in.size());
     if (in.peek(value))
         return true;
 
     // if the incoming queue is empty, check the outgoing, us-to-them queue:
     const OneToOneUniQueue &out = outQueue(remoteProcessId);
-    debugs(54, 2, HERE << "peeking from " << theLocalProcessId << " to " <<
-           remoteProcessId << " at " << out.size());
+    debugs(54, 2, HERE << "peeking from " << theLocalProcessId << " to " << remoteProcessId << " at " << out.size());
     return out.peek(value);
 }
 
-} // namespace Ipc
+}  // namespace Ipc
 
-#endif // SQUID_IPC_QUEUE_H
-
+#endif  // SQUID_IPC_QUEUE_H

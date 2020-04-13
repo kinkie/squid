@@ -11,15 +11,14 @@
 
 #include "DiskIO/ReadRequest.h"
 #include "DiskIO/WriteRequest.h"
-#include "fs/rock/forward.h"
 #include "fs/rock/RockIoState.h"
+#include "fs/rock/forward.h"
 
 class DiskFile;
 
-namespace Rock
-{
+namespace Rock {
 
-class ReadRequest: public ::ReadRequest
+class ReadRequest : public ::ReadRequest
 {
     CBDATA_CLASS(ReadRequest);
 
@@ -31,7 +30,7 @@ public:
     IoXactionId id;
 };
 
-class WriteRequest: public ::WriteRequest
+class WriteRequest : public ::WriteRequest
 {
     CBDATA_CLASS(WriteRequest);
 
@@ -54,7 +53,6 @@ public:
     bool eof;
 };
 
-} // namespace Rock
+}  // namespace Rock
 
 #endif /* SQUID_FS_ROCK_IO_REQUESTS_H */
-

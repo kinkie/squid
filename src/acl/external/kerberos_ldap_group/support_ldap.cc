@@ -54,8 +54,8 @@
 
 char *convert_domain_to_bind_path(char *domain);
 char *escape_filter(char *filter);
-int check_AD(struct main_args *margs, LDAP * ld);
-int ldap_set_defaults(LDAP * ld);
+int check_AD(struct main_args *margs, LDAP *ld);
+int ldap_set_defaults(LDAP *ld);
 int ldap_set_ssl_defaults(struct main_args *margs);
 LDAP *tool_ldap_open(struct main_args *margs, char *host, int port, char *ssl);
 
@@ -74,12 +74,12 @@ LDAP *tool_ldap_open(struct main_args *margs, char *host, int port, char *ssl);
 #define FILTER_AD "(samaccountname=%s)"
 #define ATTRIBUTE_AD "memberof"
 
-size_t get_attributes(LDAP * ld, LDAPMessage * res,
-                      const char *attribute /* IN */, char ***out_val /* OUT (caller frees) */ );
-size_t get_bin_attributes(LDAP * ld, LDAPMessage * res,
+size_t get_attributes(LDAP *ld, LDAPMessage *res,
+                      const char *attribute /* IN */, char ***out_val /* OUT (caller frees) */);
+size_t get_bin_attributes(LDAP *ld, LDAPMessage *res,
                           const char *attribute /* IN */, char ***out_val,
-                          int **out_len /* OUT (caller frees) */ );
-int search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
+                          int **out_len /* OUT (caller frees) */);
+int search_group_tree(struct main_args *margs, LDAP *ld, char *bindp,
                       char *ldap_group, char *group, int depth);
 
 #if HAVE_SUN_LDAP_SDK || HAVE_MOZILLA_LDAP_SDK
@@ -89,10 +89,10 @@ int search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
 static LDAP_REBINDPROC_CALLBACK ldap_sasl_rebind;
 
 static int LDAP_CALL LDAP_CALLBACK
-ldap_sasl_rebind(LDAP * ld,
+ldap_sasl_rebind(LDAP *ld,
                  char **whop, char **credp, int *methodp, int freeit, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     whop = whop;
     credp = credp;
     methodp = methodp;
@@ -104,10 +104,10 @@ ldap_sasl_rebind(LDAP * ld,
 static LDAP_REBINDPROC_CALLBACK ldap_simple_rebind;
 
 static int LDAP_CALL LDAP_CALLBACK
-ldap_simple_rebind(LDAP * ld,
+ldap_simple_rebind(LDAP *ld,
                    char **whop, char **credp, int *methodp, int freeit, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     struct berval cred;
     if (cp->pw) {
         cred.bv_val = cp->pw;
@@ -125,10 +125,10 @@ ldap_simple_rebind(LDAP * ld,
 static LDAP_REBIND_PROC ldap_sasl_rebind;
 
 static int
-ldap_sasl_rebind(LDAP * ld,
+ldap_sasl_rebind(LDAP *ld,
                  LDAP_CONST char *url, ber_tag_t request, ber_int_t msgid, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     return tool_sasl_bind(ld, cp->dn, cp->pw);
 }
 #endif
@@ -136,10 +136,10 @@ ldap_sasl_rebind(LDAP * ld,
 static LDAP_REBIND_PROC ldap_simple_rebind;
 
 static int
-ldap_simple_rebind(LDAP * ld,
+ldap_simple_rebind(LDAP *ld,
                    LDAP_CONST char *url, ber_tag_t request, ber_int_t msgid, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     struct berval cred;
     if (cp->pw) {
         cred.bv_val = cp->pw;
@@ -157,10 +157,10 @@ ldap_simple_rebind(LDAP * ld,
 static LDAP_REBIND_FUNCTION ldap_sasl_rebind;
 
 static int
-ldap_sasl_rebind(LDAP * ld,
+ldap_sasl_rebind(LDAP *ld,
                  char **whop, char **credp, int *methodp, int freeit, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     whop = whop;
     credp = credp;
     methodp = methodp;
@@ -172,10 +172,10 @@ ldap_sasl_rebind(LDAP * ld,
 static LDAP_REBIND_FUNCTION ldap_simple_rebind;
 
 static int
-ldap_simple_rebind(LDAP * ld,
+ldap_simple_rebind(LDAP *ld,
                    char **whop, char **credp, int *methodp, int freeit, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     struct berval cred;
     if (cp->pw) {
         cred.bv_val = cp->pw;
@@ -196,10 +196,10 @@ ldap_simple_rebind(LDAP * ld,
 static LDAP_REBIND_PROC ldap_sasl_rebind;
 
 static int
-ldap_sasl_rebind(LDAP * ld, LDAP_CONST char *, ber_tag_t request,
+ldap_sasl_rebind(LDAP *ld, LDAP_CONST char *, ber_tag_t request,
                  ber_int_t msgid, void *params)
 {
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     return tool_sasl_bind(ld, cp->dn, cp->pw);
 }
 #endif
@@ -207,11 +207,11 @@ ldap_sasl_rebind(LDAP * ld, LDAP_CONST char *, ber_tag_t request,
 static LDAP_REBIND_PROC ldap_simple_rebind;
 
 static int
-ldap_simple_rebind(LDAP * ld, LDAP_CONST char *, ber_tag_t request,
+ldap_simple_rebind(LDAP *ld, LDAP_CONST char *, ber_tag_t request,
                    ber_int_t msgid, void *params)
 {
 
-    struct ldap_creds *cp = (struct ldap_creds *) params;
+    struct ldap_creds *cp = (struct ldap_creds *)params;
     struct berval cred;
     if (cp->pw) {
         cred.bv_val = cp->pw;
@@ -239,7 +239,7 @@ convert_domain_to_bind_path(char *domain)
      * add dc= and
      * replace . with ,dc= => new length = old length + #dots * 3 + 3
      */
-    bindp = (char *) xmalloc(strlen(domain) + 3 + i * 3 + 1);
+    bindp = (char *)xmalloc(strlen(domain) + 3 + i * 3 + 1);
     bp = bindp;
     strcpy(bp, "dc=");
     bp += 3;
@@ -264,13 +264,11 @@ escape_filter(char *filter)
 
     i = 0;
     for (ldap_filter_esc = filter; *ldap_filter_esc; ++ldap_filter_esc) {
-        if ((*ldap_filter_esc == '*') ||
-                (*ldap_filter_esc == '(') ||
-                (*ldap_filter_esc == ')') || (*ldap_filter_esc == '\\'))
+        if ((*ldap_filter_esc == '*') || (*ldap_filter_esc == '(') || (*ldap_filter_esc == ')') || (*ldap_filter_esc == '\\'))
             i = i + 3;
     }
 
-    ldap_filter_esc = (char *) xcalloc(strlen(filter) + i + 1, sizeof(char));
+    ldap_filter_esc = (char *)xcalloc(strlen(filter) + i + 1, sizeof(char));
     ldf = ldap_filter_esc;
     for (; *filter; ++filter) {
         if (*filter == '*') {
@@ -296,7 +294,7 @@ escape_filter(char *filter)
 }
 
 int
-check_AD(struct main_args *margs, LDAP * ld)
+check_AD(struct main_args *margs, LDAP *ld)
 {
     LDAPMessage *res;
     char **attr_value = NULL;
@@ -311,33 +309,28 @@ check_AD(struct main_args *margs, LDAP * ld)
     searchtime.tv_sec = SEARCH_TIMEOUT;
     searchtime.tv_usec = 0;
 
-    debug((char *)
-          "%s| %s: DEBUG: Search ldap server with bind path \"\" and filter: %s\n",
+    debug((char *)"%s| %s: DEBUG: Search ldap server with bind path \"\" and filter: %s\n",
           LogTime(), PROGRAM, FILTER_SCHEMA);
-    rc = ldap_search_ext_s(ld, (char *) "", LDAP_SCOPE_BASE,
-                           (char *) FILTER_SCHEMA, NULL, 0, NULL, NULL, &searchtime, 0, &res);
+    rc = ldap_search_ext_s(ld, (char *)"", LDAP_SCOPE_BASE,
+                           (char *)FILTER_SCHEMA, NULL, 0, NULL, NULL, &searchtime, 0, &res);
 
     if (rc == LDAP_SUCCESS)
         max_attr = get_attributes(ld, res, ATTRIBUTE_SCHEMA, &attr_value);
 
     if (max_attr == 1) {
         ldap_msgfree(res);
-        debug((char *)
-              "%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
+        debug((char *)"%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
               LogTime(), PROGRAM, attr_value[0], FILTER_SAM);
         rc = ldap_search_ext_s(ld, attr_value[0], LDAP_SCOPE_SUBTREE,
-                               (char *) FILTER_SAM, NULL, 0, NULL, NULL, &searchtime, 0, &res);
-        debug((char *) "%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(),
-              PROGRAM, ldap_count_entries(ld, res), ldap_count_entries(ld,
-                      res) > 1 || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
+                               (char *)FILTER_SAM, NULL, 0, NULL, NULL, &searchtime, 0, &res);
+        debug((char *)"%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(),
+              PROGRAM, ldap_count_entries(ld, res), ldap_count_entries(ld, res) > 1 || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
         if (ldap_count_entries(ld, res) > 0)
             margs->AD = 1;
     } else
-        debug((char *)
-              "%s| %s: DEBUG: Did not find ldap entry for subschemasubentry\n",
+        debug((char *)"%s| %s: DEBUG: Did not find ldap entry for subschemasubentry\n",
               LogTime(), PROGRAM);
-    debug((char *)
-          "%s| %s: DEBUG: Determined ldap server %sas an Active Directory server\n",
+    debug((char *)"%s| %s: DEBUG: Determined ldap server %sas an Active Directory server\n",
           LogTime(), PROGRAM, margs->AD ? "" : "not ");
     /*
      * Cleanup
@@ -354,7 +347,7 @@ check_AD(struct main_args *margs, LDAP * ld)
 }
 
 int
-search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
+search_group_tree(struct main_args *margs, LDAP *ld, char *bindp,
                   char *ldap_group, char *group, int depth)
 {
     LDAPMessage *res = NULL;
@@ -375,39 +368,37 @@ search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
     searchtime.tv_usec = 0;
 
     if (margs->AD)
-        filter = (char *) FILTER_GROUP_AD;
+        filter = (char *)FILTER_GROUP_AD;
     else
-        filter = (char *) FILTER_GROUP;
+        filter = (char *)FILTER_GROUP;
 
     ldap_filter_esc = escape_filter(ldap_group);
 
     se_len = strlen(filter) + strlen(ldap_filter_esc) + 1;
-    search_exp = (char *) xmalloc(se_len);
+    search_exp = (char *)xmalloc(se_len);
     snprintf(search_exp, se_len, filter, ldap_filter_esc);
 
     xfree(ldap_filter_esc);
 
     if (depth > margs->mdepth) {
-        debug((char *) "%s| %s: DEBUG: Max search depth reached %d>%d\n",
+        debug((char *)"%s| %s: DEBUG: Max search depth reached %d>%d\n",
               LogTime(), PROGRAM, depth, margs->mdepth);
         xfree(search_exp);
         return 0;
     }
-    debug((char *)
-          "%s| %s: DEBUG: Search ldap server with bind path %s and filter : %s\n",
+    debug((char *)"%s| %s: DEBUG: Search ldap server with bind path %s and filter : %s\n",
           LogTime(), PROGRAM, bindp, search_exp);
     rc = ldap_search_ext_s(ld, bindp, LDAP_SCOPE_SUBTREE, search_exp, NULL, 0,
                            NULL, NULL, &searchtime, 0, &res);
     xfree(search_exp);
 
     if (rc != LDAP_SUCCESS) {
-        error((char *) "%s| %s: ERROR: Error searching ldap server: %s\n",
+        error((char *)"%s| %s: ERROR: Error searching ldap server: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         return 0;
     }
-    debug((char *) "%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(), PROGRAM,
-          ldap_count_entries(ld, res), ldap_count_entries(ld, res) > 1
-          || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
+    debug((char *)"%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(), PROGRAM,
+          ldap_count_entries(ld, res), ldap_count_entries(ld, res) > 1 || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
 
     if (margs->AD)
         max_attr = get_attributes(ld, res, ATTRIBUTE_AD, &attr_value);
@@ -433,27 +424,29 @@ search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
         }
         if (debug_enabled) {
             int n;
-            debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                  " \"%s\" in hex UTF-8 is ", LogTime(), PROGRAM, j + 1, av);
+            debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                          " \"%s\" in hex UTF-8 is ",
+                  LogTime(), PROGRAM, j + 1, av);
             for (n = 0; av[n] != '\0'; ++n)
-                fprintf(stderr, "%02x", (unsigned char) av[n]);
+                fprintf(stderr, "%02x", (unsigned char)av[n]);
             fprintf(stderr, "\n");
         }
         if (!strcasecmp(group, av)) {
             retval = 1;
-            debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                  " \"%s\" matches group name \"%s\"\n", LogTime(), PROGRAM,
+            debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                          " \"%s\" matches group name \"%s\"\n",
+                  LogTime(), PROGRAM,
                   j + 1, av, group);
             break;
         } else
-            debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                  " \"%s\" does not match group name \"%s\"\n", LogTime(),
+            debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                          " \"%s\" does not match group name \"%s\"\n",
+                  LogTime(),
                   PROGRAM, j + 1, av, group);
         /*
          * Do recursive group search
          */
-        debug((char *)
-              "%s| %s: DEBUG: Perform recursive group search for group \"%s\"\n",
+        debug((char *)"%s| %s: DEBUG: Perform recursive group search for group \"%s\"\n",
               LogTime(), PROGRAM, av);
         av = attr_value[j];
         if (search_group_tree(margs, ld, bindp, av, group, ldepth)) {
@@ -466,12 +459,12 @@ search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
                 }
             }
             if (debug_enabled)
-                debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                      " \"%s\" is member of group named \"%s\"\n", LogTime(),
+                debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                              " \"%s\" is member of group named \"%s\"\n",
+                      LogTime(),
                       PROGRAM, j + 1, av, group);
             else
                 break;
-
         }
     }
 
@@ -490,7 +483,7 @@ search_group_tree(struct main_args *margs, LDAP * ld, char *bindp,
 }
 
 int
-ldap_set_defaults(LDAP * ld)
+ldap_set_defaults(LDAP *ld)
 {
     int val, rc = 0;
 #if LDAP_OPT_NETWORK_TIMEOUT
@@ -499,14 +492,13 @@ ldap_set_defaults(LDAP * ld)
     val = LDAP_VERSION3;
     rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &val);
     if (rc != LDAP_SUCCESS) {
-        debug((char *)
-              "%s| %s: DEBUG: Error while setting protocol version: %s\n",
+        debug((char *)"%s| %s: DEBUG: Error while setting protocol version: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         return rc;
     }
     rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     if (rc != LDAP_SUCCESS) {
-        debug((char *) "%s| %s: DEBUG: Error while setting referrals off: %s\n",
+        debug((char *)"%s| %s: DEBUG: Error while setting referrals off: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         return rc;
     }
@@ -515,8 +507,7 @@ ldap_set_defaults(LDAP * ld)
     tv.tv_usec = 0;
     rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &tv);
     if (rc != LDAP_SUCCESS) {
-        debug((char *)
-              "%s| %s: DEBUG: Error while setting network timeout: %s\n",
+        debug((char *)"%s| %s: DEBUG: Error while setting network timeout: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         return rc;
     }
@@ -540,14 +531,12 @@ ldap_set_ssl_defaults(struct main_args *margs)
     if (!margs->rc_allow) {
         char *ssl_cacertfile = NULL;
         char *ssl_cacertdir = NULL;
-        debug((char *)
-              "%s| %s: DEBUG: Enable server certificate check for ldap server.\n",
+        debug((char *)"%s| %s: DEBUG: Enable server certificate check for ldap server.\n",
               LogTime(), PROGRAM);
         val = LDAP_OPT_X_TLS_DEMAND;
         rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, &val);
         if (rc != LDAP_SUCCESS) {
-            error((char *)
-                  "%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_REQUIRE_CERT DEMAND for ldap server: %s\n",
+            error((char *)"%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_REQUIRE_CERT DEMAND for ldap server: %s\n",
                   LogTime(), PROGRAM, ldap_err2string(rc));
             return rc;
         }
@@ -556,21 +545,18 @@ ldap_set_ssl_defaults(struct main_args *margs)
             ssl_cacertfile = xstrdup("/etc/ssl/certs/cert.pem");
         }
         if (access(ssl_cacertfile, R_OK) == 0) {
-            debug((char *)
-                  "%s| %s: DEBUG: Set certificate file for ldap server to %s. (Changeable through setting environment variable TLS_CACERTFILE)\n",
+            debug((char *)"%s| %s: DEBUG: Set certificate file for ldap server to %s. (Changeable through setting environment variable TLS_CACERTFILE)\n",
                   LogTime(), PROGRAM, ssl_cacertfile);
             rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE,
                                  ssl_cacertfile);
             xfree(ssl_cacertfile);
             if (rc != LDAP_OPT_SUCCESS) {
-                error((char *)
-                      "%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_CACERTFILE for ldap server: %s\n",
+                error((char *)"%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_CACERTFILE for ldap server: %s\n",
                       LogTime(), PROGRAM, ldap_err2string(rc));
                 return rc;
             }
         } else {
-            debug((char *)
-                  "%s| %s: DEBUG: Set certificate file for ldap server to %s failed (%s). (Changeable through setting environment variable TLS_CACERTFILE) Trying db certificate directory\n",
+            debug((char *)"%s| %s: DEBUG: Set certificate file for ldap server to %s failed (%s). (Changeable through setting environment variable TLS_CACERTFILE) Trying db certificate directory\n",
                   LogTime(), PROGRAM, ssl_cacertfile, strerror(errno));
             xfree(ssl_cacertfile);
             ssl_cacertdir = xstrdup(getenv("TLS_CACERTDIR"));
@@ -578,35 +564,30 @@ ldap_set_ssl_defaults(struct main_args *margs)
                 ssl_cacertdir = xstrdup("/etc/ssl/certs");
             }
             if (access(ssl_cacertdir, R_OK) == 0) {
-                debug((char *)
-                      "%s| %s: DEBUG: Set certificate database path for ldap server to %s. (Changeable through setting environment variable TLS_CACERTDIR)\n",
+                debug((char *)"%s| %s: DEBUG: Set certificate database path for ldap server to %s. (Changeable through setting environment variable TLS_CACERTDIR)\n",
                       LogTime(), PROGRAM, ssl_cacertdir);
                 rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTDIR,
                                      ssl_cacertdir);
                 xfree(ssl_cacertdir);
                 if (rc != LDAP_OPT_SUCCESS) {
-                    error((char *)
-                          "%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_CACERTDIR for ldap server: %s\n",
+                    error((char *)"%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_CACERTDIR for ldap server: %s\n",
                           LogTime(), PROGRAM, ldap_err2string(rc));
                     return rc;
                 }
             } else {
-                debug((char *)
-                      "%s| %s: DEBUG: Set certificate database path for ldap server to %s failed (%s). (Changeable through setting environment variable TLS_CACERTDIR)\n",
+                debug((char *)"%s| %s: DEBUG: Set certificate database path for ldap server to %s failed (%s). (Changeable through setting environment variable TLS_CACERTDIR)\n",
                       LogTime(), PROGRAM, ssl_cacertdir, strerror(errno));
                 xfree(ssl_cacertdir);
                 return errno;
             }
         }
     } else {
-        debug((char *)
-              "%s| %s: DEBUG: Disable server certificate check for ldap server.\n",
+        debug((char *)"%s| %s: DEBUG: Disable server certificate check for ldap server.\n",
               LogTime(), PROGRAM);
         val = LDAP_OPT_X_TLS_ALLOW;
         rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, &val);
         if (rc != LDAP_SUCCESS) {
-            error((char *)
-                  "%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_REQUIRE_CERT ALLOW for ldap server: %s\n",
+            error((char *)"%s| %s: ERROR: Error while setting LDAP_OPT_X_TLS_REQUIRE_CERT ALLOW for ldap server: %s\n",
                   LogTime(), PROGRAM, ldap_err2string(rc));
             return rc;
         }
@@ -623,8 +604,7 @@ ldap_set_ssl_defaults(struct main_args *margs)
     if (!ssl_certdbpath) {
         ssl_certdbpath = xstrdup("/etc/certs");
     }
-    debug((char *)
-          "%s| %s: DEBUG: Set certificate database path for ldap server to %s. (Changeable through setting environment variable SSL_CERTDBPATH)\n",
+    debug((char *)"%s| %s: DEBUG: Set certificate database path for ldap server to %s. (Changeable through setting environment variable SSL_CERTDBPATH)\n",
           LogTime(), PROGRAM, ssl_certdbpath);
     if (!margs->rc_allow) {
         rc = ldapssl_advclientauth_init(ssl_certdbpath, NULL, 0, NULL, NULL, 0,
@@ -632,26 +612,24 @@ ldap_set_ssl_defaults(struct main_args *margs)
     } else {
         rc = ldapssl_advclientauth_init(ssl_certdbpath, NULL, 0, NULL, NULL, 0,
                                         NULL, 0);
-        debug((char *)
-              "%s| %s: DEBUG: Disable server certificate check for ldap server.\n",
+        debug((char *)"%s| %s: DEBUG: Disable server certificate check for ldap server.\n",
               LogTime(), PROGRAM);
     }
     xfree(ssl_certdbpath);
     if (rc != LDAP_SUCCESS) {
-        error((char *)
-              "%s| %s: ERROR: Error while setting SSL for ldap server: %s\n",
+        error((char *)"%s| %s: ERROR: Error while setting SSL for ldap server: %s\n",
               LogTime(), PROGRAM, ldapssl_err2string(rc));
         return rc;
     }
 #else
-    error((char *) "%s| %s: ERROR: SSL not supported by ldap library\n",
+    error((char *)"%s| %s: ERROR: SSL not supported by ldap library\n",
           LogTime(), PROGRAM);
 #endif
     return LDAP_SUCCESS;
 }
 
 size_t
-get_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
+get_attributes(LDAP *ld, LDAPMessage *res, const char *attribute,
                char ***ret_value)
 {
 
@@ -661,32 +639,29 @@ get_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
     /*
      * loop over attributes
      */
-    debug((char *) "%s| %s: DEBUG: Search ldap entries for attribute : %s\n",
+    debug((char *)"%s| %s: DEBUG: Search ldap entries for attribute : %s\n",
           LogTime(), PROGRAM, attribute);
-    for (LDAPMessage * msg = ldap_first_entry(ld, res); msg;
-            msg = ldap_next_entry(ld, msg)) {
+    for (LDAPMessage *msg = ldap_first_entry(ld, res); msg;
+         msg = ldap_next_entry(ld, msg)) {
 
         switch (ldap_msgtype(msg)) {
 
         case LDAP_RES_SEARCH_ENTRY: {
             BerElement *b = NULL;
             for (char *attr = ldap_first_attribute(ld, msg, &b); attr;
-                    attr = ldap_next_attribute(ld, msg, b)) {
+                 attr = ldap_next_attribute(ld, msg, b)) {
                 if (strcasecmp(attr, attribute) == 0) {
                     struct berval **values;
 
-                    if ((values =
-                                ldap_get_values_len(ld, msg, attr)) != NULL) {
+                    if ((values = ldap_get_values_len(ld, msg, attr)) != NULL) {
                         for (int il = 0; values[il] != NULL; ++il) {
 
-                            attr_value =
-                                (char **) xrealloc(attr_value,
-                                                   (max_attr + 1) * sizeof(char *));
+                            attr_value = (char **)xrealloc(attr_value,
+                                                           (max_attr + 1) * sizeof(char *));
                             if (!attr_value)
                                 break;
 
-                            attr_value[max_attr] =
-                                (char *) xmalloc(values[il]->bv_len + 1);
+                            attr_value[max_attr] = (char *)xmalloc(values[il]->bv_len + 1);
                             memcpy(attr_value[max_attr], values[il]->bv_val,
                                    values[il]->bv_len);
                             attr_value[max_attr][values[il]->bv_len] = 0;
@@ -698,15 +673,13 @@ get_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
                 ldap_memfree(attr);
             }
             ber_free(b, 0);
-        }
-        break;
+        } break;
         case LDAP_RES_SEARCH_REFERENCE:
-            debug((char *)
-                  "%s| %s: DEBUG: Received a search reference message\n",
+            debug((char *)"%s| %s: DEBUG: Received a search reference message\n",
                   LogTime(), PROGRAM);
             break;
         case LDAP_RES_SEARCH_RESULT:
-            debug((char *) "%s| %s: DEBUG: Received a search result message\n",
+            debug((char *)"%s| %s: DEBUG: Received a search result message\n",
                   LogTime(), PROGRAM);
             break;
         default:
@@ -714,8 +687,9 @@ get_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
         }
     }
 
-    debug((char *) "%s| %s: DEBUG: %" PRIuSIZE
-          " ldap entr%s found with attribute : %s\n", LogTime(), PROGRAM,
+    debug((char *)"%s| %s: DEBUG: %" PRIuSIZE
+                  " ldap entr%s found with attribute : %s\n",
+          LogTime(), PROGRAM,
           max_attr, max_attr > 1 || max_attr == 0 ? "ies" : "y", attribute);
 
     *ret_value = attr_value;
@@ -723,7 +697,7 @@ get_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
 }
 
 size_t
-get_bin_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
+get_bin_attributes(LDAP *ld, LDAPMessage *res, const char *attribute,
                    char ***ret_value, int **ret_len)
 {
 
@@ -734,38 +708,34 @@ get_bin_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
     /*
      * loop over attributes
      */
-    debug((char *) "%s| %s: DEBUG: Search ldap entries for attribute : %s\n",
+    debug((char *)"%s| %s: DEBUG: Search ldap entries for attribute : %s\n",
           LogTime(), PROGRAM, attribute);
-    for (LDAPMessage * msg = ldap_first_entry(ld, res); msg;
-            msg = ldap_next_entry(ld, msg)) {
+    for (LDAPMessage *msg = ldap_first_entry(ld, res); msg;
+         msg = ldap_next_entry(ld, msg)) {
 
         switch (ldap_msgtype(msg)) {
 
         case LDAP_RES_SEARCH_ENTRY: {
             BerElement *b = NULL;
             for (char *attr = ldap_first_attribute(ld, msg, &b); attr;
-                    attr = ldap_next_attribute(ld, msg, b)) {
+                 attr = ldap_next_attribute(ld, msg, b)) {
                 if (strcasecmp(attr, attribute) == 0) {
                     struct berval **values;
 
-                    if ((values =
-                                ldap_get_values_len(ld, msg, attr)) != NULL) {
+                    if ((values = ldap_get_values_len(ld, msg, attr)) != NULL) {
                         for (int il = 0; values[il] != NULL; ++il) {
 
-                            attr_value =
-                                (char **) xrealloc(attr_value,
-                                                   (max_attr + 1) * sizeof(char *));
+                            attr_value = (char **)xrealloc(attr_value,
+                                                           (max_attr + 1) * sizeof(char *));
                             if (!attr_value)
                                 break;
 
-                            attr_len =
-                                (int *) xrealloc(attr_len,
-                                                 (max_attr + 1) * sizeof(int));
+                            attr_len = (int *)xrealloc(attr_len,
+                                                       (max_attr + 1) * sizeof(int));
                             if (!attr_len)
                                 break;
 
-                            attr_value[max_attr] =
-                                (char *) xmalloc(values[il]->bv_len + 1);
+                            attr_value[max_attr] = (char *)xmalloc(values[il]->bv_len + 1);
                             memcpy(attr_value[max_attr], values[il]->bv_val,
                                    values[il]->bv_len);
                             attr_value[max_attr][values[il]->bv_len] = 0;
@@ -778,15 +748,13 @@ get_bin_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
                 ldap_memfree(attr);
             }
             ber_free(b, 0);
-        }
-        break;
+        } break;
         case LDAP_RES_SEARCH_REFERENCE:
-            debug((char *)
-                  "%s| %s: DEBUG: Received a search reference message\n",
+            debug((char *)"%s| %s: DEBUG: Received a search reference message\n",
                   LogTime(), PROGRAM);
             break;
         case LDAP_RES_SEARCH_RESULT:
-            debug((char *) "%s| %s: DEBUG: Received a search result message\n",
+            debug((char *)"%s| %s: DEBUG: Received a search result message\n",
                   LogTime(), PROGRAM);
             break;
         default:
@@ -794,8 +762,9 @@ get_bin_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
         }
     }
 
-    debug((char *) "%s| %s: DEBUG: %" PRIuSIZE
-          " ldap entr%s found with attribute : %s\n", LogTime(), PROGRAM,
+    debug((char *)"%s| %s: DEBUG: %" PRIuSIZE
+                  " ldap entr%s found with attribute : %s\n",
+          LogTime(), PROGRAM,
           max_attr, max_attr > 1 || max_attr == 0 ? "ies" : "y", attribute);
 
     *ret_value = attr_value;
@@ -807,7 +776,7 @@ get_bin_attributes(LDAP * ld, LDAPMessage * res, const char *attribute,
  * call to open ldap server with or without SSL
  */
 LDAP *
-tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
+tool_ldap_open(struct main_args *margs, char *host, int port, char *ssl)
 {
     LDAP *ld;
 #if HAVE_OPENLDAP
@@ -821,7 +790,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
      * (Not sure if this is the best way)
      */
 #if HAVE_OPENLDAP
-    url = (LDAPURLDesc *) xmalloc(sizeof(*url));
+    url = (LDAPURLDesc *)xmalloc(sizeof(*url));
     memset(url, 0, sizeof(*url));
 #if HAVE_LDAP_URL_LUD_SCHEME
     if (ssl)
@@ -841,7 +810,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
 #elif HAVE_LDAP_URL_PARSE
     rc = ldap_url_parse(ldapuri, &url);
     if (rc != LDAP_SUCCESS) {
-        error((char *) "%s| %s: ERROR: Error while parsing url: %s\n",
+        error((char *)"%s| %s: ERROR: Error while parsing url: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         xfree(ldapuri);
         ldap_free_urldesc(url);
@@ -854,8 +823,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
     rc = ldap_initialize(&ld, ldapuri);
     xfree(ldapuri);
     if (rc != LDAP_SUCCESS) {
-        error((char *)
-              "%s| %s: ERROR: Error while initialising connection to ldap server: %s\n",
+        error((char *)"%s| %s: ERROR: Error while initialising connection to ldap server: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         ldap_unbind_ext(ld, NULL, NULL);
         ld = NULL;
@@ -866,8 +834,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
 #endif
     rc = ldap_set_defaults(ld);
     if (rc != LDAP_SUCCESS) {
-        error((char *)
-              "%s| %s: ERROR: Error while setting default options for ldap server: %s\n",
+        error((char *)"%s| %s: ERROR: Error while setting default options for ldap server: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         ldap_unbind_ext(ld, NULL, NULL);
         ld = NULL;
@@ -877,11 +844,10 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
         /*
          * Try Start TLS first
          */
-        debug((char *) "%s| %s: DEBUG: Set SSL defaults\n", LogTime(), PROGRAM);
+        debug((char *)"%s| %s: DEBUG: Set SSL defaults\n", LogTime(), PROGRAM);
         rc = ldap_set_ssl_defaults(margs);
         if (rc != LDAP_SUCCESS) {
-            error((char *)
-                  "%s| %s: ERROR: Error while setting SSL default options for ldap server: %s\n",
+            error((char *)"%s| %s: ERROR: Error while setting SSL default options for ldap server: %s\n",
                   LogTime(), PROGRAM, ldap_err2string(rc));
             ldap_unbind_ext(ld, NULL, NULL);
             ld = NULL;
@@ -893,12 +859,11 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
          */
         rc = ldap_start_tls_s(ld, NULL, NULL);
         if (rc != LDAP_SUCCESS) {
-            debug((char *)
-                  "%s| %s: WARNING: Error while setting start_tls for ldap server: %s\n",
+            debug((char *)"%s| %s: WARNING: Error while setting start_tls for ldap server: %s\n",
                   LogTime(), PROGRAM, ldap_err2string(rc));
             ldap_unbind_ext(ld, NULL, NULL);
             ld = NULL;
-            url = (LDAPURLDesc *) xmalloc(sizeof(*url));
+            url = (LDAPURLDesc *)xmalloc(sizeof(*url));
             memset(url, 0, sizeof(*url));
 #if HAVE_LDAP_URL_LUD_SCHEME
             url->lud_scheme = xstrdup("ldaps");
@@ -915,7 +880,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
 #elif HAVE_LDAP_URL_PARSE
             rc = ldap_url_parse(ldapuri, &url);
             if (rc != LDAP_SUCCESS) {
-                error((char *) "%s| %s: ERROR: Error while parsing url: %s\n",
+                error((char *)"%s| %s: ERROR: Error while parsing url: %s\n",
                       LogTime(), PROGRAM, ldap_err2string(rc));
                 xfree(ldapuri);
                 ldap_free_urldesc(url);
@@ -928,8 +893,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
             rc = ldap_initialize(&ld, ldapuri);
             xfree(ldapuri);
             if (rc != LDAP_SUCCESS) {
-                error((char *)
-                      "%s| %s: ERROR: Error while initialising connection to ldap server: %s\n",
+                error((char *)"%s| %s: ERROR: Error while initialising connection to ldap server: %s\n",
                       LogTime(), PROGRAM, ldap_err2string(rc));
                 ldap_unbind_ext(ld, NULL, NULL);
                 ld = NULL;
@@ -937,8 +901,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
             }
             rc = ldap_set_defaults(ld);
             if (rc != LDAP_SUCCESS) {
-                error((char *)
-                      "%s| %s: ERROR: Error while setting default options for ldap server: %s\n",
+                error((char *)"%s| %s: ERROR: Error while setting default options for ldap server: %s\n",
                       LogTime(), PROGRAM, ldap_err2string(rc));
                 ldap_unbind_ext(ld, NULL, NULL);
                 ld = NULL;
@@ -948,8 +911,7 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
 #elif HAVE_LDAPSSL_CLIENT_INIT
         ld = ldapssl_init(host, port, 1);
         if (!ld) {
-            error((char *)
-                  "%s| %s: ERROR: Error while setting SSL for ldap server: %s\n",
+            error((char *)"%s| %s: ERROR: Error while setting SSL for ldap server: %s\n",
                   LogTime(), PROGRAM, ldapssl_err2string(rc));
             ldap_unbind_ext(ld, NULL, NULL);
             ld = NULL;
@@ -957,15 +919,14 @@ tool_ldap_open(struct main_args * margs, char *host, int port, char *ssl)
         }
         rc = ldap_set_defaults(ld);
         if (rc != LDAP_SUCCESS) {
-            error((char *)
-                  "%s| %s: ERROR: Error while setting default options for ldap server: %s\n",
+            error((char *)"%s| %s: ERROR: Error while setting default options for ldap server: %s\n",
                   LogTime(), PROGRAM, ldap_err2string(rc));
             ldap_unbind_ext(ld, NULL, NULL);
             ld = NULL;
             return NULL;
         }
 #else
-        error((char *) "%s| %s: ERROR: SSL not supported by ldap library\n",
+        error((char *)"%s| %s: ERROR: SSL not supported by ldap library\n",
               LogTime(), PROGRAM);
 #endif
     }
@@ -1003,27 +964,24 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
      * Fill Kerberos memory cache with credential from keytab for SASL/GSSAPI
      */
     if (domain) {
-        debug((char *) "%s| %s: DEBUG: Setup Kerberos credential cache\n",
+        debug((char *)"%s| %s: DEBUG: Setup Kerberos credential cache\n",
               LogTime(), PROGRAM);
 
 #if HAVE_KRB5
         if (margs->nokerberos) {
             kc = 1;
-            debug((char *)
-                  "%s| %s: DEBUG: Kerberos is disabled. Use username/password with ldap url instead\n",
+            debug((char *)"%s| %s: DEBUG: Kerberos is disabled. Use username/password with ldap url instead\n",
                   LogTime(), PROGRAM);
         } else {
             kc = krb5_create_cache(domain, margs->principal);
             if (kc) {
-                error((char *)
-                      "%s| %s: ERROR: Error during setup of Kerberos credential cache\n",
+                error((char *)"%s| %s: ERROR: Error during setup of Kerberos credential cache\n",
                       LogTime(), PROGRAM);
             }
         }
 #else
         kc = 1;
-        debug((char *)
-              "%s| %s: DEBUG: Kerberos is not supported. Use username/password with ldap url instead\n",
+        debug((char *)"%s| %s: DEBUG: Kerberos is not supported. Use username/password with ldap url instead\n",
               LogTime(), PROGRAM);
 #endif
     }
@@ -1039,21 +997,20 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
     /*
      * Initialise ldap
      */
-//    ldap_debug = 127 /* LDAP_DEBUG_TRACE */ ;
-//    ldap_debug = -1 /* LDAP_DEBUG_ANY */ ;
+    //    ldap_debug = 127 /* LDAP_DEBUG_TRACE */ ;
+    //    ldap_debug = -1 /* LDAP_DEBUG_ANY */ ;
     ldap_debug = 0;
-    (void) ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldap_debug);
+    (void)ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldap_debug);
 #endif
-    debug((char *) "%s| %s: DEBUG: Initialise ldap connection\n", LogTime(),
+    debug((char *)"%s| %s: DEBUG: Initialise ldap connection\n", LogTime(),
           PROGRAM);
 
     if (domain && !kc) {
         if (margs->ssl) {
-            debug((char *) "%s| %s: DEBUG: Enable SSL to ldap servers\n",
+            debug((char *)"%s| %s: DEBUG: Enable SSL to ldap servers\n",
                   LogTime(), PROGRAM);
         }
-        debug((char *)
-              "%s| %s: DEBUG: Canonicalise ldap server name for domain %s\n",
+        debug((char *)"%s| %s: DEBUG: Canonicalise ldap server name for domain %s\n",
               LogTime(), PROGRAM, domain);
         /*
          * Loop over list of ldap servers of users domain
@@ -1063,39 +1020,35 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
             int port = 389;
             if (hlist[i].port != -1)
                 port = hlist[i].port;
-            debug((char *)
-                  "%s| %s: DEBUG: Setting up connection to ldap server %s:%d\n",
+            debug((char *)"%s| %s: DEBUG: Setting up connection to ldap server %s:%d\n",
                   LogTime(), PROGRAM, hlist[i].host, port);
 
             ld = tool_ldap_open(margs, hlist[i].host, port, margs->ssl);
             if (!ld)
                 continue;
 
-            /*
+                /*
              * ldap bind with SASL/GSSAPI authentication (only possible if a domain was part of the username)
              */
 
 #if HAVE_SASL_H || HAVE_SASL_SASL_H || HAVE_SASL_DARWIN
-            debug((char *)
-                  "%s| %s: DEBUG: Bind to ldap server with SASL/GSSAPI\n",
+            debug((char *)"%s| %s: DEBUG: Bind to ldap server with SASL/GSSAPI\n",
                   LogTime(), PROGRAM);
 
             rc = tool_sasl_bind(ld, bindp, margs->ssl);
             if (rc != LDAP_SUCCESS) {
-                error((char *)
-                      "%s| %s: ERROR: Error while binding to ldap server with SASL/GSSAPI: %s\n",
+                error((char *)"%s| %s: ERROR: Error while binding to ldap server with SASL/GSSAPI: %s\n",
                       LogTime(), PROGRAM, ldap_err2string(rc));
                 ldap_unbind_ext(ld, NULL, NULL);
                 ld = NULL;
                 continue;
             }
-            lcreds = (struct ldap_creds *) xmalloc(sizeof(struct ldap_creds));
+            lcreds = (struct ldap_creds *)xmalloc(sizeof(struct ldap_creds));
             lcreds->dn = NULL;
             lcreds->pw = margs->ssl ? xstrdup(margs->ssl) : NULL;
-            ldap_set_rebind_proc(ld, ldap_sasl_rebind, (char *) lcreds);
+            ldap_set_rebind_proc(ld, ldap_sasl_rebind, (char *)lcreds);
             if (ld != NULL) {
-                debug((char *)
-                      "%s| %s: DEBUG: %s initialised %sconnection to ldap server %s:%d\n",
+                debug((char *)"%s| %s: DEBUG: %s initialised %sconnection to ldap server %s:%d\n",
                       LogTime(), PROGRAM, ld ? "Successfully" : "Failed to",
                       margs->ssl ? "SSL protected " : "", hlist[i].host, port);
                 break;
@@ -1103,15 +1056,14 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
 #else
             ldap_unbind_ext(ld, NULL, NULL);
             ld = NULL;
-            error((char *) "%s| %s: ERROR: SASL not supported on system\n",
+            error((char *)"%s| %s: ERROR: SASL not supported on system\n",
                   LogTime(), PROGRAM);
             continue;
 #endif
         }
         nhosts = free_hostname_list(&hlist, nhosts);
         if (ld == NULL) {
-            debug((char *)
-                  "%s| %s: DEBUG: Error during initialisation of ldap connection: %s\n",
+            debug((char *)"%s| %s: DEBUG: Error during initialisation of ldap connection: %s\n",
                   LogTime(), PROGRAM, strerror(errno));
         }
         bindp = convert_domain_to_bind_path(domain);
@@ -1128,10 +1080,10 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
         hostname = strstr(margs->lurl, "://") + 3;
         ssl = strstr(margs->lurl, "ldaps://");
         if (ssl) {
-            debug((char *) "%s| %s: DEBUG: Enable SSL to ldap servers\n",
+            debug((char *)"%s| %s: DEBUG: Enable SSL to ldap servers\n",
                   LogTime(), PROGRAM);
         }
-        debug((char *) "%s| %s: DEBUG: Canonicalise ldap server name %s\n",
+        debug((char *)"%s| %s: DEBUG: Canonicalise ldap server name %s\n",
               LogTime(), PROGRAM, hostname);
         /*
          * Loop over list of ldap servers
@@ -1158,29 +1110,25 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
              * ldap bind with username/password authentication
              */
 
-            debug((char *)
-                  "%s| %s: DEBUG: Bind to ldap server with Username/Password\n",
+            debug((char *)"%s| %s: DEBUG: Bind to ldap server with Username/Password\n",
                   LogTime(), PROGRAM);
             rc = ldap_sasl_bind_s(ld, margs->luser, LDAP_SASL_SIMPLE, &cred,
                                   NULL, NULL, NULL);
             if (rc != LDAP_SUCCESS) {
-                error((char *)
-                      "%s| %s: ERROR: Error while binding to ldap server with Username/Password: %s\n",
+                error((char *)"%s| %s: ERROR: Error while binding to ldap server with Username/Password: %s\n",
                       LogTime(), PROGRAM, ldap_err2string(rc));
                 ldap_unbind_ext(ld, NULL, NULL);
                 ld = NULL;
                 continue;
             }
-            lcreds = (struct ldap_creds *) xmalloc(sizeof(struct ldap_creds));
+            lcreds = (struct ldap_creds *)xmalloc(sizeof(struct ldap_creds));
             lcreds->dn = xstrdup(margs->luser);
             lcreds->pw = xstrdup(margs->lpass);
-            ldap_set_rebind_proc(ld, ldap_simple_rebind, (char *) lcreds);
-            debug((char *)
-                  "%s| %s: DEBUG: %s set up %sconnection to ldap server %s:%d\n",
+            ldap_set_rebind_proc(ld, ldap_simple_rebind, (char *)lcreds);
+            debug((char *)"%s| %s: DEBUG: %s set up %sconnection to ldap server %s:%d\n",
                   LogTime(), PROGRAM, ld ? "Successfully" : "Failed to",
                   ssl ? "SSL protected " : "", hlist[i].host, port);
             break;
-
         }
         nhosts = free_hostname_list(&hlist, nhosts);
         xfree(bindp);
@@ -1191,8 +1139,7 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
         }
     }
     if (ld == NULL) {
-        debug((char *)
-              "%s| %s: DEBUG: Error during initialisation of ldap connection: %s\n",
+        debug((char *)"%s| %s: DEBUG: Error during initialisation of ldap connection: %s\n",
               LogTime(), PROGRAM, strerror(errno));
         retval = 0;
         goto cleanup;
@@ -1206,8 +1153,7 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
     margs->AD = 0;
     rc = check_AD(margs, ld);
     if (rc != LDAP_SUCCESS) {
-        error((char *)
-              "%s| %s: ERROR: Error determining ldap server type: %s\n",
+        error((char *)"%s| %s: ERROR: Error determining ldap server type: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         ldap_unbind_ext(ld, NULL, NULL);
         ld = NULL;
@@ -1215,36 +1161,34 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
         goto cleanup;
     }
     if (margs->AD)
-        filter = (char *) FILTER_AD;
+        filter = (char *)FILTER_AD;
     else
-        filter = (char *) FILTER;
+        filter = (char *)FILTER;
 
     ldap_filter_esc = escape_filter(user);
 
     se_len = strlen(filter) + strlen(ldap_filter_esc) + 1;
-    search_exp = (char *) xmalloc(se_len);
+    search_exp = (char *)xmalloc(se_len);
     snprintf(search_exp, se_len, filter, ldap_filter_esc);
 
     xfree(ldap_filter_esc);
 
-    debug((char *)
-          "%s| %s: DEBUG: Search ldap server with bind path %s and filter : %s\n",
+    debug((char *)"%s| %s: DEBUG: Search ldap server with bind path %s and filter : %s\n",
           LogTime(), PROGRAM, bindp, search_exp);
     rc = ldap_search_ext_s(ld, bindp, LDAP_SCOPE_SUBTREE, search_exp, NULL, 0,
                            NULL, NULL, &searchtime, 0, &res);
     xfree(search_exp);
 
     if (rc != LDAP_SUCCESS) {
-        error((char *) "%s| %s: ERROR: Error searching ldap server: %s\n",
+        error((char *)"%s| %s: ERROR: Error searching ldap server: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
         ldap_unbind_ext(ld, NULL, NULL);
         ld = NULL;
         retval = 0;
         goto cleanup;
     }
-    debug((char *) "%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(), PROGRAM,
-          ldap_count_entries(ld, res), ldap_count_entries(ld, res) > 1
-          || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
+    debug((char *)"%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(), PROGRAM,
+          ldap_count_entries(ld, res), ldap_count_entries(ld, res) > 1 || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
 
     if (ldap_count_entries(ld, res) != 0) {
 
@@ -1271,23 +1215,26 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                 }
             }
             if (debug_enabled) {
-                debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                      " \"%s\" in hex UTF-8 is ", LogTime(), PROGRAM, k + 1, av);
+                debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                              " \"%s\" in hex UTF-8 is ",
+                      LogTime(), PROGRAM, k + 1, av);
                 for (unsigned int n = 0; av[n] != '\0'; ++n)
-                    fprintf(stderr, "%02x", (unsigned char) av[n]);
+                    fprintf(stderr, "%02x", (unsigned char)av[n]);
                 fprintf(stderr, "\n");
             }
             if (!strcasecmp(group, av)) {
                 retval = 1;
                 if (debug_enabled)
-                    debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                          " \"%s\" matches group name \"%s\"\n", LogTime(),
+                    debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                                  " \"%s\" matches group name \"%s\"\n",
+                          LogTime(),
                           PROGRAM, k + 1, av, group);
                 else
                     break;
             } else
-                debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                      " \"%s\" does not match group name \"%s\"\n", LogTime(),
+                debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                              " \"%s\" does not match group name \"%s\"\n",
+                      LogTime(),
                       PROGRAM, k + 1, av, group);
         }
         /*
@@ -1295,8 +1242,7 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
          */
         if (!retval && margs->AD) {
             if (debug_enabled && max_attr > 0) {
-                debug((char *)
-                      "%s| %s: DEBUG: Perform recursive group search\n",
+                debug((char *)"%s| %s: DEBUG: Perform recursive group search\n",
                       LogTime(), PROGRAM);
             }
             for (size_t j = 0; j < max_attr; ++j) {
@@ -1313,8 +1259,8 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                         }
                     }
                     if (debug_enabled)
-                        debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                              " group \"%s\" is (in)direct member of group \"%s\"\n",
+                        debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                                      " group \"%s\" is (in)direct member of group \"%s\"\n",
                               LogTime(), PROGRAM, j + 1, av, group);
                     else
                         break;
@@ -1346,38 +1292,34 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
         /*
          * Check for primary Group membership
          */
-        debug((char *)
-              "%s| %s: DEBUG: Search for primary group membership: \"%s\"\n",
+        debug((char *)"%s| %s: DEBUG: Search for primary group membership: \"%s\"\n",
               LogTime(), PROGRAM, group);
         if (margs->AD)
-            filter = (char *) FILTER_AD;
+            filter = (char *)FILTER_AD;
         else
-            filter = (char *) FILTER_UID;
+            filter = (char *)FILTER_UID;
 
         ldap_filter_esc = escape_filter(user);
 
         se_len = strlen(filter) + strlen(ldap_filter_esc) + 1;
-        search_exp = (char *) xmalloc(se_len);
+        search_exp = (char *)xmalloc(se_len);
         snprintf(search_exp, se_len, filter, ldap_filter_esc);
 
         xfree(ldap_filter_esc);
 
-        debug((char *)
-              "%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
+        debug((char *)"%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
               LogTime(), PROGRAM, bindp, search_exp);
         rc = ldap_search_ext_s(ld, bindp, LDAP_SCOPE_SUBTREE, search_exp, NULL,
                                0, NULL, NULL, &searchtime, 0, &res);
         xfree(search_exp);
 
-        debug((char *) "%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(),
-              PROGRAM, ldap_count_entries(ld, res), ldap_count_entries(ld,
-                      res) > 1 || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
+        debug((char *)"%s| %s: DEBUG: Found %d ldap entr%s\n", LogTime(),
+              PROGRAM, ldap_count_entries(ld, res), ldap_count_entries(ld, res) > 1 || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
 
         max_attr = 0;
         if (!rc) {
             if (margs->AD)
-                max_attr =
-                    get_attributes(ld, res, ATTRIBUTE_GID_AD, &attr_value);
+                max_attr = get_attributes(ld, res, ATTRIBUTE_GID_AD, &attr_value);
             else
                 max_attr = get_attributes(ld, res, ATTRIBUTE_GID, &attr_value);
         }
@@ -1394,17 +1336,15 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
 
                 /* Get objectsid and search for group
                  * with objectsid = domain(objectsid) + primarygroupid  */
-                debug((char *) "%s| %s: DEBUG: Got primaryGroupID %u\n",
+                debug((char *)"%s| %s: DEBUG: Got primaryGroupID %u\n",
                       LogTime(), PROGRAM, gid);
-                max_attr_3 =
-                    get_bin_attributes(ld, res, ATTRIBUTE_SID, &attr_value_3,
-                                       &attr_len_3);
+                max_attr_3 = get_bin_attributes(ld, res, ATTRIBUTE_SID, &attr_value_3,
+                                                &attr_len_3);
                 ldap_msgfree(res);
                 if (max_attr_3 == 1) {
                     int len = attr_len_3[0];
                     if (len < 4) {
-                        debug((char *)
-                              "%s| %s: ERROR: Length %d is too short for objectSID\n",
+                        debug((char *)"%s| %s: ERROR: Length %d is too short for objectSID\n",
                               LogTime(), PROGRAM, len);
                         rc = 1;
                     } else {
@@ -1417,10 +1357,8 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
 #define FILTER_SID_1 "(objectSID="
 #define FILTER_SID_2 ")"
 
-                        se_len =
-                            strlen(FILTER_SID_1) + len * 3 +
-                            strlen(FILTER_SID_2) + 1;
-                        search_exp = (char *) xmalloc(se_len);
+                        se_len = strlen(FILTER_SID_1) + len * 3 + strlen(FILTER_SID_2) + 1;
+                        search_exp = (char *)xmalloc(se_len);
                         snprintf(search_exp, se_len, "%s", FILTER_SID_1);
 
                         for (int j = 0; j < len; j++) {
@@ -1433,19 +1371,19 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                         snprintf(search_exp, se_len, "%s%s", se, FILTER_SID_2);
                         xfree(se);
 
-                        debug((char *)
-                              "%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
+                        debug((char *)"%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
                               LogTime(), PROGRAM, bindp, search_exp);
                         rc = ldap_search_ext_s(ld, bindp, LDAP_SCOPE_SUBTREE,
                                                search_exp, NULL, 0, NULL, NULL, &searchtime, 0,
                                                &res);
                         xfree(search_exp);
 
-                        debug((char *) "%s| %s: DEBUG: Found %d ldap entr%s\n",
+                        debug((char *)"%s| %s: DEBUG: Found %d ldap entr%s\n",
                               LogTime(), PROGRAM, ldap_count_entries(ld, res),
                               ldap_count_entries(ld, res) > 1
-                              || ldap_count_entries(ld, res) == 0 ? "ies" : "y");
-
+                                      || ldap_count_entries(ld, res) == 0
+                                  ? "ies"
+                                  : "y");
                     }
                 } else {
                     rc = 1;
@@ -1462,18 +1400,17 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                 }
             } else {
                 ldap_msgfree(res);
-                filter = (char *) FILTER_GID;
+                filter = (char *)FILTER_GID;
 
                 ldap_filter_esc = escape_filter(attr_value[0]);
 
                 se_len = strlen(filter) + strlen(ldap_filter_esc) + 1;
-                search_exp = (char *) xmalloc(se_len);
+                search_exp = (char *)xmalloc(se_len);
                 snprintf(search_exp, se_len, filter, ldap_filter_esc);
 
                 xfree(ldap_filter_esc);
 
-                debug((char *)
-                      "%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
+                debug((char *)"%s| %s: DEBUG: Search ldap server with bind path %s and filter: %s\n",
                       LogTime(), PROGRAM, bindp, search_exp);
                 rc = ldap_search_ext_s(ld, bindp, LDAP_SCOPE_SUBTREE,
                                        search_exp, NULL, 0, NULL, NULL, &searchtime, 0, &res);
@@ -1482,11 +1419,9 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
 
             if (!rc) {
                 if (margs->AD)
-                    max_attr_2 =
-                        get_attributes(ld, res, ATTRIBUTE_DN, &attr_value_2);
+                    max_attr_2 = get_attributes(ld, res, ATTRIBUTE_DN, &attr_value_2);
                 else
-                    max_attr_2 =
-                        get_attributes(ld, res, ATTRIBUTE, &attr_value_2);
+                    max_attr_2 = get_attributes(ld, res, ATTRIBUTE, &attr_value_2);
                 ldap_msgfree(res);
             } else {
                 ldap_msgfree(res);
@@ -1507,22 +1442,18 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                 }
                 if (!strcasecmp(group, av)) {
                     retval = 1;
-                    debug((char *)
-                          "%s| %s: DEBUG: \"%s\" matches group name \"%s\"\n",
+                    debug((char *)"%s| %s: DEBUG: \"%s\" matches group name \"%s\"\n",
                           LogTime(), PROGRAM, av, group);
                 } else
-                    debug((char *)
-                          "%s| %s: DEBUG: \"%s\" does not match group name \"%s\"\n",
+                    debug((char *)"%s| %s: DEBUG: \"%s\" does not match group name \"%s\"\n",
                           LogTime(), PROGRAM, av, group);
-
             }
             /*
              * Do recursive group search for AD only since posixgroups can not contain other groups
              */
             if (!retval && margs->AD) {
                 if (debug_enabled && max_attr_2 > 0) {
-                    debug((char *)
-                          "%s| %s: DEBUG: Perform recursive group search\n",
+                    debug((char *)"%s| %s: DEBUG: Perform recursive group search\n",
                           LogTime(), PROGRAM);
                 }
                 for (size_t j = 0; j < max_attr_2; ++j) {
@@ -1539,8 +1470,8 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                             }
                         }
                         if (debug_enabled) {
-                            debug((char *) "%s| %s: DEBUG: Entry %" PRIuSIZE
-                                  " group \"%s\" is (in)direct member of group \"%s\"\n",
+                            debug((char *)"%s| %s: DEBUG: Entry %" PRIuSIZE
+                                          " group \"%s\" is (in)direct member of group \"%s\"\n",
                                   LogTime(), PROGRAM, j + 1, av, group);
                         } else {
                             break;
@@ -1559,14 +1490,13 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
                 safe_free(attr_value_2);
             }
 
-            debug((char *) "%s| %s: DEBUG: Users primary group %s %s\n",
+            debug((char *)"%s| %s: DEBUG: Users primary group %s %s\n",
                   LogTime(), PROGRAM, retval ? "matches" : "does not match",
                   group);
 
         } else {
             ldap_msgfree(res);
-            debug((char *)
-                  "%s| %s: DEBUG: Did not find ldap entry for group %s\n",
+            debug((char *)"%s| %s: DEBUG: Did not find ldap entry for group %s\n",
                   LogTime(), PROGRAM, group);
         }
         /*
@@ -1582,10 +1512,10 @@ get_memberof(struct main_args *margs, char *user, char *domain, char *group)
     rc = ldap_unbind_ext(ld, NULL, NULL);
     ld = NULL;
     if (rc != LDAP_SUCCESS) {
-        error((char *) "%s| %s: ERROR: Error unbind ldap server: %s\n",
+        error((char *)"%s| %s: ERROR: Error unbind ldap server: %s\n",
               LogTime(), PROGRAM, ldap_err2string(rc));
     }
-    debug((char *) "%s| %s: DEBUG: Unbind ldap server\n", LogTime(), PROGRAM);
+    debug((char *)"%s| %s: DEBUG: Unbind ldap server\n", LogTime(), PROGRAM);
 cleanup:
     if (lcreds) {
         xfree(lcreds->dn);
@@ -1596,4 +1526,3 @@ cleanup:
     return (retval);
 }
 #endif
-

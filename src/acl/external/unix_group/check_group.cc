@@ -171,7 +171,7 @@ main(int argc, char *argv[])
             check_pw = 1;
             break;
         case 'g':
-            grents = (char**)realloc(grents, sizeof(*grents) * (ngroups+1));
+            grents = (char **)realloc(grents, sizeof(*grents) * (ngroups + 1));
             grents[ngroups] = optarg;
             ++ngroups;
             break;
@@ -181,7 +181,7 @@ main(int argc, char *argv[])
             } else {
                 fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
             }
-        // fall through to display help texts.
+            // fall through to display help texts.
 
         default:
             usage(argv[0]);
@@ -215,12 +215,15 @@ main(int argc, char *argv[])
             rfc1738_unescape(user);
             if (strip_dm) {
                 suser = strchr(user, '\\');
-                if (!suser) suser = strchr(user, '/');
-                if (suser && suser[1]) user = suser + 1;
+                if (!suser)
+                    suser = strchr(user, '/');
+                if (suser && suser[1])
+                    user = suser + 1;
             }
             if (strip_rm) {
                 suser = strchr(user, '@');
-                if (suser) *suser = '\0';
+                if (suser)
+                    *suser = '\0';
             }
             /* check groups supplied by Squid */
             while ((p = strtok(NULL, " ")) != NULL) {
@@ -247,4 +250,3 @@ main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
-

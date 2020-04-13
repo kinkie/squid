@@ -12,12 +12,12 @@
 #define COMPOSITEPOOLNODE_H
 
 #if USE_DELAY_POOLS
-#include "auth/UserRequest.h"
 #include "CommRead.h"
 #include "DelayIdComposite.h"
 #include "DelayPools.h"
-#include "ip/Address.h"
 #include "SquidString.h"
+#include "auth/UserRequest.h"
+#include "ip/Address.h"
 
 class StoreEntry;
 
@@ -30,9 +30,9 @@ public:
     typedef RefCount<CompositePoolNode> Pointer;
     virtual ~CompositePoolNode() {}
 
-    virtual void stats(StoreEntry * sentry) =0;
-    virtual void dump(StoreEntry *entry) const =0;
-    virtual void update(int incr) =0;
+    virtual void stats(StoreEntry *sentry) = 0;
+    virtual void dump(StoreEntry *entry) const = 0;
+    virtual void update(int incr) = 0;
     virtual void parse() = 0;
 
     class CompositeSelectionDetails;
@@ -60,4 +60,3 @@ protected:
 
 #endif /* USE_DELAY_POOLS */
 #endif /* COMPOSITEPOOLNODE_H */
-

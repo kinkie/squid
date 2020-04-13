@@ -15,8 +15,7 @@ class ESIExpression
 {
 
 public:
-    static int Evaluate (char const *);
+    static int Evaluate(char const *);
 };
 
 #endif /* SQUID_ESIEXPRESSION_H */
-

@@ -9,15 +9,14 @@
 #ifndef SQUID_SRC_FORMAT_CONFIG_H
 #define SQUID_SRC_FORMAT_CONFIG_H
 
-#include "format/Format.h"
 #include "SquidString.h"
+#include "format/Format.h"
 
 #include <list>
 
 class StoreEntry;
 
-namespace Format
-{
+namespace Format {
 
 class TokenTableEntry;
 
@@ -27,7 +26,8 @@ class TokenTableEntry;
 class TokenNamespace
 {
 public:
-    TokenNamespace(const SBuf &nsName, TokenTableEntry const *tSet) : prefix(nsName), tokenSet(tSet) {}
+    TokenNamespace(const SBuf &nsName, TokenTableEntry const *tSet) :
+        prefix(nsName), tokenSet(tSet) {}
 
     /// prefix namespace name (excluding '::')
     SBuf prefix;
@@ -46,7 +46,8 @@ public:
     void parseFormats();
 
     /// Dump/display the formats currently known to the provided StoreEntry object
-    void dumpFormats(StoreEntry *e, const char *name) {
+    void dumpFormats(StoreEntry *e, const char *name)
+    {
         formats->dump(e, name);
     }
 
@@ -74,12 +75,15 @@ public:
 
 extern FmtConfig TheConfig;
 
-} // namespace Format
+}  // namespace Format
 
 // Legacy parsing wrappers
-#define parse_format(X)  (X)->parseFormats()
-#define free_format(X)   do{ delete (*(X)).formats; (*(X)).formats=NULL; }while(false)
-#define dump_format(E,N,D) (D).dumpFormats((E),(N))
+#define parse_format(X) (X)->parseFormats()
+#define free_format(X)         \
+    do {                       \
+        delete (*(X)).formats; \
+        (*(X)).formats = NULL; \
+    } while (false)
+#define dump_format(E, N, D) (D).dumpFormats((E), (N))
 
 #endif
-

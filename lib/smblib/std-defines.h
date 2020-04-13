@@ -36,17 +36,16 @@
 
 #define BOOL int
 
-#include <netdb.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <signal.h>
 #include <errno.h>
-#include <unistd.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <signal.h>
 #include <strings.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define TRUE 1
 #define FALSE 0
 
 #endif /* _SMBLIB_STD_DEFINES_H */
-

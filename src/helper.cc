@@ -9,6 +9,13 @@
 /* DEBUG: section 84    Helper process maintenance */
 
 #include "squid.h"
+#include "helper.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "SquidIpc.h"
+#include "SquidMath.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "base/AsyncCbdataCalls.h"
 #include "base/Packable.h"
 #include "comm.h"
@@ -18,15 +25,8 @@
 #include "fd.h"
 #include "fde.h"
 #include "format/Quoting.h"
-#include "helper.h"
 #include "helper/Reply.h"
 #include "helper/Request.h"
-#include "MemBuf.h"
-#include "SquidConfig.h"
-#include "SquidIpc.h"
-#include "SquidMath.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "wordlist.h"
 
 // helper_stateful_server::data uses explicit alloc()/freeOne() */
@@ -38,19 +38,19 @@
 #define MAX_RETRIES 2
 
 /// Helpers input buffer size.
-const size_t ReadBufSize(32*1024);
+const size_t ReadBufSize(32 * 1024);
 
 static IOCB helperHandleRead;
 static IOCB helperStatefulHandleRead;
-static void Enqueue(helper * hlp, Helper::Xaction *);
-static helper_server *GetFirstAvailable(const helper * hlp);
-static helper_stateful_server *StatefulGetFirstAvailable(statefulhelper * hlp);
-static void helperDispatch(helper_server * srv, Helper::Xaction * r);
-static void helperStatefulDispatch(helper_stateful_server * srv, Helper::Xaction * r);
-static void helperKickQueue(helper * hlp);
-static void helperStatefulKickQueue(statefulhelper * hlp);
-static void helperStatefulServerDone(helper_stateful_server * srv);
-static void StatefulEnqueue(statefulhelper * hlp, Helper::Xaction * r);
+static void Enqueue(helper *hlp, Helper::Xaction *);
+static helper_server *GetFirstAvailable(const helper *hlp);
+static helper_stateful_server *StatefulGetFirstAvailable(statefulhelper *hlp);
+static void helperDispatch(helper_server *srv, Helper::Xaction *r);
+static void helperStatefulDispatch(helper_stateful_server *srv, Helper::Xaction *r);
+static void helperKickQueue(helper *hlp);
+static void helperStatefulKickQueue(statefulhelper *hlp);
+static void helperStatefulServerDone(helper_stateful_server *srv);
+static void StatefulEnqueue(statefulhelper *hlp, Helper::Xaction *r);
 
 CBDATA_CLASS_INIT(helper);
 CBDATA_CLASS_INIT(helper_server);
@@ -62,10 +62,10 @@ InstanceIdDefinitions(HelperServerBase, "Hlpr");
 void
 HelperServerBase::initStats()
 {
-    stats.uses=0;
-    stats.replies=0;
-    stats.pending=0;
-    stats.releases=0;
+    stats.uses = 0;
+    stats.replies = 0;
+    stats.pending = 0;
+    stats.releases = 0;
     stats.timedout = 0;
 }
 
@@ -87,8 +87,7 @@ HelperServerBase::closePipesSafely(const char *id_name)
     if (hIpc) {
         if (WaitForSingleObject(hIpc, 5000) != WAIT_OBJECT_0) {
             getCurrentTime();
-            debugs(84, DBG_IMPORTANT, "WARNING: " << id_name <<
-                   " #" << index << " (PID " << (long int)pid << ") didn't exit in 5 seconds");
+            debugs(84, DBG_IMPORTANT, "WARNING: " << id_name << " #" << index << " (PID " << (long int)pid << ") didn't exit in 5 seconds");
         }
         CloseHandle(hIpc);
     }
@@ -111,8 +110,7 @@ HelperServerBase::closeWritePipeSafely(const char *id_name)
     if (hIpc) {
         if (WaitForSingleObject(hIpc, 5000) != WAIT_OBJECT_0) {
             getCurrentTime();
-            debugs(84, DBG_IMPORTANT, "WARNING: " << id_name <<
-                   " #" << index << " (PID " << (long int)pid << ") didn't exit in 5 seconds");
+            debugs(84, DBG_IMPORTANT, "WARNING: " << id_name << " #" << index << " (PID " << (long int)pid << ") didn't exit in 5 seconds");
         }
         CloseHandle(hIpc);
     }
@@ -161,7 +159,7 @@ helper_server::~helper_server()
     dlinkDelete(&link, &parent->servers);
 
     assert(parent->childs.n_running > 0);
-    -- parent->childs.n_running;
+    --parent->childs.n_running;
 
     assert(requests.empty());
     cbdataReferenceDone(parent);
@@ -185,7 +183,7 @@ helper_stateful_server::~helper_stateful_server()
     dlinkDelete(&link, &parent->servers);
 
     assert(parent->childs.n_running > 0);
-    -- parent->childs.n_running;
+    --parent->childs.n_running;
 
     assert(requests.empty());
 
@@ -193,13 +191,13 @@ helper_stateful_server::~helper_stateful_server()
 }
 
 void
-helperOpenServers(helper * hlp)
+helperOpenServers(helper *hlp)
 {
     char *s;
     char *progname;
     char *shortname;
     char *procname;
-    const char *args[HELPER_MAX_ARGS+1]; // save space for a NULL terminator
+    const char *args[HELPER_MAX_ARGS + 1];  // save space for a NULL terminator
     char fd_note_buf[FD_DESC_SZ];
     helper_server *srv;
     int nargs = 0;
@@ -207,7 +205,7 @@ helperOpenServers(helper * hlp)
     pid_t pid;
     int rfd;
     int wfd;
-    void * hIpc;
+    void *hIpc;
     wordlist *w;
 
     if (hlp->cmdline == NULL)
@@ -263,8 +261,8 @@ helperOpenServers(helper * hlp)
             continue;
         }
 
-        ++ hlp->childs.n_running;
-        ++ hlp->childs.n_active;
+        ++hlp->childs.n_running;
+        ++hlp->childs.n_active;
         srv = new helper_server;
         srv->hIpc = hIpc;
         srv->pid = pid;
@@ -298,16 +296,16 @@ helperOpenServers(helper * hlp)
         if (wfd != rfd)
             commSetNonBlocking(wfd);
 
-        AsyncCall::Pointer closeCall = asyncCall(5,4, "helper_server::HelperServerClosed", cbdataDialer(helper_server::HelperServerClosed, srv));
+        AsyncCall::Pointer closeCall = asyncCall(5, 4, "helper_server::HelperServerClosed", cbdataDialer(helper_server::HelperServerClosed, srv));
         comm_add_close_handler(rfd, closeCall);
 
         if (hlp->timeout && hlp->childs.concurrency) {
             AsyncCall::Pointer timeoutCall = commCbCall(84, 4, "helper_server::requestTimeout",
-                                             CommTimeoutCbPtrFun(helper_server::requestTimeout, srv));
+                                                        CommTimeoutCbPtrFun(helper_server::requestTimeout, srv));
             commSetConnTimeout(srv->readPipe, hlp->timeout, timeoutCall);
         }
 
-        AsyncCall::Pointer call = commCbCall(5,4, "helperHandleRead",
+        AsyncCall::Pointer call = commCbCall(5, 4, "helperHandleRead",
                                              CommIoCbPtrFun(helperHandleRead, srv));
         comm_read(srv->readPipe, srv->rbuf, srv->rbuf_sz - 1, call);
     }
@@ -324,10 +322,10 @@ helperOpenServers(helper * hlp)
  * helperStatefulOpenServers: create the stateful child helper processes
  */
 void
-helperStatefulOpenServers(statefulhelper * hlp)
+helperStatefulOpenServers(statefulhelper *hlp)
 {
     char *shortname;
-    const char *args[HELPER_MAX_ARGS+1]; // save space for a NULL terminator
+    const char *args[HELPER_MAX_ARGS + 1];  // save space for a NULL terminator
     char fd_note_buf[FD_DESC_SZ];
     int nargs = 0;
 
@@ -375,7 +373,7 @@ helperStatefulOpenServers(statefulhelper * hlp)
         getCurrentTime();
         int rfd = -1;
         int wfd = -1;
-        void * hIpc;
+        void *hIpc;
         pid_t pid = ipcCreate(hlp->ipc_type,
                               progname,
                               args,
@@ -390,8 +388,8 @@ helperStatefulOpenServers(statefulhelper * hlp)
             continue;
         }
 
-        ++ hlp->childs.n_running;
-        ++ hlp->childs.n_active;
+        ++hlp->childs.n_running;
+        ++hlp->childs.n_active;
         helper_stateful_server *srv = new helper_stateful_server;
         srv->hIpc = hIpc;
         srv->pid = pid;
@@ -423,10 +421,10 @@ helperStatefulOpenServers(statefulhelper * hlp)
         if (wfd != rfd)
             commSetNonBlocking(wfd);
 
-        AsyncCall::Pointer closeCall = asyncCall(5,4, "helper_stateful_server::HelperServerClosed", cbdataDialer(helper_stateful_server::HelperServerClosed, srv));
+        AsyncCall::Pointer closeCall = asyncCall(5, 4, "helper_stateful_server::HelperServerClosed", cbdataDialer(helper_stateful_server::HelperServerClosed, srv));
         comm_add_close_handler(rfd, closeCall);
 
-        AsyncCall::Pointer call = commCbCall(5,4, "helperStatefulHandleRead",
+        AsyncCall::Pointer call = commCbCall(5, 4, "helperStatefulHandleRead",
                                              CommIoCbPtrFun(helperStatefulHandleRead, srv));
         comm_read(srv->readPipe, srv->rbuf, srv->rbuf_sz - 1, call);
     }
@@ -465,7 +463,7 @@ SubmissionFailure(helper *hlp, HLPCB *callback, void *data)
 }
 
 void
-helperSubmit(helper * hlp, const char *buf, HLPCB * callback, void *data)
+helperSubmit(helper *hlp, const char *buf, HLPCB *callback, void *data)
 {
     if (!hlp || !hlp->trySubmit(buf, callback, data))
         SubmissionFailure(hlp, callback, data);
@@ -473,12 +471,14 @@ helperSubmit(helper * hlp, const char *buf, HLPCB * callback, void *data)
 
 /// whether queuing an additional request would overload the helper
 bool
-helper::queueFull() const {
+helper::queueFull() const
+{
     return stats.queue_size >= static_cast<int>(childs.queue_size);
 }
 
 bool
-helper::overloaded() const {
+helper::overloaded() const
+{
     return stats.queue_size > static_cast<int>(childs.queue_size);
 }
 
@@ -497,9 +497,7 @@ helper::syncQueueStats()
         if (overloadStart) {
             debugs(84, 5, id_name << " is no longer overloaded");
             if (droppedRequests) {
-                debugs(84, DBG_IMPORTANT, "helper " << id_name <<
-                       " is no longer overloaded after dropping " << droppedRequests <<
-                       " requests in " << (squid_curtime - overloadStart) << " seconds");
+                debugs(84, DBG_IMPORTANT, "helper " << id_name << " is no longer overloaded after dropping " << droppedRequests << " requests in " << (squid_curtime - overloadStart) << " seconds");
                 droppedRequests = 0;
             }
             overloadStart = 0;
@@ -523,14 +521,13 @@ helper::prepSubmit()
         return true;
 
     if (squid_curtime - overloadStart <= 180)
-        return true; // also OK: overload has not persisted long enough to panic
+        return true;  // also OK: overload has not persisted long enough to panic
 
     if (childs.onPersistentOverload == Helper::ChildConfig::actDie)
         fatalf("Too many queued %s requests; see on-persistent-overload.", id_name);
 
     if (!droppedRequests) {
-        debugs(84, DBG_IMPORTANT, "WARNING: dropping requests to overloaded " <<
-               id_name << " helper configured with on-persistent-overload=err");
+        debugs(84, DBG_IMPORTANT, "WARNING: dropping requests to overloaded " << id_name << " helper configured with on-persistent-overload=err");
     }
     ++droppedRequests;
     debugs(84, 3, "failed to send " << droppedRequests << " helper requests to " << id_name);
@@ -538,18 +535,18 @@ helper::prepSubmit()
 }
 
 bool
-helper::trySubmit(const char *buf, HLPCB * callback, void *data)
+helper::trySubmit(const char *buf, HLPCB *callback, void *data)
 {
     if (!prepSubmit())
-        return false; // request was dropped
+        return false;  // request was dropped
 
-    submit(buf, callback, data); // will send or queue
-    return true; // request submitted or queued
+    submit(buf, callback, data);  // will send or queue
+    return true;                  // request submitted or queued
 }
 
 /// dispatches or enqueues a helper requests; does not enforce queue limits
 void
-helper::submit(const char *buf, HLPCB * callback, void *data)
+helper::submit(const char *buf, HLPCB *callback, void *data)
 {
     Helper::Xaction *r = new Helper::Xaction(callback, data, buf);
     submitRequest(r);
@@ -559,7 +556,7 @@ helper::submit(const char *buf, HLPCB * callback, void *data)
 /// Submit request or callback the caller with a Helper::Error error.
 /// If the reservation is not set then reserves a new helper.
 void
-helperStatefulSubmit(statefulhelper * hlp, const char *buf, HLPCB * callback, void *data, const Helper::ReservationId & reservation)
+helperStatefulSubmit(statefulhelper *hlp, const char *buf, HLPCB *callback, void *data, const Helper::ReservationId &reservation)
 {
     if (!hlp || !hlp->trySubmit(buf, callback, data, reservation))
         SubmissionFailure(hlp, callback, data);
@@ -567,17 +564,17 @@ helperStatefulSubmit(statefulhelper * hlp, const char *buf, HLPCB * callback, vo
 
 /// If possible, submit request. Otherwise, either kill Squid or return false.
 bool
-statefulhelper::trySubmit(const char *buf, HLPCB * callback, void *data, const Helper::ReservationId & reservation)
+statefulhelper::trySubmit(const char *buf, HLPCB *callback, void *data, const Helper::ReservationId &reservation)
 {
     if (!prepSubmit())
-        return false; // request was dropped
+        return false;  // request was dropped
 
-    submit(buf, callback, data, reservation); // will send or queue
-    return true; // request submitted or queued
+    submit(buf, callback, data, reservation);  // will send or queue
+    return true;                               // request submitted or queued
 }
 
 void
-statefulhelper::reserveServer(helper_stateful_server * srv)
+statefulhelper::reserveServer(helper_stateful_server *srv)
 {
     // clear any old reservation
     if (srv->reserved()) {
@@ -601,12 +598,12 @@ statefulhelper::cancelReservation(const Helper::ReservationId reservation)
     srv->clearReservation();
 
     // schedule a queue kick
-    AsyncCall::Pointer call = asyncCall(5,4, "helperStatefulServerDone", cbdataDialer(helperStatefulServerDone, srv));
+    AsyncCall::Pointer call = asyncCall(5, 4, "helperStatefulServerDone", cbdataDialer(helperStatefulServerDone, srv));
     ScheduleCallHere(call);
 }
 
 helper_stateful_server *
-statefulhelper::findServer(const Helper::ReservationId & reservation)
+statefulhelper::findServer(const Helper::ReservationId &reservation)
 {
     const auto it = reservations.find(reservation);
     if (it == reservations.end())
@@ -637,7 +634,7 @@ helper_stateful_server::clearReservation()
 }
 
 void
-statefulhelper::submit(const char *buf, HLPCB * callback, void *data, const Helper::ReservationId & reservation)
+statefulhelper::submit(const char *buf, HLPCB *callback, void *data, const Helper::ReservationId &reservation)
 {
     Helper::Xaction *r = new Helper::Xaction(callback, data, buf);
 
@@ -662,8 +659,7 @@ statefulhelper::submit(const char *buf, HLPCB * callback, void *data, const Help
             StatefulEnqueue(this, r);
     }
 
-    debugs(84, DBG_DATA, "placeholder: '" << r->request.placeholder <<
-           "', " << Raw("buf", buf, (!buf?0:strlen(buf))));
+    debugs(84, DBG_DATA, "placeholder: '" << r->request.placeholder << "', " << Raw("buf", buf, (!buf ? 0 : strlen(buf))));
 
     syncQueueStats();
 }
@@ -681,7 +677,7 @@ helper::packStatsInto(Packable *p, const char *label) const
     p->appendf("  requests timedout: %d\n", stats.timedout);
     p->appendf("  queue length: %d\n", stats.queue_size);
     p->appendf("  avg service time: %d msec\n", stats.avg_svc_time);
-    p->append("\n",1);
+    p->append("\n", 1);
     p->appendf("%7s\t%7s\t%7s\t%11s\t%11s\t%11s\t%6s\t%7s\t%7s\t%7s\n",
                "ID #",
                "FD",
@@ -713,7 +709,7 @@ helper::packStatsInto(Packable *p, const char *label) const
                    srv->flags.shutdown ? 'S' : ' ',
                    xaction && xaction->request.placeholder ? 'P' : ' ',
                    tt < 0.0 ? 0.0 : tt,
-                   (int) srv->roffset,
+                   (int)srv->roffset,
                    xaction ? Format::QuoteMimeBlob(xaction->request.buf) : "(none)");
     }
 
@@ -723,16 +719,18 @@ helper::packStatsInto(Packable *p, const char *label) const
               "   C\tCLOSING\n"
               "   R\tRESERVED\n"
               "   S\tSHUTDOWN PENDING\n"
-              "   P\tPLACEHOLDER\n", 101);
+              "   P\tPLACEHOLDER\n",
+              101);
 }
 
 bool
-helper::willOverload() const {
+helper::willOverload() const
+{
     return queueFull() && !(childs.needNew() || GetFirstAvailable(this));
 }
 
 void
-helperShutdown(helper * hlp)
+helperShutdown(helper *hlp)
 {
     dlink_node *link = hlp->servers.head;
 
@@ -747,7 +745,7 @@ helperShutdown(helper * hlp)
         }
 
         assert(hlp->childs.n_active > 0);
-        -- hlp->childs.n_active;
+        --hlp->childs.n_active;
         srv->flags.shutdown = true; /* request it to shut itself down */
 
         if (srv->flags.closing) {
@@ -769,7 +767,7 @@ helperShutdown(helper * hlp)
 }
 
 void
-helperStatefulShutdown(statefulhelper * hlp)
+helperStatefulShutdown(statefulhelper *hlp)
 {
     dlink_node *link = hlp->servers.head;
     helper_stateful_server *srv;
@@ -784,7 +782,7 @@ helperStatefulShutdown(statefulhelper * hlp)
         }
 
         assert(hlp->childs.n_active > 0);
-        -- hlp->childs.n_active;
+        --hlp->childs.n_active;
         srv->flags.shutdown = true; /* request it to shut itself down */
 
         if (srv->stats.pending) {
@@ -897,7 +895,7 @@ helper_server::popRequest(int request_number)
             requests.erase(it->second);
             requestsIndex.erase(it);
         }
-    } else if(!requests.empty()) {
+    } else if (!requests.empty()) {
         // Else get the first request from queue, if any
         r = requests.front();
         requests.pop_front();
@@ -908,20 +906,20 @@ helper_server::popRequest(int request_number)
 
 /// Calls back with a pointer to the buffer with the helper output
 static void
-helperReturnBuffer(helper_server * srv, helper * hlp, char * msg, size_t msgSize, char * msgEnd)
+helperReturnBuffer(helper_server *srv, helper *hlp, char *msg, size_t msgSize, char *msgEnd)
 {
     if (Helper::Xaction *r = srv->replyXaction) {
         const bool hasSpace = r->reply.accumulate(msg, msgSize);
         if (!hasSpace) {
-            debugs(84, DBG_IMPORTANT, "ERROR: Disconnecting from a " <<
-                   "helper that overflowed " << srv->rbuf_sz << "-byte " <<
-                   "Squid input buffer: " << hlp->id_name << " #" << srv->index);
+            debugs(84, DBG_IMPORTANT, "ERROR: Disconnecting from a "
+                       << "helper that overflowed " << srv->rbuf_sz << "-byte "
+                       << "Squid input buffer: " << hlp->id_name << " #" << srv->index);
             srv->closePipesSafely(hlp->id_name);
             return;
         }
 
         if (!msgEnd)
-            return; // We are waiting for more data.
+            return;  // We are waiting for more data.
 
         bool retry = false;
         if (cbdataReferenceValid(r->request.data)) {
@@ -938,19 +936,18 @@ helperReturnBuffer(helper_server * srv, helper * hlp, char * msg, size_t msgSize
             }
         }
 
-        -- srv->stats.pending;
-        ++ srv->stats.replies;
+        --srv->stats.pending;
+        ++srv->stats.replies;
 
-        ++ hlp->stats.replies;
+        ++hlp->stats.replies;
 
         srv->answer_time = current_time;
 
         srv->dispatch_time = r->request.dispatch_time;
 
-        hlp->stats.avg_svc_time =
-            Math::intAverage(hlp->stats.avg_svc_time,
-                             tvSubMsec(r->request.dispatch_time, current_time),
-                             hlp->stats.replies, REDIRECT_AV_FACTOR);
+        hlp->stats.avg_svc_time = Math::intAverage(hlp->stats.avg_svc_time,
+                                                   tvSubMsec(r->request.dispatch_time, current_time),
+                                                   hlp->stats.replies, REDIRECT_AV_FACTOR);
 
         // release or re-submit parsedRequestXaction object
         srv->replyXaction = nullptr;
@@ -967,7 +964,7 @@ helperReturnBuffer(helper_server * srv, helper * hlp, char * msg, size_t msgSize
     if (!srv->flags.shutdown) {
         helperKickQueue(hlp);
     } else if (!srv->flags.closing && !srv->stats.pending) {
-        srv->flags.closing=true;
+        srv->flags.closing = true;
         srv->writePipe->close();
     }
 }
@@ -1000,9 +997,7 @@ helperHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len, Comm::
 
     if (!srv->stats.pending && !srv->stats.timedout) {
         /* someone spoke without being spoken to */
-        debugs(84, DBG_IMPORTANT, "helperHandleRead: unexpected read from " <<
-               hlp->id_name << " #" << srv->index << ", " << (int)len <<
-               " bytes '" << srv->rbuf << "'");
+        debugs(84, DBG_IMPORTANT, "helperHandleRead: unexpected read from " << hlp->id_name << " #" << srv->index << ", " << (int)len << " bytes '" << srv->rbuf << "'");
 
         srv->roffset = 0;
         srv->rbuf[0] = '\0';
@@ -1038,22 +1033,20 @@ helperHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len, Comm::
                     msg = e;
                     while (*msg && xisspace(*msg))
                         ++msg;
-                } // else not enough data to compute request number
+                }  // else not enough data to compute request number
             }
             if (!(srv->replyXaction = srv->popRequest(i))) {
                 if (srv->stats.timedout) {
                     debugs(84, 3, "Timedout reply received for request-ID: " << i << " , ignore");
                 } else {
-                    debugs(84, DBG_IMPORTANT, "helperHandleRead: unexpected reply on channel " <<
-                           i << " from " << hlp->id_name << " #" << srv->index <<
-                           " '" << srv->rbuf << "'");
+                    debugs(84, DBG_IMPORTANT, "helperHandleRead: unexpected reply on channel " << i << " from " << hlp->id_name << " #" << srv->index << " '" << srv->rbuf << "'");
                 }
                 srv->ignoreToEom = true;
             }
-        } // else we need to just append reply data to the current Xaction
+        }  // else we need to just append reply data to the current Xaction
 
         if (!needsMore) {
-            size_t msgSize  = eom ? eom - msg : (srv->roffset - (msg - srv->rbuf));
+            size_t msgSize = eom ? eom - msg : (srv->roffset - (msg - srv->rbuf));
             assert(msgSize <= srv->rbuf_sz);
             helperReturnBuffer(srv, hlp, msg, msgSize, eom);
             msg += msgSize + skip;
@@ -1082,7 +1075,7 @@ helperHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len, Comm::
         int spaceSize = srv->rbuf_sz - srv->roffset - 1;
         assert(spaceSize >= 0);
 
-        AsyncCall::Pointer call = commCbCall(5,4, "helperHandleRead",
+        AsyncCall::Pointer call = commCbCall(5, 4, "helperHandleRead",
                                              CommIoCbPtrFun(helperHandleRead, srv));
         comm_read(srv->readPipe, srv->rbuf + srv->roffset, spaceSize, call);
     }
@@ -1104,8 +1097,7 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
 
     assert(conn->fd == srv->readPipe->fd);
 
-    debugs(84, 5, "helperStatefulHandleRead: " << len << " bytes from " <<
-           hlp->id_name << " #" << srv->index);
+    debugs(84, 5, "helperStatefulHandleRead: " << len << " bytes from " << hlp->id_name << " #" << srv->index);
 
     if (flag != Comm::OK || len == 0) {
         srv->closePipesSafely(hlp->id_name);
@@ -1119,9 +1111,7 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
 
     if (r == NULL) {
         /* someone spoke without being spoken to */
-        debugs(84, DBG_IMPORTANT, "helperStatefulHandleRead: unexpected read from " <<
-               hlp->id_name << " #" << srv->index << ", " << (int)len <<
-               " bytes '" << srv->rbuf << "'");
+        debugs(84, DBG_IMPORTANT, "helperStatefulHandleRead: unexpected read from " << hlp->id_name << " #" << srv->index << ", " << (int)len << " bytes '" << srv->rbuf << "'");
 
         srv->roffset = 0;
     }
@@ -1139,9 +1129,9 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
     }
 
     if (r && !r->reply.accumulate(srv->rbuf, t ? (t - srv->rbuf) : srv->roffset)) {
-        debugs(84, DBG_IMPORTANT, "ERROR: Disconnecting from a " <<
-               "helper that overflowed " << srv->rbuf_sz << "-byte " <<
-               "Squid input buffer: " << hlp->id_name << " #" << srv->index);
+        debugs(84, DBG_IMPORTANT, "ERROR: Disconnecting from a "
+                   << "helper that overflowed " << srv->rbuf_sz << "-byte "
+                   << "Squid input buffer: " << hlp->id_name << " #" << srv->index);
         srv->closePipesSafely(hlp->id_name);
         return;
     }
@@ -1155,7 +1145,7 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
 
     if (t) {
         /* end of reply found */
-        srv->requests.pop_front(); // we already have it in 'r'
+        srv->requests.pop_front();  // we already have it in 'r'
         int called = 1;
 
         if (r && cbdataReferenceValid(r->request.data)) {
@@ -1169,15 +1159,14 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
 
         delete r;
 
-        -- srv->stats.pending;
-        ++ srv->stats.replies;
+        --srv->stats.pending;
+        ++srv->stats.replies;
 
-        ++ hlp->stats.replies;
+        ++hlp->stats.replies;
         srv->answer_time = current_time;
-        hlp->stats.avg_svc_time =
-            Math::intAverage(hlp->stats.avg_svc_time,
-                             tvSubMsec(srv->dispatch_time, current_time),
-                             hlp->stats.replies, REDIRECT_AV_FACTOR);
+        hlp->stats.avg_svc_time = Math::intAverage(hlp->stats.avg_svc_time,
+                                                   tvSubMsec(srv->dispatch_time, current_time),
+                                                   hlp->stats.replies, REDIRECT_AV_FACTOR);
 
         if (called)
             helperStatefulServerDone(srv);
@@ -1188,7 +1177,7 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
     if (Comm::IsConnOpen(srv->readPipe) && !fd_table[srv->readPipe->fd].closing()) {
         int spaceSize = srv->rbuf_sz - 1;
 
-        AsyncCall::Pointer call = commCbCall(5,4, "helperStatefulHandleRead",
+        AsyncCall::Pointer call = commCbCall(5, 4, "helperStatefulHandleRead",
                                              CommIoCbPtrFun(helperStatefulHandleRead, srv));
         comm_read(srv->readPipe, srv->rbuf, spaceSize, call);
     }
@@ -1196,10 +1185,10 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
 
 /// Handles a request when all running helpers, if any, are busy.
 static void
-Enqueue(helper * hlp, Helper::Xaction * r)
+Enqueue(helper *hlp, Helper::Xaction *r)
 {
     hlp->queue.push(r);
-    ++ hlp->stats.queue_size;
+    ++hlp->stats.queue_size;
 
     /* do this first so idle=N has a chance to grow the child pool before it hits critical. */
     if (hlp->childs.needNew() > 0) {
@@ -1225,10 +1214,10 @@ Enqueue(helper * hlp, Helper::Xaction * r)
 }
 
 static void
-StatefulEnqueue(statefulhelper * hlp, Helper::Xaction * r)
+StatefulEnqueue(statefulhelper *hlp, Helper::Xaction *r)
 {
     hlp->queue.push(r);
-    ++ hlp->stats.queue_size;
+    ++hlp->stats.queue_size;
 
     /* do this first so idle=N has a chance to grow the child pool before it hits critical. */
     if (hlp->childs.needNew() > 0) {
@@ -1266,7 +1255,7 @@ helper::nextRequest()
 }
 
 static helper_server *
-GetFirstAvailable(const helper * hlp)
+GetFirstAvailable(const helper *hlp)
 {
     dlink_node *n;
     helper_server *srv;
@@ -1312,7 +1301,7 @@ GetFirstAvailable(const helper * hlp)
 }
 
 static helper_stateful_server *
-StatefulGetFirstAvailable(statefulhelper * hlp)
+StatefulGetFirstAvailable(statefulhelper *hlp)
 {
     dlink_node *n;
     helper_stateful_server *srv = NULL;
@@ -1375,14 +1364,14 @@ helperDispatchWriteDone(const Comm::ConnectionPointer &, char *, size_t, Comm::F
         srv->writebuf = srv->wqueue;
         srv->wqueue = new MemBuf;
         srv->flags.writing = true;
-        AsyncCall::Pointer call = commCbCall(5,5, "helperDispatchWriteDone",
+        AsyncCall::Pointer call = commCbCall(5, 5, "helperDispatchWriteDone",
                                              CommIoCbPtrFun(helperDispatchWriteDone, srv));
         Comm::Write(srv->writePipe, srv->writebuf->content(), srv->writebuf->contentSize(), call, NULL);
     }
 }
 
 static void
-helperDispatch(helper_server * srv, Helper::Xaction * r)
+helperDispatch(helper_server *srv, Helper::Xaction *r)
 {
     helper *hlp = srv->parent;
     const uint64_t reqId = ++srv->nextRequestId;
@@ -1412,24 +1401,25 @@ helperDispatch(helper_server * srv, Helper::Xaction * r)
         srv->writebuf = srv->wqueue;
         srv->wqueue = new MemBuf;
         srv->flags.writing = true;
-        AsyncCall::Pointer call = commCbCall(5,5, "helperDispatchWriteDone",
+        AsyncCall::Pointer call = commCbCall(5, 5, "helperDispatchWriteDone",
                                              CommIoCbPtrFun(helperDispatchWriteDone, srv));
         Comm::Write(srv->writePipe, srv->writebuf->content(), srv->writebuf->contentSize(), call, NULL);
     }
 
     debugs(84, 5, "helperDispatch: Request sent to " << hlp->id_name << " #" << srv->index << ", " << strlen(r->request.buf) << " bytes");
 
-    ++ srv->stats.uses;
-    ++ srv->stats.pending;
-    ++ hlp->stats.requests;
+    ++srv->stats.uses;
+    ++srv->stats.pending;
+    ++hlp->stats.requests;
 }
 
 static void
 helperStatefulDispatchWriteDone(const Comm::ConnectionPointer &, char *, size_t, Comm::Flag, int, void *)
-{}
+{
+}
 
 static void
-helperStatefulDispatch(helper_stateful_server * srv, Helper::Xaction * r)
+helperStatefulDispatch(helper_stateful_server *srv, Helper::Xaction *r)
 {
     statefulhelper *hlp = srv->parent;
 
@@ -1464,20 +1454,18 @@ helperStatefulDispatch(helper_stateful_server * srv, Helper::Xaction * r)
 
     srv->requests.push_back(r);
     srv->dispatch_time = current_time;
-    AsyncCall::Pointer call = commCbCall(5,5, "helperStatefulDispatchWriteDone",
+    AsyncCall::Pointer call = commCbCall(5, 5, "helperStatefulDispatchWriteDone",
                                          CommIoCbPtrFun(helperStatefulDispatchWriteDone, hlp));
     Comm::Write(srv->writePipe, r->request.buf, strlen(r->request.buf), call, NULL);
-    debugs(84, 5, "helperStatefulDispatch: Request sent to " <<
-           hlp->id_name << " #" << srv->index << ", " <<
-           (int) strlen(r->request.buf) << " bytes");
+    debugs(84, 5, "helperStatefulDispatch: Request sent to " << hlp->id_name << " #" << srv->index << ", " << (int)strlen(r->request.buf) << " bytes");
 
-    ++ srv->stats.uses;
-    ++ srv->stats.pending;
-    ++ hlp->stats.requests;
+    ++srv->stats.uses;
+    ++srv->stats.pending;
+    ++hlp->stats.requests;
 }
 
 static void
-helperKickQueue(helper * hlp)
+helperKickQueue(helper *hlp)
 {
     Helper::Xaction *r;
     helper_server *srv;
@@ -1487,7 +1475,7 @@ helperKickQueue(helper * hlp)
 }
 
 static void
-helperStatefulKickQueue(statefulhelper * hlp)
+helperStatefulKickQueue(statefulhelper *hlp)
 {
     Helper::Xaction *r;
     helper_stateful_server *srv;
@@ -1499,7 +1487,7 @@ helperStatefulKickQueue(statefulhelper * hlp)
 }
 
 static void
-helperStatefulServerDone(helper_stateful_server * srv)
+helperStatefulServerDone(helper_stateful_server *srv)
 {
     if (!srv->flags.shutdown) {
         helperStatefulKickQueue(srv->parent);
@@ -1513,7 +1501,7 @@ void
 helper_server::checkForTimedOutRequests(bool const retry)
 {
     assert(parent->childs.concurrency);
-    while(!requests.empty() && requests.front()->request.timedOut(parent->timeout)) {
+    while (!requests.empty() && requests.front()->request.timedOut(parent->timeout)) {
         Helper::Xaction *r = requests.front();
         RequestIndex::iterator it;
         it = requestsIndex.find(r->request.Id);
@@ -1558,11 +1546,10 @@ helper_server::requestTimeout(const CommTimeoutCbParams &io)
 
     debugs(84, 3, HERE << io.conn << " establish new helper_server::requestTimeout");
     AsyncCall::Pointer timeoutCall = commCbCall(84, 4, "helper_server::requestTimeout",
-                                     CommTimeoutCbPtrFun(helper_server::requestTimeout, srv));
+                                                CommTimeoutCbPtrFun(helper_server::requestTimeout, srv));
 
     const int timeSpent = srv->requests.empty() ? 0 : (squid_curtime - srv->requests.front()->request.dispatch_time.tv_sec);
     const int timeLeft = max(1, (static_cast<int>(srv->parent->timeout) - timeSpent));
 
     commSetConnTimeout(io.conn, timeLeft, timeoutCall);
 }
-

@@ -9,12 +9,12 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/Coordinator.h"
+#include "CacheManager.h"
 #include "base/Subscription.h"
 #include "base/TextException.h"
-#include "CacheManager.h"
 #include "comm.h"
 #include "comm/Connection.h"
-#include "ipc/Coordinator.h"
 #include "ipc/SharedListen.h"
 #include "mgr/Inquirer.h"
 #include "mgr/Request.h"
@@ -29,19 +29,21 @@
 #include <cerrno>
 
 CBDATA_NAMESPACED_CLASS_INIT(Ipc, Coordinator);
-Ipc::Coordinator* Ipc::Coordinator::TheInstance = NULL;
+Ipc::Coordinator *Ipc::Coordinator::TheInstance = NULL;
 
-Ipc::Coordinator::Coordinator():
+Ipc::Coordinator::Coordinator() :
     Port(Ipc::Port::CoordinatorAddr())
 {
 }
 
-void Ipc::Coordinator::start()
+void
+Ipc::Coordinator::start()
 {
     Port::start();
 }
 
-Ipc::StrandCoord* Ipc::Coordinator::findStrand(int kidId)
+Ipc::StrandCoord *
+Ipc::Coordinator::findStrand(int kidId)
 {
     typedef StrandCoords::iterator SI;
     for (SI iter = strands_.begin(); iter != strands_.end(); ++iter) {
@@ -51,15 +53,15 @@ Ipc::StrandCoord* Ipc::Coordinator::findStrand(int kidId)
     return NULL;
 }
 
-void Ipc::Coordinator::registerStrand(const StrandCoord& strand)
+void
+Ipc::Coordinator::registerStrand(const StrandCoord &strand)
 {
-    debugs(54, 3, HERE << "registering kid" << strand.kidId <<
-           ' ' << strand.tag);
-    if (StrandCoord* found = findStrand(strand.kidId)) {
+    debugs(54, 3, HERE << "registering kid" << strand.kidId << ' ' << strand.tag);
+    if (StrandCoord *found = findStrand(strand.kidId)) {
         const String oldTag = found->tag;
         *found = strand;
         if (oldTag.size() && !strand.tag.size())
-            found->tag = oldTag; // keep more detailed info (XXX?)
+            found->tag = oldTag;  // keep more detailed info (XXX?)
     } else {
         strands_.push_back(strand);
     }
@@ -76,7 +78,8 @@ void Ipc::Coordinator::registerStrand(const StrandCoord& strand)
     }
 }
 
-void Ipc::Coordinator::receive(const TypedMsgHdr& message)
+void
+Ipc::Coordinator::receive(const TypedMsgHdr &message)
 {
     switch (message.type()) {
     case mtRegistration:
@@ -86,8 +89,7 @@ void Ipc::Coordinator::receive(const TypedMsgHdr& message)
 
     case mtStrandSearchRequest: {
         const StrandSearchRequest sr(message);
-        debugs(54, 6, HERE << "Strand search request: " << sr.requestorId <<
-               " tag: " << sr.tag);
+        debugs(54, 6, HERE << "Strand search request: " << sr.requestorId << " tag: " << sr.tag);
         handleSearchRequest(sr);
         break;
     }
@@ -101,30 +103,26 @@ void Ipc::Coordinator::receive(const TypedMsgHdr& message)
         debugs(54, 6, HERE << "Cache manager request");
         const Mgr::Request req(message);
         handleCacheMgrRequest(req);
-    }
-    break;
+    } break;
 
     case mtCacheMgrResponse: {
         debugs(54, 6, HERE << "Cache manager response");
         const Mgr::Response resp(message);
         handleCacheMgrResponse(resp);
-    }
-    break;
+    } break;
 
 #if SQUID_SNMP
     case mtSnmpRequest: {
         debugs(54, 6, HERE << "SNMP request");
         const Snmp::Request req(message);
         handleSnmpRequest(req);
-    }
-    break;
+    } break;
 
     case mtSnmpResponse: {
         debugs(54, 6, HERE << "SNMP response");
         const Snmp::Response resp(message);
         handleSnmpResponse(resp);
-    }
-    break;
+    } break;
 #endif
 
     default:
@@ -133,7 +131,8 @@ void Ipc::Coordinator::receive(const TypedMsgHdr& message)
     }
 }
 
-void Ipc::Coordinator::handleRegistrationRequest(const HereIamMessage& msg)
+void
+Ipc::Coordinator::handleRegistrationRequest(const HereIamMessage &msg)
 {
     registerStrand(msg.strand);
 
@@ -144,18 +143,14 @@ void Ipc::Coordinator::handleRegistrationRequest(const HereIamMessage& msg)
 }
 
 void
-Ipc::Coordinator::handleSharedListenRequest(const SharedListenRequest& request)
+Ipc::Coordinator::handleSharedListenRequest(const SharedListenRequest &request)
 {
-    debugs(54, 4, HERE << "kid" << request.requestorId <<
-           " needs shared listen FD for " << request.params.addr);
+    debugs(54, 4, HERE << "kid" << request.requestorId << " needs shared listen FD for " << request.params.addr);
     Listeners::const_iterator i = listeners.find(request.params);
     int errNo = 0;
-    const Comm::ConnectionPointer c = (i != listeners.end()) ?
-                                      i->second : openListenSocket(request, errNo);
+    const Comm::ConnectionPointer c = (i != listeners.end()) ? i->second : openListenSocket(request, errNo);
 
-    debugs(54, 3, HERE << "sending shared listen " << c << " for " <<
-           request.params.addr << " to kid" << request.requestorId <<
-           " mapId=" << request.mapId);
+    debugs(54, 3, HERE << "sending shared listen " << c << " for " << request.params.addr << " to kid" << request.requestorId << " mapId=" << request.mapId);
 
     SharedListenResponse response(c->fd, errNo, request.mapId);
     TypedMsgHdr message;
@@ -164,21 +159,19 @@ Ipc::Coordinator::handleSharedListenRequest(const SharedListenRequest& request)
 }
 
 void
-Ipc::Coordinator::handleCacheMgrRequest(const Mgr::Request& request)
+Ipc::Coordinator::handleCacheMgrRequest(const Mgr::Request &request)
 {
     debugs(54, 4, HERE);
 
     try {
-        Mgr::Action::Pointer action =
-            CacheManager::GetInstance()->createRequestedAction(request.params);
+        Mgr::Action::Pointer action = CacheManager::GetInstance()->createRequestedAction(request.params);
         AsyncJob::Start(new Mgr::Inquirer(action, request, strands_));
     } catch (const std::exception &ex) {
-        debugs(54, DBG_IMPORTANT, "BUG: cannot aggregate mgr:" <<
-               request.params.actionName << ": " << ex.what());
+        debugs(54, DBG_IMPORTANT, "BUG: cannot aggregate mgr:" << request.params.actionName << ": " << ex.what());
         // TODO: Avoid half-baked Connections or teach them how to close.
         ::close(request.conn->fd);
         request.conn->fd = -1;
-        return; // the worker will timeout and close
+        return;  // the worker will timeout and close
     }
 
     // Let the strand know that we are now responsible for handling the request
@@ -186,11 +179,10 @@ Ipc::Coordinator::handleCacheMgrRequest(const Mgr::Request& request)
     TypedMsgHdr message;
     response.pack(message);
     SendMessage(MakeAddr(strandAddrLabel, request.requestorId), message);
-
 }
 
 void
-Ipc::Coordinator::handleCacheMgrResponse(const Mgr::Response& response)
+Ipc::Coordinator::handleCacheMgrResponse(const Mgr::Response &response)
 {
     Mgr::Inquirer::HandleRemoteAck(response);
 }
@@ -212,16 +204,14 @@ Ipc::Coordinator::handleSearchRequest(const Ipc::StrandSearchRequest &request)
     }
 
     searchers.push_back(request);
-    debugs(54, 3, HERE << "cannot yet tell kid" << request.requestorId <<
-           " who " << request.tag << " is");
+    debugs(54, 3, HERE << "cannot yet tell kid" << request.requestorId << " who " << request.tag << " is");
 }
 
 void
 Ipc::Coordinator::notifySearcher(const Ipc::StrandSearchRequest &request,
-                                 const StrandCoord& strand)
+                                 const StrandCoord &strand)
 {
-    debugs(54, 3, HERE << "tell kid" << request.requestorId << " that " <<
-           request.tag << " is kid" << strand.kidId);
+    debugs(54, 3, HERE << "tell kid" << request.requestorId << " that " << request.tag << " is kid" << strand.kidId);
     const StrandSearchResponse response(strand);
     TypedMsgHdr message;
     response.pack(message);
@@ -230,7 +220,7 @@ Ipc::Coordinator::notifySearcher(const Ipc::StrandSearchRequest &request,
 
 #if SQUID_SNMP
 void
-Ipc::Coordinator::handleSnmpRequest(const Snmp::Request& request)
+Ipc::Coordinator::handleSnmpRequest(const Snmp::Request &request)
 {
     debugs(54, 4, HERE);
 
@@ -243,7 +233,7 @@ Ipc::Coordinator::handleSnmpRequest(const Snmp::Request& request)
 }
 
 void
-Ipc::Coordinator::handleSnmpResponse(const Snmp::Response& response)
+Ipc::Coordinator::handleSnmpResponse(const Snmp::Response &response)
 {
     debugs(54, 4, HERE);
     Snmp::Inquirer::HandleRemoteAck(response);
@@ -251,16 +241,15 @@ Ipc::Coordinator::handleSnmpResponse(const Snmp::Response& response)
 #endif
 
 Comm::ConnectionPointer
-Ipc::Coordinator::openListenSocket(const SharedListenRequest& request,
+Ipc::Coordinator::openListenSocket(const SharedListenRequest &request,
                                    int &errNo)
 {
     const OpenListenerParams &p = request.params;
 
-    debugs(54, 6, HERE << "opening listen FD at " << p.addr << " for kid" <<
-           request.requestorId);
+    debugs(54, 6, HERE << "opening listen FD at " << p.addr << " for kid" << request.requestorId);
 
     Comm::ConnectionPointer newConn = new Comm::Connection;
-    newConn->local = p.addr; // comm_open_listener may modify it
+    newConn->local = p.addr;  // comm_open_listener may modify it
     newConn->flags = p.flags;
 
     enter_suid();
@@ -268,8 +257,7 @@ Ipc::Coordinator::openListenSocket(const SharedListenRequest& request,
     errNo = Comm::IsConnOpen(newConn) ? 0 : errno;
     leave_suid();
 
-    debugs(54, 6, HERE << "tried listening on " << newConn << " for kid" <<
-           request.requestorId);
+    debugs(54, 6, HERE << "tried listening on " << newConn << " for kid" << request.requestorId);
 
     // cache positive results
     if (Comm::IsConnOpen(newConn))
@@ -278,17 +266,18 @@ Ipc::Coordinator::openListenSocket(const SharedListenRequest& request,
     return newConn;
 }
 
-void Ipc::Coordinator::broadcastSignal(int sig) const
+void
+Ipc::Coordinator::broadcastSignal(int sig) const
 {
     typedef StrandCoords::const_iterator SCI;
     for (SCI iter = strands_.begin(); iter != strands_.end(); ++iter) {
-        debugs(54, 5, HERE << "signal " << sig << " to kid" << iter->kidId <<
-               ", PID=" << iter->pid);
+        debugs(54, 5, HERE << "signal " << sig << " to kid" << iter->kidId << ", PID=" << iter->pid);
         kill(iter->pid, sig);
     }
 }
 
-Ipc::Coordinator* Ipc::Coordinator::Instance()
+Ipc::Coordinator *
+Ipc::Coordinator::Instance()
 {
     if (!TheInstance)
         TheInstance = new Coordinator;
@@ -298,9 +287,8 @@ Ipc::Coordinator* Ipc::Coordinator::Instance()
     return TheInstance;
 }
 
-const Ipc::StrandCoords&
+const Ipc::StrandCoords &
 Ipc::Coordinator::strands() const
 {
     return strands_;
 }
-

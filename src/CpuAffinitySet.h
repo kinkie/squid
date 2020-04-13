@@ -30,9 +30,8 @@ public:
     void set(const cpu_set_t &aCpuSet);
 
 private:
-    cpu_set_t theCpuSet; ///< configured CPU affinity for this process
-    cpu_set_t theOrigCpuSet; ///< CPU affinity for this process before apply()
+    cpu_set_t theCpuSet;      ///< configured CPU affinity for this process
+    cpu_set_t theOrigCpuSet;  ///< CPU affinity for this process before apply()
 };
 
-#endif // SQUID_CPU_AFFINITY_SET_H
-
+#endif  // SQUID_CPU_AFFINITY_SET_H

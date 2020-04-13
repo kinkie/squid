@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
-#include "adaptation/icap/Config.h"
 #include "adaptation/icap/Options.h"
-#include "base/TextException.h"
 #include "HttpReply.h"
 #include "SquidTime.h"
 #include "StrList.h"
+#include "adaptation/icap/Config.h"
+#include "base/TextException.h"
 #include "wordlist.h"
 
 Adaptation::Icap::Options::Options() :
@@ -55,36 +55,41 @@ Adaptation::Icap::Options::transferKind(const SBuf &urlPath) const
     if (theTransfers.ignore.matches(urlPath))
         return xferIgnore;
 
-    debugs(93,7, "url " << urlPath << " matches no extensions; " <<
-           "using default: " << theTransfers.byDefault->name);
+    debugs(93, 7, "url " << urlPath << " matches no extensions; "
+                         << "using default: " << theTransfers.byDefault->name);
     return theTransfers.byDefault->kind;
 }
 
-bool Adaptation::Icap::Options::valid() const
+bool
+Adaptation::Icap::Options::valid() const
 {
     return !error;
 }
 
-bool Adaptation::Icap::Options::fresh() const
+bool
+Adaptation::Icap::Options::fresh() const
 {
     return squid_curtime <= expire();
 }
 
-int Adaptation::Icap::Options::ttl() const
+int
+Adaptation::Icap::Options::ttl() const
 {
     Must(valid());
     return theTTL >= 0 ? theTTL : TheConfig.default_options_ttl;
 }
 
-time_t Adaptation::Icap::Options::expire() const
+time_t
+Adaptation::Icap::Options::expire() const
 {
     Must(valid());
     return theTimestamp + ttl();
 }
 
-void Adaptation::Icap::Options::configure(const HttpReply *reply)
+void
+Adaptation::Icap::Options::configure(const HttpReply *reply)
 {
-    error = NULL; // reset initial "unconfigured" value (or an old error?)
+    error = NULL;  // reset initial "unconfigured" value (or an old error?)
 
     const HttpHeader *h = &reply->header;
 
@@ -106,8 +111,8 @@ void Adaptation::Icap::Options::configure(const HttpReply *reply)
 
     if (h->getByName("Opt-body-type").size()) {
         // TODO: add a class to rate-limit such warnings using FadingCounter
-        debugs(93,DBG_IMPORTANT, "WARNING: Ignoring unsupported ICAP " <<
-               "OPTIONS body; type: " << h->getByName("Opt-body-type"));
+        debugs(93, DBG_IMPORTANT, "WARNING: Ignoring unsupported ICAP "
+                   << "OPTIONS body; type: " << h->getByName("Opt-body-type"));
         // Do not set error, assuming the response headers are valid.
     }
 
@@ -135,14 +140,16 @@ void Adaptation::Icap::Options::configure(const HttpReply *reply)
     cfgTransferList(h, theTransfers.complete);
 }
 
-void Adaptation::Icap::Options::cfgMethod(ICAP::Method m)
+void
+Adaptation::Icap::Options::cfgMethod(ICAP::Method m)
 {
     Must(m != ICAP::methodNone);
     methods.push_back(m);
 }
 
 // TODO: HttpHeader should provide a general method for this type of conversion
-void Adaptation::Icap::Options::cfgIntHeader(const HttpHeader *h, const char *fname, int &value)
+void
+Adaptation::Icap::Options::cfgIntHeader(const HttpHeader *h, const char *fname, int &value)
 {
     const String s = h->getByName(fname);
 
@@ -151,10 +158,11 @@ void Adaptation::Icap::Options::cfgIntHeader(const HttpHeader *h, const char *fn
     else
         value = -1;
 
-    debugs(93,5, HERE << "int header: " << fname << ": " << value);
+    debugs(93, 5, HERE << "int header: " << fname << ": " << value);
 }
 
-void Adaptation::Icap::Options::cfgTransferList(const HttpHeader *h, TransferList &list)
+void
+Adaptation::Icap::Options::cfgTransferList(const HttpHeader *h, TransferList &list)
 {
     const String buf = h->getByName(list.name);
     bool foundStar = false;
@@ -162,7 +170,7 @@ void Adaptation::Icap::Options::cfgTransferList(const HttpHeader *h, TransferLis
 
     if (foundStar) {
         theTransfers.byDefault = &list;
-        debugs(93,5, HERE << "set default transfer to " << list.name);
+        debugs(93, 5, HERE << "set default transfer to " << list.name);
     }
 
     list.report(5, "Adaptation::Icap::Options::cfgTransferList: ");
@@ -170,22 +178,23 @@ void Adaptation::Icap::Options::cfgTransferList(const HttpHeader *h, TransferLis
 
 /* Adaptation::Icap::Options::TransferList */
 
-Adaptation::Icap::Options::TransferList::TransferList(): extensions(NULL), name(NULL),
-    kind(xferNone)
-{
-};
+Adaptation::Icap::Options::TransferList::TransferList() :
+    extensions(NULL), name(NULL),
+    kind(xferNone) {};
 
 Adaptation::Icap::Options::TransferList::~TransferList()
 {
     wordlistDestroy(&extensions);
 };
 
-void Adaptation::Icap::Options::TransferList::add(const char *extension)
+void
+Adaptation::Icap::Options::TransferList::add(const char *extension)
 {
     wordlistAdd(&extensions, extension);
 };
 
-bool Adaptation::Icap::Options::TransferList::matches(const SBuf &urlPath) const
+bool
+Adaptation::Icap::Options::TransferList::matches(const SBuf &urlPath) const
 {
     const SBuf::size_type urlLen = urlPath.length();
     for (wordlist *e = extensions; e; e = e->next) {
@@ -196,17 +205,18 @@ bool Adaptation::Icap::Options::TransferList::matches(const SBuf &urlPath) const
         if (eLen < urlLen) {
             const size_t eOff = urlLen - eLen;
             // RFC 3507 examples imply that extensions come without leading '.'
-            if (urlPath[eOff-1] == '.' && urlPath.substr(eOff).cmp(e->key, eLen) == 0) {
-                debugs(93,7, "url " << urlPath << " matches " << name << " extension " << e->key);
+            if (urlPath[eOff - 1] == '.' && urlPath.substr(eOff).cmp(e->key, eLen) == 0) {
+                debugs(93, 7, "url " << urlPath << " matches " << name << " extension " << e->key);
                 return true;
             }
         }
     }
-    debugs(93,8, "url " << urlPath << " matches no " << name << " extensions");
+    debugs(93, 8, "url " << urlPath << " matches no " << name << " extensions");
     return false;
 }
 
-void Adaptation::Icap::Options::TransferList::parse(const String &buf, bool &foundStar)
+void
+Adaptation::Icap::Options::TransferList::parse(const String &buf, bool &foundStar)
 {
     foundStar = false;
 
@@ -217,20 +227,20 @@ void Adaptation::Icap::Options::TransferList::parse(const String &buf, bool &fou
         if (ilen == 1 && *item == '*')
             foundStar = true;
         else {
-            const char *tmp = xstrndup(item, ilen+1);
+            const char *tmp = xstrndup(item, ilen + 1);
             add(tmp);
             xfree(tmp);
         }
     }
 }
 
-void Adaptation::Icap::Options::TransferList::report(int level, const char *prefix) const
+void
+Adaptation::Icap::Options::TransferList::report(int level, const char *prefix) const
 {
     if (extensions) {
         for (wordlist *e = extensions; e; e = e->next)
-            debugs(93,level, prefix << name << ": " << e->key);
+            debugs(93, level, prefix << name << ": " << e->key);
     } else {
-        debugs(93,level, prefix << "no " << name << " extensions");
+        debugs(93, level, prefix << "no " << name << " extensions");
     }
 }
-

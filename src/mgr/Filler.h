@@ -15,11 +15,10 @@
 #include "mgr/Action.h"
 #include "mgr/StoreToCommWriter.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// provides Coordinator with a local cache manager response
-class Filler: public StoreToCommWriter
+class Filler : public StoreToCommWriter
 {
     CBDATA_CLASS(Filler);
 
@@ -32,11 +31,10 @@ protected:
     virtual void swanSong();
 
 private:
-    Action::Pointer action; ///< action that will run() and sendResponse()
-    unsigned int requestId; ///< the ID of the Request we are responding to
+    Action::Pointer action;  ///< action that will run() and sendResponse()
+    unsigned int requestId;  ///< the ID of the Request we are responding to
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_FILLER_H */
-

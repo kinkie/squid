@@ -9,15 +9,12 @@
 #ifndef SQUID_IPC_MEM_FORWARD_H
 #define SQUID_IPC_MEM_FORWARD_H
 
-namespace Ipc
-{
+namespace Ipc {
 
-namespace Mem
-{
-typedef uint32_t PoolId;
-} // namespace Mem
+namespace Mem {
+    typedef uint32_t PoolId;
+}  // namespace Mem
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_MEM_FORWARD_H */
-

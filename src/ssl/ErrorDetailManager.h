@@ -9,9 +9,9 @@
 #ifndef _SQUID_SSL_ERRORDETAILMANAGER_H
 #define _SQUID_SSL_ERRORDETAILMANAGER_H
 
-#include "base/RefCount.h"
 #include "HttpRequest.h"
 #include "SquidString.h"
+#include "base/RefCount.h"
 #include "ssl/support.h"
 
 #include <map>
@@ -19,16 +19,15 @@
 
 class HttpRequest;
 
-namespace Ssl
-{
+namespace Ssl {
 
 class ErrorDetailEntry
 {
 public:
-    Security::ErrorCode error_no; ///< The SSL error code
-    String name; ///< a name for the error
-    String detail; ///< for error page %D macro expansion; may contain macros
-    String descr;  ///< short error description (for use in debug messages or error pages)
+    Security::ErrorCode error_no;  ///< The SSL error code
+    String name;                   ///< a name for the error
+    String detail;                 ///< for error page %D macro expansion; may contain macros
+    String descr;                  ///< short error description (for use in debug messages or error pages)
 };
 
 /**
@@ -44,12 +43,12 @@ public:
      * \return true on success, false otherwise
      */
     bool getRecord(Security::ErrorCode value, ErrorDetailEntry &entry);
-    const char *getErrorDescr(Security::ErrorCode value); ///< an error description for an error if exist in list.
-    const char *getErrorDetail(Security::ErrorCode value); ///< an error details for an error if exist in list.
+    const char *getErrorDescr(Security::ErrorCode value);   ///< an error description for an error if exist in list.
+    const char *getErrorDetail(Security::ErrorCode value);  ///< an error details for an error if exist in list.
 
-    String errLanguage; ///< The language of the error-details.txt template, if any
+    String errLanguage;  ///< The language of the error-details.txt template, if any
     typedef std::map<Security::ErrorCode, ErrorDetailEntry> ErrorDetails;
-    ErrorDetails theList; ///< The list of error details entries
+    ErrorDetails theList;  ///< The list of error details entries
 };
 
 /**
@@ -61,8 +60,8 @@ class ErrorDetailsManager
 public:
     ErrorDetailsManager();
 
-    static ErrorDetailsManager &GetInstance(); ///< Instance class
-    static void Shutdown(); ///< reset the ErrorDetailsManager instance
+    static ErrorDetailsManager &GetInstance();  ///< Instance class
+    static void Shutdown();                     ///< reset the ErrorDetailsManager instance
 
     /**
      * Retrieve error details for an error. This method examine the Accept-Language
@@ -74,8 +73,8 @@ public:
      * \return true on success, false otherwise
      */
     bool getErrorDetail(Security::ErrorCode value, const HttpRequest::Pointer &request, ErrorDetailEntry &entry);
-    const char *getDefaultErrorDescr(Security::ErrorCode value); ///< the default error description for a given error
-    const char *getDefaultErrorDetail(Security::ErrorCode value); ///< the default error details for a given error
+    const char *getDefaultErrorDescr(Security::ErrorCode value);   ///< the default error description for a given error
+    const char *getDefaultErrorDetail(Security::ErrorCode value);  ///< the default error details for a given error
 
 private:
     /// Return cached error details list for a given language if exist
@@ -84,8 +83,8 @@ private:
     void cacheDetails(ErrorDetailsList::Pointer &errorDetails);
 
     typedef std::map<std::string, ErrorDetailsList::Pointer> Cache;
-    Cache cache; ///< the error details list cache
-    ErrorDetailsList::Pointer theDefaultErrorDetails; ///< the default error details list
+    Cache cache;                                       ///< the error details list cache
+    ErrorDetailsList::Pointer theDefaultErrorDetails;  ///< the default error details list
 
     /// An instance of ErrorDetailsManager to be used by squid (ssl/ErrorDetails.*)
     static ErrorDetailsManager *TheDetailsManager;
@@ -93,6 +92,5 @@ private:
 
 void errorDetailInitialize();
 void errorDetailClean();
-} //namespace Ssl
+}  //namespace Ssl
 #endif
-

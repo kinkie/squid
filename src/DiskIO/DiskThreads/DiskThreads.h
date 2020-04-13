@@ -27,13 +27,13 @@
 #if AUFS_IO_THREADS
 #define NUMTHREADS AUFS_IO_THREADS
 #else
-#define NUMTHREADS (Config.cacheSwap.n_configured*16)
+#define NUMTHREADS (Config.cacheSwap.n_configured * 16)
 #endif
 
 /* Queue limit where swapouts are deferred (load calculation) */
-#define MAGIC1 (NUMTHREADS*Config.cacheSwap.n_configured*5)
+#define MAGIC1 (NUMTHREADS * Config.cacheSwap.n_configured * 5)
 /* Queue limit where swapins are deferred (open/create fails) */
-#define MAGIC2 (NUMTHREADS*Config.cacheSwap.n_configured*20)
+#define MAGIC2 (NUMTHREADS * Config.cacheSwap.n_configured * 20)
 
 /* Which operations to run async */
 #define ASYNC_OPEN 1
@@ -62,15 +62,17 @@ public:
     int aio_return = 0;
     int aio_errno = 0;
     enum _squidaio_request_type result_type = _AIO_OP_NONE;
-    void *_data = nullptr;        /* Internal housekeeping */
-    void *data = nullptr;         /* Available to the caller */
+    void *_data = nullptr; /* Internal housekeeping */
+    void *data = nullptr;  /* Available to the caller */
 };
 
 class squidaio_ctrl_t
 {
     MEMPROXY_CLASS(squidaio_ctrl_t);
+
 public:
-    squidaio_ctrl_t() : done_handler(NULL), free_func(NULL) {}
+    squidaio_ctrl_t() :
+        done_handler(NULL), free_func(NULL) {}
 
     squidaio_ctrl_t *next = nullptr;
     int fd = 0;
@@ -142,4 +144,3 @@ extern AIOCounts squidaio_counts;
 extern dlink_list used_list;
 
 #endif
-

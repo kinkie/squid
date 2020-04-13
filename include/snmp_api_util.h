@@ -46,12 +46,12 @@ SOFTWARE.
  */
 struct request_list {
     struct request_list *next_request;
-    int request_id;     /* request id */
-    int retries;        /* Number of retries */
-    u_int timeout;      /* length to wait for timeout */
-    struct timeval time;    /* Time this request was made */
-    struct timeval expire;  /* time this request is due to expire */
-    struct snmp_pdu *pdu;   /* The pdu for this request (saved so it can be retransmitted */
+    int request_id;        /* request id */
+    int retries;           /* Number of retries */
+    u_int timeout;         /* length to wait for timeout */
+    struct timeval time;   /* Time this request was made */
+    struct timeval expire; /* time this request is due to expire */
+    struct snmp_pdu *pdu;  /* The pdu for this request (saved so it can be retransmitted */
 };
 
 /*
@@ -64,19 +64,17 @@ struct session_list {
 };
 
 struct snmp_internal_session {
-    int sd;         /* socket descriptor for this connection */
-    struct sockaddr_in addr;        /* address of connected peer */
-    struct request_list *requests;  /* Info about outstanding requests */
+    int sd;                        /* socket descriptor for this connection */
+    struct sockaddr_in addr;       /* address of connected peer */
+    struct request_list *requests; /* Info about outstanding requests */
 };
 
 /* Define these here, as they aren't defined normall under
  * cygnus Win32 stuff.
  */
 #undef timercmp
-#define timercmp(tvp, uvp, cmp)         \
-  (((tvp)->tv_sec) cmp ((uvp)->tv_sec)) ||  \
-  ((((tvp)->tv_sec) == ((uvp)->tv_sec)) &&  \
-   (((tvp)->tv_usec) cmp ((uvp)->tv_usec)))
+#define timercmp(tvp, uvp, cmp) \
+    (((tvp)->tv_sec)cmp((uvp)->tv_sec)) || ((((tvp)->tv_sec) == ((uvp)->tv_sec)) && (((tvp)->tv_usec)cmp((uvp)->tv_usec)))
 
 #undef timerclear
 #define timerclear(tvp) (tvp)->tv_sec = (tvp)->tv_usec = 0
@@ -102,5 +100,4 @@ int snmp_timeout_session(struct snmp_session *sp_);
 
 #endif
 
-#endif              /* SQUID_SNMP_API_UTIL_H */
-
+#endif /* SQUID_SNMP_API_UTIL_H */

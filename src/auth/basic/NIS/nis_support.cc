@@ -23,7 +23,7 @@
 #include <rpc/rpc.h>
 #endif
 
-#if _SQUID_FREEBSD_  && !defined(BOOL_DEFINED)
+#if _SQUID_FREEBSD_ && !defined(BOOL_DEFINED)
 // BUG: FreeBSD rpcsvc/yp_* headers try to redefine bool unless we match their non-standard hack.
 #define BOOL_DEFINED
 #endif
@@ -37,7 +37,7 @@
 
 #include "auth/basic/NIS/nis_support.h"
 
-#define NO_YPERR 0      /* There is no error */
+#define NO_YPERR 0 /* There is no error */
 
 char *
 get_nis_password(char *user, char *nisdomain, char *nismap)
@@ -63,16 +63,15 @@ get_nis_password(char *user, char *nisdomain, char *nismap)
     switch (res) {
     case NO_YPERR:
         /* username = */
-        (void) strtok(val, ":");
+        (void)strtok(val, ":");
         password = strtok(NULL, ",:");
         return password;
     case YPERR_YPBIND:
         syslog(LOG_ERR, "Squid Authentication through ypbind failure: can't communicate with ypbind");
         return NULL;
-    case YPERR_KEY:     /* No such key in map */
+    case YPERR_KEY: /* No such key in map */
         return NULL;
     default:
         return NULL;
     }
 }
-

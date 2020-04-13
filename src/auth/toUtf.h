@@ -21,4 +21,3 @@ SBuf Cp1251ToUtf8(const char *in);
 bool isValidUtf8String(const char *source, const char *sourceEnd);
 
 #endif /* _SQUID_CHARSET_H */
-

@@ -58,10 +58,10 @@ std::string program_name;
 static void
 usage(void)
 {
-    std::cerr <<
-              "Usage: " << program_name << " [-d] [-h]" << std::endl <<
-              " -d  enable debugging." << std::endl <<
-              " -h  this message" << std::endl << std::endl;
+    std::cerr << "Usage: " << program_name << " [-d] [-h]" << std::endl
+              << " -d  enable debugging." << std::endl
+              << " -h  this message" << std::endl
+              << std::endl;
 }
 
 static void
@@ -79,8 +79,7 @@ process_options(int argc, char *argv[])
             usage();
             exit(EXIT_SUCCESS);
         default:
-            std::cerr << program_name << ": FATAL: unknown option: -" <<
-                      static_cast<char>(optopt) << ". Exiting" << std::endl;
+            std::cerr << program_name << ": FATAL: unknown option: -" << static_cast<char>(optopt) << ". Exiting" << std::endl;
             usage();
             exit(EXIT_FAILURE);
         }
@@ -93,17 +92,14 @@ main(int argc, char *argv[])
     program_name = argv[0];
     process_options(argc, argv);
 
-    ndebug(program_name << ' ' << VERSION << ' ' << SQUID_BUILD_INFO <<
-           " starting up...");
+    ndebug(program_name << ' ' << VERSION << ' ' << SQUID_BUILD_INFO << " starting up...");
     std::string buf;
-    while (getline(std::cin,buf)) { // will return false at EOF
+    while (getline(std::cin, buf)) {  // will return false at EOF
         ndebug("Got " << buf.length() << " bytes '" << buf << "' from Squid");
 
         /* send 'OK' result back to Squid */
         SEND_OK("");
     }
-    ndebug(program_name << ' ' << VERSION << ' ' << SQUID_BUILD_INFO <<
-           " shutting down...");
+    ndebug(program_name << ' ' << VERSION << ' ' << SQUID_BUILD_INFO << " shutting down...");
     return EXIT_SUCCESS;
 }
-

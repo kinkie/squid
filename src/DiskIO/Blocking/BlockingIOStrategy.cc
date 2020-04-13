@@ -9,8 +9,8 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
-#include "BlockingFile.h"
 #include "BlockingIOStrategy.h"
+#include "BlockingFile.h"
 #include "unlinkd.h"
 
 bool
@@ -27,9 +27,9 @@ BlockingIOStrategy::load()
 }
 
 DiskFile::Pointer
-BlockingIOStrategy::newFile (char const *path)
+BlockingIOStrategy::newFile(char const *path)
 {
-    return new BlockingFile (path);
+    return new BlockingFile(path);
 }
 
 bool
@@ -43,4 +43,3 @@ BlockingIOStrategy::unlinkFile(char const *path)
 {
     unlinkdUnlink(path);
 }
-

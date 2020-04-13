@@ -9,8 +9,8 @@
 #ifndef SQUID_ACL_H
 #define SQUID_ACL_H
 
-#include "acl/forward.h"
 #include "acl/Options.h"
+#include "acl/forward.h"
 #include "cbdata.h"
 #include "defines.h"
 #include "dlink.h"
@@ -30,7 +30,7 @@ typedef ACL *(*Maker)(TypeName typeName);
 /// use the given ACL Maker for all ACLs of the named type
 void RegisterMaker(TypeName typeName, Maker maker);
 
-} // namespace Acl
+}  // namespace Acl
 
 /// A configurable condition. A node in the ACL expression tree.
 /// Can evaluate itself in FilledChecklist context.
@@ -43,7 +43,7 @@ public:
     void *operator new(size_t);
     void operator delete(void *);
 
-    static void ParseAclLine(ConfigParser &parser, ACL ** head);
+    static void ParseAclLine(ConfigParser &parser, ACL **head);
     static void Initialize();
     static ACL *FindByName(const char *name);
 
@@ -73,21 +73,21 @@ public:
     virtual bool empty() const = 0;
     virtual bool valid() const;
 
-    int cacheMatchAcl(dlink_list * cache, ACLChecklist *);
+    int cacheMatchAcl(dlink_list *cache, ACLChecklist *);
     virtual int matchForCache(ACLChecklist *checklist);
 
     virtual void prepareForUse() {}
 
-    SBufList dumpOptions(); ///< \returns approximate options configuration
+    SBufList dumpOptions();  ///< \returns approximate options configuration
 
     char name[ACL_NAME_SZ];
     char *cfgline;
-    ACL *next; // XXX: remove or at least use refcounting
-    bool registered; ///< added to the global list of ACLs via aclRegister()
+    ACL *next;        // XXX: remove or at least use refcounting
+    bool registered;  ///< added to the global list of ACLs via aclRegister()
 
 private:
     /// Matches the actual data in checklist against this ACL.
-    virtual int match(ACLChecklist *checklist) = 0; // XXX: missing const
+    virtual int match(ACLChecklist *checklist) = 0;  // XXX: missing const
 
     /// whether our (i.e. shallow) match() requires checklist to have a AccessLogEntry
     virtual bool requiresAle() const;
@@ -105,7 +105,7 @@ typedef enum {
     ACCESS_DUNNO,
 
     // Authentication ACL result states
-    ACCESS_AUTH_REQUIRED,    // Missing Credentials
+    ACCESS_AUTH_REQUIRED,  // Missing Credentials
 } aclMatchCode;
 
 /// \ingroup ACLAPI
@@ -116,23 +116,29 @@ class Answer
 {
 public:
     // not explicit: allow "aclMatchCode to Acl::Answer" conversions (for now)
-    Answer(const aclMatchCode aCode, int aKind = 0): code(aCode), kind(aKind) {}
+    Answer(const aclMatchCode aCode, int aKind = 0) :
+        code(aCode), kind(aKind) {}
 
-    Answer(): code(ACCESS_DUNNO), kind(0) {}
+    Answer() :
+        code(ACCESS_DUNNO), kind(0) {}
 
-    bool operator ==(const aclMatchCode aCode) const {
+    bool operator==(const aclMatchCode aCode) const
+    {
         return code == aCode;
     }
 
-    bool operator !=(const aclMatchCode aCode) const {
+    bool operator!=(const aclMatchCode aCode) const
+    {
         return !(*this == aCode);
     }
 
-    bool operator ==(const Answer allow) const {
+    bool operator==(const Answer allow) const
+    {
         return code == allow.code && kind == allow.kind;
     }
 
-    operator aclMatchCode() const {
+    operator aclMatchCode() const
+    {
         return code;
     }
 
@@ -151,14 +157,14 @@ public:
     /// whether Squid is uncertain about the allowed() or denied() answer
     bool conflicted() const { return !allowed() && !denied(); }
 
-    aclMatchCode code; ///< ACCESS_* code
-    int kind; ///< which custom access list verb matched
+    aclMatchCode code;  ///< ACCESS_* code
+    int kind;           ///< which custom access list verb matched
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 inline std::ostream &
-operator <<(std::ostream &o, const Acl::Answer a)
+operator<<(std::ostream &o, const Acl::Answer a)
 {
     switch (a) {
     case ACCESS_DENIED:
@@ -183,10 +189,11 @@ class acl_proxy_auth_match_cache
     MEMPROXY_CLASS(acl_proxy_auth_match_cache);
 
 public:
-    acl_proxy_auth_match_cache(int matchRv, void * aclData) :
+    acl_proxy_auth_match_cache(int matchRv, void *aclData) :
         matchrv(matchRv),
         acl_data(aclData)
-    {}
+    {
+    }
 
     dlink_node link;
     int matchrv;
@@ -195,7 +202,6 @@ public:
 
 /// \ingroup ACLAPI
 /// XXX: find a way to remove or at least use a refcounted ACL pointer
-extern const char *AclMatchedName;  /* NULL */
+extern const char *AclMatchedName; /* NULL */
 
 #endif /* SQUID_ACL_H */
-

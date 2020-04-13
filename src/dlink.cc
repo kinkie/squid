@@ -12,7 +12,7 @@
 dlink_list ClientActiveRequests;
 
 void
-dlinkAdd(void *data, dlink_node * m, dlink_list * list)
+dlinkAdd(void *data, dlink_node *m, dlink_list *list)
 {
     m->data = data;
     m->prev = NULL;
@@ -28,7 +28,7 @@ dlinkAdd(void *data, dlink_node * m, dlink_list * list)
 }
 
 void
-dlinkAddAfter(void *data, dlink_node * m, dlink_node * n, dlink_list * list)
+dlinkAddAfter(void *data, dlink_node *m, dlink_node *n, dlink_list *list)
 {
     m->data = data;
     m->prev = n;
@@ -45,7 +45,7 @@ dlinkAddAfter(void *data, dlink_node * m, dlink_node * n, dlink_list * list)
 }
 
 void
-dlinkAddTail(void *data, dlink_node * m, dlink_list * list)
+dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 {
     m->data = data;
     m->next = NULL;
@@ -61,7 +61,7 @@ dlinkAddTail(void *data, dlink_node * m, dlink_list * list)
 }
 
 void
-dlinkDelete(dlink_node * m, dlink_list * list)
+dlinkDelete(dlink_node *m, dlink_list *list)
 {
     if (m->next)
         m->next->prev = m->prev;
@@ -77,4 +77,3 @@ dlinkDelete(dlink_node * m, dlink_list * list)
 
     m->next = m->prev = NULL;
 }
-

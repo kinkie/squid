@@ -9,18 +9,18 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/StoreToCommWriter.h"
+#include "CommCalls.h"
+#include "Store.h"
+#include "StoreClient.h"
 #include "base/TextException.h"
 #include "comm/Connection.h"
 #include "comm/Write.h"
-#include "CommCalls.h"
 #include "ipc/FdNotes.h"
-#include "mgr/StoreToCommWriter.h"
-#include "Store.h"
-#include "StoreClient.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Mgr, StoreToCommWriter);
 
-Mgr::StoreToCommWriter::StoreToCommWriter(const Comm::ConnectionPointer &conn, StoreEntry* anEntry):
+Mgr::StoreToCommWriter::StoreToCommWriter(const Comm::ConnectionPointer &conn, StoreEntry *anEntry) :
     AsyncJob("Mgr::StoreToCommWriter"),
     clientConnection(conn), entry(anEntry), sc(NULL), writeOffset(0), closer(NULL)
 {
@@ -76,15 +76,14 @@ Mgr::StoreToCommWriter::scheduleStoreCopy()
 }
 
 void
-Mgr::StoreToCommWriter::NoteStoreCopied(void* data, StoreIOBuffer ioBuf)
+Mgr::StoreToCommWriter::NoteStoreCopied(void *data, StoreIOBuffer ioBuf)
 {
     Must(data != NULL);
     // make sync Store call async to get async call protections and features
-    StoreToCommWriter* writer = static_cast<StoreToCommWriter*>(data);
+    StoreToCommWriter *writer = static_cast<StoreToCommWriter *>(data);
     typedef UnaryMemFunT<StoreToCommWriter, StoreIOBuffer> MyDialer;
-    AsyncCall::Pointer call =
-        asyncCall(16, 5, "Mgr::StoreToCommWriter::noteStoreCopied",
-                  MyDialer(writer, &StoreToCommWriter::noteStoreCopied, ioBuf));
+    AsyncCall::Pointer call = asyncCall(16, 5, "Mgr::StoreToCommWriter::noteStoreCopied",
+                                        MyDialer(writer, &StoreToCommWriter::noteStoreCopied, ioBuf));
     ScheduleCallHere(call);
 }
 
@@ -94,27 +93,26 @@ Mgr::StoreToCommWriter::noteStoreCopied(StoreIOBuffer ioBuf)
     debugs(16, 6, HERE);
     Must(!ioBuf.flags.error);
     if (ioBuf.length > 0)
-        scheduleCommWrite(ioBuf); // write received action results to client
+        scheduleCommWrite(ioBuf);  // write received action results to client
     else
-        Must(doneAll()); // otherwise, why would Store call us with no data?
+        Must(doneAll());  // otherwise, why would Store call us with no data?
 }
 
 void
-Mgr::StoreToCommWriter::scheduleCommWrite(const StoreIOBuffer& ioBuf)
+Mgr::StoreToCommWriter::scheduleCommWrite(const StoreIOBuffer &ioBuf)
 {
     debugs(16, 6, HERE);
     Must(Comm::IsConnOpen(clientConnection));
     Must(ioBuf.data != NULL);
     // write filled buffer
     typedef CommCbMemFunT<StoreToCommWriter, CommIoCbParams> MyDialer;
-    AsyncCall::Pointer writer =
-        asyncCall(16, 5, "Mgr::StoreToCommWriter::noteCommWrote",
-                  MyDialer(this, &StoreToCommWriter::noteCommWrote));
+    AsyncCall::Pointer writer = asyncCall(16, 5, "Mgr::StoreToCommWriter::noteCommWrote",
+                                          MyDialer(this, &StoreToCommWriter::noteCommWrote));
     Comm::Write(clientConnection, ioBuf.data, ioBuf.length, writer, NULL);
 }
 
 void
-Mgr::StoreToCommWriter::noteCommWrote(const CommIoCbParams& params)
+Mgr::StoreToCommWriter::noteCommWrote(const CommIoCbParams &params)
 {
     debugs(16, 6, HERE);
     Must(params.flag == Comm::OK);
@@ -122,7 +120,7 @@ Mgr::StoreToCommWriter::noteCommWrote(const CommIoCbParams& params)
     Must(params.size != 0);
     writeOffset += params.size;
     if (!doneAll())
-        scheduleStoreCopy(); // retrieve the next data portion
+        scheduleStoreCopy();  // retrieve the next data portion
 }
 
 void
@@ -152,16 +150,14 @@ Mgr::StoreToCommWriter::swanSong()
 bool
 Mgr::StoreToCommWriter::doneAll() const
 {
-    return entry &&
-           entry->store_status == STORE_OK && // the action is over
-           writeOffset >= entry->objectLen(); // we wrote all the results
+    return entry && entry->store_status == STORE_OK &&  // the action is over
+        writeOffset >= entry->objectLen();              // we wrote all the results
 }
 
 void
-Mgr::StoreToCommWriter::Abort(void* param)
+Mgr::StoreToCommWriter::Abort(void *param)
 {
-    StoreToCommWriter* mgrWriter = static_cast<StoreToCommWriter*>(param);
+    StoreToCommWriter *mgrWriter = static_cast<StoreToCommWriter *>(param);
     if (Comm::IsConnOpen(mgrWriter->clientConnection))
         mgrWriter->clientConnection->close();
 }
-

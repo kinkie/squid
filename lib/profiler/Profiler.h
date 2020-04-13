@@ -26,7 +26,7 @@ extern "C" {
 
 #else /* USE_XPROF_STATS */
 
-#define XP_NOBEST (hrtime_t)-1
+#define XP_NOBEST (hrtime_t) - 1
 
 typedef struct _xprof_stats_node xprof_stats_node;
 
@@ -68,4 +68,3 @@ extern void xprof_event(void *data);
 }
 #endif
 #endif /* _PROFILING_H_ */
-

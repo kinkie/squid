@@ -11,8 +11,8 @@
 
 #if USE_HTCP
 
-#include "http/forward.h"
 #include "HttpHeader.h"
+#include "http/forward.h"
 #include "ip/forward.h"
 #include "store_key_md5.h"
 
@@ -58,10 +58,10 @@ void htcpOpenPorts(void);
  *      Don't wait for a reply or count in stats as sent.
  * \retval -1   Error sending request.
  */
-int htcpQuery(StoreEntry * e, HttpRequest * req, CachePeer * p);
+int htcpQuery(StoreEntry *e, HttpRequest *req, CachePeer *p);
 
 /// \ingroup ServerProtocolHTCP
-void htcpClear(StoreEntry * e, const char *uri, HttpRequest * req, const HttpRequestMethod &method, CachePeer * p, htcp_clr_reason reason);
+void htcpClear(StoreEntry *e, const char *uri, HttpRequest *req, const HttpRequestMethod &method, CachePeer *p, htcp_clr_reason reason);
 
 /// \ingroup ServerProtocolHTCP
 void htcpSocketShutdown(void);
@@ -72,4 +72,3 @@ void htcpClosePorts(void);
 #endif /* USE_HTCP */
 
 #endif /* SQUID_HTCP_H */
-

@@ -9,6 +9,12 @@
 /* DEBUG: section 21    Misc Functions */
 
 #include "squid.h"
+#include "tools.h"
+#include "ICP.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "SquidMath.h"
+#include "SquidTime.h"
 #include "anyp/PortCfg.h"
 #include "base/Subscription.h"
 #include "client_side.h"
@@ -18,19 +24,13 @@
 #include "fs_io.h"
 #include "htcp.h"
 #include "http/Stream.h"
-#include "ICP.h"
 #include "ip/Intercept.h"
 #include "ip/QosConfig.h"
 #include "ipc/Coordinator.h"
 #include "ipc/Kids.h"
 #include "ipcache.h"
-#include "MemBuf.h"
 #include "sbuf/Stream.h"
-#include "SquidConfig.h"
-#include "SquidMath.h"
-#include "SquidTime.h"
 #include "store/Disks.h"
-#include "tools.h"
 #include "wordlist.h"
 
 #include <cerrno>
@@ -114,7 +114,7 @@ mail_warranty(void)
      * and since this file will be passed to mailsystem,
      * the group and other must have read access.
      */
-    const mode_t prev_umask=umask(S_IXUSR|S_IXGRP|S_IWGRP|S_IWOTH|S_IXOTH);
+    const mode_t prev_umask = umask(S_IXUSR | S_IXGRP | S_IWGRP | S_IWOTH | S_IXOTH);
 
 #if HAVE_MKSTEMP
     char filename[] = "/tmp/squid-XXXXXX";
@@ -127,8 +127,7 @@ mail_warranty(void)
     char *filename;
     // XXX tempnam is obsolete since POSIX.2008-1
     // tmpfile is not an option, we want the created files to stick around
-    if ((filename = tempnam(NULL, APP_SHORTNAME)) == NULL ||
-            (fp = fopen(filename, "w")) == NULL) {
+    if ((filename = tempnam(NULL, APP_SHORTNAME)) == NULL || (fp = fopen(filename, "w")) == NULL) {
         umask(prev_umask);
         return;
     }
@@ -145,10 +144,10 @@ mail_warranty(void)
     fclose(fp);
 
     snprintf(command, 256, "%s %s < %s", Config.EmailProgram, Config.adminEmail, filename);
-    if (system(command)) {}     /* XXX should avoid system(3) */
+    if (system(command)) {} /* XXX should avoid system(3) */
     unlink(filename);
 #if !HAVE_MKSTEMP
-    xfree(filename); // tempnam() requires us to free its allocation
+    xfree(filename);  // tempnam() requires us to free its allocation
 #endif
 }
 
@@ -159,9 +158,9 @@ dumpMallocStats(void)
 
     struct mstats ms = mstats();
     fprintf(debug_log, "\ttotal space in arena:  %6d KB\n",
-            (int) (ms.bytes_total >> 10));
+            (int)(ms.bytes_total >> 10));
     fprintf(debug_log, "\tTotal free:            %6d KB %d%%\n",
-            (int) (ms.bytes_free >> 10),
+            (int)(ms.bytes_free >> 10),
             Math::intPercent(ms.bytes_free, ms.bytes_total));
 #endif
 }
@@ -189,8 +188,7 @@ squid_getrusage(struct rusage *r)
         /* information -- Guido Serassio                       */
         HANDLE hProcess;
         PROCESS_MEMORY_COUNTERS pmc;
-        hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
-                               PROCESS_VM_READ,
+        hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
                                FALSE, GetCurrentProcessId());
         {
             /* Microsoft CRT doesn't have getrusage function,  */
@@ -201,24 +199,24 @@ squid_getrusage(struct rusage *r)
                 int64_t tUser64 = *ptUser / 10;
                 int64_t *ptKernel = (int64_t *)&ftKernel;
                 int64_t tKernel64 = *ptKernel / 10;
-                r->ru_utime.tv_sec =(long)(tUser64 / 1000000);
-                r->ru_stime.tv_sec =(long)(tKernel64 / 1000000);
-                r->ru_utime.tv_usec =(long)(tUser64 % 1000000);
-                r->ru_stime.tv_usec =(long)(tKernel64 % 1000000);
+                r->ru_utime.tv_sec = (long)(tUser64 / 1000000);
+                r->ru_stime.tv_sec = (long)(tKernel64 / 1000000);
+                r->ru_utime.tv_usec = (long)(tUser64 % 1000000);
+                r->ru_stime.tv_usec = (long)(tKernel64 % 1000000);
             } else {
-                CloseHandle( hProcess );
+                CloseHandle(hProcess);
                 return;
             }
         }
-        if (GetProcessMemoryInfo( hProcess, &pmc, sizeof(pmc))) {
-            r->ru_maxrss=(DWORD)(pmc.WorkingSetSize / getpagesize());
-            r->ru_majflt=pmc.PageFaultCount;
+        if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+            r->ru_maxrss = (DWORD)(pmc.WorkingSetSize / getpagesize());
+            r->ru_majflt = pmc.PageFaultCount;
         } else {
-            CloseHandle( hProcess );
+            CloseHandle(hProcess);
             return;
         }
 
-        CloseHandle( hProcess );
+        CloseHandle(hProcess);
     }
 #endif
 }
@@ -227,10 +225,7 @@ double
 
 rusage_cputime(struct rusage *r)
 {
-    return (double) r->ru_stime.tv_sec +
-           (double) r->ru_utime.tv_sec +
-           (double) r->ru_stime.tv_usec / 1000000.0 +
-           (double) r->ru_utime.tv_usec / 1000000.0;
+    return (double)r->ru_stime.tv_sec + (double)r->ru_utime.tv_sec + (double)r->ru_stime.tv_usec / 1000000.0 + (double)r->ru_utime.tv_usec / 1000000.0;
 }
 
 /* Hack for some HP-UX preprocessors */
@@ -244,7 +239,7 @@ rusage_maxrss(struct rusage *r)
 {
 #if _SQUID_SGI_ && _ABIAPI
     return r->ru_pad[0];
-#elif _SQUID_SGI_|| _SQUID_OSF_ || _SQUID_AIX_ || defined(BSD4_4)
+#elif _SQUID_SGI_ || _SQUID_OSF_ || _SQUID_AIX_ || defined(BSD4_4)
 
     return r->ru_maxrss;
 #elif defined(HAVE_GETPAGESIZE) && HAVE_GETPAGESIZE != 0
@@ -279,8 +274,8 @@ PrintRusage(void)
     squid_getrusage(&rusage);
     fprintf(debug_log, "CPU Usage: %.3f seconds = %.3f user + %.3f sys\n",
             rusage_cputime(&rusage),
-            rusage.ru_utime.tv_sec + ((double) rusage.ru_utime.tv_usec / 1000000.0),
-            rusage.ru_stime.tv_sec + ((double) rusage.ru_stime.tv_usec / 1000000.0));
+            rusage.ru_utime.tv_sec + ((double)rusage.ru_utime.tv_usec / 1000000.0),
+            rusage.ru_stime.tv_sec + ((double)rusage.ru_stime.tv_usec / 1000000.0));
     fprintf(debug_log, "Maximum Resident Size: %d KB\n",
             rusage_maxrss(&rusage));
     fprintf(debug_log, "Page faults with physical i/o: %d\n",
@@ -300,7 +295,7 @@ death(int sig)
 #if PRINT_STACK_TRACE
 #if _SQUID_HPUX_
     {
-        extern void U_STACK_TRACE(void);    /* link with -lcl */
+        extern void U_STACK_TRACE(void); /* link with -lcl */
         fflush(debug_log);
         dup2(fileno(debug_log), 2);
         U_STACK_TRACE();
@@ -308,8 +303,8 @@ death(int sig)
 
 #endif /* _SQUID_HPUX_ */
 #if _SQUID_SOLARIS_ && HAVE_LIBOPCOM_STACK
-    {   /* get ftp://opcom.sun.ca/pub/tars/opcom_stack.tar.gz and */
-        extern void opcom_stack_trace(void);    /* link with -lopcom_stack */
+    {                                        /* get ftp://opcom.sun.ca/pub/tars/opcom_stack.tar.gz and */
+        extern void opcom_stack_trace(void); /* link with -lopcom_stack */
         fflush(debug_log);
         dup2(fileno(debug_log), fileno(stdout));
         opcom_stack_trace();
@@ -360,7 +355,7 @@ death(int sig)
 }
 
 void
-BroadcastSignalIfAny(int& sig)
+BroadcastSignalIfAny(int &sig)
 {
     if (sig > 0) {
         if (IamMasterProcess()) {
@@ -431,11 +426,11 @@ getMyHostname(void)
      * If the first http_port address has a specific address, try a
      * reverse DNS lookup on it.
      */
-    if ( !sa.isAnyAddr() ) {
+    if (!sa.isAnyAddr()) {
 
         sa.getAddrInfo(AI);
         /* we are looking for a name. */
-        if (getnameinfo(AI->ai_addr, AI->ai_addrlen, host, SQUIDHOSTNAMELEN, NULL, 0, NI_NAMEREQD ) == 0) {
+        if (getnameinfo(AI->ai_addr, AI->ai_addrlen, host, SQUIDHOSTNAMELEN, NULL, 0, NI_NAMEREQD) == 0) {
             /* DNS lookup successful */
             /* use the official name from DNS lookup */
             debugs(50, 4, "getMyHostname: resolved " << sa << " to '" << host << "'");
@@ -482,8 +477,8 @@ getMyHostname(void)
     }
 
     /* throw a configuration error when the Host/IP given has bad DNS/rDNS. */
-    debugs(50, DBG_CRITICAL, "WARNING: Could not determine this machines public hostname. " <<
-           "Please configure one or set 'visible_hostname'.");
+    debugs(50, DBG_CRITICAL, "WARNING: Could not determine this machines public hostname. "
+               << "Please configure one or set 'visible_hostname'.");
 
     return ("localhost");
 }
@@ -533,9 +528,7 @@ leave_suid(void)
         }
 
         if (initgroups(Config.effectiveUser, Config2.effectiveGroupID) < 0) {
-            debugs(50, DBG_CRITICAL, "ALERT: initgroups: unable to set groups for User " <<
-                   Config.effectiveUser << " and Group " <<
-                   (unsigned) Config2.effectiveGroupID << "");
+            debugs(50, DBG_CRITICAL, "ALERT: initgroups: unable to set groups for User " << Config.effectiveUser << " and Group " << (unsigned)Config2.effectiveGroupID << "");
         }
     }
 
@@ -578,7 +571,7 @@ enter_suid(void)
 #if HAVE_SETRESUID
     if (setresuid((uid_t)-1, 0, (uid_t)-1) < 0) {
         const auto xerrno = errno;
-        debugs (21, 3, "enter_suid: setresuid failed: " << xstrerr(xerrno));
+        debugs(21, 3, "enter_suid: setresuid failed: " << xstrerr(xerrno));
     }
 #else
 
@@ -729,7 +722,7 @@ setMaxFD(void)
      * uses #define to change the function definition to require rlimit64
      */
 #if defined(getrlimit)
-    struct rlimit64 rl; // Assume its a 64-bit redefine anyways.
+    struct rlimit64 rl;  // Assume its a 64-bit redefine anyways.
 #else
     struct rlimit rl;
 #endif
@@ -779,7 +772,7 @@ setSystemLimits(void)
      * uses #define to change the function definition to require rlimit64
      */
 #if defined(getrlimit)
-    struct rlimit64 rl; // Assume its a 64-bit redefine anyways.
+    struct rlimit64 rl;  // Assume its a 64-bit redefine anyways.
 #else
     struct rlimit rl;
 #endif
@@ -802,7 +795,7 @@ setSystemLimits(void)
         int xerrno = errno;
         debugs(50, DBG_CRITICAL, "getrlimit: RLIMIT_DATA: " << xstrerr(xerrno));
     } else if (rl.rlim_max > rl.rlim_cur) {
-        rl.rlim_cur = rl.rlim_max;  /* set it to the max */
+        rl.rlim_cur = rl.rlim_max; /* set it to the max */
 
         if (setrlimit(RLIMIT_DATA, &rl) < 0) {
             int xerrno = errno;
@@ -820,7 +813,7 @@ setSystemLimits(void)
         int xerrno = errno;
         debugs(50, DBG_CRITICAL, "getrlimit: RLIMIT_VMEM: " << xstrerr(xerrno));
     } else if (rl.rlim_max > rl.rlim_cur) {
-        rl.rlim_cur = rl.rlim_max;  /* set it to the max */
+        rl.rlim_cur = rl.rlim_max; /* set it to the max */
 
         if (setrlimit(RLIMIT_VMEM, &rl) < 0) {
             int xerrno = errno;
@@ -832,7 +825,7 @@ setSystemLimits(void)
 }
 
 void
-squid_signal(int sig, SIGHDLR * func, int flags)
+squid_signal(int sig, SIGHDLR *func, int flags)
 {
 #if HAVE_SIGACTION
 
@@ -875,11 +868,11 @@ squid_signal(int sig, SIGHDLR * func, int flags)
     case SIGBUS:
         WIN32_ExceptionHandlerInit();
         return;
-        break;  /* Nor reached */
+        break; /* Nor reached */
 
     default:
         return;
-        break;  /* Nor reached */
+        break; /* Nor reached */
     }
 
 #endif
@@ -902,7 +895,7 @@ debugObj(int section, int level, const char *label, void *obj, ObjPackMethod pm)
     assert(label && obj && pm);
     MemBuf mb;
     mb.init();
-    (*pm) (obj, &mb);
+    (*pm)(obj, &mb);
     debugs(section, level, "" << label << "" << mb.buf << "");
     mb.clean();
 }
@@ -933,12 +926,12 @@ parseEtcHosts(void)
     setmode(fileno(fp), O_TEXT);
 #endif
 
-    while (fgets(buf, 1024, fp)) {  /* for each line */
+    while (fgets(buf, 1024, fp)) { /* for each line */
 
-        if (buf[0] == '#')  /* MS-windows likes to add comments */
+        if (buf[0] == '#') /* MS-windows likes to add comments */
             continue;
 
-        strtok(buf, "#");   /* chop everything following a comment marker */
+        strtok(buf, "#"); /* chop everything following a comment marker */
 
         lt = buf;
 
@@ -948,10 +941,10 @@ parseEtcHosts(void)
 
         nt = strpbrk(lt, w_space);
 
-        if (nt == NULL)     /* empty line */
+        if (nt == NULL) /* empty line */
             continue;
 
-        *nt = '\0';     /* null-terminate the address */
+        *nt = '\0'; /* null-terminate the address */
 
         debugs(1, 5, "etc_hosts: address is '" << addr << "'");
 
@@ -974,9 +967,9 @@ parseEtcHosts(void)
             /* For IPV6 addresses also check for a colon */
             if (Config.appendDomain && !strchr(lt, '.') && !strchr(lt, ':')) {
                 /* I know it's ugly, but it's only at reconfig */
-                strncpy(buf2, lt, sizeof(buf2)-1);
+                strncpy(buf2, lt, sizeof(buf2) - 1);
                 strncat(buf2, Config.appendDomain, sizeof(buf2) - strlen(lt) - 1);
-                buf2[sizeof(buf2)-1] = '\0';
+                buf2[sizeof(buf2) - 1] = '\0';
                 host = buf2;
             } else {
                 host = lt;
@@ -996,7 +989,7 @@ parseEtcHosts(void)
             fqdncacheAddEntryFromHosts(addr, hosts);
     }
 
-    fclose (fp);
+    fclose(fp);
 }
 
 int
@@ -1020,7 +1013,7 @@ getMyPort(void)
     }
 
     debugs(21, DBG_CRITICAL, "ERROR: No forward-proxy ports configured.");
-    return 0; // Invalid port. This will result in invalid URLs on bad configurations.
+    return 0;  // Invalid port. This will result in invalid URLs on bad configurations.
 }
 
 /*
@@ -1031,15 +1024,15 @@ void
 setUmask(mode_t mask)
 {
     // No way to get the current umask value without setting it.
-    static const mode_t orig_umask = umask(mask); // once, to get
-    umask(mask | orig_umask); // always, to set
+    static const mode_t orig_umask = umask(mask);  // once, to get
+    umask(mask | orig_umask);                      // always, to set
 }
 
 /*
  * Inverse of strwordtok. Quotes a word if needed
  */
 void
-strwordquote(MemBuf * mb, const char *str)
+strwordquote(MemBuf *mb, const char *str)
 {
     int quoted = 0;
 
@@ -1111,12 +1104,10 @@ restoreCapabilities(bool keep)
         ++ncaps;
         if (Ip::Interceptor.TransparentActive() ||
 #if USE_LIBNETFILTERCONNTRACK
-                // netfilter_conntrack requires CAP_NET_ADMIN to get client's CONNMARK
-                Ip::Interceptor.InterceptActive() ||
+            // netfilter_conntrack requires CAP_NET_ADMIN to get client's CONNMARK
+            Ip::Interceptor.InterceptActive() ||
 #endif
-                Ip::Qos::TheConfig.isHitNfmarkActive() ||
-                Ip::Qos::TheConfig.isAclNfmarkActive() ||
-                Ip::Qos::TheConfig.isAclTosActive()) {
+            Ip::Qos::TheConfig.isHitNfmarkActive() || Ip::Qos::TheConfig.isAclNfmarkActive() || Ip::Qos::TheConfig.isAclTosActive()) {
             cap_list[ncaps] = CAP_NET_ADMIN;
             ++ncaps;
         }
@@ -1143,7 +1134,7 @@ WaitForOnePid(pid_t pid, PidStatus &status, int flags)
         return wait3(&status, flags, NULL);
     return wait4(pid, &status, flags, NULL);
 #elif _SQUID_WINDOWS_
-    return 0; // function not used on Windows
+    return 0;  // function not used on Windows
 #else
     return waitpid(pid, &status, flags);
 #endif
@@ -1155,22 +1146,19 @@ WindowsErrorMessage(DWORD errorId)
 {
     char *rawMessage = nullptr;
     const auto length = FormatMessage(
-                            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                            FORMAT_MESSAGE_FROM_SYSTEM |
-                            FORMAT_MESSAGE_IGNORE_INSERTS,
-                            nullptr,
-                            errorId,
-                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                            static_cast<LPTSTR>(&rawMessage),
-                            0,
-                            nullptr);
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        errorId,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // Default language
+        static_cast<LPTSTR>(&rawMessage),
+        0,
+        nullptr);
     if (!length) {
-        Must(!rawMessage); // nothing to LocalFree()
+        Must(!rawMessage);  // nothing to LocalFree()
         return ToSBuf("windows error ", errorId);
     }
     const auto result = SBuf(rawMessage, length);
     LocalFree(rawMessage);
     return result;
 }
-#endif // _SQUID_WINDOWS_
-
+#endif  // _SQUID_WINDOWS_

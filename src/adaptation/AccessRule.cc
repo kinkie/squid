@@ -7,17 +7,18 @@
  */
 
 #include "squid.h"
-#include "acl/Gadgets.h"
-#include "acl/Tree.h"
 #include "adaptation/AccessRule.h"
-#include "adaptation/Service.h"
-#include "adaptation/ServiceGroups.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Gadgets.h"
+#include "acl/Tree.h"
+#include "adaptation/Service.h"
+#include "adaptation/ServiceGroups.h"
 
 int Adaptation::AccessRule::LastId = 0;
 
-Adaptation::AccessRule::AccessRule(const String &aGroupId): id(++LastId), groupId(aGroupId), acl(NULL)
+Adaptation::AccessRule::AccessRule(const String &aGroupId) :
+    id(++LastId), groupId(aGroupId), acl(NULL)
 {
 }
 
@@ -35,19 +36,18 @@ Adaptation::AccessRule::parse(ConfigParser &parser)
 void
 Adaptation::AccessRule::finalize()
 {
-    if (!group()) { // no explicit group
-        debugs(93,7, HERE << "no service group: " << groupId);
+    if (!group()) {  // no explicit group
+        debugs(93, 7, HERE << "no service group: " << groupId);
         // try to add a one-service group
         if (FindService(groupId) != NULL) {
             ServiceGroupPointer g = new SingleService(groupId);
-            g->finalize(); // explicit groups were finalized before rules
+            g->finalize();  // explicit groups were finalized before rules
             AllGroups().push_back(g);
         }
     }
 
     if (!group()) {
-        debugs(93, DBG_CRITICAL, "ERROR: Unknown adaptation service or group name: '" <<
-               groupId << "'"); // TODO: fail on failures
+        debugs(93, DBG_CRITICAL, "ERROR: Unknown adaptation service or group name: '" << groupId << "'");  // TODO: fail on failures
     }
 }
 
@@ -88,4 +88,3 @@ Adaptation::FindRuleByGroupId(const String &groupId)
 
     return NULL;
 }
-

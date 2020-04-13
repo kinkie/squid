@@ -11,9 +11,9 @@
 #include "squid.h"
 #include "cbdata.h"
 #include "Generic.h"
+#include "Store.h"
 #include "mem/Pool.h"
 #include "mgr/Registration.h"
-#include "Store.h"
 
 #include <climits>
 
@@ -37,7 +37,8 @@ class CBDataCall
 {
 
 public:
-    CBDataCall (char const *callLabel, char const *aFile, int aLine) : label(callLabel), file(aFile), line(aLine) {}
+    CBDataCall(char const *callLabel, char const *aFile, int aLine) :
+        label(callLabel), file(aFile), line(aLine) {}
 
     char const *label;
     char const *file;
@@ -46,7 +47,7 @@ public:
 
 #endif
 
-#define OFFSET_OF(TYPE, MEMBER) ((size_t) &(((TYPE) *)0)->(MEMBER))
+#define OFFSET_OF(TYPE, MEMBER) ((size_t) & (((TYPE) *)0)->(MEMBER))
 
 /**
  * Manage a set of registered callback data pointers.
@@ -61,7 +62,7 @@ class cbdata
 {
 #if !WITH_VALGRIND
 public:
-    void *operator new(size_t, void *where) {return where;}
+    void *operator new(size_t, void *where) { return where; }
     /**
      * Only ever invoked when placement new throws
      * an exception. Used to prevent an incorrect free.
@@ -76,7 +77,7 @@ public:
 public:
 #if USE_CBDATA_DEBUG
 
-    void dump(StoreEntry *)const;
+    void dump(StoreEntry *) const;
 #endif
     cbdata() :
         valid(0),
@@ -88,7 +89,8 @@ public:
 #endif
         cookie(0),
         data(NULL)
-    {}
+    {
+    }
     ~cbdata();
 
     int valid;
@@ -96,7 +98,8 @@ public:
     cbdata_type type;
 #if USE_CBDATA_DEBUG
 
-    void addHistory(char const *label, char const *aFile, int aLine) {
+    void addHistory(char const *label, char const *aFile, int aLine)
+    {
         if (calls.size() > 1000)
             return;
 
@@ -106,16 +109,19 @@ public:
     dlink_node link;
     const char *file;
     int line;
-    std::vector<CBDataCall*> calls; // used as a stack with random access operator
+    std::vector<CBDataCall *> calls;  // used as a stack with random access operator
 #endif
 
     /* cookie used while debugging */
     long cookie;
-    void check(int) const {assert(cookie == ((long)this ^ Cookie));}
+    void check(int) const { assert(cookie == ((long)this ^ Cookie)); }
     static const long Cookie;
 
 #if !WITH_VALGRIND
-    size_t dataSize() const { return sizeof(data);}
+    size_t dataSize() const
+    {
+        return sizeof(data);
+    }
     static long MakeOffset();
     static const long Offset;
 #endif
@@ -144,7 +150,8 @@ static OBJH cbdataDumpHistory;
 struct CBDataIndex {
     MemAllocator *pool;
 }
-*cbdata_index = NULL;
+    *cbdata_index
+    = NULL;
 
 int cbdata_types = 0;
 
@@ -175,7 +182,7 @@ static void
 cbdataInternalInitType(cbdata_type type, const char *name, int size)
 {
     char *label;
-    assert (type == cbdata_types + 1);
+    assert(type == cbdata_types + 1);
 
     cbdata_index = (CBDataIndex *)xrealloc(cbdata_index, (type + 1) * sizeof(*cbdata_index));
     memset(&cbdata_index[type], 0, sizeof(*cbdata_index));
@@ -183,7 +190,7 @@ cbdataInternalInitType(cbdata_type type, const char *name, int size)
 
     label = (char *)xmalloc(strlen(name) + 20);
 
-    snprintf(label, strlen(name) + 20, "cbdata %s (%d)", name, (int) type);
+    snprintf(label, strlen(name) + 20, "cbdata %s (%d)", name, (int)type);
 
 #if !WITH_VALGRIND
     assert((size_t)cbdata::Offset == (sizeof(cbdata) - ((cbdata *)NULL)->dataSize()));
@@ -233,7 +240,7 @@ cbdataInternalAlloc(cbdata_type type, const char *file, int line)
     c = new cbdata;
     p = cbdata_index[type].pool->alloc();
     c->data = p;
-    cbdata_htable.emplace(p,c);
+    cbdata_htable.emplace(p, c);
 #else
     c = new (cbdata_index[type].pool->alloc()) cbdata;
     p = (void *)&c->data;
@@ -242,13 +249,13 @@ cbdataInternalAlloc(cbdata_type type, const char *file, int line)
     c->type = type;
     c->valid = 1;
     c->locks = 0;
-    c->cookie = (long) c ^ cbdata::Cookie;
+    c->cookie = (long)c ^ cbdata::Cookie;
     ++cbdataCount;
 #if USE_CBDATA_DEBUG
 
     c->file = file;
     c->line = line;
-    c->calls = std::vector<CBDataCall *> ();
+    c->calls = std::vector<CBDataCall *>();
     c->addHistory("Alloc", file, line);
     dlinkAdd(c, &c->link, &cbdataEntries);
     debugs(45, 3, "Allocating " << p << " " << file << ":" << line);
@@ -301,7 +308,7 @@ cbdataInternalFree(void *p, const char *file, int line)
 #if WITH_VALGRIND
     c = cbdata_htable.at(p);
 #else
-    c = (cbdata *) (((char *) p) - cbdata::Offset);
+    c = (cbdata *)(((char *)p) - cbdata::Offset);
 #endif
 #if USE_CBDATA_DEBUG
     debugs(45, 3, p << " " << file << ":" << line);
@@ -341,7 +348,7 @@ cbdataInternalLock(const void *p)
 #if WITH_VALGRIND
     c = cbdata_htable.at(p);
 #else
-    c = (cbdata *) (((char *) p) - cbdata::Offset);
+    c = (cbdata *)(((char *)p) - cbdata::Offset);
 #endif
 
 #if USE_CBDATA_DEBUG
@@ -355,7 +362,7 @@ cbdataInternalLock(const void *p)
 
     assert(c->locks < INT_MAX);
 
-    ++ c->locks;
+    ++c->locks;
 }
 
 void
@@ -373,7 +380,7 @@ cbdataInternalUnlock(const void *p)
 #if WITH_VALGRIND
     c = cbdata_htable.at(p);
 #else
-    c = (cbdata *) (((char *) p) - cbdata::Offset);
+    c = (cbdata *)(((char *)p) - cbdata::Offset);
 #endif
 
 #if USE_CBDATA_DEBUG
@@ -389,7 +396,7 @@ cbdataInternalUnlock(const void *p)
 
     assert(c->locks > 0);
 
-    -- c->locks;
+    --c->locks;
 
     if (c->locks)
         return;
@@ -414,14 +421,14 @@ cbdataReferenceValid(const void *p)
     cbdata *c;
 
     if (p == NULL)
-        return 1;       /* A NULL pointer cannot become invalid */
+        return 1; /* A NULL pointer cannot become invalid */
 
     debugs(45, 9, p);
 
 #if WITH_VALGRIND
     c = cbdata_htable.at(p);
 #else
-    c = (cbdata *) (((char *) p) - cbdata::Offset);
+    c = (cbdata *)(((char *)p) - cbdata::Offset);
 #endif
 
     c->check(__LINE__);
@@ -438,7 +445,7 @@ cbdataInternalReferenceDoneValidDbg(void **pp, void **tp, const char *file, int 
 cbdataInternalReferenceDoneValid(void **pp, void **tp)
 #endif
 {
-    void *p = (void *) *pp;
+    void *p = (void *)*pp;
     int valid = cbdataReferenceValid(p);
     *pp = NULL;
 #if USE_CBDATA_DEBUG
@@ -467,14 +474,15 @@ cbdata::dump(StoreEntry *sentry) const
 #else
     void *p = (void *)&data;
 #endif
-    storeAppendPrintf(sentry, "%c%p\t%d\t%d\t%20s:%-5d\n", valid ? ' ' :
-                      '!', p, type, locks, file, line);
+    storeAppendPrintf(sentry, "%c%p\t%d\t%d\t%20s:%-5d\n", valid ? ' ' : '!', p, type, locks, file, line);
 }
 
 struct CBDataDumper : public unary_function<cbdata, void> {
-    CBDataDumper(StoreEntry *anEntry):where(anEntry) {}
+    CBDataDumper(StoreEntry *anEntry) :
+        where(anEntry) {}
 
-    void operator()(cbdata const &x) {
+    void operator()(cbdata const &x)
+    {
         x.dump(where);
     }
 
@@ -484,14 +492,14 @@ struct CBDataDumper : public unary_function<cbdata, void> {
 #endif
 
 static void
-cbdataDump(StoreEntry * sentry)
+cbdataDump(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "%d cbdata entries\n", cbdataCount);
 #if USE_CBDATA_DEBUG
 
     storeAppendPrintf(sentry, "Pointer\tType\tLocks\tAllocated by\n");
     CBDataDumper dumper(sentry);
-    for_each (cbdataEntries, dumper);
+    for_each(cbdataEntries, dumper);
     storeAppendPrintf(sentry, "\n");
     storeAppendPrintf(sentry, "types\tsize\tallocated\ttotal\n");
 
@@ -517,9 +525,9 @@ cbdataDump(StoreEntry * sentry)
 }
 
 CallbackData &
-CallbackData::operator =(const CallbackData &other)
+CallbackData::operator=(const CallbackData &other)
 {
-    if (data_ != other.data_) { // assignment to self and no-op assignments
+    if (data_ != other.data_) {  // assignment to self and no-op assignments
         auto old = data_;
         data_ = cbdataReference(other.data_);
         cbdataReferenceDone(old);
@@ -532,9 +540,11 @@ CBDATA_CLASS_INIT(generic_cbdata);
 #if USE_CBDATA_DEBUG
 
 struct CBDataCallDumper : public unary_function<CBDataCall, void> {
-    CBDataCallDumper (StoreEntry *anEntry):where(anEntry) {}
+    CBDataCallDumper(StoreEntry *anEntry) :
+        where(anEntry) {}
 
-    void operator()(CBDataCall * const &x) {
+    void operator()(CBDataCall *const &x)
+    {
         storeAppendPrintf(where, "%s\t%s\t%d\n", x->label, x->file, x->line);
     }
 
@@ -542,13 +552,15 @@ struct CBDataCallDumper : public unary_function<CBDataCall, void> {
 };
 
 struct CBDataHistoryDumper : public CBDataDumper {
-    CBDataHistoryDumper(StoreEntry *anEntry):CBDataDumper(anEntry),where(anEntry), callDumper(anEntry) {}
+    CBDataHistoryDumper(StoreEntry *anEntry) :
+        CBDataDumper(anEntry), where(anEntry), callDumper(anEntry) {}
 
-    void operator()(cbdata const &x) {
+    void operator()(cbdata const &x)
+    {
         CBDataDumper::operator()(x);
         storeAppendPrintf(where, "\n");
         storeAppendPrintf(where, "Action\tFile\tLine\n");
-        std::for_each (x.calls.begin(), x.calls.end(), callDumper);
+        std::for_each(x.calls.begin(), x.calls.end(), callDumper);
         storeAppendPrintf(where, "\n");
     }
 
@@ -562,8 +574,7 @@ cbdataDumpHistory(StoreEntry *sentry)
     storeAppendPrintf(sentry, "%d cbdata entries\n", cbdataCount);
     storeAppendPrintf(sentry, "Pointer\tType\tLocks\tAllocated by\n");
     CBDataHistoryDumper dumper(sentry);
-    for_each (cbdataEntries, dumper);
+    for_each(cbdataEntries, dumper);
 }
 
 #endif
-

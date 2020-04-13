@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "auth/negotiate/Config.h"
 #include "auth/negotiate/Scheme.h"
 #include "Debug.h"
+#include "auth/negotiate/Config.h"
 #include "helper.h"
 
 Auth::Scheme::Pointer Auth::Negotiate::Scheme::_instance = NULL;
@@ -44,6 +44,5 @@ Auth::SchemeConfig *
 Auth::Negotiate::Scheme::createConfig()
 {
     Auth::Negotiate::Config *negotiateCfg = new Auth::Negotiate::Config;
-    return dynamic_cast<Auth::SchemeConfig*>(negotiateCfg);
+    return dynamic_cast<Auth::SchemeConfig *>(negotiateCfg);
 }
-

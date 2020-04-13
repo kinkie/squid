@@ -45,16 +45,15 @@ protected:
     void refillBucket();
 
 public:
-    double bucketLevel; ///< how much can be written now
-    bool selectWaiting; ///< is between commSetSelect and commHandleWrite
+    double bucketLevel;  ///< how much can be written now
+    bool selectWaiting;  ///< is between commSetSelect and commHandleWrite
 
 protected:
-    double prevTime; ///< previous time when we checked
-    double writeSpeedLimit; ///< Write speed limit in bytes per second.
-    double bucketSizeLimit; ///< maximum bucket size
+    double prevTime;         ///< previous time when we checked
+    double writeSpeedLimit;  ///< Write speed limit in bytes per second.
+    double bucketSizeLimit;  ///< maximum bucket size
 };
 
 #endif /* USE_DELAY_POOLS */
 
 #endif
-

@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
+#include "security/EncryptorAnswer.h"
 #include "comm/Connection.h"
 #include "errorpage.h"
-#include "security/EncryptorAnswer.h"
 
 Security::EncryptorAnswer::~EncryptorAnswer()
 {
@@ -17,8 +17,7 @@ Security::EncryptorAnswer::~EncryptorAnswer()
 }
 
 std::ostream &
-Security::operator <<(std::ostream &os, const Security::EncryptorAnswer &answer)
+Security::operator<<(std::ostream &os, const Security::EncryptorAnswer &answer)
 {
     return os << answer.conn << ", " << answer.error;
 }
-

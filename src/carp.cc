@@ -11,15 +11,15 @@
 #include "squid.h"
 #include "CachePeer.h"
 #include "HttpRequest.h"
-#include "mgr/Registration.h"
-#include "neighbors.h"
 #include "PeerSelectState.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "mgr/Registration.h"
+#include "neighbors.h"
 
 #include <cmath>
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
 static int n_carp_peers = 0;
 static CachePeer **carp_peers = NULL;
@@ -94,14 +94,14 @@ carpInit(void)
         p->carp.hash = 0;
 
         for (t = p->name; *t != 0; ++t)
-            p->carp.hash += ROTATE_LEFT(p->carp.hash, 19) + (unsigned int) *t;
+            p->carp.hash += ROTATE_LEFT(p->carp.hash, 19) + (unsigned int)*t;
 
         p->carp.hash += p->carp.hash * 0x62531965;
 
         p->carp.hash = ROTATE_LEFT(p->carp.hash, 21);
 
         /* and load factor */
-        p->carp.load_factor = ((double) p->weight) / (double) W;
+        p->carp.load_factor = ((double)p->weight) / (double)W;
 
         if (floor(p->carp.load_factor * 1000.0) == 0.0)
             p->carp.load_factor = 0.0;
@@ -124,14 +124,14 @@ carpInit(void)
      */
     K = n_carp_peers;
 
-    P_last = 0.0;       /* Empty P_0 */
+    P_last = 0.0; /* Empty P_0 */
 
-    Xn = 1.0;           /* Empty starting point of X_1 * X_2 * ... * X_{x-1} */
+    Xn = 1.0; /* Empty starting point of X_1 * X_2 * ... * X_{x-1} */
 
-    X_last = 0.0;       /* Empty X_0, nullifies the first pow statement */
+    X_last = 0.0; /* Empty X_0, nullifies the first pow statement */
 
     for (k = 1; k <= K; ++k) {
-        double Kk1 = (double) (K - k + 1);
+        double Kk1 = (double)(K - k + 1);
         p = carp_peers[k - 1];
         p->carp.load_multiplier = (Kk1 * (p->carp.load_factor - P_last)) / Xn;
         p->carp.load_multiplier += pow(X_last, Kk1);
@@ -171,7 +171,7 @@ carpSelectParent(PeerSelector *ps)
             // corner cases should use the full effective request URI
             if (tp->options.carp_key.scheme) {
                 key.append(request->url.getScheme().image());
-                if (key.length()) //if the scheme is not empty
+                if (key.length())  //if the scheme is not empty
                     key.append("://");
             }
             if (tp->options.carp_key.host) {
@@ -182,13 +182,13 @@ carpSelectParent(PeerSelector *ps)
             }
             if (tp->options.carp_key.path) {
                 // XXX: fix when path and query are separate
-                key.append(request->url.path().substr(0,request->url.path().find('?'))); // 0..N
+                key.append(request->url.path().substr(0, request->url.path().find('?')));  // 0..N
             }
             if (tp->options.carp_key.params) {
                 // XXX: fix when path and query are separate
                 SBuf::size_type pos;
-                if ((pos=request->url.path().find('?')) != SBuf::npos)
-                    key.append(request->url.path().substr(pos)); // N..npos
+                if ((pos = request->url.path().find('?')) != SBuf::npos)
+                    key.append(request->url.path().substr(pos));  // N..npos
             }
         }
         // if the url-based key is empty, e.g. because the user is
@@ -196,16 +196,15 @@ carpSelectParent(PeerSelector *ps)
         // then fall back to the effective request URI
 
         if (key.isEmpty())
-            key=request->effectiveRequestUri();
+            key = request->effectiveRequestUri();
 
-        for (const char *c = key.rawContent(), *e=key.rawContent()+key.length(); c < e; ++c)
+        for (const char *c = key.rawContent(), *e = key.rawContent() + key.length(); c < e; ++c)
             user_hash += ROTATE_LEFT(user_hash, 19) + *c;
         combined_hash = (user_hash ^ tp->carp.hash);
         combined_hash += combined_hash * 0x62531965;
         combined_hash = ROTATE_LEFT(combined_hash, 21);
         score = combined_hash * tp->carp.load_multiplier;
-        debugs(39, 3, "carpSelectParent: key=" << key << " name=" << tp->name << " combined_hash=" << combined_hash  <<
-               " score=" << std::setprecision(0) << score);
+        debugs(39, 3, "carpSelectParent: key=" << key << " name=" << tp->name << " combined_hash=" << combined_hash << " score=" << std::setprecision(0) << score);
 
         if ((score > high_score) && peerHTTPOkay(tp, ps)) {
             p = tp;
@@ -220,7 +219,7 @@ carpSelectParent(PeerSelector *ps)
 }
 
 static void
-carpCachemgr(StoreEntry * sentry)
+carpCachemgr(StoreEntry *sentry)
 {
     CachePeer *p;
     int sumfetches = 0;
@@ -239,7 +238,6 @@ carpCachemgr(StoreEntry * sentry)
                           p->name, p->carp.hash,
                           p->carp.load_multiplier,
                           p->carp.load_factor,
-                          sumfetches ? (double) p->stats.fetches / sumfetches : -1.0);
+                          sumfetches ? (double)p->stats.fetches / sumfetches : -1.0);
     }
 }
-

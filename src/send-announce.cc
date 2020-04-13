@@ -9,6 +9,9 @@
 /* DEBUG: section 27    Cache Announcer */
 
 #include "squid.h"
+#include "ICP.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
 #include "anyp/PortCfg.h"
 #include "comm/Connection.h"
 #include "event.h"
@@ -16,10 +19,7 @@
 #include "fde.h"
 #include "fs_io.h"
 #include "globals.h"
-#include "ICP.h"
 #include "ipcache.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
 #include "tools.h"
 
 static IPH send_announce;
@@ -35,7 +35,7 @@ start_announce(void *)
 
     ipcache_nbgethostbyname(Config.Announce.host, send_announce, NULL);
 
-    eventAdd("send_announce", start_announce, NULL, (double) Config.Announce.period, 1);
+    eventAdd("send_announce", start_announce, NULL, (double)Config.Announce.period, 1);
 }
 
 static void
@@ -64,7 +64,7 @@ send_announce(const ipcache_addrs *ia, const Dns::LookupDetails &, void *)
     snprintf(tbuf, 256, "Running on %s %d %d\n",
              getMyHostname(),
              getMyPort(),
-             (int) Config.Port.icp);
+             (int)Config.Port.icp);
     strcat(sndbuf, tbuf);
 
     if (Config.adminEmail) {
@@ -73,7 +73,7 @@ send_announce(const ipcache_addrs *ia, const Dns::LookupDetails &, void *)
     }
 
     snprintf(tbuf, 256, "generated %d [%s]\n",
-             (int) squid_curtime,
+             (int)squid_curtime,
              Time::FormatHttpd(squid_curtime));
     strcat(sndbuf, tbuf);
     l = strlen(sndbuf);
@@ -101,4 +101,3 @@ send_announce(const ipcache_addrs *ia, const Dns::LookupDetails &, void *)
         debugs(27, DBG_IMPORTANT, "ERROR: Failed to announce to " << S << " from " << icpOutgoingConn->local << ": " << xstrerr(xerrno));
     }
 }
-

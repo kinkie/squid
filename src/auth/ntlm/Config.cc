@@ -13,22 +13,22 @@
  * See acl.c for access control and client_side.c for auditing */
 
 #include "squid.h"
-#include "auth/Gadgets.h"
 #include "auth/ntlm/Config.h"
+#include "HttpHeaderTools.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "SquidTime.h"
+#include "Store.h"
+#include "auth/Gadgets.h"
+#include "auth/State.h"
 #include "auth/ntlm/Scheme.h"
 #include "auth/ntlm/User.h"
 #include "auth/ntlm/UserRequest.h"
-#include "auth/State.h"
 #include "cache_cf.h"
 #include "client_side.h"
 #include "helper.h"
 #include "http/Stream.h"
-#include "HttpHeaderTools.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 #include "mgr/Registration.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "wordlist.h"
 
 /* NTLM Scheme */
@@ -93,7 +93,7 @@ Auth::Ntlm::Config::init(Auth::SchemeConfig *)
             ntlmauthenticators = new statefulhelper("ntlmauthenticator");
 
         if (!proxy_auth_cache)
-            proxy_auth_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+            proxy_auth_cache = hash_create((HASHCMP *)strcmp, 7921, hash_string);
 
         assert(proxy_auth_cache);
 
@@ -136,7 +136,7 @@ Auth::Ntlm::Config::configured() const
 /* NTLM Scheme */
 
 void
-Auth::Ntlm::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request, HttpReply *rep, Http::HdrType hdrType, HttpRequest * request)
+Auth::Ntlm::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request, HttpReply *rep, Http::HdrType hdrType, HttpRequest *request)
 {
     if (!authenticateProgram)
         return;
@@ -164,13 +164,13 @@ Auth::Ntlm::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request, Http
             /* here it makes sense to drop the connection, as auth is
              * tied to it, even if MAYBE the client could handle it - Kinkie */
             request->flags.proxyKeepalive = false;
-        /* fall through */
+            /* fall through */
 
         case Auth::Ok:
-        /* Special case: authentication finished OK but disallowed by ACL.
+            /* Special case: authentication finished OK but disallowed by ACL.
          * Need to start over to give the client another chance.
          */
-        /* fall through */
+            /* fall through */
 
         case Auth::Unchecked:
             /* semantic change: do not drop the connection.
@@ -194,7 +194,7 @@ Auth::Ntlm::Config::fixHeader(Auth::UserRequest::Pointer auth_user_request, Http
 }
 
 static void
-authenticateNTLMStats(StoreEntry * sentry)
+authenticateNTLMStats(StoreEntry *sentry)
 {
     if (ntlmauthenticators)
         ntlmauthenticators->packStatsInto(sentry, "NTLM Authenticator Statistics");
@@ -220,4 +220,3 @@ Auth::Ntlm::Config::decode(char const *proxy_auth, const HttpRequest *, const ch
     debugs(29, 9, HERE << "decode: NTLM authentication");
     return auth_user_request;
 }
-

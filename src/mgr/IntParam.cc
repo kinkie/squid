@@ -9,23 +9,23 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "Debug.h"
-#include "ipc/TypedMsgHdr.h"
 #include "mgr/IntParam.h"
+#include "Debug.h"
+#include "base/TextException.h"
+#include "ipc/TypedMsgHdr.h"
 
-Mgr::IntParam::IntParam():
+Mgr::IntParam::IntParam() :
     QueryParam(QueryParam::ptInt), array()
 {
 }
 
-Mgr::IntParam::IntParam(const std::vector<int>& anArray):
+Mgr::IntParam::IntParam(const std::vector<int> &anArray) :
     QueryParam(QueryParam::ptInt), array(anArray)
 {
 }
 
 void
-Mgr::IntParam::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::IntParam::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.putPod(type);
     msg.putInt(array.size());
@@ -35,18 +35,17 @@ Mgr::IntParam::pack(Ipc::TypedMsgHdr& msg) const
 }
 
 void
-Mgr::IntParam::unpackValue(const Ipc::TypedMsgHdr& msg)
+Mgr::IntParam::unpackValue(const Ipc::TypedMsgHdr &msg)
 {
     array.clear();
     int count = msg.getInt();
     Must(count >= 0);
-    for ( ; count > 0; --count)
+    for (; count > 0; --count)
         array.push_back(msg.getInt());
 }
 
-const std::vector<int>&
+const std::vector<int> &
 Mgr::IntParam::value() const
 {
     return array;
 }
-

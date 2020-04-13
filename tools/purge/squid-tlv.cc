@@ -43,11 +43,11 @@
 #include "squid.h"
 #include "squid-tlv.hh"
 
-SquidTLV::SquidTLV( SquidMetaType _type, size_t _size, void* _data )
-    :next(0),size(_size)
+SquidTLV::SquidTLV(SquidMetaType _type, size_t _size, void *_data) :
+    next(0), size(_size)
 {
     type = _type;
-    data = (char*) _data;
+    data = (char *)_data;
 }
 
 SquidMetaList::SquidMetaList()
@@ -57,28 +57,29 @@ SquidMetaList::SquidMetaList()
 
 SquidMetaList::~SquidMetaList()
 {
-    for ( SquidTLV* temp = head; temp; temp = head ) {
+    for (SquidTLV *temp = head; temp; temp = head) {
         head = temp->next;
         delete temp;
     }
 }
 
 void
-SquidMetaList::append( SquidMetaType type, size_t size, void* data )
+SquidMetaList::append(SquidMetaType type, size_t size, void *data)
 {
-    SquidTLV* temp = new SquidTLV( type, size, data );
-    if ( head == 0 ) head = tail = temp;
+    SquidTLV *temp = new SquidTLV(type, size, data);
+    if (head == 0)
+        head = tail = temp;
     else {
         tail->next = temp;
         tail = temp;
     }
 }
 
-const SquidTLV*
-SquidMetaList::search( SquidMetaType type ) const
+const SquidTLV *
+SquidMetaList::search(SquidMetaType type) const
 {
-    const SquidTLV* temp = head;
-    while ( temp && temp->type != type ) temp = temp->next;
+    const SquidTLV *temp = head;
+    while (temp && temp->type != type)
+        temp = temp->next;
     return temp;
 }
-

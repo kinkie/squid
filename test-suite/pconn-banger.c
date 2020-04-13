@@ -55,7 +55,7 @@
 #define PROXY_ADDR "127.0.0.1"
 #define MAX_FDS 1024
 #define READ_BUF_SZ 4096
-#define min(x,y) ((x)<(y)? (x) : (y))
+#define min(x, y) ((x) < (y) ? (x) : (y))
 
 static int proxy_port = PROXY_PORT;
 static char *proxy_addr = PROXY_ADDR;
@@ -89,13 +89,13 @@ struct _r {
 static struct _r *Requests;
 
 char *
-mkrfc850(t)
-time_t *t;
+    mkrfc850(t)
+        time_t *t;
 {
     static char buf[128];
     struct tm *gmt = gmtime(t);
     buf[0] = '\0';
-    (void) strftime(buf, 127, "%A, %d-%b-%y %H:%M:%S GMT", gmt);
+    (void)strftime(buf, 127, "%A, %d-%b-%y %H:%M:%S GMT", gmt);
     return buf;
 }
 
@@ -115,7 +115,7 @@ mime_headers_end(const char *mime)
     if (end)
         end += (end == p1 ? 3 : 2);
 
-    return (char *) end;
+    return (char *)end;
 }
 
 void
@@ -134,7 +134,7 @@ open_http_socket(void)
     struct addrinfo hints;
 
     memset(&hints, '\0', sizeof(struct addrinfo));
-    hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
+    hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
@@ -181,13 +181,13 @@ send_request(int fd, const char *data)
     if (checksum && strcmp(checksum, "-") == 0)
         checksum = NULL;
     msg[0] = '\0';
-    snprintf(buf, sizeof(buf)-1, "%s %s HTTP/1.0\r\n", method, url);
+    snprintf(buf, sizeof(buf) - 1, "%s %s HTTP/1.0\r\n", method, url);
     strcat(msg, buf);
     strcat(msg, "Accept: */*\r\n");
     strcat(msg, "Proxy-Connection: Keep-Alive\r\n");
     if (opt_ims && (lrand48() & 0x03) == 0) {
         w = time(NULL) - (lrand48() & 0x3FFFF);
-        snprintf(buf, sizeof(buf)-1, "If-Modified-Since: %s\r\n", mkrfc850(&w));
+        snprintf(buf, sizeof(buf) - 1, "If-Modified-Since: %s\r\n", mkrfc850(&w));
         strcat(msg, buf);
     }
     if (file) {
@@ -200,7 +200,7 @@ send_request(int fd, const char *data)
             close(file_fd);
             return -1;
         }
-        snprintf(buf, sizeof(buf)-1, "Content-length: %d\r\n", st.st_size);
+        snprintf(buf, sizeof(buf) - 1, "Content-length: %d\r\n", st.st_size);
         strcat(msg, buf);
     }
     strcat(msg, "\r\n");
@@ -235,7 +235,8 @@ send_request(int fd, const char *data)
         r->validsize = -1;
     if (checksum)
         r->validsum = atoi(checksum);
-    for (R = &Requests; *R; R = &(*R)->next);
+    for (R = &Requests; *R; R = &(*R)->next)
+        ;
     *R = r;
     /*    fprintf(stderr, "REQUESTED %s\n", url); */
     noutstanding++;
@@ -359,7 +360,7 @@ handle_read(char *inbuf, int len)
                 memcpy(buf, r->reply_hdrs + r->hdr_length, blen);
                 len += blen;
             }
-            r->reply_hdrs[r->hdr_length] = '\0';    /* Null terminate headers */
+            r->reply_hdrs[r->hdr_length] = '\0'; /* Null terminate headers */
             /* Parse headers */
             r->content_length = get_header_int_value("content-length:", r->reply_hdrs, end);
             /*          fprintf(stderr, "CONTENT_LENGTH = %d\n", r->content_length); */
@@ -383,12 +384,12 @@ handle_read(char *inbuf, int len)
                 assert(bytes_left >= 0);
                 bytes_used = len < bytes_left ? len : bytes_left;
             } else {
-                bytes_left = len + 1;   /* Unknown end... */
+                bytes_left = len + 1; /* Unknown end... */
                 bytes_used = len;
             }
             if (opt_checksum) {
                 for (i = 0; i < bytes_used; i++)
-                    r->sum += (int) buf[i] & 0xFF;
+                    r->sum += (int)buf[i] & 0xFF;
             }
             r->bytes_read += bytes_used;
             len -= bytes_used;
@@ -464,7 +465,8 @@ main_loop(void)
                     close(pconn_fd);
                     pconn_fd = -1;
                     nextr = r;
-                    for (r = Requests; r != NULL && r->next; r = r->next);
+                    for (r = Requests; r != NULL && r->next; r = r->next)
+                        ;
                     if (r != NULL)
                         r->next = nextr;
                     else
@@ -530,7 +532,7 @@ main_loop(void)
             int dt;
             int nreq;
             last = now;
-            dt = (int) (now.tv_sec - start.tv_sec);
+            dt = (int)(now.tv_sec - start.tv_sec);
             nreq = 0;
             for (r = Requests; r; r = r->next)
                 nreq++;
@@ -539,9 +541,9 @@ main_loop(void)
                    nrequests,
                    reqpersec,
                    nreq,
-                   (int) (nrequests / dt),
-                   (int) total_bytes_read / 1024 / 1024,
-                   (int) total_bytes_read / 1024 / dt);
+                   (int)(nrequests / dt),
+                   (int)total_bytes_read / 1024 / 1024,
+                   (int)total_bytes_read / 1024 / dt);
             reqpersec = 0;
         }
     }
@@ -554,8 +556,7 @@ usage(void)
 }
 
 int
-main(argc, argv)
-int argc;
+    main(argc, argv) int argc;
 char *argv[];
 {
     int c;
@@ -580,7 +581,7 @@ char *argv[];
             opt_checksum = 1;
             break;
         case 'l':
-            lifetime = (time_t) atoi(optarg);
+            lifetime = (time_t)atoi(optarg);
             break;
         case 't':
             trace_fd = open(optarg, O_WRONLY | O_CREAT | O_TRUNC, 0666);
@@ -598,4 +599,3 @@ char *argv[];
     main_loop();
     return 0;
 }
-

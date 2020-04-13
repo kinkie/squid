@@ -52,14 +52,14 @@ public:
         time_t last_reply = 0;
         time_t last_connect_failure = 0;
         time_t last_connect_probe = 0;
-        int logged_state = PEER_ALIVE;   ///< so we can print dead/revived msgs
-        int conn_open = 0;               ///< current opened connections
+        int logged_state = PEER_ALIVE;  ///< so we can print dead/revived msgs
+        int conn_open = 0;              ///< current opened connections
     } stats;
 
     struct icp_ {
         icp_() { memset(&counts, 0, sizeof(counts)); }
         int version = ICP_VERSION_CURRENT;
-        int counts[ICP_END+1];
+        int counts[ICP_END + 1];
         unsigned short port = CACHE_ICP_PORT;
     } icp;
 
@@ -100,7 +100,7 @@ public:
         bool allow_miss = false;
         bool carp = false;
         struct {
-            bool set = false; //If false, whole url is to be used. Overrides others
+            bool set = false;  //If false, whole url is to be used. Overrides others
             bool scheme = false;
             bool host = false;
             bool port = false;
@@ -140,7 +140,7 @@ public:
     char *digest_url = nullptr;
 #endif
 
-    int tcp_up = 0;         /* 0 if a connect() fails */
+    int tcp_up = 0; /* 0 if a connect() fails */
     /// whether to do another TCP probe after current TCP probes
     bool reprobe = false;
 
@@ -153,44 +153,43 @@ public:
     struct {
         unsigned int hash = 0;
         double load_multiplier = 0.0;
-        double load_factor = 0.0;     ///< normalized weight value
+        double load_factor = 0.0;  ///< normalized weight value
     } carp;
 #if USE_AUTH
     struct {
         unsigned int hash = 0;
         double load_multiplier = 0.0;
-        double load_factor = 0.0;     ///< normalized weight value
+        double load_factor = 0.0;  ///< normalized weight value
     } userhash;
 #endif
     struct {
         unsigned int hash = 0;
         double load_multiplier = 0.0;
-        double load_factor = 0.0;     ///< normalized weight value
+        double load_factor = 0.0;  ///< normalized weight value
     } sourcehash;
 
-    char *login = nullptr;        /* Proxy authorization */
-    time_t connect_timeout_raw = 0; ///< connect_timeout; use peerConnectTimeout() instead!
+    char *login = nullptr;           /* Proxy authorization */
+    time_t connect_timeout_raw = 0;  ///< connect_timeout; use peerConnectTimeout() instead!
     int connect_fail_limit = 0;
     int max_conn = 0;
 
     /// optional "cache_peer standby=limit" feature
     struct {
-        PconnPool *pool = nullptr;    ///< idle connection pool for this peer
-        CbcPointer<PeerPoolMgr> mgr;  ///< pool manager
-        int limit = 0;                ///< the limit itself
-        bool waitingForClose = false; ///< a conn must close before we open a standby conn
+        PconnPool *pool = nullptr;     ///< idle connection pool for this peer
+        CbcPointer<PeerPoolMgr> mgr;   ///< pool manager
+        int limit = 0;                 ///< the limit itself
+        bool waitingForClose = false;  ///< a conn must close before we open a standby conn
     } standby;
 
-    char *domain = nullptr; ///< Forced domain
+    char *domain = nullptr;  ///< Forced domain
 
     /// security settings for peer connection
     Security::PeerOptions secure;
     Security::ContextPointer sslContext;
     Security::SessionStatePointer sslSession;
 
-    int front_end_https = 0; ///< 0 - off, 1 - on, 2 - auto
-    int connection_auth = 2; ///< 0 - off, 1 - on, 2 - auto
+    int front_end_https = 0;  ///< 0 - off, 1 - on, 2 - auto
+    int connection_auth = 2;  ///< 0 - off, 1 - on, 2 - auto
 };
 
 #endif /* SQUID_CACHEPEER_H_ */
-

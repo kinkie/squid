@@ -13,14 +13,14 @@
 
 class StoreEntry;
 
-namespace Log
-{
+namespace Log {
 
 class LogConfig
 {
 public:
     void parseFormats();
-    void dumpFormats(StoreEntry *e, const char *name) {
+    void dumpFormats(StoreEntry *e, const char *name)
+    {
         logformats->dump(e, name);
     }
 
@@ -41,12 +41,15 @@ public:
 
 extern LogConfig TheConfig;
 
-} // namespace Log
+}  // namespace Log
 
 // Legacy parsing wrappers
-#define parse_logformat(X)  (X)->parseFormats()
-#define free_logformat(X)   do{ delete (*X).logformats; (*X).logformats=NULL; }while(false)
-#define dump_logformat(E,N,D) (D).dumpFormats((E),(N))
+#define parse_logformat(X) (X)->parseFormats()
+#define free_logformat(X)       \
+    do {                        \
+        delete (*X).logformats; \
+        (*X).logformats = NULL; \
+    } while (false)
+#define dump_logformat(E, N, D) (D).dumpFormats((E), (N))
 
 #endif
-

@@ -59,18 +59,18 @@ const char *SMB_Prots[] = {"PC NETWORK PROGRAM 1.0",
                            "Samba",
                            "NT LM 0.12",
                            "NT LANMAN 1.0",
-                           NULL
-                          };
+                           NULL};
 
 /* Initialize the SMBlib package     */
 
-int SMB_Init()
+int
+SMB_Init()
 
 {
 
     SMBlib_State = SMB_State_Started;
 
-    signal(SIGPIPE, SIG_IGN);   /* Ignore these ... */
+    signal(SIGPIPE, SIG_IGN); /* Ignore these ... */
 
     /* If SMBLIB_Instrument is defines, turn on the instrumentation stuff */
 #ifdef SMBLIB_INSTRUMENT
@@ -80,26 +80,26 @@ int SMB_Init()
 #endif
 
     return 0;
-
 }
 
 /* SMB_Create: Create a connection structure and return for later use */
 /* We have other helper routines to set variables                     */
 
-SMB_Handle_Type SMB_Create_Con_Handle()
+SMB_Handle_Type
+SMB_Create_Con_Handle()
 
 {
 
     SMBlib_errno = SMBlibE_NotImpl;
-    return(NULL);
-
+    return (NULL);
 }
 
 /* SMB_Connect_Server: Connect to a server, but don't negotiate protocol */
 /* or anything else ...                                                  */
 
-SMB_Handle_Type SMB_Connect_Server(SMB_Handle_Type Con_Handle,
-                                   const char *server, const char *NTdomain)
+SMB_Handle_Type
+SMB_Connect_Server(SMB_Handle_Type Con_Handle,
+                   const char *server, const char *NTdomain)
 
 {
     SMB_Handle_Type con;
@@ -117,61 +117,60 @@ SMB_Handle_Type SMB_Connect_Server(SMB_Handle_Type Con_Handle,
             SMBlib_errno = SMBlibE_NoSpace;
             return NULL;
         }
-
     }
 
     /* Init some things ... */
 
-    strcpy(con -> service, "");
-    strcpy(con -> username, "");
-    strcpy(con -> password, "");
-    strcpy(con -> sock_options, "");
-    strcpy(con -> address, "");
-    strncpy(con -> desthost, server, sizeof(con->desthost));
+    strcpy(con->service, "");
+    strcpy(con->username, "");
+    strcpy(con->password, "");
+    strcpy(con->sock_options, "");
+    strcpy(con->address, "");
+    strncpy(con->desthost, server, sizeof(con->desthost));
     con->desthost[sizeof(con->desthost) - 1] = '\0';
-    strncpy(con -> PDomain, NTdomain, sizeof(con->PDomain));
+    strncpy(con->PDomain, NTdomain, sizeof(con->PDomain));
     con->PDomain[sizeof(con->PDomain) - 1] = '\0';
-    strcpy(con -> OSName, SMBLIB_DEFAULT_OSNAME);
-    strcpy(con -> LMType, SMBLIB_DEFAULT_LMTYPE);
-    con -> first_tree = con -> last_tree = NULL;
+    strcpy(con->OSName, SMBLIB_DEFAULT_OSNAME);
+    strcpy(con->LMType, SMBLIB_DEFAULT_LMTYPE);
+    con->first_tree = con->last_tree = NULL;
 
-    SMB_Get_My_Name(con -> myname, sizeof(con -> myname));
+    SMB_Get_My_Name(con->myname, sizeof(con->myname));
 
-    con -> port = 0;                    /* No port selected */
+    con->port = 0; /* No port selected */
 
     /* Get some things we need for the SMB Header */
 
-    con -> pid = getpid();
-    con -> mid = con -> pid;      /* This will do for now ... */
-    con -> uid = 0;               /* Until we have done a logon, no uid ... */
-    con -> gid = getgid();
+    con->pid = getpid();
+    con->mid = con->pid; /* This will do for now ... */
+    con->uid = 0;        /* Until we have done a logon, no uid ... */
+    con->gid = getgid();
 
     /* Now connect to the remote end, but first upper case the name of the
        service we are going to call, sine some servers want it in uppercase */
 
-    for (i=0; i < strlen(con -> desthost); i++)
-        called[i] = xtoupper(con -> desthost[i]);
+    for (i = 0; i < strlen(con->desthost); i++)
+        called[i] = xtoupper(con->desthost[i]);
 
-    called[strlen(con -> desthost)] = 0;    /* Make it a string */
+    called[strlen(con->desthost)] = 0; /* Make it a string */
 
-    for (i=0; i < strlen(con -> myname); i++)
-        calling[i] = xtoupper(con -> myname[i]);
+    for (i = 0; i < strlen(con->myname); i++)
+        calling[i] = xtoupper(con->myname[i]);
 
-    calling[strlen(con -> myname)] = 0;    /* Make it a string */
+    calling[strlen(con->myname)] = 0; /* Make it a string */
 
-    if (strlen(con -> address) == 0)
-        address = con -> desthost;
+    if (strlen(con->address) == 0)
+        address = con->desthost;
     else
-        address = con -> address;
+        address = con->address;
 
-    con -> Trans_Connect = RFCNB_Call(called,
-                                      calling,
-                                      address, /* Protocol specific */
-                                      con -> port);
+    con->Trans_Connect = RFCNB_Call(called,
+                                    calling,
+                                    address, /* Protocol specific */
+                                    con->port);
 
     /* Did we get one? */
 
-    if (con -> Trans_Connect == NULL) {
+    if (con->Trans_Connect == NULL) {
 
         if (Con_Handle == NULL) {
             Con_Handle = NULL;
@@ -179,11 +178,9 @@ SMB_Handle_Type SMB_Connect_Server(SMB_Handle_Type Con_Handle,
         }
         SMBlib_errno = -SMBlibE_CallFailed;
         return NULL;
-
     }
 
-    return(con);
-
+    return (con);
 }
 
 /* SMB_Connect: Connect to the indicated server                       */
@@ -191,14 +188,14 @@ SMB_Handle_Type SMB_Connect_Server(SMB_Handle_Type Con_Handle,
 /* use the handle passed                                              */
 
 const char *SMB_Prots_Restrict[] = {"PC NETWORK PROGRAM 1.0",
-                                    NULL
-                                   };
+                                    NULL};
 
-SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
-                            SMB_Tree_Handle *tree,
-                            char *service,
-                            char *username,
-                            char *password)
+SMB_Handle_Type
+SMB_Connect(SMB_Handle_Type Con_Handle,
+            SMB_Tree_Handle *tree,
+            char *service,
+            char *username,
+            char *password)
 
 {
     SMB_Handle_Type con;
@@ -217,40 +214,39 @@ SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
             SMBlib_errno = SMBlibE_NoSpace;
             return NULL;
         }
-
     }
 
     /* Init some things ... */
 
-    strncpy(con -> service, service, sizeof(con -> service));
-    con -> service[sizeof(con -> service) - 1] = '\0';
-    strncpy(con -> username, username, sizeof(con -> username));
-    con -> username[sizeof(con -> username) - 1] = '\0';
-    strncpy(con -> password, password, sizeof(con -> password));
-    con -> password[sizeof(con -> password) - 1] = '\0';
-    strcpy(con -> sock_options, "");
-    strcpy(con -> address, "");
-    strcpy(con -> PDomain, SMBLIB_DEFAULT_DOMAIN);
-    strcpy(con -> OSName, SMBLIB_DEFAULT_OSNAME);
-    strcpy(con -> LMType, SMBLIB_DEFAULT_LMTYPE);
-    con -> first_tree = con -> last_tree = NULL;
+    strncpy(con->service, service, sizeof(con->service));
+    con->service[sizeof(con->service) - 1] = '\0';
+    strncpy(con->username, username, sizeof(con->username));
+    con->username[sizeof(con->username) - 1] = '\0';
+    strncpy(con->password, password, sizeof(con->password));
+    con->password[sizeof(con->password) - 1] = '\0';
+    strcpy(con->sock_options, "");
+    strcpy(con->address, "");
+    strcpy(con->PDomain, SMBLIB_DEFAULT_DOMAIN);
+    strcpy(con->OSName, SMBLIB_DEFAULT_OSNAME);
+    strcpy(con->LMType, SMBLIB_DEFAULT_LMTYPE);
+    con->first_tree = con->last_tree = NULL;
 
-    SMB_Get_My_Name(con -> myname, sizeof(con -> myname));
+    SMB_Get_My_Name(con->myname, sizeof(con->myname));
 
-    con -> port = 0;                    /* No port selected */
+    con->port = 0; /* No port selected */
 
     /* Get some things we need for the SMB Header */
 
-    con -> pid = getpid();
-    con -> mid = con -> pid;      /* This will do for now ... */
-    con -> uid = 0;               /* Until we have done a logon, no uid */
-    con -> gid = getgid();
+    con->pid = getpid();
+    con->mid = con->pid; /* This will do for now ... */
+    con->uid = 0;        /* Until we have done a logon, no uid */
+    con->gid = getgid();
 
     /* Now figure out the host portion of the service */
 
     strncpy(temp, service, sizeof(temp));
     temp[sizeof(temp) - 1] = '\0';
-    host = strtok(temp, "/\\");     /* Separate host name portion */
+    host = strtok(temp, "/\\"); /* Separate host name portion */
     if (!host) {
         if (Con_Handle == NULL) {
             free(con);
@@ -260,34 +256,34 @@ SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
         return NULL;
     }
     strncpy(con->desthost, host, sizeof(con->desthost));
-    con->desthost[sizeof(con->desthost)-1]='\0';
+    con->desthost[sizeof(con->desthost) - 1] = '\0';
 
     /* Now connect to the remote end, but first upper case the name of the
        service we are going to call, sine some servers want it in uppercase */
 
-    for (i=0; i < strlen(con -> desthost); i++)
-        called[i] = xtoupper(con -> desthost[i]);
+    for (i = 0; i < strlen(con->desthost); i++)
+        called[i] = xtoupper(con->desthost[i]);
 
-    called[strlen(con -> desthost)] = 0;    /* Make it a string */
+    called[strlen(con->desthost)] = 0; /* Make it a string */
 
-    for (i=0; i < strlen(con -> myname); i++)
-        calling[i] = xtoupper(con -> myname[i]);
+    for (i = 0; i < strlen(con->myname); i++)
+        calling[i] = xtoupper(con->myname[i]);
 
-    calling[strlen(con -> myname)] = 0;    /* Make it a string */
+    calling[strlen(con->myname)] = 0; /* Make it a string */
 
-    if (strlen(con -> address) == 0)
-        address = con -> desthost;
+    if (strlen(con->address) == 0)
+        address = con->desthost;
     else
-        address = con -> address;
+        address = con->address;
 
-    con -> Trans_Connect = RFCNB_Call(called,
-                                      calling,
-                                      address, /* Protocol specific */
-                                      con -> port);
+    con->Trans_Connect = RFCNB_Call(called,
+                                    calling,
+                                    address, /* Protocol specific */
+                                    con->port);
 
     /* Did we get one? */
 
-    if (con -> Trans_Connect == NULL) {
+    if (con->Trans_Connect == NULL) {
 
         if (Con_Handle == NULL) {
             free(con);
@@ -295,7 +291,6 @@ SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
         }
         SMBlib_errno = -SMBlibE_CallFailed;
         return NULL;
-
     }
 
     /* Now, negotiate the protocol */
@@ -307,7 +302,6 @@ SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
         }
         SMBlib_errno = -SMBlibE_NegNoProt;
         return NULL;
-
     }
 
     /* Now connect to the service ... */
@@ -319,18 +313,17 @@ SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
         }
         SMBlib_errno = -SMBlibE_BAD;
         return NULL;
-
     }
 
-    return(con);
-
+    return (con);
 }
 
 /* Logon to the server. That is, do a session setup if we can. We do not do */
 /* Unicode yet!                                                             */
 
-int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
-                     char *PassWord, const char *NtDomain, int PreCrypted)
+int
+SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
+                 char *PassWord, const char *NtDomain, int PreCrypted)
 
 {
     struct RFCNB_Pkt *pkt;
@@ -341,11 +334,10 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
     /* been negotiated to figure out if we can do it and what SMB format to  */
     /* use ...                                                               */
 
-    if (Con_Handle -> protocol < SMB_P_LanMan1) {
+    if (Con_Handle->protocol < SMB_P_LanMan1) {
 
         SMBlib_errno = SMBlibE_ProtLow;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     if (PreCrypted) {
@@ -357,7 +349,7 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 #ifdef PAM_SMB_ENC_PASS
         if (Con_Handle->encrypt_passwords) {
             pass_len = 24;
-            SMBencrypt((uchar *) PassWord, (uchar *) Con_Handle->Encrypt_Key, (uchar *) pword);
+            SMBencrypt((uchar *)PassWord, (uchar *)Con_Handle->Encrypt_Key, (uchar *)pword);
         } else
 #endif
             pass_len = strlen(pword);
@@ -365,13 +357,11 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 
     /* Now build the correct structure */
 
-    if (Con_Handle -> protocol < SMB_P_NT1) {
+    if (Con_Handle->protocol < SMB_P_NT1) {
 
         /* We don't handle encrypted passwords ... */
 
-        param_len = strlen(UserName) + 1 + pass_len + 1 +
-                    (NtDomain!=NULL ? strlen(NtDomain) : strlen(Con_Handle->PDomain)) + 1 +
-                    strlen(Con_Handle -> OSName) + 1;
+        param_len = strlen(UserName) + 1 + pass_len + 1 + (NtDomain != NULL ? strlen(NtDomain) : strlen(Con_Handle->PDomain)) + 1 + strlen(Con_Handle->OSName) + 1;
 
         pkt_len = SMB_ssetpLM_len + param_len;
 
@@ -380,24 +370,23 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
         if (pkt == NULL) {
 
             SMBlib_errno = SMBlibE_NoSpace;
-            return(SMBlibE_BAD); /* Should handle the error */
-
+            return (SMBlibE_BAD); /* Should handle the error */
         }
 
         memset(SMB_Hdr(pkt), 0, SMB_ssetpLM_len);
-        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
         *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBsesssetupX;
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle->pid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, 0);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle -> mid);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, Con_Handle -> uid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle->mid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, Con_Handle->uid);
         *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 10;
-        *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = 0xFF;    /* No extra command */
+        *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = 0xFF; /* No extra command */
         SSVAL(SMB_Hdr(pkt), SMB_hdr_axo_offset, 0);
 
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_mbs_offset, SMBLIB_MAX_XMIT);
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_mmc_offset, 2);
-        SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_vcn_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_vcn_offset, Con_Handle->pid);
         SIVAL(SMB_Hdr(pkt), SMB_ssetpLM_snk_offset, 0);
         SSVAL(SMB_Hdr(pkt), SMB_ssetpLM_pwl_offset, pass_len + 1);
         SIVAL(SMB_Hdr(pkt), SMB_ssetpLM_res_offset, 0);
@@ -420,8 +409,8 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
         p = p + 1;
 
         if (NtDomain == NULL) {
-            strcpy(p, Con_Handle -> PDomain);
-            p = p + strlen(Con_Handle -> PDomain);
+            strcpy(p, Con_Handle->PDomain);
+            p = p + strlen(Con_Handle->PDomain);
         } else {
             strcpy(p, NtDomain);
             p = p + strlen(NtDomain);
@@ -429,18 +418,15 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> OSName);
-        p = p + strlen(Con_Handle -> OSName);
+        strcpy(p, Con_Handle->OSName);
+        p = p + strlen(Con_Handle->OSName);
         *p = 0;
 
     } else {
 
         /* We don't admit to UNICODE support ... */
 
-        param_len = strlen(UserName) + 1 + pass_len +
-                    strlen(Con_Handle -> PDomain) + 1 +
-                    strlen(Con_Handle -> OSName) + 1 +
-                    strlen(Con_Handle -> LMType) + 1;
+        param_len = strlen(UserName) + 1 + pass_len + strlen(Con_Handle->PDomain) + 1 + strlen(Con_Handle->OSName) + 1 + strlen(Con_Handle->LMType) + 1;
 
         pkt_len = SMB_ssetpNTLM_len + param_len;
 
@@ -449,19 +435,18 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
         if (pkt == NULL) {
 
             SMBlib_errno = SMBlibE_NoSpace;
-            return(-1); /* Should handle the error */
-
+            return (-1); /* Should handle the error */
         }
 
         memset(SMB_Hdr(pkt), 0, SMB_ssetpNTLM_len);
-        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+        SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
         *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBsesssetupX;
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle -> pid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, Con_Handle->pid);
         SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, 0);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle -> mid);
-        SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, Con_Handle -> uid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, Con_Handle->mid);
+        SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, Con_Handle->uid);
         *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 13;
-        *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = 0xFF;    /* No extra command */
+        *(SMB_Hdr(pkt) + SMB_hdr_axc_offset) = 0xFF; /* No extra command */
         SSVAL(SMB_Hdr(pkt), SMB_hdr_axo_offset, 0);
 
         SSVAL(SMB_Hdr(pkt), SMB_ssetpNTLM_mbs_offset, SMBLIB_MAX_XMIT);
@@ -490,25 +475,24 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 
         p = p + 1;
 
-        strcpy(p, Con_Handle -> PDomain);
-        p = p + strlen(Con_Handle -> PDomain);
+        strcpy(p, Con_Handle->PDomain);
+        p = p + strlen(Con_Handle->PDomain);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> OSName);
-        p = p + strlen(Con_Handle -> OSName);
+        strcpy(p, Con_Handle->OSName);
+        p = p + strlen(Con_Handle->OSName);
         *p = 0;
         p = p + 1;
 
-        strcpy(p, Con_Handle -> LMType);
-        p = p + strlen(Con_Handle -> LMType);
+        strcpy(p, Con_Handle->LMType);
+        p = p + strlen(Con_Handle->LMType);
         *p = 0;
-
     }
 
     /* Now send it and get a response */
 
-    if (RFCNB_Send(Con_Handle -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Send(Con_Handle->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error sending SessSetupX request\n");
@@ -516,13 +500,12 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_SendFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Now get the response ... */
 
-    if (RFCNB_Recv(Con_Handle -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Recv(Con_Handle->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error receiving response to SessSetupAndX\n");
@@ -530,13 +513,12 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_RecvFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Check out the response type ... */
 
-    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) {  /* Process error */
+    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) { /* Process error */
 
 #ifdef DEBUG
         fprintf(stderr, "SMB_SessSetupAndX failed with errorclass = %i, Error Code = %i\n",
@@ -547,8 +529,7 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
         SMBlib_SMB_Error = IVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset);
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_Remote;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /** @@@ mdz: check for guest login { **/
@@ -565,27 +546,25 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 
     /* Now pick up the UID for future reference ... */
 
-    Con_Handle -> uid = SVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset);
+    Con_Handle->uid = SVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset);
     RFCNB_Free_Pkt(pkt);
 
-    return(0);
-
+    return (0);
 }
 
 /* Disconnect from the server, and disconnect all tree connects */
 
-int SMB_Discon(SMB_Handle_Type Con_Handle, BOOL KeepHandle)
+int
+SMB_Discon(SMB_Handle_Type Con_Handle, BOOL KeepHandle)
 
 {
 
     /* We just disconnect the connection for now ... */
 
-    RFCNB_Hangup(Con_Handle -> Trans_Connect);
+    RFCNB_Hangup(Con_Handle->Trans_Connect);
 
     if (!KeepHandle)
         free(Con_Handle);
 
-    return(0);
-
+    return (0);
 }
-

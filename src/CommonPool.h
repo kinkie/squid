@@ -27,8 +27,8 @@ class CommonPool
     MEMPROXY_CLASS(CommonPool);
 
 public:
-    static CommonPool *Factory (unsigned char _class, CompositePoolNode::Pointer&);
-    char const* theClassTypeLabel() const {return typeLabel.termedBuf();}
+    static CommonPool *Factory(unsigned char _class, CompositePoolNode::Pointer &);
+    char const *theClassTypeLabel() const { return typeLabel.termedBuf(); }
 
 protected:
     CommonPool();
@@ -37,4 +37,3 @@ protected:
 
 #endif /* USE_DELAY_POOLS */
 #endif /* COMMONPOOL_H */
-

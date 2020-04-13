@@ -9,19 +9,20 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
-#include "auth/Acl.h"
 #include "auth/AclMaxUserIp.h"
-#include "auth/UserRequest.h"
 #include "ConfigParser.h"
 #include "Debug.h"
 #include "Parsing.h"
+#include "acl/FilledChecklist.h"
+#include "auth/Acl.h"
+#include "auth/UserRequest.h"
 #include "wordlist.h"
 
 ACLMaxUserIP::ACLMaxUserIP(char const *theClass) :
     class_(theClass),
     maximum(0)
-{}
+{
+}
 
 ACL *
 ACLMaxUserIP::clone() const
@@ -51,7 +52,7 @@ const Acl::Options &
 ACLMaxUserIP::options()
 {
     static const Acl::BooleanOption BeStrict;
-    static const Acl::Options MyOptions = { { "-s", &BeStrict } };
+    static const Acl::Options MyOptions = {{"-s", &BeStrict}};
     BeStrict.linkWith(&beStrict);
     return MyOptions;
 }
@@ -134,7 +135,7 @@ ACLMaxUserIP::match(ACLChecklist *cl)
         return ti;
 
     case ACCESS_DENIED:
-        return 0; // non-match
+        return 0;  // non-match
 
     case ACCESS_DUNNO:
     case ACCESS_AUTH_REQUIRED:
@@ -143,7 +144,7 @@ ACLMaxUserIP::match(ACLChecklist *cl)
         // async authentication is not in progress, then we are done.
         if (checklist->keepMatching())
             checklist->markFinished(answer, "AuthenticateAcl exception");
-        return -1; // other
+        return -1;  // other
     }
 }
 
@@ -158,4 +159,3 @@ ACLMaxUserIP::dump() const
     sl.push_back(s);
     return sl;
 }
-

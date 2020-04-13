@@ -9,16 +9,17 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/StartListening.h"
 #include "base/TextException.h"
 #include "comm.h"
 #include "comm/Connection.h"
 #include "ipc/SharedListen.h"
-#include "ipc/StartListening.h"
 #include "tools.h"
 
 #include <cerrno>
 
-Ipc::StartListeningCb::StartListeningCb(): conn(NULL), errNo(0)
+Ipc::StartListeningCb::StartListeningCb() :
+    conn(NULL), errNo(0)
 {
 }
 
@@ -26,7 +27,8 @@ Ipc::StartListeningCb::~StartListeningCb()
 {
 }
 
-std::ostream &Ipc::StartListeningCb::startPrint(std::ostream &os) const
+std::ostream &
+Ipc::StartListeningCb::startPrint(std::ostream &os) const
 {
     return os << "(" << conn << ", err=" << errNo;
 }
@@ -35,7 +37,7 @@ void
 Ipc::StartListening(int sock_type, int proto, const Comm::ConnectionPointer &listenConn,
                     FdNoteId fdNote, AsyncCall::Pointer &callback)
 {
-    StartListeningCb *cbd = dynamic_cast<StartListeningCb*>(callback->getDialer());
+    StartListeningCb *cbd = dynamic_cast<StartListeningCb *>(callback->getDialer());
     Must(cbd);
     cbd->conn = listenConn;
 
@@ -50,7 +52,7 @@ Ipc::StartListening(int sock_type, int proto, const Comm::ConnectionPointer &lis
         p.flags = listenConn->flags;
         p.fdNote = fdNote;
         Ipc::JoinSharedListen(p, callback);
-        return; // wait for the call back
+        return;  // wait for the call back
     }
 
     enter_suid();
@@ -61,4 +63,3 @@ Ipc::StartListening(int sock_type, int proto, const Comm::ConnectionPointer &lis
     debugs(54, 3, HERE << "opened listen " << cbd->conn);
     ScheduleCallHere(callback);
 }
-

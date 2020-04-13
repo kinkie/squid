@@ -9,34 +9,35 @@
 /* DEBUG: section 20    Storage Manager Swapout Functions */
 
 #include "squid.h"
-#include "cbdata.h"
 #include "CollapsedForwarding.h"
-#include "globals.h"
 #include "Store.h"
 #include "StoreClient.h"
+#include "cbdata.h"
+#include "globals.h"
 /* FIXME: Abstract the use of this more */
-#include "mem_node.h"
 #include "MemObject.h"
 #include "SquidConfig.h"
 #include "StatCounters.h"
+#include "mem_node.h"
 #include "store/Disk.h"
 #include "store/Disks.h"
 #include "store_log.h"
 #include "swap_log_op.h"
 
-static void storeSwapOutStart(StoreEntry * e);
+static void storeSwapOutStart(StoreEntry *e);
 static StoreIOState::STIOCB storeSwapOutFileClosed;
 static StoreIOState::STFNCB storeSwapOutFileNotify;
 
 // wrapper to cross C/C++ ABI boundary. xfree is extern "C" for libraries.
-static void xfree_cppwrapper(void *x)
+static void
+xfree_cppwrapper(void *x)
 {
     xfree(x);
 }
 
 /* start swapping object to disk */
 static void
-storeSwapOutStart(StoreEntry * e)
+storeSwapOutStart(StoreEntry *e)
 {
     MemObject *mem = e->mem_obj;
     StoreIOState::Pointer sio;
@@ -44,9 +45,7 @@ storeSwapOutStart(StoreEntry * e)
     /* Build the swap metadata, so the filesystem will know how much
      * metadata there is to store
      */
-    debugs(20, 5, "storeSwapOutStart: Begin SwapOut '" << e->url() << "' to dirno " <<
-           e->swap_dirn << ", fileno " << std::hex << std::setw(8) << std::setfill('0') <<
-           std::uppercase << e->swap_filen);
+    debugs(20, 5, "storeSwapOutStart: Begin SwapOut '" << e->url() << "' to dirno " << e->swap_dirn << ", fileno " << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << e->swap_filen);
     e->swapOutDecision(MemObject::SwapOut::swStarted);
     /* If we start swapping out objects with OutOfBand Metadata,
      * then this code needs changing
@@ -69,7 +68,7 @@ storeSwapOutStart(StoreEntry * e)
         e->swap_status = SWAPOUT_NONE;
         e->swapOutDecision(MemObject::SwapOut::swImpossible);
         delete c;
-        xfree((char*)buf);
+        xfree((char *)buf);
         storeLog(STORE_LOG_SWAPOUTFAIL, e);
         return;
     }
@@ -100,11 +99,10 @@ doPages(StoreEntry *anEntry)
 
     do {
         // find the page containing the first byte we have not swapped out yet
-        mem_node *page =
-            mem->data_hdr.getBlockContainingLocation(mem->swapout.queue_offset);
+        mem_node *page = mem->data_hdr.getBlockContainingLocation(mem->swapout.queue_offset);
 
         if (!page)
-            break; // wait for more data to become available
+            break;  // wait for more data to become available
 
         // memNodeWriteComplete() and absence of buffer offset math below
         // imply that we always write from the very beginning of the page
@@ -131,10 +129,10 @@ doPages(StoreEntry *anEntry)
         // Quit if write() fails. Sio is going to call our callback, and that
         // will cleanup, but, depending on the fs, that call may be async.
         const bool ok = mem->swapout.sio->write(
-                            mem->data_hdr.NodeGet(page),
-                            swap_buf_len,
-                            -1,
-                            memNodeWriteComplete);
+            mem->data_hdr.NodeGet(page),
+            swap_buf_len,
+            -1,
+            memNodeWriteComplete);
 
         if (!ok || !anEntry->swappingOut())
             return false;
@@ -175,7 +173,7 @@ StoreEntry::swapOut()
     Store::Root().memoryOut(*this, weAreOrMayBeSwappingOut);
 
     if (mem_obj->swapout.decision < MemObject::SwapOut::swPossible)
-        return; // nothing else to do
+        return;  // nothing else to do
 
     // Aborted entries have STORE_OK, but swapoutPossible rejects them. Thus,
     // store_status == STORE_OK below means we got everything we wanted.
@@ -185,7 +183,7 @@ StoreEntry::swapOut()
     debugs(20, 7, HERE << "storeSwapOut: swapout.queue_offset = " << mem_obj->swapout.queue_offset);
 
     if (mem_obj->swapout.sio != NULL)
-        debugs(20, 7, "storeSwapOut: storeOffset() = " << mem_obj->swapout.sio->offset()  );
+        debugs(20, 7, "storeSwapOut: storeOffset() = " << mem_obj->swapout.sio->offset());
 
     int64_t const lowest_offset = mem_obj->lowestMemReaderOffset();
 
@@ -201,15 +199,15 @@ StoreEntry::swapOut()
 
 #endif
     if (swappingOut())
-        assert(mem_obj->inmem_lo <=  mem_obj->objectBytesOnDisk() );
+        assert(mem_obj->inmem_lo <= mem_obj->objectBytesOnDisk());
 
     // buffered bytes we have not swapped out yet
     const int64_t swapout_maxsize = mem_obj->availableForSwapOut();
     assert(swapout_maxsize >= 0);
     debugs(20, 7, "storeSwapOut: swapout_size = " << swapout_maxsize);
 
-    if (swapout_maxsize == 0) { // swapped everything we got
-        if (store_status == STORE_OK) { // got everything we wanted
+    if (swapout_maxsize == 0) {          // swapped everything we got
+        if (store_status == STORE_OK) {  // got everything we wanted
             assert(mem_obj->object_sz >= 0);
             swapOutFileClose(StoreIOState::wroteAll);
         }
@@ -235,7 +233,7 @@ StoreEntry::swapOut()
     if (!hasDisk()) {
         assert(mem_obj->swapout.sio == NULL);
         assert(mem_obj->inmem_lo == 0);
-        storeSwapOutStart(this); // sets SwapOut::swImpossible on failures
+        storeSwapOutStart(this);  // sets SwapOut::swImpossible on failures
     }
 
     if (mem_obj->swapout.sio == NULL)
@@ -282,9 +280,7 @@ storeSwapOutFileClosed(void *data, int errflag, StoreIOState::Pointer self)
 
     // if object_size is still unknown, the entry was probably aborted
     if (errflag || e->objectLen() < 0) {
-        debugs(20, 2, "storeSwapOutFileClosed: dirno " << e->swap_dirn << ", swapfile " <<
-               std::hex << std::setw(8) << std::setfill('0') << std::uppercase <<
-               e->swap_filen << ", errflag=" << errflag);
+        debugs(20, 2, "storeSwapOutFileClosed: dirno " << e->swap_dirn << ", swapfile " << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << e->swap_filen << ", errflag=" << errflag);
 
         if (errflag == DISK_NO_SPACE_LEFT) {
             /* FIXME: this should be handle by the link from store IO to
@@ -301,11 +297,8 @@ storeSwapOutFileClosed(void *data, int errflag, StoreIOState::Pointer self)
         e->disk().finalizeSwapoutFailure(*e);
     } else {
         /* swapping complete */
-        debugs(20, 3, "storeSwapOutFileClosed: SwapOut complete: '" << e->url() << "' to " <<
-               e->swap_dirn  << ", " << std::hex << std::setw(8) << std::setfill('0') <<
-               std::uppercase << e->swap_filen);
-        debugs(20, 5, HERE << "swap_file_sz = " <<
-               e->objectLen() << " + " << mem->swap_hdr_sz);
+        debugs(20, 3, "storeSwapOutFileClosed: SwapOut complete: '" << e->url() << "' to " << e->swap_dirn << ", " << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << e->swap_filen);
+        debugs(20, 5, HERE << "swap_file_sz = " << e->objectLen() << " + " << mem->swap_hdr_sz);
 
         e->swap_file_sz = e->objectLen() + mem->swap_hdr_sz;
         e->swap_status = SWAPOUT_DONE;
@@ -376,19 +369,19 @@ StoreEntry::mayStartSwapOut()
     }
 
     if (!checkCachable()) {
-        debugs(20, 3,  HERE << "not cachable");
+        debugs(20, 3, HERE << "not cachable");
         swapOutDecision(MemObject::SwapOut::swImpossible);
         return false;
     }
 
     if (EBIT_TEST(flags, ENTRY_SPECIAL)) {
-        debugs(20, 3,  HERE  << url() << " SPECIAL");
+        debugs(20, 3, HERE << url() << " SPECIAL");
         swapOutDecision(MemObject::SwapOut::swImpossible);
         return false;
     }
 
     if (mem_obj->inmem_lo > 0) {
-        debugs(20, 3, "storeSwapOut: (inmem_lo > 0)  imem_lo:" <<  mem_obj->inmem_lo);
+        debugs(20, 3, "storeSwapOut: (inmem_lo > 0)  imem_lo:" << mem_obj->inmem_lo);
         swapOutDecision(MemObject::SwapOut::swImpossible);
         return false;
     }
@@ -405,21 +398,19 @@ StoreEntry::mayStartSwapOut()
 
         // use guaranteed maximum if it is known
         const int64_t expectedEnd = mem_obj->expectedReplySize();
-        debugs(20, 7,  HERE << "expectedEnd = " << expectedEnd);
+        debugs(20, 7, HERE << "expectedEnd = " << expectedEnd);
         if (expectedEnd > store_maxobjsize) {
-            debugs(20, 3,  HERE << "will not fit: " << expectedEnd <<
-                   " > " << store_maxobjsize);
+            debugs(20, 3, HERE << "will not fit: " << expectedEnd << " > " << store_maxobjsize);
             swapOutDecision(MemObject::SwapOut::swImpossible);
-            return false; // known to outgrow the limit eventually
+            return false;  // known to outgrow the limit eventually
         }
 
         // use current minimum (always known)
         const int64_t currentEnd = mem_obj->endOffset();
         if (currentEnd > store_maxobjsize) {
-            debugs(20, 3,  HERE << "does not fit: " << currentEnd <<
-                   " > " << store_maxobjsize);
+            debugs(20, 3, HERE << "does not fit: " << currentEnd << " > " << store_maxobjsize);
             swapOutDecision(MemObject::SwapOut::swImpossible);
-            return false; // already does not fit and may only get bigger
+            return false;  // already does not fit and may only get bigger
         }
 
         // prevent final default swPossible answer for yet unknown length
@@ -427,7 +418,7 @@ StoreEntry::mayStartSwapOut()
             const int64_t more = Store::Root().accumulateMore(*this);
             if (more > 0) {
                 debugs(20, 5, "got " << currentEnd << "; defer decision for " << more << " more bytes");
-                return true; // may still fit, but no final decision yet
+                return true;  // may still fit, but no final decision yet
             }
         }
     }
@@ -435,4 +426,3 @@ StoreEntry::mayStartSwapOut()
     swapOutDecision(MemObject::SwapOut::swPossible);
     return true;
 }
-

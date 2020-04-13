@@ -11,8 +11,7 @@
 
 #include "base/RefCount.h"
 
-namespace AnyP
-{
+namespace AnyP {
 
 class PortCfg;
 typedef RefCount<PortCfg> PortCfgPointer;
@@ -20,7 +19,6 @@ typedef RefCount<PortCfg> PortCfgPointer;
 class Uri;
 class UriScheme;
 
-} // namespace AnyP
+}  // namespace AnyP
 
 #endif /* _SQUID_SRC_ANYP_FORWARD_H */
-

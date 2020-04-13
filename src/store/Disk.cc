@@ -9,20 +9,21 @@
 /* DEBUG: section 20    Swap Dir base object */
 
 #include "squid.h"
-#include "cache_cf.h"
-#include "compat/strtoll.h"
+#include "store/Disk.h"
 #include "ConfigOption.h"
 #include "ConfigParser.h"
-#include "globals.h"
 #include "Parsing.h"
 #include "SquidConfig.h"
 #include "Store.h"
-#include "store/Disk.h"
 #include "StoreFileSystem.h"
+#include "cache_cf.h"
+#include "compat/strtoll.h"
+#include "globals.h"
 #include "tools.h"
 
-Store::Disk::Disk(char const *aType): theType(aType),
-    max_size(0), min_objsize(-1), max_objsize (-1),
+Store::Disk::Disk(char const *aType) :
+    theType(aType),
+    max_size(0), min_objsize(-1), max_objsize(-1),
     path(NULL), index(-1), disker(-1),
     repl(NULL), removals(0), scanned(0),
     cleanLog(NULL)
@@ -37,10 +38,14 @@ Store::Disk::~Disk()
 }
 
 void
-Store::Disk::create() {}
+Store::Disk::create()
+{
+}
 
 void
-Store::Disk::dump(StoreEntry &)const {}
+Store::Disk::dump(StoreEntry &) const
+{
+}
 
 bool
 Store::Disk::doubleCheck(StoreEntry &)
@@ -80,10 +85,14 @@ Store::Disk::stat(StoreEntry &output) const
 }
 
 void
-Store::Disk::statfs(StoreEntry &)const {}
+Store::Disk::statfs(StoreEntry &) const
+{
+}
 
 void
-Store::Disk::maintain() {}
+Store::Disk::maintain()
+{
+}
 
 uint64_t
 Store::Disk::minSize() const
@@ -116,15 +125,14 @@ Store::Disk::maxObjectSize(int64_t newMax)
 {
     // negative values mean no limit (-1)
     if (newMax < 0) {
-        max_objsize = -1; // set explicitly in case it had a non-default value previously
+        max_objsize = -1;  // set explicitly in case it had a non-default value previously
         return;
     }
 
     // prohibit values greater than total storage area size
     // but set max_objsize to the maximum allowed to override maximum_object_size global config
     if (static_cast<uint64_t>(newMax) > maxSize()) {
-        debugs(47, DBG_PARSE_NOTE(2), "WARNING: Ignoring 'max-size' option for " << path <<
-               " which is larger than total cache_dir size of " << maxSize() << " bytes.");
+        debugs(47, DBG_PARSE_NOTE(2), "WARNING: Ignoring 'max-size' option for " << path << " which is larger than total cache_dir size of " << maxSize() << " bytes.");
         max_objsize = maxSize();
         return;
     }
@@ -133,12 +141,14 @@ Store::Disk::maxObjectSize(int64_t newMax)
 }
 
 void
-Store::Disk::reference(StoreEntry &) {}
+Store::Disk::reference(StoreEntry &)
+{
+}
 
 bool
 Store::Disk::dereference(StoreEntry &)
 {
-    return true; // keep in global store_table
+    return true;  // keep in global store_table
 }
 
 void
@@ -163,29 +173,28 @@ Store::Disk::objectSizeIsAcceptable(int64_t objsize) const
 bool
 Store::Disk::canStore(const StoreEntry &e, int64_t diskSpaceNeeded, int &load) const
 {
-    debugs(47,8, HERE << "cache_dir[" << index << "]: needs " <<
-           diskSpaceNeeded << " <? " << max_objsize);
+    debugs(47, 8, HERE << "cache_dir[" << index << "]: needs " << diskSpaceNeeded << " <? " << max_objsize);
 
     if (EBIT_TEST(e.flags, ENTRY_SPECIAL))
-        return false; // we do not store Squid-generated entries
+        return false;  // we do not store Squid-generated entries
 
     if (!objectSizeIsAcceptable(diskSpaceNeeded))
-        return false; // does not satisfy size limits
+        return false;  // does not satisfy size limits
 
     if (flags.read_only)
-        return false; // cannot write at all
+        return false;  // cannot write at all
 
     if (currentSize() > maxSize())
-        return false; // already overflowing
+        return false;  // already overflowing
 
     /* Return 999 (99.9%) constant load; TODO: add a named constant for this */
     load = 999;
-    return true; // kids may provide more tests and should report true load
+    return true;  // kids may provide more tests and should report true load
 }
 
 /* Move to StoreEntry ? */
 bool
-Store::Disk::canLog(StoreEntry const &e)const
+Store::Disk::canLog(StoreEntry const &e) const
 {
     if (!e.hasDisk())
         return false;
@@ -209,10 +218,14 @@ Store::Disk::canLog(StoreEntry const &e)const
 }
 
 void
-Store::Disk::openLog() {}
+Store::Disk::openLog()
+{
+}
 
 void
-Store::Disk::closeLog() {}
+Store::Disk::closeLog()
+{
+}
 
 int
 Store::Disk::writeCleanStart()
@@ -221,10 +234,14 @@ Store::Disk::writeCleanStart()
 }
 
 void
-Store::Disk::writeCleanDone() {}
+Store::Disk::writeCleanDone()
+{
+}
 
 void
-Store::Disk::logEntry(const StoreEntry &, int) const {}
+Store::Disk::logEntry(const StoreEntry &, int) const
+{
+}
 
 char const *
 Store::Disk::type() const
@@ -242,7 +259,7 @@ Store::Disk::active() const
     if (KidIdentifier == disker)
         return true;
 
-    return false; // Coordinator, wrong disker, etc.
+    return false;  // Coordinator, wrong disker, etc.
 }
 
 bool
@@ -258,8 +275,8 @@ ConfigOption *
 Store::Disk::getOptionTree() const
 {
     ConfigOptionVector *result = new ConfigOptionVector;
-    result->options.push_back(new ConfigOptionAdapter<Disk>(*const_cast<Disk*>(this), &Store::Disk::optionReadOnlyParse, &Store::Disk::optionReadOnlyDump));
-    result->options.push_back(new ConfigOptionAdapter<Disk>(*const_cast<Disk*>(this), &Store::Disk::optionObjectSizeParse, &Store::Disk::optionObjectSizeDump));
+    result->options.push_back(new ConfigOptionAdapter<Disk>(*const_cast<Disk *>(this), &Store::Disk::optionReadOnlyParse, &Store::Disk::optionReadOnlyDump));
+    result->options.push_back(new ConfigOptionAdapter<Disk>(*const_cast<Disk *>(this), &Store::Disk::optionObjectSizeParse, &Store::Disk::optionObjectSizeDump));
     return result;
 }
 
@@ -275,11 +292,11 @@ Store::Disk::parseOptions(int isaReconfig)
         value = strchr(name, '=');
 
         if (value) {
-            *value = '\0';  /* cut on = */
+            *value = '\0'; /* cut on = */
             ++value;
         }
 
-        debugs(3,2, "cache_dir " << name << '=' << (value ? value : ""));
+        debugs(3, 2, "cache_dir " << name << '=' << (value ? value : ""));
 
         if (newOption)
             if (!newOption->parse(name, value, isaReconfig)) {
@@ -304,7 +321,7 @@ Store::Disk::parseOptions(int isaReconfig)
 }
 
 void
-Store::Disk::dumpOptions(StoreEntry * entry) const
+Store::Disk::dumpOptions(StoreEntry *entry) const
 {
     ConfigOption *newOption = getOptionTree();
 
@@ -337,7 +354,7 @@ Store::Disk::optionReadOnlyParse(char const *option, const char *value, int)
 }
 
 void
-Store::Disk::optionReadOnlyDump(StoreEntry * e) const
+Store::Disk::optionReadOnlyDump(StoreEntry *e) const
 {
     if (flags.read_only)
         storeAppendPrintf(e, " no-store");
@@ -363,12 +380,12 @@ Store::Disk::optionObjectSizeParse(char const *option, const char *value, int is
 
     if (isaReconfig && *val != size) {
         if (allowOptionReconfigure(option)) {
-            debugs(3, DBG_IMPORTANT, "cache_dir '" << path << "' object " <<
-                   option << " now " << size << " Bytes");
+            debugs(3, DBG_IMPORTANT, "cache_dir '" << path << "' object " << option << " now " << size << " Bytes");
         } else {
             debugs(3, DBG_IMPORTANT, "WARNING: cache_dir '" << path << "' "
-                   "object " << option << " cannot be changed dynamically, " <<
-                   "value left unchanged (" << *val << " Bytes)");
+                                                                       "object "
+                                                            << option << " cannot be changed dynamically, "
+                                                            << "value left unchanged (" << *val << " Bytes)");
             return true;
         }
     }
@@ -379,7 +396,7 @@ Store::Disk::optionObjectSizeParse(char const *option, const char *value, int is
 }
 
 void
-Store::Disk::optionObjectSizeDump(StoreEntry * e) const
+Store::Disk::optionObjectSizeDump(StoreEntry *e) const
 {
     if (min_objsize != -1)
         storeAppendPrintf(e, " min-size=%" PRId64, min_objsize);
@@ -394,4 +411,3 @@ Store::Disk::get(const cache_key *)
 {
     return NULL;
 }
-

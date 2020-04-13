@@ -46,8 +46,9 @@ SMB_Tree_Handle SMBapi_Tree = NULL;
 #define SMB_LMAPI_SLOT "\\PIPE\\LANMAN"
 #define SMB_LMAPI_SUPW_DESC "zb16b16WW"
 
-int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
-                              char *oldpass, char *newpass, int *apiStatus)
+int
+SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
+                          char *oldpass, char *newpass, int *apiStatus)
 
 {
     struct RFCNB_Pkt *pkt;
@@ -58,9 +59,7 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
     /* below lays it all out as it is, including the empty string after the */
     /* descriptor and before the username                                   */
 
-    param_len = 2 + strlen(SMB_LMAPI_SUPW_DESC) + 1 +
-                1 /* for empty string :-) */ + strlen(user) +
-                1 + 16 + 16 + 2 + 2;
+    param_len = 2 + strlen(SMB_LMAPI_SUPW_DESC) + 1 + 1 /* for empty string :-) */ + strlen(user) + 1 + 16 + 16 + 2 + 2;
 
     /* We have no setup words, wo we don't account for them */
 
@@ -82,17 +81,16 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
     if (pkt == NULL) {
 
         SMBlib_errno = SMBlibE_NoSpace;
-        return(SMBlibE_BAD); /* Should handle the error */
-
+        return (SMBlibE_BAD); /* Should handle the error */
     }
 
     memset(SMB_Hdr(pkt), 0, SMB_trans_len);
-    SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+    SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
     *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBtrans;
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, tree -> con -> pid);
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, tree -> tid);
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, tree -> con -> mid);
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, tree -> con -> uid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, tree->con->pid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, tree->tid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, tree->con->mid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, tree->con->uid);
     *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 14;
 
     SSVAL(SMB_Hdr(pkt), SMB_trans_tpc_offset, param_len);
@@ -103,8 +101,7 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
     SSVAL(SMB_Hdr(pkt), SMB_trans_flg_offset, 0);
     SIVAL(SMB_Hdr(pkt), SMB_trans_tmo_offset, 5000);
     SSVAL(SMB_Hdr(pkt), SMB_trans_pbc_offset, param_len);
-    SSVAL(SMB_Hdr(pkt), SMB_trans_pbo_offset, SMB_trans_len + 2 +
-          strlen(SMB_LMAPI_SLOT) + 1);
+    SSVAL(SMB_Hdr(pkt), SMB_trans_pbo_offset, SMB_trans_len + 2 + strlen(SMB_LMAPI_SLOT) + 1);
     SSVAL(SMB_Hdr(pkt), SMB_trans_dbc_offset, 0);
     SSVAL(SMB_Hdr(pkt), SMB_trans_dbo_offset, 0);
 
@@ -112,24 +109,24 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
 
     SSVAL(SMB_Hdr(pkt), SMB_trans_len, param_len + strlen(SMB_LMAPI_SLOT) + 1);
 
-    p = SMB_Hdr(pkt) + SMB_trans_len + 2;  /* Skip the BCC and etc */
+    p = SMB_Hdr(pkt) + SMB_trans_len + 2; /* Skip the BCC and etc */
 
     strcpy(p, SMB_LMAPI_SLOT);
     p = p + strlen(SMB_LMAPI_SLOT) + 1;
 
-    if (pad_api_name == TRUE)   /* Pad if we need to */
+    if (pad_api_name == TRUE) /* Pad if we need to */
         p = p + 1;
 
     /*  SSVAL(p, 0, 65000);  /* Check the result */
-    SSVAL(p, 0, SMB_LMapi_UserPasswordSet);  /* The api call */
+    SSVAL(p, 0, SMB_LMapi_UserPasswordSet); /* The api call */
 
     p = p + 2;
 
-    strcpy(p, SMB_LMAPI_SUPW_DESC);          /* Copy in the param desc */
+    strcpy(p, SMB_LMAPI_SUPW_DESC); /* Copy in the param desc */
 
     p = p + strlen(SMB_LMAPI_SUPW_DESC) + 1;
 
-    *p = 0;                                  /* Stick in that null string */
+    *p = 0; /* Stick in that null string */
     p = p + 1;
 
     strcpy(p, user);
@@ -144,12 +141,12 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
 
     p = p + 16;
 
-    SSVAL(p, 0, 0);                 /* Seems to be zero always? */
-    SSVAL(p, 2, strlen(newpass));   /* Length of new password ...*/
+    SSVAL(p, 0, 0);               /* Seems to be zero always? */
+    SSVAL(p, 2, strlen(newpass)); /* Length of new password ...*/
 
     /* Now send the lot and get a response ... */
 
-    if (RFCNB_Send(tree -> con -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Send(tree->con->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error sending Trans request\n");
@@ -157,13 +154,12 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
 
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_SendFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Now get the response ... */
 
-    if (RFCNB_Recv(tree -> con -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Recv(tree->con->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error receiving response to Trans request\n");
@@ -171,13 +167,12 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
 
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_RecvFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Check out the response type ... */
 
-    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) {  /* Process error */
+    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) { /* Process error */
 
 #ifdef DEBUG
         fprintf(stderr, "SMB_trans failed with errorclass = %i, Error Code = %i\n",
@@ -188,8 +183,7 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
         SMBlib_SMB_Error = IVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset);
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_Remote;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* All ok, pass back the status */
@@ -197,8 +191,7 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
     *apiStatus = SVAL(SMB_Hdr(pkt), SVAL(SMB_Hdr(pkt), SMB_transr_pbo_offset));
     RFCNB_Free_Pkt(pkt);
 
-    return(0);
-
+    return (0);
 }
 
 #define SMB_LMAPI_SUI_DESC "zWsTPWW"
@@ -206,8 +199,9 @@ int SMBapi_NetUserPasswordSet(SMB_Tree_Handle tree, char *user,
 
 /* Set user info ... specifically, password */
 
-int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
-                          char *newpass, int *apiStatus)
+int
+SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
+                      char *newpass, int *apiStatus)
 
 {
     struct RFCNB_Pkt *pkt;
@@ -219,9 +213,7 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
     /* below lays it all out as it is, including the empty string after the */
     /* descriptor and before the username                                   */
 
-    param_len = 2 + strlen(SMB_LMAPI_SUI_DESC) + 1 +
-                + strlen(SMB_LMAPI_SUI_DATA_DESC) + 1 + strlen(user) +
-                1 + 2 + 2 + 2 + 2;
+    param_len = 2 + strlen(SMB_LMAPI_SUI_DESC) + 1 + +strlen(SMB_LMAPI_SUI_DATA_DESC) + 1 + strlen(user) + 1 + 2 + 2 + 2 + 2;
 
     data_len = 16;
 
@@ -229,22 +221,22 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
 
     pkt_len = SMB_trans_len + 2 /* for bcc */ + strlen(SMB_LMAPI_SLOT) + 1;
 
-    if (pkt_len & 0x0001) {   /* Pad to a WORD boundary */
+    if (pkt_len & 0x0001) { /* Pad to a WORD boundary */
 
         pad_api_name = TRUE;
-
     }
 
     if (param_len & 0x0001) { /* pad to a WORD boundary */
 
         pad_params = TRUE;
-
     }
 
     pkt_len = pkt_len + param_len + data_len;
 
-    if (pad_api_name == TRUE) pkt_len = pkt_len + 1;
-    if (pad_params == TRUE) pkt_len = pkt_len + 1;
+    if (pad_api_name == TRUE)
+        pkt_len = pkt_len + 1;
+    if (pad_params == TRUE)
+        pkt_len = pkt_len + 1;
 
     /* Now allocate space for the packet, build it and send it */
 
@@ -253,17 +245,16 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
     if (pkt == NULL) {
 
         SMBlib_errno = SMBlibE_NoSpace;
-        return(SMBlibE_BAD); /* Should handle the error */
-
+        return (SMBlibE_BAD); /* Should handle the error */
     }
 
     memset(SMB_Hdr(pkt), 0, SMB_trans_len);
-    SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF);  /* Plunk in IDF */
+    SIVAL(SMB_Hdr(pkt), SMB_hdr_idf_offset, SMB_DEF_IDF); /* Plunk in IDF */
     *(SMB_Hdr(pkt) + SMB_hdr_com_offset) = SMBtrans;
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, tree -> con -> pid);
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, tree -> tid);
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, tree -> con -> mid);
-    SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, tree -> con -> uid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_pid_offset, tree->con->pid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_tid_offset, tree->tid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_mid_offset, tree->con->mid);
+    SSVAL(SMB_Hdr(pkt), SMB_hdr_uid_offset, tree->con->uid);
     *(SMB_Hdr(pkt) + SMB_hdr_wct_offset) = 14;
 
     SSVAL(SMB_Hdr(pkt), SMB_trans_tpc_offset, param_len);
@@ -274,34 +265,32 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
     SSVAL(SMB_Hdr(pkt), SMB_trans_flg_offset, 0);
     SIVAL(SMB_Hdr(pkt), SMB_trans_tmo_offset, 5000);
     SSVAL(SMB_Hdr(pkt), SMB_trans_pbc_offset, param_len);
-    SSVAL(SMB_Hdr(pkt), SMB_trans_pbo_offset, SMB_trans_len + 2 +
-          strlen(SMB_LMAPI_SLOT) + 1);
+    SSVAL(SMB_Hdr(pkt), SMB_trans_pbo_offset, SMB_trans_len + 2 + strlen(SMB_LMAPI_SLOT) + 1);
     SSVAL(SMB_Hdr(pkt), SMB_trans_dbc_offset, data_len);
     SSVAL(SMB_Hdr(pkt), SMB_trans_dbo_offset, pkt_len - data_len);
 
     /* Now put in the bcc and the rest of the info ... */
 
-    SSVAL(SMB_Hdr(pkt), SMB_trans_len, param_len + strlen(SMB_LMAPI_SLOT) +
-          1 + data_len);
+    SSVAL(SMB_Hdr(pkt), SMB_trans_len, param_len + strlen(SMB_LMAPI_SLOT) + 1 + data_len);
 
-    p = SMB_Hdr(pkt) + SMB_trans_len + 2;  /* Skip the BCC and etc */
+    p = SMB_Hdr(pkt) + SMB_trans_len + 2; /* Skip the BCC and etc */
 
     strcpy(p, SMB_LMAPI_SLOT);
     p = p + strlen(SMB_LMAPI_SLOT) + 1;
 
-    if (pad_api_name == TRUE)     /* Pad to a word boundary */
+    if (pad_api_name == TRUE) /* Pad to a word boundary */
         p = p + 1;
 
-    /*  SSVAL(p, 0, 65000); */ /* Check the result */
-    SSVAL(p, 0, SMB_LMapi_SetUserInfo);  /* The api call */
+    /*  SSVAL(p, 0, 65000); */          /* Check the result */
+    SSVAL(p, 0, SMB_LMapi_SetUserInfo); /* The api call */
 
     p = p + 2;
 
-    strcpy(p, SMB_LMAPI_SUI_DESC);          /* Copy in the param desc */
+    strcpy(p, SMB_LMAPI_SUI_DESC); /* Copy in the param desc */
 
     p = p + strlen(SMB_LMAPI_SUI_DESC) + 1;
 
-    strcpy(p, SMB_LMAPI_SUI_DATA_DESC);     /* Copy in second descriptor */
+    strcpy(p, SMB_LMAPI_SUI_DATA_DESC); /* Copy in second descriptor */
 
     p = p + strlen(SMB_LMAPI_SUI_DATA_DESC) + 1;
 
@@ -309,13 +298,13 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
 
     p = p + strlen(user) + 1;
 
-    SSVAL(p, 0, 1);                  /* Claim that we have a level 1 struct ? */
+    SSVAL(p, 0, 1); /* Claim that we have a level 1 struct ? */
 
     p = p + 2;
 
-    SSVAL(p, 0, 3);                 /* Set the password */
-    SSVAL(p, 2, 1);                 /* Seems to be one ... */
-    SSVAL(p, 4, strlen(newpass));   /* Length of new password ...*/
+    SSVAL(p, 0, 3);               /* Set the password */
+    SSVAL(p, 2, 1);               /* Seems to be one ... */
+    SSVAL(p, 4, strlen(newpass)); /* Length of new password ...*/
 
     /* Now copy the data in ... */
 
@@ -328,7 +317,7 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
 
     /* Now send the lot and get a response ... */
 
-    if (RFCNB_Send(tree -> con -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Send(tree->con->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error sending Trans SetUserInfo request\n");
@@ -336,13 +325,12 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
 
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_SendFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Now get the response ... */
 
-    if (RFCNB_Recv(tree -> con -> Trans_Connect, pkt, pkt_len) < 0) {
+    if (RFCNB_Recv(tree->con->Trans_Connect, pkt, pkt_len) < 0) {
 
 #ifdef DEBUG
         fprintf(stderr, "Error receiving response to Trans SetUserInfo request\n");
@@ -350,13 +338,12 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
 
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_RecvFailed;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* Check out the response type ... */
 
-    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) {  /* Process error */
+    if (CVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset) != SMBC_SUCCESS) { /* Process error */
 
 #ifdef DEBUG
         fprintf(stderr, "SMB_trans SetUserInfo failed with errorclass = %i, Error Code = %i\n",
@@ -367,8 +354,7 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
         SMBlib_SMB_Error = IVAL(SMB_Hdr(pkt), SMB_hdr_rcls_offset);
         RFCNB_Free_Pkt(pkt);
         SMBlib_errno = SMBlibE_Remote;
-        return(SMBlibE_BAD);
-
+        return (SMBlibE_BAD);
     }
 
     /* All ok, pass back the status */
@@ -376,16 +362,14 @@ int SMBapi_NetSetUserInfo(SMB_Tree_Handle tree, char *user,
     *apiStatus = SVAL(SMB_Hdr(pkt), SVAL(SMB_Hdr(pkt), SMB_transr_pbo_offset));
     RFCNB_Free_Pkt(pkt);
 
-    return(0);
-
+    return (0);
 }
 
 /* List all the shares available on a server */
 
-int SMBapi_NetShareEnum(SMB_Tree_Handle tree, char *enum_buf, int bufsiz,
-                        int *shares_returned, int *shares_total)
+int
+SMBapi_NetShareEnum(SMB_Tree_Handle tree, char *enum_buf, int bufsiz,
+                    int *shares_returned, int *shares_total)
 
 {
-
 }
-

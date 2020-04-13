@@ -119,7 +119,10 @@
  * data.
  */
 
-#define ASN_PARSE_ERROR(x) {  return(x); }
+#define ASN_PARSE_ERROR(x) \
+    {                      \
+        return (x);        \
+    }
 
 /* Encode an SNMP Message
  *
@@ -130,8 +133,8 @@
  */
 
 u_char *
-snmp_msg_Encode(u_char * Buffer, int *BufLenP,
-                u_char * Community, int CommLen,
+snmp_msg_Encode(u_char *Buffer, int *BufLenP,
+                u_char *Community, int CommLen,
                 int Version,
                 struct snmp_pdu *PDU)
 {
@@ -145,8 +148,7 @@ snmp_msg_Encode(u_char * Buffer, int *BufLenP,
                   *BufLenP);
     /* Header for the entire thing, with a false, large length */
     bufp = asn_build_header(Buffer, BufLenP,
-                            (u_char) (ASN_SEQUENCE |
-                                      ASN_CONSTRUCTOR),
+                            (u_char)(ASN_SEQUENCE | ASN_CONSTRUCTOR),
                             (*BufLenP));
     if (bufp == NULL) {
         snmplib_debug(4, "snmp_msg_Encode:Error encoding SNMP Message Header (Header)!\n");
@@ -156,10 +158,8 @@ snmp_msg_Encode(u_char * Buffer, int *BufLenP,
 
     /* Version */
     bufp = asn_build_int(bufp, BufLenP,
-                         (u_char) (ASN_UNIVERSAL |
-                                   ASN_PRIMITIVE |
-                                   ASN_INTEGER),
-                         (int *) (&Version), sizeof(Version));
+                         (u_char)(ASN_UNIVERSAL | ASN_PRIMITIVE | ASN_INTEGER),
+                         (int *)(&Version), sizeof(Version));
     if (bufp == NULL) {
         snmplib_debug(4, "snmp_msg_Encode:Error encoding SNMP Message Header (Version)!\n");
         return (NULL);
@@ -168,9 +168,7 @@ snmp_msg_Encode(u_char * Buffer, int *BufLenP,
 
     /* Community */
     bufp = asn_build_string(bufp, BufLenP,
-                            (u_char) (ASN_UNIVERSAL |
-                                      ASN_PRIMITIVE |
-                                      ASN_OCTET_STR),
+                            (u_char)(ASN_UNIVERSAL | ASN_PRIMITIVE | ASN_OCTET_STR),
                             Community, CommLen);
     if (bufp == NULL) {
         snmplib_debug(4, "snmp_msg_Encode:Error encoding SNMP Message Header (Community)!\n");
@@ -185,7 +183,7 @@ snmp_msg_Encode(u_char * Buffer, int *BufLenP,
                   bufp, *BufLenP, *BufLenP);
     PDUHeaderPtr = bufp;
     bufp = asn_build_header(bufp, BufLenP,
-                            (u_char) (ASN_SEQUENCE | ASN_CONSTRUCTOR),
+                            (u_char)(ASN_SEQUENCE | ASN_CONSTRUCTOR),
                             (*BufLenP));
     if (bufp == NULL)
         return (NULL);
@@ -194,11 +192,11 @@ snmp_msg_Encode(u_char * Buffer, int *BufLenP,
     PDUDataStart = bufp;
     bufp = snmp_pdu_encode(bufp, BufLenP, PDU);
     if (bufp == NULL)
-        return (NULL);      /* snmp_pdu_encode registered failure */
+        return (NULL); /* snmp_pdu_encode registered failure */
 
     VARHeaderPtr = bufp;
     bufp = asn_build_header(bufp, BufLenP,
-                            (u_char) (ASN_SEQUENCE | ASN_CONSTRUCTOR),
+                            (u_char)(ASN_SEQUENCE | ASN_CONSTRUCTOR),
                             FakeArg);
     if (bufp == NULL)
         return (NULL);
@@ -207,51 +205,51 @@ snmp_msg_Encode(u_char * Buffer, int *BufLenP,
     /* And build the variables */
     bufp = snmp_var_EncodeVarBind(bufp, BufLenP, PDU->variables, Version);
     if (bufp == NULL)
-        return (NULL);      /* snmp_var_EncodeVarBind registered failure */
+        return (NULL); /* snmp_var_EncodeVarBind registered failure */
 
-    /* Cool.  Now insert the appropriate lengths.
+        /* Cool.  Now insert the appropriate lengths.
      */
 #if DEBUG_MSG_ENCODE
     snmplib_debug(9, "Msg:  Vars returned 0x%x.  PDU Started at 0x%x\n",
                   bufp, PDUHeaderPtr);
     snmplib_debug(9, "MSG:  Entire PDU length is %d (0x%x - 0x%x)\n",
-                  (int) (bufp - PDUDataStart), PDUHeaderPtr, bufp);
+                  (int)(bufp - PDUDataStart), PDUHeaderPtr, bufp);
 #endif
     tmp = asn_build_header(PDUHeaderPtr, &FakeArg,
-                           (u_char) PDU->command,
-                           (int) (bufp - PDUDataStart));
+                           (u_char)PDU->command,
+                           (int)(bufp - PDUDataStart));
     /* Length of the PDU and Vars */
     if (tmp == NULL)
         return (NULL);
 
 #if DEBUG_MSG_ENCODE
     snmplib_debug(9, "MSG:  Entire message length is %d (0x%x - 0x%x)\n",
-                  (int) (bufp - MsgPtr), MsgPtr, bufp);
+                  (int)(bufp - MsgPtr), MsgPtr, bufp);
 #endif
     tmp = asn_build_header(Buffer,
                            &FakeArg,
-                           (u_char) (ASN_SEQUENCE | ASN_CONSTRUCTOR),
-                           (bufp - MsgPtr));    /* Length of everything */
+                           (u_char)(ASN_SEQUENCE | ASN_CONSTRUCTOR),
+                           (bufp - MsgPtr)); /* Length of everything */
     if (tmp == NULL)
         return (NULL);
 
     tmp = asn_build_header(VARHeaderPtr,
                            &FakeArg,
-                           (u_char) (ASN_SEQUENCE | ASN_CONSTRUCTOR),
-                           (bufp - VARDataStart));  /* Length of everything */
+                           (u_char)(ASN_SEQUENCE | ASN_CONSTRUCTOR),
+                           (bufp - VARDataStart)); /* Length of everything */
     if (tmp == NULL)
         return (NULL);
 
     *BufLenP = (bufp - Buffer);
-    return (u_char *) bufp;
+    return (u_char *)bufp;
 }
 
 /**********************************************************************/
 
 u_char *
-snmp_msg_Decode(u_char * Packet, int *PacketLenP,
-                u_char * Community, int *CommLenP,
-                int *Version, struct snmp_pdu * PDU)
+snmp_msg_Decode(u_char *Packet, int *PacketLenP,
+                u_char *Community, int *CommLenP,
+                int *Version, struct snmp_pdu *PDU)
 {
     u_char *bufp;
     u_char type;
@@ -267,7 +265,7 @@ snmp_msg_Decode(u_char * Packet, int *PacketLenP,
     }
     bufp = asn_parse_int(bufp, PacketLenP,
                          &type,
-                         (int *) Version, sizeof(*Version));
+                         (int *)Version, sizeof(*Version));
     if (bufp == NULL) {
         snmplib_debug(4, "snmp_msg_Decode:Error decoding SNMP Message Header (Version)!\n");
         ASN_PARSE_ERROR(NULL);
@@ -283,8 +281,7 @@ snmp_msg_Decode(u_char * Packet, int *PacketLenP,
     }
     Community[terminatorPos] = '\0';
 
-    if ((*Version != SNMP_VERSION_1) &&
-            (*Version != SNMP_VERSION_2)) {
+    if ((*Version != SNMP_VERSION_1) && (*Version != SNMP_VERSION_2)) {
 
         /* Don't know how to handle this one. */
         snmplib_debug(4, "snmp_msg_Decode:Unable to parse Version %u\n", *Version);
@@ -303,6 +300,5 @@ snmp_msg_Decode(u_char * Packet, int *PacketLenP,
         /* snmp_var_DecodeVarBind registered failure */
         return (NULL);
 
-    return (u_char *) bufp;
+    return (u_char *)bufp;
 }
-

@@ -45,8 +45,8 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <vector> //todo: turn into multimap
 #include <syslog.h>
+#include <vector>  //todo: turn into multimap
 
 #include "auth/basic/SMB_LM/msntauth.h"
 #include "auth/basic/SMB_LM/valid.h"
@@ -78,7 +78,9 @@ void
 display_usage_instructions()
 {
     using std::endl;
-    std::cerr << msntauth_version << endl << instructions << endl << endl;
+    std::cerr << msntauth_version << endl
+              << instructions << endl
+              << endl;
 }
 
 // arguments: domain/server_name [domain/server_name ...]
@@ -95,17 +97,16 @@ main(int argc, char **argv)
 
     for (int j = 1; j < argc; ++j) {
         std::string arg = argv[j];
-        size_t pos=arg.find('/');
-        if (arg.find('/',pos+1) != std::string::npos) {
+        size_t pos = arg.find('/');
+        if (arg.find('/', pos + 1) != std::string::npos) {
             std::cerr << "Error: can't understand domain controller specification '"
                       << arg << "'. Ignoring" << std::endl;
         }
         domaincontroller dc;
-        dc.domain = arg.substr(0,pos);
-        dc.server = arg.substr(pos+1);
+        dc.domain = arg.substr(0, pos);
+        dc.server = arg.substr(pos + 1);
         if (dc.domain.length() == 0 || dc.server.length() == 0) {
-            std::cerr << "Error: invalid domain specification in '" << arg <<
-                      "'. Ignoring." << std::endl;
+            std::cerr << "Error: invalid domain specification in '" << arg << "'. Ignoring." << std::endl;
             exit(EXIT_FAILURE);
         }
         domaincontrollers.push_back(dc);
@@ -164,4 +165,3 @@ main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
-

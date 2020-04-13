@@ -18,7 +18,7 @@ class StoreMetaMD5 : public StoreMeta
     MEMPROXY_CLASS(StoreMetaMD5);
 
 public:
-    char getType() const {return STORE_META_KEY_MD5;}
+    char getType() const { return STORE_META_KEY_MD5; }
 
     bool validLength(int) const;
     bool checkConsistency(StoreEntry *) const;
@@ -28,4 +28,3 @@ private:
 };
 
 #endif /* SQUID_STOREMETAMD5_H */
-

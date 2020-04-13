@@ -11,12 +11,12 @@
 #include "profiler/Profiler.h"
 
 #if XMALLOC_STATISTICS
-#define XMS_DBG_MAXSIZE   (1024*1024)
-#define XMS_DBG_SPLIT     (256)     /* mallocs below this value are tracked with DBG_GRAIN_SM precision instead of DBG_GRAIN */
-#define XMS_DBG_GRAIN     (16)
-#define XMS_DBG_GRAIN_SM  (4)
-#define XMS_DBG_OFFSET    (XMS_DBG_SPLIT/XMS_DBG_GRAIN_SM - XMS_DBG_SPLIT/XMS_DBG_GRAIN )
-#define XMS_DBG_MAXINDEX  (XMS_DBG_MAXSIZE/XMS_DBG_GRAIN + XMS_DBG_OFFSET)
+#define XMS_DBG_MAXSIZE (1024 * 1024)
+#define XMS_DBG_SPLIT (256) /* mallocs below this value are tracked with DBG_GRAIN_SM precision instead of DBG_GRAIN */
+#define XMS_DBG_GRAIN (16)
+#define XMS_DBG_GRAIN_SM (4)
+#define XMS_DBG_OFFSET (XMS_DBG_SPLIT / XMS_DBG_GRAIN_SM - XMS_DBG_SPLIT / XMS_DBG_GRAIN)
+#define XMS_DBG_MAXINDEX (XMS_DBG_MAXSIZE / XMS_DBG_GRAIN + XMS_DBG_OFFSET)
 static int malloc_sizes[XMS_DBG_MAXINDEX + 1];
 static int malloc_histo[XMS_DBG_MAXINDEX + 1];
 static int dbg_stat_init = 0;
@@ -52,7 +52,7 @@ malloc_stat(int sz)
 }
 
 void
-malloc_statistics(void (*func) (int, int, int, void *), void *data)
+malloc_statistics(void (*func)(int, int, int, void *), void *data)
 {
     int i = 0;
 
@@ -142,7 +142,7 @@ xrealloc(void *s, size_t sz)
         sz = 1;
 
     PROF_start(realloc);
-    void *p= realloc(s, sz);
+    void *p = realloc(s, sz);
     PROF_stop(realloc);
 
     if (p == NULL) {
@@ -176,4 +176,3 @@ free_const(const void *s_const)
     PROF_stop(free);
     PROF_stop(free_const);
 }
-

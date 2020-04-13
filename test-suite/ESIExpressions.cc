@@ -12,12 +12,12 @@
 #include "esi/Expression.h"
 
 int
-main ()
+main()
 {
     char const *expressions[] = {
         "!(1==1)", "!(1!=1)", "1!=1", "!1==1", "1==1",
-        "1 <=1","2<=1", "1 < 1", "1 < 2", "-1 < 1","!-1<1",
-        "1>2","2>1","2>=2", "2>3", "1==1&1==1","1==1&1==0",
+        "1 <=1", "2<=1", "1 < 1", "1 < 2", "-1 < 1", "!-1<1",
+        "1>2", "2>1", "2>=2", "2>3", "1==1&1==1", "1==1&1==0",
         "!('a'<='c')",
         "(1==1)|('abc'=='def')",
         "(4!=5)&(4==5)",
@@ -25,21 +25,19 @@ main ()
         "(1 & 4)",
         "(\"abc\" | \"edf\")", "1==1==1",
         "!('')",
-        /* End of array */""
-    };
+        /* End of array */ ""};
 
     int results[] = {0, 1, 0, 0, 1,
                      1, 0, 0, 1, 1,
                      0, 0, 1, 1, 0,
                      1, 0, 0, 1, 0,
                      1, 0, 0, 0, 0,
-                     1, 0
-                    };
+                     1, 0};
 
     int i = 0;
 
-    while (strlen (expressions[i])) {
-        int result = ESIExpression::Evaluate (expressions[i]);
+    while (strlen(expressions[i])) {
+        int result = ESIExpression::Evaluate(expressions[i]);
 #if VERBOSEDEBUG
 
         printf("Expr '%s' = '%s' (expected %s)\n", expressions[i],
@@ -55,4 +53,3 @@ main ()
 
     return 0;
 }
-

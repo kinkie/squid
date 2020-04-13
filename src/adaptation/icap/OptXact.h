@@ -12,58 +12,55 @@
 #include "adaptation/icap/Launcher.h"
 #include "adaptation/icap/Xaction.h"
 
-namespace Adaptation
-{
-namespace Icap
-{
+namespace Adaptation {
+namespace Icap {
 
-/* OptXact sends an ICAP OPTIONS request to the ICAP service,
+    /* OptXact sends an ICAP OPTIONS request to the ICAP service,
  * parses the ICAP response, and sends it to the initiator. A NULL response
  * means the ICAP service could not be contacted or did not return any
  * valid response. */
 
-class OptXact: public Xaction
-{
-    CBDATA_CLASS(OptXact);
+    class OptXact : public Xaction
+    {
+        CBDATA_CLASS(OptXact);
 
-public:
-    OptXact(ServiceRep::Pointer &aService);
+    public:
+        OptXact(ServiceRep::Pointer &aService);
 
-protected:
-    virtual void start();
-    virtual void handleCommConnected();
-    virtual void handleCommWrote(size_t size);
-    virtual void handleCommRead(size_t size);
+    protected:
+        virtual void start();
+        virtual void handleCommConnected();
+        virtual void handleCommWrote(size_t size);
+        virtual void handleCommRead(size_t size);
 
-    void makeRequest(MemBuf &buf);
-    bool parseResponse();
+        void makeRequest(MemBuf &buf);
+        bool parseResponse();
 
-    void startReading();
-    virtual bool doneReading() const { return commEof || readAll; }
+        void startReading();
+        virtual bool doneReading() const { return commEof || readAll; }
 
-    virtual void swanSong();
+        virtual void swanSong();
 
-private:
-    virtual void finalizeLogInfo();
+    private:
+        virtual void finalizeLogInfo();
 
-    bool readAll; ///< read the entire OPTIONS response
-};
+        bool readAll;  ///< read the entire OPTIONS response
+    };
 
-// An Launcher that stores OptXact construction info and
-// creates OptXact when needed
-class OptXactLauncher: public Launcher
-{
-    CBDATA_CLASS(OptXactLauncher);
+    // An Launcher that stores OptXact construction info and
+    // creates OptXact when needed
+    class OptXactLauncher : public Launcher
+    {
+        CBDATA_CLASS(OptXactLauncher);
 
-public:
-    OptXactLauncher(Adaptation::ServicePointer aService);
+    public:
+        OptXactLauncher(Adaptation::ServicePointer aService);
 
-protected:
-    virtual Xaction *createXaction();
-};
+    protected:
+        virtual Xaction *createXaction();
+    };
 
-} // namespace Icap
-} // namespace Adaptation
+}  // namespace Icap
+}  // namespace Adaptation
 
 #endif /* SQUID_ICAPOPTXACT_H */
-

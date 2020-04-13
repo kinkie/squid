@@ -7,12 +7,11 @@
  */
 
 #include "squid.h"
-#include "sbuf/Algorithms.h"
 #include "sbuf/List.h"
+#include "sbuf/Algorithms.h"
 
 bool
-IsMember(const SBufList & sl, const SBuf &S, const SBufCaseSensitive case_sensitive)
+IsMember(const SBufList &sl, const SBuf &S, const SBufCaseSensitive case_sensitive)
 {
-    return std::find_if(sl.begin(), sl.end(), SBufEqual(S,case_sensitive)) != sl.end();
+    return std::find_if(sl.begin(), sl.end(), SBufEqual(S, case_sensitive)) != sl.end();
 }
-

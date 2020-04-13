@@ -9,12 +9,12 @@
 /* DEBUG: section 93    ICAP (RFC 3507) Client */
 
 #include "squid.h"
-#include "adaptation/Initiate.h"
 #include "adaptation/Initiator.h"
+#include "adaptation/Initiate.h"
 #include "base/AsyncJobCalls.h"
 
 void
-Adaptation::Initiator::noteAdaptationAclCheckDone(Adaptation::ServiceGroupPointer)
+    Adaptation::Initiator::noteAdaptationAclCheckDone(Adaptation::ServiceGroupPointer)
 {
     Must(false);
 }
@@ -40,4 +40,3 @@ Adaptation::Initiator::announceInitiatorAbort(CbcPointer<Initiate> &x)
     CallJobHere(93, 5, x, Initiate, noteInitiatorAborted);
     clearAdaptation(x);
 }
-

@@ -15,7 +15,7 @@
 namespace Http {
 namespace One {
 
-/**
+    /**
  * Extracts either an HTTP/1 token or quoted-string while dealing with
  * possibly incomplete input typical for incremental text parsers.
  * Unescapes escaped characters in HTTP/1.1 quoted strings.
@@ -49,10 +49,9 @@ namespace One {
  *    obs-text       = %x80-FF
  *  "
  */
-SBuf tokenOrQuotedString(Parser::Tokenizer &tok, const bool http1p0 = false);
+    SBuf tokenOrQuotedString(Parser::Tokenizer &tok, const bool http1p0 = false);
 
-} // namespace One
-} // namespace Http
+}  // namespace One
+}  // namespace Http
 
 #endif /* SQUID_SRC_HTTP_ONE_TOKENIZER_H */
-

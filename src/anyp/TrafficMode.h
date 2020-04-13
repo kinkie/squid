@@ -9,8 +9,7 @@
 #ifndef SQUID_ANYP_TRAFFIC_MODE_H
 #define SQUID_ANYP_TRAFFIC_MODE_H
 
-namespace AnyP
-{
+namespace AnyP {
 
 /**
  * Set of 'mode' flags defining types of traffic which can be received.
@@ -76,10 +75,9 @@ public:
     /** true if the traffic is in any way intercepted
      *
      */
-    bool isIntercepted() { return natIntercept||tproxyIntercept ;}
+    bool isIntercepted() { return natIntercept || tproxyIntercept; }
 };
 
-} // namespace AnyP
+}  // namespace AnyP
 
 #endif
-

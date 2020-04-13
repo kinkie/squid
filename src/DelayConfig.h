@@ -20,14 +20,12 @@ class DelayConfig
 
 public:
     void freePoolCount();
-    void dumpPoolCount(StoreEntry * entry, const char *name) const;
+    void dumpPoolCount(StoreEntry *entry, const char *name) const;
     void parsePoolCount();
     void parsePoolClass();
     void parsePoolRates();
     void parsePoolAccess(ConfigParser &parser);
     unsigned short initial;
-
 };
 
 #endif /* SQUID_DELAYCONFIG_H */
-

@@ -32,31 +32,32 @@
 #include "squid.h"
 
 #if USE_KQUEUE
-#include "comm/Loops.h"
-#include "fde.h"
-#include "globals.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "comm/Loops.h"
+#include "fde.h"
+#include "globals.h"
 
 #include <cerrno>
 #if HAVE_SYS_EVENT_H
 #include <sys/event.h>
 #endif
 
-#define KE_LENGTH        128
+#define KE_LENGTH 128
 
 /* jlemon goofed up and didn't add EV_SET until fbsd 4.3 */
 
 #ifndef EV_SET
-#define EV_SET(kevp, a, b, c, d, e, f) do {     \
-        (kevp)->ident = (a);                    \
-        (kevp)->filter = (b);                   \
-        (kevp)->flags = (c);                    \
-        (kevp)->fflags = (d);                   \
-        (kevp)->data = (e);                     \
-        (kevp)->udata = (f);                    \
-} while(0)
+#define EV_SET(kevp, a, b, c, d, e, f) \
+    do {                               \
+        (kevp)->ident = (a);           \
+        (kevp)->filter = (b);          \
+        (kevp)->flags = (c);           \
+        (kevp)->fflags = (d);          \
+        (kevp)->data = (e);            \
+        (kevp)->udata = (f);           \
+    } while (0)
 #endif
 
 static void kq_update_events(int, short, PF *);
@@ -64,9 +65,9 @@ static int kq;
 
 static struct timespec zero_timespec;
 
-static struct kevent *kqlst;        /* kevent buffer */
-static int kqmax;                /* max structs to buffer */
-static int kqoff;                /* offset into the buffer */
+static struct kevent *kqlst; /* kevent buffer */
+static int kqmax;            /* max structs to buffer */
+static int kqoff;            /* offset into the buffer */
 static int max_poll_time = 1000;
 
 static void commKQueueRegisterWithCacheManager(void);
@@ -75,7 +76,7 @@ static void commKQueueRegisterWithCacheManager(void);
 /* Private functions */
 
 void
-kq_update_events(int fd, short filter, PF * handler)
+kq_update_events(int fd, short filter, PF *handler)
 {
     PF *cur_handler;
     int kep_flags;
@@ -97,7 +98,7 @@ kq_update_events(int fd, short filter, PF * handler)
     }
 
     if ((cur_handler == NULL && handler != NULL)
-            || (cur_handler != NULL && handler == NULL)) {
+        || (cur_handler != NULL && handler == NULL)) {
 
         struct kevent *kep;
 
@@ -109,7 +110,7 @@ kq_update_events(int fd, short filter, PF * handler)
             kep_flags = EV_DELETE;
         }
 
-        EV_SET(kep, (uintptr_t) fd, filter, kep_flags, 0, 0, 0);
+        EV_SET(kep, (uintptr_t)fd, filter, kep_flags, 0, 0, 0);
 
         /* Check if we've used the last one. If we have then submit them all */
         if (kqoff == kqmax - 1) {
@@ -164,14 +165,12 @@ Comm::SelectLoopInit(void)
  * and deregister interest in a pending IO state for a given FD.
  */
 void
-Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+Comm::SetSelect(int fd, unsigned int type, PF *handler, void *client_data, time_t timeout)
 {
     fde *F = &fd_table[fd];
     assert(fd >= 0);
     assert(F->flags.open || (!handler && !client_data && !timeout));
-    debugs(5, 5, HERE << "FD " << fd << ", type=" << type <<
-           ", handler=" << handler << ", client_data=" << client_data <<
-           ", timeout=" << timeout);
+    debugs(5, 5, HERE << "FD " << fd << ", type=" << type << ", handler=" << handler << ", client_data=" << client_data << ", timeout=" << timeout);
 
     if (type & COMM_SELECT_READ) {
         if (F->flags.read_pending)
@@ -191,7 +190,6 @@ Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time
 
     if (timeout)
         F->timeout = squid_curtime + timeout;
-
 }
 
 /*
@@ -246,17 +244,17 @@ Comm::DoSelect(int msec)
     getCurrentTime();
 
     if (num == 0)
-        return Comm::OK;        /* No error.. */
+        return Comm::OK; /* No error.. */
 
     for (i = 0; i < num; ++i) {
-        int fd = (int) ke[i].ident;
+        int fd = (int)ke[i].ident;
         PF *hdl = NULL;
         fde *F = &fd_table[fd];
 
         if (ke[i].flags & EV_ERROR) {
             errno = ke[i].data;
             /* XXX error == bad! -- adrian */
-            continue;        /* XXX! */
+            continue; /* XXX! */
         }
 
         if (ke[i].filter == EVFILT_READ || F->flags.read_pending) {
@@ -294,4 +292,3 @@ commKQueueRegisterWithCacheManager(void)
 }
 
 #endif /* USE_KQUEUE */
-

@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
-#include "Debug.h"
 #include "http/one/RequestParser.h"
+#include "Debug.h"
+#include "SquidConfig.h"
 #include "http/ProtocolVersion.h"
 #include "parser/Tokenizer.h"
 #include "profiler/Profiler.h"
-#include "SquidConfig.h"
 
 Http1::Parser::size_type
 Http::One::RequestParser::firstLineSize() const
@@ -40,9 +40,9 @@ Http::One::RequestParser::skipGarbageLines()
 {
     if (Config.onoff.relaxed_header_parser) {
         if (Config.onoff.relaxed_header_parser < 0 && (buf_[0] == '\r' || buf_[0] == '\n'))
-            debugs(74, DBG_IMPORTANT, "WARNING: Invalid HTTP Request: " <<
-                   "CRLF bytes received ahead of request-line. " <<
-                   "Ignored due to relaxed_header_parser.");
+            debugs(74, DBG_IMPORTANT, "WARNING: Invalid HTTP Request: "
+                       << "CRLF bytes received ahead of request-line. "
+                       << "Ignored due to relaxed_header_parser.");
         // Be tolerant of prefix empty lines
         // ie any series of either \n or \r\n with no other characters and no repeated \r
         while (!buf_.isEmpty() && (buf_[0] == '\n' || (buf_[0] == '\r' && buf_[1] == '\n'))) {
@@ -66,7 +66,7 @@ Http::One::RequestParser::parseMethodField(Tokenizer &tok)
     // being sucked in before mismatch is detected. 32 is itself annoyingly
     // big but there are methods registered by IANA that reach 17 bytes:
     //  http://www.iana.org/assignments/http-methods
-    static const size_t maxMethodLength = 32; // TODO: make this configurable?
+    static const size_t maxMethodLength = 32;  // TODO: make this configurable?
 
     SBuf methodFound;
     if (!tok.prefix(methodFound, CharacterSet::TCHAR, maxMethodLength)) {
@@ -92,18 +92,13 @@ UriValidCharacters()
      *   digits, letters, and a few graphic symbols.
      * "
      */
-    static const CharacterSet UriChars =
-        CharacterSet("URI-Chars","") +
+    static const CharacterSet UriChars = CharacterSet("URI-Chars", "") +
         // RFC 3986 section 2.2 - reserved characters
-        CharacterSet("gen-delims", ":/?#[]@") +
-        CharacterSet("sub-delims", "!$&'()*+,;=") +
+        CharacterSet("gen-delims", ":/?#[]@") + CharacterSet("sub-delims", "!$&'()*+,;=") +
         // RFC 3986 section 2.3 - unreserved characters
-        CharacterSet::ALPHA +
-        CharacterSet::DIGIT +
-        CharacterSet("unreserved", "-._~") +
+        CharacterSet::ALPHA + CharacterSet::DIGIT + CharacterSet("unreserved", "-._~") +
         // RFC 3986 section 2.1 - percent encoding "%" HEXDIG
-        CharacterSet("pct-encoded", "%") +
-        CharacterSet::HEXDIG;
+        CharacterSet("pct-encoded", "%") + CharacterSet::HEXDIG;
 
     return UriChars;
 }
@@ -114,20 +109,18 @@ Http::One::RequestParser::RequestTargetCharacters()
 {
     if (Config.onoff.relaxed_header_parser) {
 #if USE_HTTP_VIOLATIONS
-        static const CharacterSet RelaxedExtended =
-            UriValidCharacters() +
+        static const CharacterSet RelaxedExtended = UriValidCharacters() +
             // accept whitespace (extended), it will be dealt with later
             DelimiterCharacters() +
             // RFC 2396 unwise character set which must never be transmitted
             // in un-escaped form. But many web services do anyway.
-            CharacterSet("RFC2396-unwise","\"\\|^<>`{}") +
+            CharacterSet("RFC2396-unwise", "\"\\|^<>`{}") +
             // UTF-8 because we want to be future-proof
             CharacterSet("UTF-8", 128, 255);
 
         return RelaxedExtended;
 #else
-        static const CharacterSet RelaxedCompliant =
-            UriValidCharacters() +
+        static const CharacterSet RelaxedCompliant = UriValidCharacters() +
             // accept whitespace (extended), it will be dealt with later.
             DelimiterCharacters();
 
@@ -151,7 +144,7 @@ Http::One::RequestParser::parseUriField(Tokenizer &tok)
      * Not that it matters but RFC 7230 section 3.1.1 requires (RECOMMENDED)
      * at least 8000 octets for the whole line, including method and version.
      */
-    const size_t maxUriLength = static_cast<size_t>((64*1024)-1);
+    const size_t maxUriLength = static_cast<size_t>((64 * 1024) - 1);
 
     SBuf uriFound;
     if (!tok.prefix(uriFound, RequestTargetCharacters())) {
@@ -163,8 +156,7 @@ Http::One::RequestParser::parseUriField(Tokenizer &tok)
     if (uriFound.length() > maxUriLength) {
         // RFC 7230 section 3.1.1 mandatory (MUST) 414 response
         parseStatusCode = Http::scUriTooLong;
-        debugs(33, ErrorLevel(), "invalid request-line: " << uriFound.length() <<
-               "-byte URI exceeds " << maxUriLength << "-byte limit");
+        debugs(33, ErrorLevel(), "invalid request-line: " << uriFound.length() << "-byte URI exceeds " << maxUriLength << "-byte limit");
         return false;
     }
 
@@ -194,10 +186,7 @@ Http::One::RequestParser::parseHttpVersionField(Tokenizer &tok)
         static const SBuf proto("HTTP/");
         SBuf majorDigit;
         SBuf minorDigit;
-        if (tok.suffix(minorDigit, CharacterSet::DIGIT) &&
-                tok.skipOneTrailing(period) &&
-                tok.suffix(majorDigit, CharacterSet::DIGIT) &&
-                tok.skipSuffix(proto)) {
+        if (tok.suffix(minorDigit, CharacterSet::DIGIT) && tok.skipOneTrailing(period) && tok.suffix(majorDigit, CharacterSet::DIGIT) && tok.skipSuffix(proto)) {
             const bool multiDigits = majorDigit.length() > 1 || minorDigit.length() > 1;
             // use '0.0' for unsupported multiple digit version numbers
             const unsigned int major = multiDigits ? 0 : (*majorDigit.rawContent() - '0');
@@ -210,10 +199,10 @@ Http::One::RequestParser::parseHttpVersionField(Tokenizer &tok)
     // A GET request might use HTTP/0.9 syntax
     if (method_ == Http::METHOD_GET) {
         // RFC 1945 - no HTTP version field at all
-        tok = savedTok; // in case the URI ends with a digit
+        tok = savedTok;  // in case the URI ends with a digit
         // report this assumption as an error if configured to triage parsing
         debugs(33, ErrorLevel(), "assuming HTTP/0.9 request-line");
-        msgProtocol_ = Http::ProtocolVersion(0,9);
+        msgProtocol_ = Http::ProtocolVersion(0, 9);
         return true;
     }
 
@@ -251,7 +240,7 @@ bool
 Http::One::RequestParser::skipTrailingCrs(Tokenizer &tok)
 {
     if (Config.onoff.relaxed_header_parser) {
-        (void)tok.skipAllTrailing(CharacterSet::CR); // optional; multiple OK
+        (void)tok.skipAllTrailing(CharacterSet::CR);  // optional; multiple OK
     } else {
         if (!tok.skipOneTrailing(CharacterSet::CR)) {
             debugs(33, ErrorLevel(), "invalid request-line: missing CR before LF");
@@ -291,11 +280,10 @@ Http::One::RequestParser::parseRequestFirstLine()
 
             Tokenizer methodTok(buf_);
             if (!parseMethodField(methodTok))
-                return -1; // blame a bad method (or its delimiter)
+                return -1;  // blame a bad method (or its delimiter)
 
             // assume it is the URI
-            debugs(74, ErrorLevel(), "invalid request-line: URI exceeds " <<
-                   Config.maxRequestHeaderSize << "-byte limit");
+            debugs(74, ErrorLevel(), "invalid request-line: URI exceeds " << Config.maxRequestHeaderSize << "-byte limit");
             parseStatusCode = Http::scUriTooLong;
             return -1;
         }
@@ -330,7 +318,7 @@ Http::One::RequestParser::parseRequestFirstLine()
     }
 
     parseStatusCode = Http::scOkay;
-    buf_ = lineTok.remaining(); // incremental parse checkpoint
+    buf_ = lineTok.remaining();  // incremental parse checkpoint
     return 1;
 }
 
@@ -340,7 +328,7 @@ Http::One::RequestParser::parse(const SBuf &aBuf)
     const bool result = doParse(aBuf);
     if (preserveParsed_) {
         assert(aBuf.length() >= remaining().length());
-        parsed_.append(aBuf.substr(0, aBuf.length() - remaining().length())); // newly parsed bytes
+        parsed_.append(aBuf.substr(0, aBuf.length() - remaining().length()));  // newly parsed bytes
     }
 
     return result;
@@ -378,7 +366,7 @@ Http::One::RequestParser::doParse(const SBuf &aBuf)
         debugs(74, 5, "request-line: method: " << method_);
         debugs(74, 5, "request-line: url: " << uri_);
         debugs(74, 5, "request-line: proto: " << msgProtocol_);
-        debugs(74, 5, "Parser: bytes processed=" << (aBuf.length()-buf_.length()));
+        debugs(74, 5, "Parser: bytes processed=" << (aBuf.length() - buf_.length()));
         PROF_stop(HttpParserParseReqLine);
 
         // syntax errors already
@@ -400,4 +388,3 @@ Http::One::RequestParser::doParse(const SBuf &aBuf)
 
     return !needsMoreData();
 }
-

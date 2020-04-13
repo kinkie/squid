@@ -9,17 +9,17 @@
 /* DEBUG: section 29    Authenticator */
 
 #include "squid.h"
+#include "auth/User.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "acl/Acl.h"
 #include "acl/Gadgets.h"
 #include "auth/Config.h"
 #include "auth/CredentialsCache.h"
 #include "auth/Gadgets.h"
-#include "auth/User.h"
 #include "auth/UserRequest.h"
 #include "event.h"
 #include "globals.h"
-#include "SquidTime.h"
-#include "Store.h"
 
 Auth::User::User(Auth::SchemeConfig *aConfig, const char *aRequestRealm) :
     auth_type(Auth::AUTH_UNKNOWN),
@@ -80,7 +80,7 @@ Auth::User::absorb(Auth::User::Pointer from)
             dlinkDelete(&new_ipdata->node, &(from->ip_list));
             delete new_ipdata;
             /* catch incipient underflow */
-            -- from->ipcount;
+            --from->ipcount;
         } else {
             /* add to our list. replace if already present. */
             AuthUserIP *ipdata = static_cast<AuthUserIP *>(ip_list.head->data);
@@ -100,7 +100,7 @@ Auth::User::absorb(Auth::User::Pointer from)
                     delete ipdata;
                     /* catch incipient underflow */
                     assert(ipcount);
-                    -- ipcount;
+                    --ipcount;
                 }
 
                 ipdata = tempnode;
@@ -130,7 +130,7 @@ Auth::User::~User()
     clearIp();
 
     if (username_)
-        xfree((char*)username_);
+        xfree((char *)username_);
 
     /* prevent accidental reuse */
     auth_type = Auth::AUTH_UNKNOWN;
@@ -141,16 +141,16 @@ Auth::User::clearIp()
 {
     AuthUserIP *ipdata, *tempnode;
 
-    ipdata = (AuthUserIP *) ip_list.head;
+    ipdata = (AuthUserIP *)ip_list.head;
 
     while (ipdata) {
-        tempnode = (AuthUserIP *) ipdata->node.next;
+        tempnode = (AuthUserIP *)ipdata->node.next;
         /* walk the ip list */
         dlinkDelete(&ipdata->node, &ip_list);
         delete ipdata;
         /* catch incipient underflow */
         assert(ipcount);
-        -- ipcount;
+        --ipcount;
         ipdata = tempnode;
     }
 
@@ -161,7 +161,7 @@ Auth::User::clearIp()
 void
 Auth::User::removeIp(Ip::Address ipaddr)
 {
-    AuthUserIP *ipdata = (AuthUserIP *) ip_list.head;
+    AuthUserIP *ipdata = (AuthUserIP *)ip_list.head;
 
     while (ipdata) {
         /* walk the ip list */
@@ -172,19 +172,18 @@ Auth::User::removeIp(Ip::Address ipaddr)
             delete ipdata;
             /* catch incipient underflow */
             assert(ipcount);
-            -- ipcount;
+            --ipcount;
             return;
         }
 
-        ipdata = (AuthUserIP *) ipdata->node.next;
+        ipdata = (AuthUserIP *)ipdata->node.next;
     }
-
 }
 
 void
 Auth::User::addIp(Ip::Address ipaddr)
 {
-    AuthUserIP *ipdata = (AuthUserIP *) ip_list.head;
+    AuthUserIP *ipdata = (AuthUserIP *)ip_list.head;
     int found = 0;
 
     /*
@@ -193,7 +192,7 @@ Auth::User::addIp(Ip::Address ipaddr)
      * a timeout+reconfigure
      */
     while (ipdata) {
-        AuthUserIP *tempnode = (AuthUserIP *) ipdata->node.next;
+        AuthUserIP *tempnode = (AuthUserIP *)ipdata->node.next;
         /* walk the ip list */
 
         if (ipdata->ipaddr == ipaddr) {
@@ -207,7 +206,7 @@ Auth::User::addIp(Ip::Address ipaddr)
             delete ipdata;
             /* catch incipient underflow */
             assert(ipcount);
-            -- ipcount;
+            --ipcount;
         }
 
         ipdata = tempnode;
@@ -252,15 +251,14 @@ Auth::User::CredentialsCacheStats(StoreEntry *output)
                       "Cache TTL",
                       "Username", "Key");
     storeAppendPrintf(output, "--------------- --------- --------- --------- ------------------------------\n");
-    for ( auto auth_user : userlist ) {
+    for (auto auth_user : userlist) {
         storeAppendPrintf(output, "%-15s %-9s %-9d %-9d %s\t" SQUIDSBUFPH "\n",
                           Auth::Type_str[auth_user->auth_type],
                           CredentialState_str[auth_user->credentials()],
                           auth_user->ttl(),
                           static_cast<int32_t>(auth_user->expiretime - squid_curtime + Auth::TheConfig.credentialsTtl),
                           auth_user->username(),
-                          SQUIDSBUFPRINT(auth_user->userKey())
-                         );
+                          SQUIDSBUFPRINT(auth_user->userKey()));
     }
 }
 
@@ -277,4 +275,3 @@ Auth::User::username(char const *aString)
         userKey_.clear();
     }
 }
-

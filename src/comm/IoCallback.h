@@ -15,8 +15,7 @@
 #include "mem/forward.h"
 #include "sbuf/forward.h"
 
-namespace Comm
-{
+namespace Comm {
 
 /// Type of IO callbacks the Comm layer deals with.
 typedef enum {
@@ -39,10 +38,13 @@ public:
     Comm::Flag errcode;
     int xerrno;
 #if USE_DELAY_POOLS
-    unsigned int quotaQueueReserv; ///< reservation ID from CommQuotaQueue
+    unsigned int quotaQueueReserv;  ///< reservation ID from CommQuotaQueue
 #endif
 
-    bool active() const { return callback != NULL; }
+    bool active() const
+    {
+        return callback != NULL;
+    }
     void setCallback(iocb_type type, AsyncCall::Pointer &cb, char *buf, FREE *func, int sz);
 
     /// called when fd needs to write but may need to wait in line for its quota
@@ -64,8 +66,8 @@ class CbEntry
 {
 public:
     int fd;
-    IoCallback  readcb;
-    IoCallback  writecb;
+    IoCallback readcb;
+    IoCallback writecb;
 };
 
 /// Table of scheduled IO events which have yet to be processed ??
@@ -75,10 +77,9 @@ extern CbEntry *iocb_table;
 void CallbackTableInit();
 void CallbackTableDestruct();
 
-#define COMMIO_FD_READCB(fd)    (&Comm::iocb_table[(fd)].readcb)
-#define COMMIO_FD_WRITECB(fd)   (&Comm::iocb_table[(fd)].writecb)
+#define COMMIO_FD_READCB(fd) (&Comm::iocb_table[(fd)].readcb)
+#define COMMIO_FD_WRITECB(fd) (&Comm::iocb_table[(fd)].writecb)
 
-} // namespace Comm
+}  // namespace Comm
 
 #endif /* _SQUID_COMM_IOCALLBACK_H */
-

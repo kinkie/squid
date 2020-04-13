@@ -9,10 +9,10 @@
 /* DEBUG: section 67    String */
 
 #include "squid.h"
+#include "Store.h"
 #include "base/TextException.h"
 #include "mgr/Registration.h"
 #include "profiler/Profiler.h"
-#include "Store.h"
 
 #include <climits>
 
@@ -22,8 +22,8 @@ void
 String::allocBuffer(String::size_type sz)
 {
     PROF_start(StringInitBuf);
-    assert (undefined());
-    char *newBuffer = (char*)memAllocString(sz, &sz);
+    assert(undefined());
+    char *newBuffer = (char *)memAllocString(sz, &sz);
     setBuffer(newBuffer, sz);
     PROF_stop(StringInitBuf);
 }
@@ -56,23 +56,23 @@ String::String(char const *aString)
 }
 
 String &
-String::operator =(char const *aString)
+String::operator=(char const *aString)
 {
     reset(aString);
     return *this;
 }
 
 String &
-String::operator =(String const &old)
+String::operator=(String const &old)
 {
-    clean(); // TODO: optimize to avoid cleaning the buffer we can use
+    clean();  // TODO: optimize to avoid cleaning the buffer we can use
     if (old.size() > 0)
         allocAndFill(old.rawBuf(), old.size());
     return *this;
 }
 
 bool
-String::operator ==(String const &that) const
+String::operator==(String const &that) const
 {
     if (0 == this->cmp(that))
         return true;
@@ -81,7 +81,7 @@ String::operator ==(String const &that) const
 }
 
 bool
-String::operator !=(String const &that) const
+String::operator!=(String const &that) const
 {
     if (0 == this->cmp(that))
         return false;
@@ -93,7 +93,7 @@ String::operator !=(String const &that) const
 void
 String::assign(const char *str, int len)
 {
-    clean(); // TODO: optimize to avoid cleaning the buffer we can use
+    clean();  // TODO: optimize to avoid cleaning the buffer we can use
     allocAndFill(str, len);
 }
 
@@ -111,7 +111,8 @@ String::allocAndFill(const char *str, int len)
     PROF_stop(StringAllocAndFill);
 }
 
-String::String(String const &old) : size_(0), len_(0), buf_(NULL)
+String::String(String const &old) :
+    size_(0), len_(0), buf_(NULL)
 {
     if (old.size() > 0)
         allocAndFill(old.rawBuf(), old.size());
@@ -151,25 +152,25 @@ void
 String::reset(char const *str)
 {
     PROF_start(StringReset);
-    clean(); // TODO: optimize to avoid cleaning the buffer if we can reuse it
+    clean();  // TODO: optimize to avoid cleaning the buffer if we can reuse it
     if (str)
         allocAndFill(str, strlen(str));
     PROF_stop(StringReset);
 }
 
 void
-String::append( char const *str, int len)
+String::append(char const *str, int len)
 {
     assert(str && len >= 0);
 
     PROF_start(StringAppend);
     if (len_ + len + 1 /*'\0'*/ < size_) {
-        xstrncpy(buf_+len_, str, len+1);
+        xstrncpy(buf_ + len_, str, len + 1);
         len_ += len;
     } else {
         // Create a temporary string and absorb it later.
         String snew;
-        assert(canGrowBy(len)); // otherwise snew.len_ may overflow below
+        assert(canGrowBy(len));  // otherwise snew.len_ may overflow below
         snew.len_ = len_ + len;
         snew.allocBuffer(snew.len_ + 1);
 
@@ -197,8 +198,8 @@ void
 String::append(char const chr)
 {
     char myString[2];
-    myString[0]=chr;
-    myString[1]='\0';
+    myString[0] = chr;
+    myString[1] = '\0';
     append(myString, 1);
 }
 
@@ -222,13 +223,13 @@ String::absorb(String &old)
 String
 String::substr(String::size_type from, String::size_type to) const
 {
-//    Must(from >= 0 && from < size());
+    //    Must(from >= 0 && from < size());
     Must(from < size());
     Must(to > 0 && to <= size());
     Must(to > from);
 
     String rv;
-    rv.assign(rawBuf()+from, to-from);
+    rv.assign(rawBuf() + from, to - from);
     return rv;
 }
 
@@ -236,7 +237,8 @@ void
 String::cut(String::size_type newLength)
 {
     // size_type is size_t, unsigned. No need to check for newLength <0
-    if (newLength > len_) return;
+    if (newLength > len_)
+        return;
 
     len_ = newLength;
 
@@ -253,13 +255,13 @@ static bool
 nilCmp(const bool thisIsNilOrEmpty, const bool otherIsNilOrEmpty, int &result)
 {
     if (!thisIsNilOrEmpty && !otherIsNilOrEmpty)
-        return false; // result does not matter
+        return false;  // result does not matter
 
     if (thisIsNilOrEmpty && otherIsNilOrEmpty)
         result = 0;
     else if (thisIsNilOrEmpty)
         result = -1;
-    else // otherIsNilOrEmpty
+    else  // otherIsNilOrEmpty
         result = +1;
 
     return true;
@@ -319,7 +321,7 @@ String::caseCmp(char const *aString, String::size_type count) const
 void
 String::stat(StoreEntry *entry) const
 {
-    storeAppendPrintf(entry, "%p : %d/%d \"%.*s\"\n",this,len_, size_, size(), rawBuf());
+    storeAppendPrintf(entry, "%p : %d/%d \"%.*s\"\n", this, len_, size_, size(), rawBuf());
 }
 
 StringRegistry &
@@ -362,14 +364,14 @@ String::size_type memStringCount();
 void
 StringRegistry::Stat(StoreEntry *entry)
 {
-    storeAppendPrintf(entry, "%lu entries, %lu reported from MemPool\n", (unsigned long) Instance().entries.elements, (unsigned long) memStringCount());
+    storeAppendPrintf(entry, "%lu entries, %lu reported from MemPool\n", (unsigned long)Instance().entries.elements, (unsigned long)memStringCount());
     Instance().entries.head->walk(Stater, entry);
 }
 
 void
-StringRegistry::Stater(String const * const & nodedata, void *state)
+StringRegistry::Stater(String const *const &nodedata, void *state)
 {
-    StoreEntry *entry = (StoreEntry *) state;
+    StoreEntry *entry = (StoreEntry *)state;
     nodedata->stat(entry);
 }
 
@@ -388,7 +390,7 @@ stringHasCntl(const char *s)
 {
     unsigned char c;
 
-    while ((c = (unsigned char) *s++) != '\0') {
+    while ((c = (unsigned char)*s++) != '\0') {
         if (c <= 0x1f)
             return 1;
 
@@ -407,13 +409,13 @@ char *
 strwordtok(char *buf, char **t)
 {
     unsigned char *word = NULL;
-    unsigned char *p = (unsigned char *) buf;
+    unsigned char *p = (unsigned char *)buf;
     unsigned char *d;
     unsigned char ch;
     int quoted = 0;
 
     if (!p)
-        p = (unsigned char *) *t;
+        p = (unsigned char *)*t;
 
     if (!p)
         goto error;
@@ -449,7 +451,6 @@ strwordtok(char *buf, char **t)
                 ch = *p;
 
                 break;
-
             }
 
             *d = ch;
@@ -484,8 +485,8 @@ done:
     *d = '\0';
 
 error:
-    *t = (char *) p;
-    return (char *) word;
+    *t = (char *)p;
+    return (char *)word;
 }
 
 const char *
@@ -522,29 +523,28 @@ String::size_type
 String::find(char const ch) const
 {
     const char *c;
-    c=pos(ch);
-    if (c==NULL)
+    c = pos(ch);
+    if (c == NULL)
         return npos;
-    return c-rawBuf();
+    return c - rawBuf();
 }
 
 String::size_type
 String::find(char const *aString) const
 {
     const char *c;
-    c=pos(aString);
-    if (c==NULL)
+    c = pos(aString);
+    if (c == NULL)
         return npos;
-    return c-rawBuf();
+    return c - rawBuf();
 }
 
 String::size_type
 String::rfind(char const ch) const
 {
     const char *c;
-    c=rpos(ch);
-    if (c==NULL)
+    c = rpos(ch);
+    if (c == NULL)
         return npos;
-    return c-rawBuf();
+    return c - rawBuf();
 }
-

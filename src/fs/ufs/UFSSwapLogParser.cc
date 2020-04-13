@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
-#include "Debug.h"
-#include "md5.h"
-#include "StoreSwapLogData.h"
-#include "swap_log_op.h"
 #include "UFSSwapLogParser.h"
+#include "Debug.h"
+#include "StoreSwapLogData.h"
+#include "md5.h"
+#include "swap_log_op.h"
 
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -20,7 +20,7 @@
 /// Parse a swap header entry created on a system with 32-bit size_t and sfileno
 /// this is typical of 32-bit systems without large file support
 /// NP: SQUID_MD5_DIGEST_LENGTH is very risky still.
-class UFSSwapLogParser_v1_32bs:public Fs::Ufs::UFSSwapLogParser
+class UFSSwapLogParser_v1_32bs : public Fs::Ufs::UFSSwapLogParser
 {
 public:
     /// version 1 cache swap.state entry with 32-bit size_t (swap_file_sz)
@@ -37,11 +37,14 @@ public:
         uint16_t flags;
         unsigned char key[SQUID_MD5_DIGEST_LENGTH];
     };
-    UFSSwapLogParser_v1_32bs(FILE *fp):Fs::Ufs::UFSSwapLogParser(fp) {
+    UFSSwapLogParser_v1_32bs(FILE *fp) :
+        Fs::Ufs::UFSSwapLogParser(fp)
+    {
         record_size = sizeof(UFSSwapLogParser_v1_32bs::StoreSwapLogDataOld);
     }
     /// Convert the on-disk 32-bit format to our current format while reading
-    bool ReadRecord(StoreSwapLogData &swapData) {
+    bool ReadRecord(StoreSwapLogData &swapData)
+    {
         UFSSwapLogParser_v1_32bs::StoreSwapLogDataOld readData;
         int bytes = sizeof(UFSSwapLogParser_v1_32bs::StoreSwapLogDataOld);
 
@@ -65,13 +68,16 @@ public:
 };
 
 /// swap.state v2 log parser
-class UFSSwapLogParser_v2: public Fs::Ufs::UFSSwapLogParser
+class UFSSwapLogParser_v2 : public Fs::Ufs::UFSSwapLogParser
 {
 public:
-    UFSSwapLogParser_v2(FILE *fp): Fs::Ufs::UFSSwapLogParser(fp) {
+    UFSSwapLogParser_v2(FILE *fp) :
+        Fs::Ufs::UFSSwapLogParser(fp)
+    {
         record_size = sizeof(StoreSwapLogData);
     }
-    bool ReadRecord(StoreSwapLogData &swapData) {
+    bool ReadRecord(StoreSwapLogData &swapData)
+    {
         assert(log);
         return fread(&swapData, sizeof(StoreSwapLogData), 1, log) == 1;
     }
@@ -90,7 +96,7 @@ Fs::Ufs::UFSSwapLogParser::GetUFSSwapLogParser(FILE *fp)
     if (header.op != SWAP_LOG_VERSION) {
         debugs(47, DBG_IMPORTANT, "Old swap file detected...");
         fseek(fp, 0, SEEK_SET);
-        return new UFSSwapLogParser_v1_32bs(fp); // Um. 32-bits except time_t, and can't determine that.
+        return new UFSSwapLogParser_v1_32bs(fp);  // Um. 32-bits except time_t, and can't determine that.
     }
 
     debugs(47, 2, "Swap file version: " << header.version);
@@ -99,9 +105,9 @@ Fs::Ufs::UFSSwapLogParser::GetUFSSwapLogParser(FILE *fp)
         if (fseek(fp, header.record_size, SEEK_SET) != 0)
             return NULL;
 
-        debugs(47, DBG_IMPORTANT, "Rejecting swap file v1 to avoid cache " <<
-               "index corruption. Forcing a full cache index rebuild. " <<
-               "See Squid bug #3441.");
+        debugs(47, DBG_IMPORTANT, "Rejecting swap file v1 to avoid cache "
+                   << "index corruption. Forcing a full cache index rebuild. "
+                   << "See Squid bug #3441.");
         return NULL;
 
 #if UNUSED_CODE
@@ -148,8 +154,7 @@ Fs::Ufs::UFSSwapLogParser::GetUFSSwapLogParser(FILE *fp)
 
     if (header.version >= 2) {
         if (!header.sane()) {
-            debugs(47, DBG_IMPORTANT, "ERROR: Corrupted v" << header.version <<
-                   " swap file header.");
+            debugs(47, DBG_IMPORTANT, "ERROR: Corrupted v" << header.version << " swap file header.");
             return NULL;
         }
 
@@ -175,10 +180,9 @@ Fs::Ufs::UFSSwapLogParser::SwapLogEntries()
         return log_entries;
 
     if (log && record_size && 0 == fstat(fileno(log), &sb)) {
-        log_entries = sb.st_size/record_size;
+        log_entries = sb.st_size / record_size;
         return log_entries;
     }
 
     return 0;
 }
-

@@ -9,8 +9,8 @@
 #ifndef _SQUID_FORMAT_FORMAT_H
 #define _SQUID_FORMAT_FORMAT_H
 
-#include "base/RefCount.h"
 #include "ConfigParser.h"
+#include "base/RefCount.h"
 #include "sbuf/SBuf.h"
 
 /*
@@ -30,8 +30,7 @@ typedef RefCount<AccessLogEntry> AccessLogEntryPointer;
 class MemBuf;
 class StoreEntry;
 
-namespace Format
-{
+namespace Format {
 
 extern const SBuf Dash;
 
@@ -54,7 +53,7 @@ public:
     void assemble(MemBuf &mb, const AccessLogEntryPointer &al, int logSequenceNumber) const;
 
     /// dump this whole list of formats into the provided StoreEntry
-    void dump(StoreEntry * entry, const char *directiveName, bool eol = true) const;
+    void dump(StoreEntry *entry, const char *directiveName, bool eol = true) const;
 
     char *name;
     Token *format;
@@ -67,7 +66,6 @@ public:
 /// \return the length of the parsed %code expression
 size_t AssembleOne(const char *start, MemBuf &buf, const AccessLogEntryPointer &ale);
 
-} // namespace Format
+}  // namespace Format
 
 #endif /* _SQUID_FORMAT_FORMAT_H */
-

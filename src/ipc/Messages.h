@@ -13,23 +13,26 @@
 
 /** Declarations used by various IPC messages */
 
-namespace Ipc
-{
+namespace Ipc {
 
 /// message class identifier
-typedef enum { mtNone = 0, mtRegistration,
-               mtStrandSearchRequest, mtStrandSearchResponse,
-               mtSharedListenRequest, mtSharedListenResponse,
+typedef enum { mtNone = 0,
+               mtRegistration,
+               mtStrandSearchRequest,
+               mtStrandSearchResponse,
+               mtSharedListenRequest,
+               mtSharedListenResponse,
                mtIpcIoNotification,
                mtCollapsedForwardingNotification,
-               mtCacheMgrRequest, mtCacheMgrResponse
+               mtCacheMgrRequest,
+               mtCacheMgrResponse
 #if SQUID_SNMP
                ,
-               mtSnmpRequest, mtSnmpResponse
+               mtSnmpRequest,
+               mtSnmpResponse
 #endif
-             } MessageType;
+} MessageType;
 
-} // namespace Ipc;
+}  // namespace Ipc;
 
 #endif /* SQUID_IPC_MESSAGES_H */
-

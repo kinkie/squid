@@ -17,7 +17,7 @@
 #include "Store.h"
 
 void
-DelayBucket::stats(StoreEntry *entry)const
+DelayBucket::stats(StoreEntry *entry) const
 {
     storeAppendPrintf(entry, "%d", level());
 }
@@ -25,8 +25,7 @@ DelayBucket::stats(StoreEntry *entry)const
 void
 DelayBucket::update(DelaySpec const &rate, int incr)
 {
-    if (rate.restore_bps != -1 &&
-            (level() += rate.restore_bps * incr) > rate.max_bytes)
+    if (rate.restore_bps != -1 && (level() += rate.restore_bps * incr) > rate.max_bytes)
         level() = rate.max_bytes;
 }
 
@@ -46,9 +45,7 @@ DelayBucket::bytesIn(int qty)
 void
 DelayBucket::init(DelaySpec const &rate)
 {
-    level() = (int) (((double)rate.max_bytes *
-                      Config.Delay.initial) / 100);
+    level() = (int)(((double)rate.max_bytes * Config.Delay.initial) / 100);
 }
 
 #endif /* USE_DELAY_POOLS */
-

@@ -37,8 +37,8 @@ void aclParseAccessLine(const char *directive, ConfigParser &parser, Acl::Tree *
 void aclParseAclList(ConfigParser &parser, Acl::Tree **, const char *label);
 /// Template to convert various context labels to strings. \ingroup ACLAPI
 template <class Any>
-inline
-void aclParseAclList(ConfigParser &parser, Acl::Tree **tree, const Any any)
+inline void
+aclParseAclList(ConfigParser &parser, Acl::Tree **tree, const Any any)
 {
     std::ostringstream buf;
     buf << any;
@@ -48,7 +48,7 @@ void aclParseAclList(ConfigParser &parser, Acl::Tree **tree, const Any any)
 /// \ingroup ACLAPI
 int aclIsProxyAuth(const char *name);
 /// \ingroup ACLAPI
-err_type aclGetDenyInfoPage(AclDenyInfoList ** head, const char *name, int redirect_allowed);
+err_type aclGetDenyInfoPage(AclDenyInfoList **head, const char *name, int redirect_allowed);
 /// \ingroup ACLAPI
 void aclParseDenyInfoLine(AclDenyInfoList **);
 /// \ingroup ACLAPI
@@ -56,11 +56,10 @@ void aclDestroyDenyInfoList(AclDenyInfoList **);
 /// \ingroup ACLAPI
 wordlist *aclDumpGeneric(const ACL *);
 /// \ingroup ACLAPI
-void aclCacheMatchFlush(dlink_list * cache);
+void aclCacheMatchFlush(dlink_list *cache);
 /// \ingroup ACLAPI
-void dump_acl_access(StoreEntry * entry, const char *name, acl_access * head);
+void dump_acl_access(StoreEntry *entry, const char *name, acl_access *head);
 /// \ingroup ACLAPI
-void dump_acl_list(StoreEntry * entry, ACLList * head);
+void dump_acl_list(StoreEntry *entry, ACLList *head);
 
 #endif /* SQUID_ACL_GADGETS_H */
-

@@ -22,7 +22,7 @@
  * The callback() method of Subscription::Pointer will spawn AsyncCall
  * to be filled out and scheduled as needed.
  */
-class Subscription: public RefCountable
+class Subscription : public RefCountable
 {
 public:
     typedef RefCount<Subscription> Pointer;
@@ -44,12 +44,13 @@ public:
  * Call_ must have a copy constructor.
  * A pointer to Call_ must be convertible to AsyncCall::Pointer
  */
-template<class Call_>
-class CallSubscription: public Subscription
+template <class Call_>
+class CallSubscription : public Subscription
 {
 public:
     /// Must be passed an object. nil pointers are not permitted.
-    explicit CallSubscription(const RefCount<Call_> &aCall) : call(aCall) { assert(aCall != NULL); }
+    explicit CallSubscription(const RefCount<Call_> &aCall) :
+        call(aCall) { assert(aCall != NULL); }
     virtual AsyncCall::Pointer callback() const
     {
         const AsyncCall::Pointer cb = new Call_(*call);
@@ -59,8 +60,7 @@ public:
     }
 
 private:
-    const RefCount<Call_> call; ///< gets copied to create callback calls
+    const RefCount<Call_> call;  ///< gets copied to create callback calls
 };
 
 #endif /* _SQUID_BASE_SUBSCRIPTION_H */
-

@@ -8,11 +8,11 @@
 
 #include "squid.h"
 #include "acl/AtStepData.h"
+#include "ConfigParser.h"
+#include "Debug.h"
 #include "acl/Checklist.h"
 #include "base/EnumIterator.h"
 #include "cache_cf.h"
-#include "ConfigParser.h"
-#include "Debug.h"
 #include "sbuf/Stream.h"
 #include "wordlist.h"
 
@@ -21,12 +21,13 @@ StepName(const XactionStep xstep)
 {
     // keep in sync with XactionStep
     static const char *StepNames[static_cast<int>(XactionStep::enumEnd_)] = {
-        "[unknown step]"
-        ,"GeneratingCONNECT"
+        "[unknown step]",
+        "GeneratingCONNECT"
 #if USE_OPENSSL
-        ,"SslBump1"
-        ,"SslBump2"
-        ,"SslBump3"
+        ,
+        "SslBump1",
+        "SslBump2",
+        "SslBump3"
 #endif
     };
 
@@ -39,7 +40,7 @@ StepValue(const char *name)
 {
     assert(name);
 
-    for (const auto step: WholeEnum<XactionStep>()) {
+    for (const auto step : WholeEnum<XactionStep>()) {
         if (strcasecmp(StepName(step), name) == 0)
             return static_cast<XactionStep>(step);
     }
@@ -48,7 +49,8 @@ StepValue(const char *name)
 }
 
 ACLAtStepData::ACLAtStepData()
-{}
+{
+}
 
 ACLAtStepData::ACLAtStepData(ACLAtStepData const &old)
 {
@@ -97,4 +99,3 @@ ACLAtStepData::clone() const
 {
     return new ACLAtStepData(*this);
 }
-

@@ -25,15 +25,17 @@
 class Lock
 {
 public:
-    Lock():count_(0) {}
+    Lock() :
+        count_(0) {}
 
     virtual ~Lock() { assert(count_ == 0); }
 
     /// Register one lock / reference against this object.
     /// All locks must be cleared before it may be destroyed.
-    void lock() const {
+    void lock() const
+    {
 #if defined(LOCKCOUNT_DEBUG)
-        debugs(0,1, "Incrementing this " << static_cast<void*>(this) << " from count " << count_);
+        debugs(0, 1, "Incrementing this " << static_cast<void *>(this) << " from count " << count_);
 #endif
         assert(count_ < UINT32_MAX);
         ++count_;
@@ -41,9 +43,10 @@ public:
 
     /// Clear one lock / reference against this object.
     /// All locks must be cleared before it may be destroyed.
-    uint32_t unlock() const {
+    uint32_t unlock() const
+    {
 #if defined(LOCKCOUNT_DEBUG)
-        debugs(0,1, "Decrementing this " << static_cast<void*>(this) << " from count " << count_);
+        debugs(0, 1, "Decrementing this " << static_cast<void *>(this) << " from count " << count_);
 #endif
         assert(count_ > 0);
         return --count_;
@@ -53,7 +56,7 @@ public:
     uint32_t LockCount() const { return count_; }
 
 private:
-    mutable uint32_t count_; ///< number of references currently being tracked
+    mutable uint32_t count_;  ///< number of references currently being tracked
 };
 
 // For clarity we provide some aliases for the tracking mechanisms
@@ -66,4 +69,3 @@ private:
 #define RefCountable virtual Lock
 
 #endif /* SQUID_SRC_BASE_LOCK_H */
-

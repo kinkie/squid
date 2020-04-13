@@ -14,8 +14,7 @@
 #include "auth/forward.h"
 #include "base/RefCount.h"
 
-namespace Auth
-{
+namespace Auth {
 
 /**
  * I represent an authentication scheme. For now my children
@@ -32,7 +31,8 @@ public:
     typedef std::vector<Scheme::Pointer>::const_iterator const_iterator;
 
 public:
-    Scheme() : initialised (false) {};
+    Scheme() :
+        initialised(false) {};
     virtual ~Scheme() {};
 
     static void AddScheme(Scheme::Pointer);
@@ -59,7 +59,7 @@ public:
 
     // Not implemented
     Scheme(Scheme const &);
-    Scheme &operator=(Scheme const&);
+    Scheme &operator=(Scheme const &);
 
     static std::vector<Scheme::Pointer> &GetSchemes();
 
@@ -70,8 +70,7 @@ private:
     static std::vector<Scheme::Pointer> *_Schemes;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* SQUID_AUTH_SCHEME_H */
-

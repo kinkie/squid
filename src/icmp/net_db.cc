@@ -17,26 +17,26 @@
  */
 
 #include "squid.h"
+#include "icmp/net_db.h"
 #include "CachePeer.h"
-#include "cbdata.h"
-#include "event.h"
-#include "fde.h"
-#include "fs_io.h"
 #include "FwdState.h"
 #include "HttpReply.h"
-#include "icmp/net_db.h"
-#include "internal.h"
-#include "ip/Address.h"
-#include "log/File.h"
 #include "MemObject.h"
-#include "mgr/Registration.h"
-#include "mime_header.h"
-#include "neighbors.h"
 #include "PeerSelectState.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "Store.h"
 #include "StoreClient.h"
+#include "cbdata.h"
+#include "event.h"
+#include "fde.h"
+#include "fs_io.h"
+#include "internal.h"
+#include "ip/Address.h"
+#include "log/File.h"
+#include "mgr/Registration.h"
+#include "mime_header.h"
+#include "neighbors.h"
 #include "tools.h"
 #include "wordlist.h"
 
@@ -45,9 +45,9 @@
 #endif
 
 #if USE_ICMP
+#include "StoreClient.h"
 #include "icmp/IcmpSquid.h"
 #include "ipcache.h"
-#include "StoreClient.h"
 
 #define NETDB_REQBUF_SZ 4096
 
@@ -72,7 +72,8 @@ public:
         r->http_ver = Http::ProtocolVersion();
     }
 
-    ~netdbExchangeState() {
+    ~netdbExchangeState()
+    {
         debugs(38, 3, e->url());
         storeUnregister(sc, e, this);
         e->unlock("netdbExchangeDone");
@@ -95,16 +96,16 @@ static hash_table *addr_table = NULL;
 static hash_table *host_table = NULL;
 
 Ip::Address networkFromInaddr(const Ip::Address &a);
-static void netdbRelease(netdbEntry * n);
+static void netdbRelease(netdbEntry *n);
 
-static void netdbHashInsert(netdbEntry * n, Ip::Address &addr);
+static void netdbHashInsert(netdbEntry *n, Ip::Address &addr);
 static void netdbHashDelete(const char *key);
-static void netdbHostInsert(netdbEntry * n, const char *hostname);
-static void netdbHostDelete(const net_db_name * x);
+static void netdbHostInsert(netdbEntry *n, const char *hostname);
+static void netdbHostDelete(const net_db_name *x);
 static void netdbPurgeLRU(void);
 static netdbEntry *netdbLookupHost(const char *key);
-static net_db_peer *netdbPeerByName(const netdbEntry * n, const char *);
-static net_db_peer *netdbPeerAdd(netdbEntry * n, CachePeer * e);
+static net_db_peer *netdbPeerByName(const netdbEntry *n, const char *);
+static net_db_peer *netdbPeerAdd(netdbEntry *n, CachePeer *e);
 static const char *netdbPeerName(const char *name);
 static IPH netdbSendPing;
 static FREE netdbFreeNameEntry;
@@ -118,7 +119,7 @@ static STCB netdbExchangeHandleReply;
 static wordlist *peer_names = NULL;
 
 static void
-netdbHashInsert(netdbEntry * n, Ip::Address &addr)
+netdbHashInsert(netdbEntry *n, Ip::Address &addr)
 {
     networkFromInaddr(addr).toStr(n->network, MAX_IPSTRLEN);
     n->key = n->network;
@@ -146,12 +147,12 @@ net_db_name::net_db_name(const char *hostname, netdbEntry *e) :
     key = xstrdup(hostname);
     if (e) {
         e->hosts = this;
-        ++ e->link_count;
+        ++e->link_count;
     }
 }
 
 static void
-netdbHostInsert(netdbEntry * n, const char *hostname)
+netdbHostInsert(netdbEntry *n, const char *hostname)
 {
     net_db_name *x = new net_db_name(hostname, n);
     assert(hash_lookup(host_table, hostname) == NULL);
@@ -159,13 +160,13 @@ netdbHostInsert(netdbEntry * n, const char *hostname)
 }
 
 static void
-netdbHostDelete(const net_db_name * x)
+netdbHostDelete(const net_db_name *x)
 {
     assert(x != NULL);
     assert(x->net_db_entry != NULL);
 
     netdbEntry *n = x->net_db_entry;
-    -- n->link_count;
+    --n->link_count;
 
     for (auto **X = &n->hosts; *X; X = &(*X)->next) {
         if (*X == x) {
@@ -174,19 +175,19 @@ netdbHostDelete(const net_db_name * x)
         }
     }
 
-    hash_remove_link(host_table, (hash_link *) x);
+    hash_remove_link(host_table, (hash_link *)x);
     delete x;
 }
 
 static netdbEntry *
 netdbLookupHost(const char *key)
 {
-    net_db_name *x = (net_db_name *) hash_lookup(host_table, key);
+    net_db_name *x = (net_db_name *)hash_lookup(host_table, key);
     return x ? x->net_db_entry : NULL;
 }
 
 static void
-netdbRelease(netdbEntry * n)
+netdbRelease(netdbEntry *n)
 {
     net_db_name *x;
     net_db_name *next;
@@ -234,13 +235,13 @@ netdbPurgeLRU(void)
     list = (netdbEntry **)xcalloc(netdbEntry::UseCount(), sizeof(netdbEntry *));
     hash_first(addr_table);
 
-    while ((n = (netdbEntry *) hash_next(addr_table))) {
+    while ((n = (netdbEntry *)hash_next(addr_table))) {
         assert(list_count < netdbEntry::UseCount());
         *(list + list_count) = n;
         ++list_count;
     }
 
-    qsort((char *) list,
+    qsort((char *)list,
           list_count,
           sizeof(netdbEntry *),
           netdbLRU);
@@ -262,8 +263,8 @@ netdbLookupAddr(const Ip::Address &addr)
 {
     netdbEntry *n;
     char *key = new char[MAX_IPSTRLEN];
-    networkFromInaddr(addr).toStr(key,MAX_IPSTRLEN);
-    n = (netdbEntry *) hash_lookup(addr_table, key);
+    networkFromInaddr(addr).toStr(key, MAX_IPSTRLEN);
+    n = (netdbEntry *)hash_lookup(addr_table, key);
     delete[] key;
     return n;
 }
@@ -315,7 +316,7 @@ netdbSendPing(const ipcache_addrs *ia, const Dns::LookupDetails &, void *data)
 
         debugs(38, 3, "netdbSendPing: " << hostname << " moved from " << n->network << " to " << na->network);
 
-        x = (net_db_name *) hash_lookup(host_table, hostname);
+        x = (net_db_name *)hash_lookup(host_table, hostname);
 
         if (x == NULL) {
             debugs(38, DBG_IMPORTANT, "netdbSendPing: net_db_name list bug: " << hostname << " not found");
@@ -331,20 +332,20 @@ netdbSendPing(const ipcache_addrs *ia, const Dns::LookupDetails &, void *data)
             }
         }
 
-        -- n->link_count;
+        --n->link_count;
         /* point to 'network na' from host entry */
         x->net_db_entry = na;
         /* link net_db_name to 'network na' */
         x->next = na->hosts;
         na->hosts = x;
-        ++ na->link_count;
+        ++na->link_count;
         n = na;
     }
 
     if (n->next_ping_time <= squid_curtime) {
         debugs(38, 3, "netdbSendPing: pinging " << hostname);
         icmpEngine.DomainPing(addr, hostname);
-        ++ n->pings_sent;
+        ++n->pings_sent;
         n->next_ping_time = squid_curtime + Config.Netdb.period;
         n->last_use_time = squid_curtime;
     }
@@ -360,7 +361,7 @@ networkFromInaddr(const Ip::Address &in)
     out = in;
 
     /* in IPv6 the 'network' should be the routing section. */
-    if ( in.isIPv6() ) {
+    if (in.isIPv6()) {
         out.applyMask(64, AF_INET6);
         debugs(14, 5, "networkFromInaddr : Masked IPv6 Address to " << in << "/64 routing part.");
         return out;
@@ -406,7 +407,7 @@ sortByRtt(const void *A, const void *B)
 }
 
 static net_db_peer *
-netdbPeerByName(const netdbEntry * n, const char *peername)
+netdbPeerByName(const netdbEntry *n, const char *peername)
 {
     int i;
     net_db_peer *p = n->peers;
@@ -420,7 +421,7 @@ netdbPeerByName(const netdbEntry * n, const char *peername)
 }
 
 static net_db_peer *
-netdbPeerAdd(netdbEntry * n, CachePeer * e)
+netdbPeerAdd(netdbEntry *n, CachePeer *e)
 {
     net_db_peer *p;
     net_db_peer *o;
@@ -450,7 +451,7 @@ netdbPeerAdd(netdbEntry * n, CachePeer * e)
 
     p = n->peers + n->n_peers;
     p->peername = netdbPeerName(e->host);
-    ++ n->n_peers;
+    ++n->n_peers;
     return p;
 }
 
@@ -500,7 +501,7 @@ netdbSaveState(void *foo)
 
     hash_first(addr_table);
 
-    while ((n = (netdbEntry *) hash_next(addr_table))) {
+    while ((n = (netdbEntry *)hash_next(addr_table))) {
         if (n->pings_recv == 0)
             continue;
 
@@ -510,8 +511,8 @@ netdbSaveState(void *foo)
                       n->pings_recv,
                       n->hops,
                       n->rtt,
-                      (int) n->next_ping_time,
-                      (int) n->last_use_time);
+                      (int)n->next_ping_time,
+                      (int)n->last_use_time);
 
         for (x = n->hosts; x; x = x->next)
             logfilePrintf(lf, " %s", hashKeyStr(x));
@@ -521,14 +522,11 @@ netdbSaveState(void *foo)
         ++count;
 
 #undef RBUF_SZ
-
     }
 
     logfileClose(lf);
     getCurrentTime();
-    debugs(38, DBG_IMPORTANT, "NETDB state saved; " <<
-           count << " entries, " <<
-           tvSubMsec(start, current_time) << " msec" );
+    debugs(38, DBG_IMPORTANT, "NETDB state saved; " << count << " entries, " << tvSubMsec(start, current_time) << " msec");
     eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600.0, 1);
 }
 
@@ -572,7 +570,7 @@ netdbReloadState(void)
     file_close(fd);
 
     if (l <= 0) {
-        safe_free (buf);
+        safe_free(buf);
         return;
     };
 
@@ -587,10 +585,10 @@ netdbReloadState(void)
         if (NULL == q)
             continue;
 
-        if (! (addr = q) )
+        if (!(addr = q))
             continue;
 
-        if (netdbLookupAddr(addr) != NULL)  /* no dups! */
+        if (netdbLookupAddr(addr) != NULL) /* no dups! */
             continue;
 
         if ((q = strtok(NULL, w_space)) == NULL)
@@ -624,12 +622,12 @@ netdbReloadState(void)
         if ((q = strtok(NULL, w_space)) == NULL)
             continue;
 
-        N.next_ping_time = (time_t) atoi(q);
+        N.next_ping_time = (time_t)atoi(q);
 
         if ((q = strtok(NULL, w_space)) == NULL)
             continue;
 
-        N.last_use_time = (time_t) atoi(q);
+        N.last_use_time = (time_t)atoi(q);
 
         n = new netdbEntry;
 
@@ -649,9 +647,7 @@ netdbReloadState(void)
 
     xfree(buf);
     getCurrentTime();
-    debugs(38, DBG_IMPORTANT, "NETDB state reloaded; " <<
-           count << " entries, " <<
-           tvSubMsec(start, current_time) << " msec" );
+    debugs(38, DBG_IMPORTANT, "NETDB state reloaded; " << count << " entries, " << tvSubMsec(start, current_time) << " msec");
 }
 
 static const char *
@@ -782,7 +778,7 @@ netdbExchangeHandleReply(void *data, StoreIOBuffer receivedData)
         hops = rtt = 0.0;
 
         for (o = 0; o < rec_sz;) {
-            switch ((int) *(p + o)) {
+            switch ((int)*(p + o)) {
 
             case NETDB_EX_NETWORK:
                 ++o;
@@ -796,14 +792,14 @@ netdbExchangeHandleReply(void *data, StoreIOBuffer receivedData)
                 ++o;
                 memcpy(&j, p + o, sizeof(int));
                 o += sizeof(int);
-                rtt = (double) ntohl(j) / 1000.0;
+                rtt = (double)ntohl(j) / 1000.0;
                 break;
 
             case NETDB_EX_HOPS:
                 ++o;
                 memcpy(&j, p + o, sizeof(int));
                 o += sizeof(int);
-                hops = (double) ntohl(j) / 1000.0;
+                hops = (double)ntohl(j) / 1000.0;
                 break;
 
             default:
@@ -856,9 +852,7 @@ netdbExchangeHandleReply(void *data, StoreIOBuffer receivedData)
 
     debugs(38, 3, "netdbExchangeHandleReply: size left over in this buffer: " << size << " bytes");
 
-    debugs(38, 3, "netdbExchangeHandleReply: used " << nused <<
-           " entries, (x " << rec_sz << " bytes) == " << nused * rec_sz <<
-           " bytes total");
+    debugs(38, 3, "netdbExchangeHandleReply: used " << nused << " entries, (x " << rec_sz << " bytes) == " << nused * rec_sz << " bytes total");
 
     debugs(38, 3, "netdbExchangeHandleReply: used " << ex->used);
 
@@ -891,11 +885,11 @@ netdbInit(void)
 
     int n = hashPrime(Config.Netdb.high / 4);
 
-    addr_table = hash_create((HASHCMP *) strcmp, n, hash_string);
+    addr_table = hash_create((HASHCMP *)strcmp, n, hash_string);
 
     n = hashPrime(3 * Config.Netdb.high / 4);
 
-    host_table = hash_create((HASHCMP *) strcmp, n, hash_string);
+    host_table = hash_create((HASHCMP *)strcmp, n, hash_string);
 
     eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600.0, 1);
 
@@ -943,9 +937,7 @@ netdbHandlePingReply(const Ip::Address &from, int hops, int rtt)
 
     n->rtt = ((n->rtt * (N - 1)) + rtt) / N;
 
-    debugs(38, 3, "netdbHandlePingReply: " << n->network  << "; rtt="<<
-           std::setw(5)<< std::setprecision(2) << n->rtt << "  hops="<<
-           std::setw(4) << n->hops);
+    debugs(38, 3, "netdbHandlePingReply: " << n->network << "; rtt=" << std::setw(5) << std::setprecision(2) << n->rtt << "  hops=" << std::setw(4) << n->hops);
 
 #endif
 }
@@ -966,7 +958,7 @@ netdbFreeMemory(void)
 }
 
 void
-netdbDump(StoreEntry * sentry)
+netdbDump(StoreEntry *sentry)
 {
 #if USE_ICMP
     netdbEntry *n;
@@ -977,7 +969,7 @@ netdbDump(StoreEntry * sentry)
     int j;
     net_db_peer *p;
     storeAppendPrintf(sentry, "Network DB Statistics:\n");
-    storeAppendPrintf(sentry, "%-46.46s %9s %7s %5s %s\n",  /* Max between 16 (IPv4) or 46 (IPv6)   */
+    storeAppendPrintf(sentry, "%-46.46s %9s %7s %5s %s\n", /* Max between 16 (IPv4) or 46 (IPv6)   */
                       "Network",
                       "recv/sent",
                       "RTT",
@@ -987,16 +979,15 @@ netdbDump(StoreEntry * sentry)
     i = 0;
     hash_first(addr_table);
 
-    while ((n = (netdbEntry *) hash_next(addr_table))) {
+    while ((n = (netdbEntry *)hash_next(addr_table))) {
         *(list + i) = n;
         ++i;
     }
 
     if (i != netdbEntry::UseCount())
-        debugs(38, DBG_CRITICAL, "WARNING: netdb_addrs count off, found " << i <<
-               ", expected " << netdbEntry::UseCount());
+        debugs(38, DBG_CRITICAL, "WARNING: netdb_addrs count off, found " << i << ", expected " << netdbEntry::UseCount());
 
-    qsort((char *) list,
+    qsort((char *)list,
           i,
           sizeof(netdbEntry *),
           sortByRtt);
@@ -1028,7 +1019,7 @@ netdbDump(StoreEntry * sentry)
     xfree(list);
 #else
 
-    storeAppendPrintf(sentry,"NETDB support not compiled into this Squid cache.\n");
+    storeAppendPrintf(sentry, "NETDB support not compiled into this Squid cache.\n");
 #endif
 }
 
@@ -1040,7 +1031,7 @@ netdbHostHops(const char *host)
 
     if (n) {
         n->last_use_time = squid_curtime;
-        return (int) (n->hops + 0.5);
+        return (int)(n->hops + 0.5);
     }
 
 #endif
@@ -1055,7 +1046,7 @@ netdbHostRtt(const char *host)
 
     if (n) {
         n->last_use_time = squid_curtime;
-        return (int) (n->rtt + 0.5);
+        return (int)(n->rtt + 0.5);
     }
 
 #endif
@@ -1073,9 +1064,9 @@ netdbHostData(const char *host, int *samp, int *rtt, int *hops)
 
     *samp = n->pings_recv;
 
-    *rtt = (int) (n->rtt + 0.5);
+    *rtt = (int)(n->rtt + 0.5);
 
-    *hops = (int) (n->hops + 0.5);
+    *hops = (int)(n->hops + 0.5);
 
     n->last_use_time = squid_curtime;
 
@@ -1087,8 +1078,8 @@ netdbUpdatePeer(const AnyP::Uri &url, CachePeer *e, int irtt, int ihops)
 {
 #if USE_ICMP
     netdbEntry *n;
-    double rtt = (double) irtt;
-    double hops = (double) ihops;
+    double rtt = (double)irtt;
+    double hops = (double)ihops;
     net_db_peer *p;
     debugs(38, 3, url.host() << ", " << ihops << " hops, " << irtt << " rtt");
     n = netdbLookupHost(url.host());
@@ -1110,7 +1101,7 @@ netdbUpdatePeer(const AnyP::Uri &url, CachePeer *e, int irtt, int ihops)
     if (n->n_peers < 2)
         return;
 
-    qsort((char *) n->peers,
+    qsort((char *)n->peers,
           n->n_peers,
           sizeof(net_db_peer),
           sortPeerByRtt);
@@ -1119,16 +1110,14 @@ netdbUpdatePeer(const AnyP::Uri &url, CachePeer *e, int irtt, int ihops)
 }
 
 void
-netdbExchangeUpdatePeer(Ip::Address &addr, CachePeer * e, double rtt, double hops)
+netdbExchangeUpdatePeer(Ip::Address &addr, CachePeer *e, double rtt, double hops)
 {
 #if USE_ICMP
     netdbEntry *n;
     net_db_peer *p;
-    debugs(38, 5, "netdbExchangeUpdatePeer: '" << addr << "', "<<
-           std::setfill('0')<< std::setprecision(2) << hops << " hops, " <<
-           rtt << " rtt");
+    debugs(38, 5, "netdbExchangeUpdatePeer: '" << addr << "', " << std::setfill('0') << std::setprecision(2) << hops << " hops, " << rtt << " rtt");
 
-    if ( !addr.isIPv4() ) {
+    if (!addr.isIPv4()) {
         debugs(38, 5, "netdbExchangeUpdatePeer: Aborting peer update for '" << addr << "', NetDB cannot handle IPv6.");
         return;
     }
@@ -1147,12 +1136,12 @@ netdbExchangeUpdatePeer(Ip::Address &addr, CachePeer * e, double rtt, double hop
 
     p->hops = hops;
 
-    p->expires = squid_curtime + 3600;  /* XXX ? */
+    p->expires = squid_curtime + 3600; /* XXX ? */
 
     if (n->n_peers < 2)
         return;
 
-    qsort((char *) n->peers,
+    qsort((char *)n->peers,
           n->n_peers,
           sizeof(net_db_peer),
           sortPeerByRtt);
@@ -1176,7 +1165,7 @@ netdbDeleteAddrNetwork(Ip::Address &addr)
 }
 
 void
-netdbBinaryExchange(StoreEntry * s)
+netdbBinaryExchange(StoreEntry *s)
 {
     HttpReply *reply = new HttpReply;
 #if USE_ICMP
@@ -1201,21 +1190,21 @@ netdbBinaryExchange(StoreEntry * s)
     i = 0;
     hash_first(addr_table);
 
-    while ((n = (netdbEntry *) hash_next(addr_table))) {
+    while ((n = (netdbEntry *)hash_next(addr_table))) {
         if (0.0 == n->rtt)
             continue;
 
         if (n->rtt > 60000) /* RTT > 1 MIN probably bogus */
             continue;
 
-        if (! (addr = n->network) )
+        if (!(addr = n->network))
             continue;
 
         /* FIXME INET6 : NetDB cannot yet handle IPv6 addresses. Ensure only IPv4 get sent. */
-        if ( !addr.isIPv4() )
+        if (!addr.isIPv4())
             continue;
 
-        buf[i] = (char) NETDB_EX_NETWORK;
+        buf[i] = (char)NETDB_EX_NETWORK;
         ++i;
 
         addr.getInAddr(line_addr);
@@ -1223,19 +1212,19 @@ netdbBinaryExchange(StoreEntry * s)
 
         i += sizeof(struct in_addr);
 
-        buf[i] = (char) NETDB_EX_RTT;
+        buf[i] = (char)NETDB_EX_RTT;
         ++i;
 
-        j = htonl((int) (n->rtt * 1000));
+        j = htonl((int)(n->rtt * 1000));
 
         memcpy(&buf[i], &j, sizeof(int));
 
         i += sizeof(int);
 
-        buf[i] = (char) NETDB_EX_HOPS;
+        buf[i] = (char)NETDB_EX_HOPS;
         ++i;
 
-        j = htonl((int) (n->hops * 1000));
+        j = htonl((int)(n->hops * 1000));
 
         memcpy(&buf[i], &j, sizeof(int));
 
@@ -1293,7 +1282,7 @@ netdbExchangeStart(void *data)
 
     storeClientCopy(ex->sc, ex->e, tempBuffer,
                     netdbExchangeHandleReply, ex);
-    ex->r->flags.loopDetected = true;   /* cheat! -- force direct */
+    ex->r->flags.loopDetected = true; /* cheat! -- force direct */
 
     // XXX: send as Proxy-Authenticate instead
     if (p->login)
@@ -1347,13 +1336,13 @@ netdbClosestParent(PeerSelector *ps)
 
         p = peerFindByName(h->peername);
 
-        if (NULL == p)      /* not found */
+        if (NULL == p) /* not found */
             continue;
 
         if (neighborType(p, request->url) != PEER_PARENT)
             continue;
 
-        if (!peerHTTPOkay(p, ps))  /* not allowed */
+        if (!peerHTTPOkay(p, ps)) /* not allowed */
             continue;
 
         return p;
@@ -1362,4 +1351,3 @@ netdbClosestParent(PeerSelector *ps)
 #endif
     return NULL;
 }
-

@@ -15,7 +15,7 @@
 
 #include <sstream>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testUriScheme );
+CPPUNIT_TEST_SUITE_REGISTRATION(testUriScheme);
 
 #if 0
 /*
@@ -125,9 +125,9 @@ void
 testUriScheme::testEqualprotocol_t()
 {
     CPPUNIT_ASSERT(AnyP::UriScheme() == AnyP::PROTO_NONE);
-    CPPUNIT_ASSERT(not (AnyP::UriScheme(AnyP::PROTO_WAIS) == AnyP::PROTO_HTTP));
+    CPPUNIT_ASSERT(not(AnyP::UriScheme(AnyP::PROTO_WAIS) == AnyP::PROTO_HTTP));
     CPPUNIT_ASSERT(AnyP::PROTO_HTTP == AnyP::UriScheme(AnyP::PROTO_HTTP));
-    CPPUNIT_ASSERT(not (AnyP::PROTO_CACHE_OBJECT == AnyP::UriScheme(AnyP::PROTO_HTTP)));
+    CPPUNIT_ASSERT(not(AnyP::PROTO_CACHE_OBJECT == AnyP::UriScheme(AnyP::PROTO_HTTP)));
 }
 
 /*
@@ -137,9 +137,9 @@ void
 testUriScheme::testNotEqualprotocol_t()
 {
     CPPUNIT_ASSERT(AnyP::UriScheme(AnyP::PROTO_NONE) != AnyP::PROTO_HTTP);
-    CPPUNIT_ASSERT(not (AnyP::UriScheme(AnyP::PROTO_HTTP) != AnyP::PROTO_HTTP));
+    CPPUNIT_ASSERT(not(AnyP::UriScheme(AnyP::PROTO_HTTP) != AnyP::PROTO_HTTP));
     CPPUNIT_ASSERT(AnyP::PROTO_NONE != AnyP::UriScheme(AnyP::PROTO_HTTP));
-    CPPUNIT_ASSERT(not (AnyP::PROTO_WAIS != AnyP::UriScheme(AnyP::PROTO_WAIS)));
+    CPPUNIT_ASSERT(not(AnyP::PROTO_WAIS != AnyP::UriScheme(AnyP::PROTO_WAIS)));
 }
 
 /*
@@ -154,4 +154,3 @@ testUriScheme::testStream()
     SBuf from_buf(buffer.str());
     CPPUNIT_ASSERT_EQUAL(http_str, from_buf);
 }
-

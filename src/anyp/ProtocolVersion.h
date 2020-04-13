@@ -13,8 +13,7 @@
 
 #include <ostream>
 
-namespace AnyP
-{
+namespace AnyP {
 
 /**
  * Stores a protocol version label.
@@ -26,21 +25,26 @@ class ProtocolVersion
 public:
     // BUG: major() and minor() are macros.
     //      we can't use a fast constructor syntax without renaming them globally
-    ProtocolVersion() : protocol(PROTO_NONE) {
+    ProtocolVersion() :
+        protocol(PROTO_NONE)
+    {
         major = 0;
         minor = 0;
     }
 
-    ProtocolVersion(ProtocolType which, unsigned int aMajor, unsigned int aMinor) : protocol(which) {
+    ProtocolVersion(ProtocolType which, unsigned int aMajor, unsigned int aMinor) :
+        protocol(which)
+    {
         major = aMajor;
         minor = aMinor;
     }
 
-    ProtocolType protocol; ///< which protocol this version is for
-    unsigned int major;    ///< major version number
-    unsigned int minor;    ///< minor version number
+    ProtocolType protocol;  ///< which protocol this version is for
+    unsigned int major;     ///< major version number
+    unsigned int minor;     ///< minor version number
 
-    bool operator==(const ProtocolVersion& that) const {
+    bool operator==(const ProtocolVersion &that) const
+    {
         if (this->protocol != that.protocol)
             return false;
 
@@ -53,48 +57,50 @@ public:
         return true;
     }
 
-    bool operator!=(const ProtocolVersion& that) const {
+    bool operator!=(const ProtocolVersion &that) const
+    {
         return (((this->protocol != that.protocol) || this->major != that.major) || (this->minor != that.minor));
     }
 
-    bool operator <(const ProtocolVersion& that) const {
+    bool operator<(const ProtocolVersion &that) const
+    {
         if (this->protocol != that.protocol)
-            return false; // throw?
+            return false;  // throw?
 
-        return (this->major < that.major ||
-                (this->major == that.major && this->minor < that.minor));
+        return (this->major < that.major || (this->major == that.major && this->minor < that.minor));
     }
 
-    bool operator >(const ProtocolVersion& that) const {
+    bool operator>(const ProtocolVersion &that) const
+    {
         if (this->protocol != that.protocol)
-            return false; // throw?
+            return false;  // throw?
 
-        return (this->major > that.major ||
-                (this->major == that.major && this->minor > that.minor));
+        return (this->major > that.major || (this->major == that.major && this->minor > that.minor));
     }
 
-    bool operator <=(const ProtocolVersion& that) const {
+    bool operator<=(const ProtocolVersion &that) const
+    {
         if (this->protocol != that.protocol)
-            return false; // throw?
+            return false;  // throw?
 
         return !(*this > that);
     }
 
-    bool operator >=(const ProtocolVersion& that) const {
+    bool operator>=(const ProtocolVersion &that) const
+    {
         if (this->protocol != that.protocol)
-            return false; // throw?
+            return false;  // throw?
 
         return !(*this < that);
     }
 };
 
 inline std::ostream &
-operator << (std::ostream &os, const AnyP::ProtocolVersion &v)
+operator<<(std::ostream &os, const AnyP::ProtocolVersion &v)
 {
     return (os << AnyP::ProtocolType_str[v.protocol] << '/' << v.major << '.' << v.minor);
 }
 
-} // namespace AnyP
+}  // namespace AnyP
 
 #endif /* SQUID_ANYP_PROTOCOLVERSION_H */
-

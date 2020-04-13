@@ -13,6 +13,9 @@
  * See acl.c for access control and client_side.c for auditing */
 
 #include "squid.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "MemBuf.h"
 #include "acl/FilledChecklist.h"
 #include "auth/Config.h"
 #include "client_side.h"
@@ -22,9 +25,6 @@
 #include "helper.h"
 #include "helper/Reply.h"
 #include "http/Stream.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
-#include "MemBuf.h"
 
 /* Generic Functions */
 
@@ -41,7 +41,7 @@ Auth::UserRequest::username() const
 
 /* send the initial data to an authenticator module */
 void
-Auth::UserRequest::start(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB * handler, void *data)
+Auth::UserRequest::start(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *handler, void *data)
 {
     assert(handler);
     assert(data);
@@ -77,19 +77,19 @@ Auth::UserRequest::valid() const
 }
 
 void *
-Auth::UserRequest::operator new (size_t)
+    Auth::UserRequest::operator new(size_t)
 {
     fatal("Auth::UserRequest not directly allocatable\n");
     return (void *)1;
 }
 
 void
-Auth::UserRequest::operator delete (void *)
+Auth::UserRequest::operator delete(void *)
 {
     fatal("Auth::UserRequest child failed to override operator delete\n");
 }
 
-Auth::UserRequest::UserRequest():
+Auth::UserRequest::UserRequest() :
     _auth_user(NULL),
     message(NULL),
     lastReply(AUTH_ACL_CANNOT_AUTHENTICATE)
@@ -99,7 +99,7 @@ Auth::UserRequest::UserRequest():
 
 Auth::UserRequest::~UserRequest()
 {
-    assert(LockCount()==0);
+    assert(LockCount() == 0);
     debugs(29, 5, HERE << "freeing request " << this);
 
     if (user() != NULL) {
@@ -124,7 +124,7 @@ Auth::UserRequest::getDenyMessage() const
 }
 
 char const *
-Auth::UserRequest::denyMessage(char const * const default_message) const
+Auth::UserRequest::denyMessage(char const *const default_message) const
 {
     if (getDenyMessage() == NULL)
         return default_message;
@@ -185,7 +185,7 @@ Auth::Direction
 Auth::UserRequest::direction()
 {
     if (user() == NULL)
-        return Auth::CRED_ERROR; // No credentials. Should this be a CHALLENGE instead?
+        return Auth::CRED_ERROR;  // No credentials. Should this be a CHALLENGE instead?
 
     if (authenticateUserAuthenticated(this))
         return Auth::CRED_VALID;
@@ -195,15 +195,18 @@ Auth::UserRequest::direction()
 
 void
 Auth::UserRequest::addAuthenticationInfoHeader(HttpReply *, int)
-{}
+{
+}
 
 void
 Auth::UserRequest::addAuthenticationInfoTrailer(HttpReply *, int)
-{}
+{
+}
 
 void
 Auth::UserRequest::releaseAuthServer()
-{}
+{
+}
 
 const char *
 Auth::UserRequest::connLastHeader()
@@ -219,7 +222,7 @@ Auth::UserRequest::connLastHeader()
  * This is basically a handle approach.
  */
 static void
-authenticateAuthenticateUser(Auth::UserRequest::Pointer auth_user_request, HttpRequest * request, ConnStateData * conn, Http::HdrType type)
+authenticateAuthenticateUser(Auth::UserRequest::Pointer auth_user_request, HttpRequest *request, ConnStateData *conn, Http::HdrType type)
 {
     assert(auth_user_request.getRaw() != NULL);
 
@@ -227,7 +230,7 @@ authenticateAuthenticateUser(Auth::UserRequest::Pointer auth_user_request, HttpR
 }
 
 static Auth::UserRequest::Pointer
-authTryGetUser(Auth::UserRequest::Pointer auth_user_request, ConnStateData * conn, HttpRequest * request)
+authTryGetUser(Auth::UserRequest::Pointer auth_user_request, ConnStateData *conn, HttpRequest *request)
 {
     Auth::UserRequest::Pointer res;
 
@@ -272,7 +275,7 @@ authTryGetUser(Auth::UserRequest::Pointer auth_user_request, ConnStateData * con
  * Caller is responsible for locking and unlocking their *auth_user_request!
  */
 AuthAclState
-Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, Http::HdrType headertype, HttpRequest * request, ConnStateData * conn, Ip::Address &src_addr, AccessLogEntry::Pointer &al)
+Auth::UserRequest::authenticate(Auth::UserRequest::Pointer *auth_user_request, Http::HdrType headertype, HttpRequest *request, ConnStateData *conn, Ip::Address &src_addr, AccessLogEntry::Pointer &al)
 {
     const char *proxy_auth;
     assert(headertype != 0);
@@ -287,7 +290,7 @@ Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, 
      */
 
     /* a) can we find other credentials to use? and b) are they logged in already? */
-    if (proxy_auth == NULL && !authenticateUserAuthenticated(authTryGetUser(*auth_user_request,conn,request))) {
+    if (proxy_auth == NULL && !authenticateUserAuthenticated(authTryGetUser(*auth_user_request, conn, request))) {
         /* no header or authentication failed/got corrupted - restart */
         debugs(29, 4, HERE << "No Proxy-Auth header and no working alternative. Requesting auth header.");
 
@@ -307,14 +310,8 @@ Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, 
      * No check for function required in the if: its compulsory for conn based
      * auth modules
      */
-    if (proxy_auth && conn != NULL && conn->getAuth() != NULL &&
-            authenticateUserAuthenticated(conn->getAuth()) &&
-            conn->getAuth()->connLastHeader() != NULL &&
-            strcmp(proxy_auth, conn->getAuth()->connLastHeader())) {
-        debugs(29, 2, "WARNING: DUPLICATE AUTH - authentication header on already authenticated connection!. AU " <<
-               conn->getAuth() << ", Current user '" <<
-               conn->getAuth()->username() << "' proxy_auth " <<
-               proxy_auth);
+    if (proxy_auth && conn != NULL && conn->getAuth() != NULL && authenticateUserAuthenticated(conn->getAuth()) && conn->getAuth()->connLastHeader() != NULL && strcmp(proxy_auth, conn->getAuth()->connLastHeader())) {
+        debugs(29, 2, "WARNING: DUPLICATE AUTH - authentication header on already authenticated connection!. AU " << conn->getAuth() << ", Current user '" << conn->getAuth()->username() << "' proxy_auth " << proxy_auth);
 
         /* remove this request struct - the link is already authed and it can't be to reauth. */
 
@@ -335,13 +332,10 @@ Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, 
         }
 
         if (proxy_auth && request->auth_user_request == NULL && conn != NULL && conn->getAuth() != NULL) {
-            Auth::SchemeConfig * scheme = Auth::SchemeConfig::Find(proxy_auth);
+            Auth::SchemeConfig *scheme = Auth::SchemeConfig::Find(proxy_auth);
 
             if (conn->getAuth()->user() == NULL || conn->getAuth()->user()->config != scheme) {
-                debugs(29, DBG_IMPORTANT, "WARNING: Unexpected change of authentication scheme from '" <<
-                       (conn->getAuth()->user()!=NULL?conn->getAuth()->user()->config->type():"[no user]") <<
-                       "' to '" << proxy_auth << "' (client " <<
-                       src_addr << ")");
+                debugs(29, DBG_IMPORTANT, "WARNING: Unexpected change of authentication scheme from '" << (conn->getAuth()->user() != NULL ? conn->getAuth()->user()->config->type() : "[no user]") << "' to '" << proxy_auth << "' (client " << src_addr << ")");
 
                 conn->setAuth(NULL, "changed auth scheme");
             }
@@ -369,7 +363,7 @@ Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, 
         } else if (request->auth_user_request != NULL) {
             *auth_user_request = request->auth_user_request;
         } else {
-            assert (conn != NULL);
+            assert(conn != NULL);
             if (conn->getAuth() != NULL) {
                 *auth_user_request = conn->getAuth();
             } else {
@@ -393,7 +387,7 @@ Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, 
                 request->auth_user_request = *auth_user_request;
             }
 
-        /* fallthrough to ERROR case and do the challenge */
+            /* fallthrough to ERROR case and do the challenge */
 
         case Auth::CRED_ERROR:
             /* this ACL check is finished. */
@@ -434,7 +428,7 @@ Auth::UserRequest::authenticate(Auth::UserRequest::Pointer * auth_user_request, 
 }
 
 AuthAclState
-Auth::UserRequest::tryToAuthenticateAndSetAuthUser(Auth::UserRequest::Pointer * aUR, Http::HdrType headertype, HttpRequest * request, ConnStateData * conn, Ip::Address &src_addr, AccessLogEntry::Pointer &al)
+Auth::UserRequest::tryToAuthenticateAndSetAuthUser(Auth::UserRequest::Pointer *aUR, Http::HdrType headertype, HttpRequest *request, ConnStateData *conn, Ip::Address &src_addr, AccessLogEntry::Pointer &al)
 {
     // If we have already been called, return the cached value
     Auth::UserRequest::Pointer t = authTryGetUser(*aUR, conn, request);
@@ -476,7 +470,7 @@ schemesConfig(HttpRequest *request, HttpReply *rep)
 }
 
 void
-Auth::UserRequest::AddReplyAuthHeader(HttpReply * rep, Auth::UserRequest::Pointer auth_user_request, HttpRequest * request, int accelerated, int internal)
+Auth::UserRequest::AddReplyAuthHeader(HttpReply *rep, Auth::UserRequest::Pointer auth_user_request, HttpRequest *request, int accelerated, int internal)
 /* send the auth types we are configured to support (and have compiled in!) */
 {
     Http::HdrType type;
@@ -503,8 +497,9 @@ Auth::UserRequest::AddReplyAuthHeader(HttpReply * rep, Auth::UserRequest::Pointe
     debugs(29, 9, "headertype:" << type << " authuser:" << auth_user_request);
 
     if (((rep->sline.status() == Http::scProxyAuthenticationRequired)
-            || (rep->sline.status() == Http::scUnauthorized)) && internal)
-        /* this is a authenticate-needed response */
+         || (rep->sline.status() == Http::scUnauthorized))
+        && internal)
+    /* this is a authenticate-needed response */
     {
 
         if (auth_user_request != NULL && auth_user_request->direction() == Auth::CRED_CHALLENGE)
@@ -523,7 +518,6 @@ Auth::UserRequest::AddReplyAuthHeader(HttpReply * rep, Auth::UserRequest::Pointe
                     debugs(29, 4, HERE << "Configured scheme " << scheme->type() << " not Active");
             }
         }
-
     }
 
     /*
@@ -570,4 +564,3 @@ Auth::UserRequest::denyMessageFromHelper(const char *proto, const Helper::Reply 
     }
     setDenyMessage(messageNote.c_str());
 }
-

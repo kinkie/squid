@@ -7,22 +7,22 @@
  */
 
 #include "squid.h"
-#include "auth/basic/Config.h"
-#include "auth/basic/User.h"
 #include "auth/basic/UserRequest.h"
+#include "Debug.h"
+#include "HttpRequest.h"
+#include "MemBuf.h"
+#include "SquidTime.h"
 #include "auth/QueueNode.h"
 #include "auth/State.h"
-#include "Debug.h"
+#include "auth/basic/Config.h"
+#include "auth/basic/User.h"
 #include "format/Format.h"
 #include "helper.h"
 #include "helper/Reply.h"
-#include "HttpRequest.h"
-#include "MemBuf.h"
 #include "rfc1738.h"
-#include "SquidTime.h"
 
 #if !defined(HELPER_INPUT_BUFFER)
-#define HELPER_INPUT_BUFFER  8192
+#define HELPER_INPUT_BUFFER 8192
 #endif
 
 int
@@ -57,7 +57,7 @@ Auth::Basic::UserRequest::authenticate(HttpRequest *, ConnStateData *, Http::Hdr
         return;
 
     /* are we about to recheck the credentials externally? */
-    if ((user()->expiretime + static_cast<Auth::Basic::Config*>(Auth::SchemeConfig::Find("basic"))->credentialsTTL) <= squid_curtime) {
+    if ((user()->expiretime + static_cast<Auth::Basic::Config *>(Auth::SchemeConfig::Find("basic"))->credentialsTTL) <= squid_curtime) {
         debugs(29, 4, HERE << "credentials expired - rechecking");
         return;
     }
@@ -84,7 +84,7 @@ Auth::Basic::UserRequest::module_direction()
         return Auth::CRED_LOOKUP;
 
     case Auth::Ok:
-        if (user()->expiretime + static_cast<Auth::Basic::Config*>(Auth::SchemeConfig::Find("basic"))->credentialsTTL <= squid_curtime)
+        if (user()->expiretime + static_cast<Auth::Basic::Config *>(Auth::SchemeConfig::Find("basic"))->credentialsTTL <= squid_curtime)
             return Auth::CRED_LOOKUP;
         return Auth::CRED_VALID;
 
@@ -98,14 +98,14 @@ Auth::Basic::UserRequest::module_direction()
 
 /* send the initial data to a basic authenticator module */
 void
-Auth::Basic::UserRequest::startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB * handler, void *data)
+Auth::Basic::UserRequest::startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *handler, void *data)
 {
     assert(user()->auth_type == Auth::AUTH_BASIC);
     Auth::Basic::User *basic_auth = dynamic_cast<Auth::Basic::User *>(user().getRaw());
     assert(basic_auth != NULL);
     debugs(29, 9, HERE << "'" << basic_auth->username() << ":" << basic_auth->passwd << "'");
 
-    if (static_cast<Auth::Basic::Config*>(Auth::SchemeConfig::Find("basic"))->authenticateProgram == NULL) {
+    if (static_cast<Auth::Basic::Config *>(Auth::SchemeConfig::Find("basic"))->authenticateProgram == NULL) {
         debugs(29, DBG_CRITICAL, "ERROR: No Basic authentication program configured.");
         handler(data);
         return;
@@ -139,7 +139,7 @@ Auth::Basic::UserRequest::startHelperLookup(HttpRequest *request, AccessLogEntry
     else
         sz = snprintf(buf, sizeof(buf), "%s %s\n", usern, pass);
 
-    if (sz<=0) {
+    if (sz <= 0) {
         debugs(9, DBG_CRITICAL, "ERROR: Basic Authentication Failure. Can not build helper validation request.");
         handler(data);
     } else if (static_cast<size_t>(sz) >= sizeof(buf)) {
@@ -162,7 +162,7 @@ Auth::Basic::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
 
     // add new helper kv-pair notes to the credentials object
     // so that any transaction using those credentials can access them
-    static const NotePairs::Names appendables = { SBuf("group"), SBuf("tag") };
+    static const NotePairs::Names appendables = {SBuf("group"), SBuf("tag")};
     r->auth_user_request->user()->notes.replaceOrAddOrAppend(&reply.notes, appendables);
 
     /* this is okay since we only play with the Auth::Basic::User child fields below
@@ -200,4 +200,3 @@ Auth::Basic::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
 
     delete r;
 }
-

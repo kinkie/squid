@@ -10,9 +10,9 @@
 
 #include "squid.h"
 #include "acl/ConnMark.h"
+#include "Debug.h"
 #include "acl/FilledChecklist.h"
 #include "client_side.h"
-#include "Debug.h"
 #include "http/Stream.h"
 #include "sbuf/Stream.h"
 
@@ -76,4 +76,3 @@ Acl::ConnMark::typeString() const
 {
     return "client_connection_mark";
 }
-

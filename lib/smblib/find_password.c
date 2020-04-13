@@ -34,20 +34,21 @@ char *SMB_Prots[] = {"PC NETWORK PROGRAM 1.0",
                      "LANMAN2.1",
                      "NT LM 0.12",
                      "NT LANMAN 1.0",
-                     NULL
-                    };
+                     NULL};
 
-void usage()
+void
+usage()
 
 {
-    fprintf(stderr,"Usage: find_password -u <user> -l <pwd-len-max> server\n");
+    fprintf(stderr, "Usage: find_password -u <user> -l <pwd-len-max> server\n");
 }
 
 /* figure out next password */
 
 static int pwinit = FALSE, pwpos = 0;
 
-int next_password(char *pw, int pwlen)
+int
+next_password(char *pw, int pwlen)
 
 {
     int i, carry = FALSE;
@@ -57,7 +58,6 @@ int next_password(char *pw, int pwlen)
         pwinit = TRUE;
         memset(pw, 0, pwlen + 1);
         pwpos = 0;
-
     }
 
     i = pwpos;
@@ -73,29 +73,30 @@ int next_password(char *pw, int pwlen)
             pw[i] = 1;
             i = i - 1;
 
-            if (i < 0) {  /* If we went off the end, increment pwpos */
+            if (i < 0) { /* If we went off the end, increment pwpos */
 
                 pwpos = pwpos + 1;
-                if (pwpos >= pwlen) return(FALSE); /* No more passwords */
+                if (pwpos >= pwlen)
+                    return (FALSE); /* No more passwords */
 
                 pw[pwpos] = 1;
-                return(TRUE);
-
+                return (TRUE);
             }
 
         } else
-            return(TRUE);
+            return (TRUE);
 
-        return(FALSE);
+        return (FALSE);
     }
 }
 
-static char pwd_str[1024];  /* Where we put passwords as we convert them */
+static char pwd_str[1024]; /* Where we put passwords as we convert them */
 
-char *print_password(char * password)
+char *
+print_password(char *password)
 
 {
-    int i,j;
+    int i, j;
     char temp[4];
 
     j = 0;
@@ -105,21 +106,19 @@ char *print_password(char * password)
         if (((unsigned)password[i] <= ' ') || ((unsigned)password[i] > 127)) {
 
             pwd_str[j] = '\\';
-            snprintf(temp, sizeof(temp)-1, "%03i", (int)password[i]);
+            snprintf(temp, sizeof(temp) - 1, "%03i", (int)password[i]);
             strcpy(&pwd_str[j + 1], temp);
-            j = j + 3;                       /* Space for \ accounted for below */
+            j = j + 3; /* Space for \ accounted for below */
 
         } else
             pwd_str[j] = password[i];
 
         j = j + 1;
-
     }
 
-    pwd_str[j] = 0;  /* Put a null on the end ... */
+    pwd_str[j] = 0; /* Put a null on the end ... */
 
-    return(pwd_str);
-
+    return (pwd_str);
 }
 
 main(int argc, char *argv[])
@@ -147,17 +146,17 @@ main(int argc, char *argv[])
             strcpy(service, optarg);
             break;
 
-        case 'u':     /* Pick up the user name */
+        case 'u': /* Pick up the user name */
 
             strncpy(username, optarg, sizeof(username) - 1);
             break;
 
-        case 'l':     /* pick up password len */
+        case 'l': /* pick up password len */
 
             pwlen = atoi(optarg);
             break;
 
-        case 'v':     /* Verbose? */
+        case 'v': /* Verbose? */
             verbose = TRUE;
             break;
 
@@ -167,7 +166,6 @@ main(int argc, char *argv[])
             exit(1);
             break;
         }
-
     }
 
     if (optind < argc) { /* Some more parameters, assume is the server */
@@ -177,21 +175,20 @@ main(int argc, char *argv[])
         strcpy(server, "nemesis");
     }
 
-    if (verbose == TRUE) {  /* Print out all we know */
+    if (verbose == TRUE) { /* Print out all we know */
 
         fprintf(stderr, "Finding password for User: %s, on server: %s\n",
                 username, server);
         fprintf(stderr, "with a pwlen = %i\n", pwlen);
-
     }
 
-    SMB_Init();          /* Initialize things ... */
+    SMB_Init(); /* Initialize things ... */
 
     /* We connect to the server and negotiate */
 
     con = SMB_Connect_Server(NULL, server);
 
-    if (con == NULL) {  /* Error processing */
+    if (con == NULL) { /* Error processing */
 
         fprintf(stderr, "Unable to connect to server %s ...\n", server);
 
@@ -209,7 +206,6 @@ main(int argc, char *argv[])
 
         printf("  %s\n", err_string);
         exit(1);
-
     }
 
     /* We need to negotiate a protocol better than PC NetWork Program */
@@ -233,10 +229,9 @@ main(int argc, char *argv[])
 
         printf("  %s\n", err_string);
         exit(1);
-
     }
 
-    sprintf(service_name, sizeof(service_name)-1, "\\\\%s\\%s", server, service); /* Could blow up */
+    sprintf(service_name, sizeof(service_name) - 1, "\\\\%s\\%s", server, service); /* Could blow up */
 
     /* Now loop through all password possibilities ... */
 
@@ -248,7 +243,8 @@ main(int argc, char *argv[])
                                        NULL,
                                        username,
                                        password,
-                                       service_name, "?????")) == NULL) {
+                                       service_name, "?????"))
+            == NULL) {
 
             if (verbose == TRUE) { /* Lets hear about the error */
 
@@ -270,7 +266,6 @@ main(int argc, char *argv[])
                 }
 
                 printf("  %s\n", err_string);
-
             }
         } else { /* Password match */
 
@@ -280,12 +275,8 @@ main(int argc, char *argv[])
             /* Exit now ... */
 
             exit(0);
-
         }
-
     }
 
     fprintf(stderr, "Passwords exhausted.");
-
 }
-

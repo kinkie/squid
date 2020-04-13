@@ -9,6 +9,7 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/SharedListen.h"
 #include "base/TextException.h"
 #include "comm.h"
 #include "comm/Connection.h"
@@ -16,7 +17,6 @@
 #include "ipc/Kids.h"
 #include "ipc/Messages.h"
 #include "ipc/Port.h"
-#include "ipc/SharedListen.h"
 #include "ipc/StartListening.h"
 #include "ipc/TypedMsgHdr.h"
 #include "tools.h"
@@ -28,8 +28,8 @@
 class PendingOpenRequest
 {
 public:
-    Ipc::OpenListenerParams params; ///< actual comm_open_sharedListen() parameters
-    AsyncCall::Pointer callback; // who to notify
+    Ipc::OpenListenerParams params;  ///< actual comm_open_sharedListen() parameters
+    AsyncCall::Pointer callback;     // who to notify
 };
 
 /// maps ID assigned at request time to the response callback
@@ -50,12 +50,12 @@ AddToMap(const PendingOpenRequest &por)
             return id;
         }
     }
-    assert(false); // not reached
+    assert(false);  // not reached
     return -1;
 }
 
 bool
-Ipc::OpenListenerParams::operator <(const OpenListenerParams &p) const
+Ipc::OpenListenerParams::operator<(const OpenListenerParams &p) const
 {
     if (sock_type != p.sock_type)
         return sock_type < p.sock_type;
@@ -68,7 +68,8 @@ Ipc::OpenListenerParams::operator <(const OpenListenerParams &p) const
     return addr.compareWhole(p.addr) < 0;
 }
 
-Ipc::SharedListenRequest::SharedListenRequest(): requestorId(-1), mapId(-1)
+Ipc::SharedListenRequest::SharedListenRequest() :
+    requestorId(-1), mapId(-1)
 {
     // caller will then set public data members
 }
@@ -79,18 +80,19 @@ Ipc::SharedListenRequest::SharedListenRequest(const TypedMsgHdr &hdrMsg)
     hdrMsg.getPod(*this);
 }
 
-void Ipc::SharedListenRequest::pack(TypedMsgHdr &hdrMsg) const
+void
+Ipc::SharedListenRequest::pack(TypedMsgHdr &hdrMsg) const
 {
     hdrMsg.setType(mtSharedListenRequest);
     hdrMsg.putPod(*this);
 }
 
-Ipc::SharedListenResponse::SharedListenResponse(int aFd, int anErrNo, int aMapId):
+Ipc::SharedListenResponse::SharedListenResponse(int aFd, int anErrNo, int aMapId) :
     fd(aFd), errNo(anErrNo), mapId(aMapId)
 {
 }
 
-Ipc::SharedListenResponse::SharedListenResponse(const TypedMsgHdr &hdrMsg):
+Ipc::SharedListenResponse::SharedListenResponse(const TypedMsgHdr &hdrMsg) :
     fd(-1), errNo(0), mapId(-1)
 {
     hdrMsg.checkType(mtSharedListenResponse);
@@ -99,7 +101,8 @@ Ipc::SharedListenResponse::SharedListenResponse(const TypedMsgHdr &hdrMsg):
     // other conn details are passed in OpenListenerParams and filled out by SharedListenJoin()
 }
 
-void Ipc::SharedListenResponse::pack(TypedMsgHdr &hdrMsg) const
+void
+Ipc::SharedListenResponse::pack(TypedMsgHdr &hdrMsg) const
 {
     hdrMsg.setType(mtSharedListenResponse);
     hdrMsg.putPod(*this);
@@ -114,8 +117,7 @@ SendSharedListenRequest(const PendingOpenRequest &por)
     request.params = por.params;
     request.mapId = AddToMap(por);
 
-    debugs(54, 3, "getting listening FD for " << request.params.addr <<
-           " mapId=" << request.mapId);
+    debugs(54, 3, "getting listening FD for " << request.params.addr << " mapId=" << request.mapId);
 
     Ipc::TypedMsgHdr message;
     request.pack(message);
@@ -126,10 +128,9 @@ static void
 kickDelayedRequest()
 {
     if (TheDelayedRequests.empty())
-        return; // no pending requests to resume
+        return;  // no pending requests to resume
 
-    debugs(54, 3, "resuming with " << TheSharedListenRequestMap.size() <<
-           " active + " << TheDelayedRequests.size() << " delayed requests");
+    debugs(54, 3, "resuming with " << TheSharedListenRequestMap.size() << " active + " << TheDelayedRequests.size() << " delayed requests");
 
     SendSharedListenRequest(*TheDelayedRequests.begin());
     TheDelayedRequests.pop_front();
@@ -144,28 +145,25 @@ Ipc::JoinSharedListen(const OpenListenerParams &params, AsyncCall::Pointer &cb)
 
     const DelayedSharedListenRequests::size_type concurrencyLimit = 1;
     if (TheSharedListenRequestMap.size() >= concurrencyLimit) {
-        debugs(54, 3, "waiting for " << TheSharedListenRequestMap.size() <<
-               " active + " << TheDelayedRequests.size() << " delayed requests");
+        debugs(54, 3, "waiting for " << TheSharedListenRequestMap.size() << " active + " << TheDelayedRequests.size() << " delayed requests");
         TheDelayedRequests.push_back(por);
     } else {
         SendSharedListenRequest(por);
     }
 }
 
-void Ipc::SharedListenJoined(const SharedListenResponse &response)
+void
+Ipc::SharedListenJoined(const SharedListenResponse &response)
 {
     // Dont debugs c fully since only FD is filled right now.
-    debugs(54, 3, "got listening FD " << response.fd << " errNo=" <<
-           response.errNo << " mapId=" << response.mapId << " with " <<
-           TheSharedListenRequestMap.size() << " active + " <<
-           TheDelayedRequests.size() << " delayed requests");
+    debugs(54, 3, "got listening FD " << response.fd << " errNo=" << response.errNo << " mapId=" << response.mapId << " with " << TheSharedListenRequestMap.size() << " active + " << TheDelayedRequests.size() << " delayed requests");
 
     Must(TheSharedListenRequestMap.find(response.mapId) != TheSharedListenRequestMap.end());
     PendingOpenRequest por = TheSharedListenRequestMap[response.mapId];
     Must(por.callback != NULL);
     TheSharedListenRequestMap.erase(response.mapId);
 
-    StartListeningCb *cbd = dynamic_cast<StartListeningCb*>(por.callback->getDialer());
+    StartListeningCb *cbd = dynamic_cast<StartListeningCb *>(por.callback->getDialer());
     assert(cbd && cbd->conn != NULL);
     Must(cbd && cbd->conn != NULL);
     cbd->conn->fd = response.fd;
@@ -189,4 +187,3 @@ void Ipc::SharedListenJoined(const SharedListenResponse &response)
 
     kickDelayedRequest();
 }
-

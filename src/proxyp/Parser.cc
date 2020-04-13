@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
+#include "proxyp/Parser.h"
 #include "parser/BinaryTokenizer.h"
 #include "parser/Tokenizer.h"
 #include "proxyp/Elements.h"
 #include "proxyp/Header.h"
-#include "proxyp/Parser.h"
 #include "sbuf/Stream.h"
 
 #include <algorithm>
@@ -28,31 +28,31 @@
 
 namespace ProxyProtocol {
 namespace One {
-/// magic octet prefix for PROXY protocol version 1
-static const SBuf Magic("PROXY", 5);
-/// extracts PROXY protocol v1 header from the given buffer
-static Parsed Parse(const SBuf &buf);
+    /// magic octet prefix for PROXY protocol version 1
+    static const SBuf Magic("PROXY", 5);
+    /// extracts PROXY protocol v1 header from the given buffer
+    static Parsed Parse(const SBuf &buf);
 
-static void ExtractIp(Parser::Tokenizer &tok, Ip::Address &addr);
-static void ExtractPort(Parser::Tokenizer &tok, Ip::Address &addr, const bool trailingSpace);
-static void ParseAddresses(Parser::Tokenizer &tok, Header::Pointer &header);
+    static void ExtractIp(Parser::Tokenizer &tok, Ip::Address &addr);
+    static void ExtractPort(Parser::Tokenizer &tok, Ip::Address &addr, const bool trailingSpace);
+    static void ParseAddresses(Parser::Tokenizer &tok, Header::Pointer &header);
 }
 
 namespace Two {
-/// magic octet prefix for PROXY protocol version 2
-static const SBuf Magic("\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A", 12);
-/// extracts PROXY protocol v2 header from the given buffer
-static Parsed Parse(const SBuf &buf);
+    /// magic octet prefix for PROXY protocol version 2
+    static const SBuf Magic("\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A", 12);
+    /// extracts PROXY protocol v2 header from the given buffer
+    static Parsed Parse(const SBuf &buf);
 
-static void ParseAddresses(const uint8_t family, Parser::BinaryTokenizer &tok, Header::Pointer &header);
-static void ParseTLVs(Parser::BinaryTokenizer &tok, Header::Pointer &header);
+    static void ParseAddresses(const uint8_t family, Parser::BinaryTokenizer &tok, Header::Pointer &header);
+    static void ParseTLVs(Parser::BinaryTokenizer &tok, Header::Pointer &header);
 }
 }
 
 void
 ProxyProtocol::One::ExtractIp(Parser::Tokenizer &tok, Ip::Address &addr)
 {
-    static const auto ipChars = CharacterSet("IP Address",".:") + CharacterSet::HEXDIG;
+    static const auto ipChars = CharacterSet("IP Address", ".:") + CharacterSet::HEXDIG;
 
     SBuf ip;
 
@@ -64,7 +64,6 @@ ProxyProtocol::One::ExtractIp(Parser::Tokenizer &tok, Ip::Address &addr)
 
     if (!addr.GetHostByName(ip.c_str()))
         throw TexcHere("PROXY/1.0 error: invalid IP address");
-
 }
 
 void
@@ -113,14 +112,12 @@ ProxyProtocol::One::Parse(const SBuf &buf)
 {
     Parser::Tokenizer tok(buf);
 
-    static const SBuf::size_type maxHeaderLength = 107; // including CRLF
+    static const SBuf::size_type maxHeaderLength = 107;  // including CRLF
     static const auto maxInteriorLength = maxHeaderLength - Magic.length() - 2;
     static const auto interiorChars = CharacterSet::CR.complement().rename("non-CR");
     SBuf interior;
 
-    if (!(tok.prefix(interior, interiorChars, maxInteriorLength) &&
-            tok.skip('\r') &&
-            tok.skip('\n'))) {
+    if (!(tok.prefix(interior, interiorChars, maxInteriorLength) && tok.skip('\r') && tok.skip('\n'))) {
         if (tok.atEnd())
             throw Parser::BinaryTokenizer::InsufficientInput();
         // "empty interior", "too-long interior", or "missing LF after CR"
@@ -170,7 +167,7 @@ ProxyProtocol::Two::ParseAddresses(const uint8_t family, Parser::BinaryTokenizer
         break;
     }
 
-    case afUnix: { // TODO: add support
+    case afUnix: {  // TODO: add support
         // the address block length is 216 bytes
         tok.skip(216, "unix_addr");
         break;
@@ -185,7 +182,8 @@ ProxyProtocol::Two::ParseAddresses(const uint8_t family, Parser::BinaryTokenizer
 }
 
 void
-ProxyProtocol::Two::ParseTLVs(Parser::BinaryTokenizer &tok, Header::Pointer &header) {
+ProxyProtocol::Two::ParseTLVs(Parser::BinaryTokenizer &tok, Header::Pointer &header)
+{
     while (!tok.atEnd()) {
         const auto type = tok.uint8("pp2_tlv::type");
         header->tlvs.emplace_back(type, tok.pstring16("pp2_tlv::value"));
@@ -200,7 +198,7 @@ ProxyProtocol::Two::Parse(const SBuf &buf)
     const auto versionAndCommand = tokHeader.uint8("version and command");
 
     const auto version = (versionAndCommand & 0xF0) >> 4;
-    if (version != 2) // version == 2 is mandatory
+    if (version != 2)  // version == 2 is mandatory
         throw TexcHere(ToSBuf("PROXY/2.0 error: invalid version ", version));
 
     const auto command = (versionAndCommand & 0x0F);
@@ -242,10 +240,7 @@ ProxyProtocol::Parse(const SBuf &buf)
 {
     Parser::Tokenizer magicTok(buf);
 
-    const auto parser =
-        magicTok.skip(Two::Magic) ? &Two::Parse :
-        magicTok.skip(One::Magic) ? &One::Parse :
-        nullptr;
+    const auto parser = magicTok.skip(Two::Magic) ? &Two::Parse : magicTok.skip(One::Magic) ? &One::Parse : nullptr;
 
     if (parser) {
         const auto parsed = (parser)(magicTok.remaining());
@@ -266,10 +261,9 @@ ProxyProtocol::Parse(const SBuf &buf)
     throw Parser::BinaryTokenizer::InsufficientInput();
 }
 
-ProxyProtocol::Parsed::Parsed(const Header::Pointer &parsedHeader, const size_t parsedSize):
+ProxyProtocol::Parsed::Parsed(const Header::Pointer &parsedHeader, const size_t parsedSize) :
     header(parsedHeader),
     size(parsedSize)
 {
     assert(bool(parsedHeader));
 }
-

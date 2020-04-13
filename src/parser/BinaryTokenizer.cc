@@ -9,14 +9,15 @@
 /* DEBUG: section 24    SBuf */
 
 #include "squid.h"
-#include "ip/Address.h"
 #include "parser/BinaryTokenizer.h"
+#include "ip/Address.h"
 
-Parser::BinaryTokenizer::BinaryTokenizer(): BinaryTokenizer(SBuf())
+Parser::BinaryTokenizer::BinaryTokenizer() :
+    BinaryTokenizer(SBuf())
 {
 }
 
-Parser::BinaryTokenizer::BinaryTokenizer(const SBuf &data, const bool expectMore):
+Parser::BinaryTokenizer::BinaryTokenizer(const SBuf &data, const bool expectMore) :
     context(nullptr),
     data_(data),
     parsed_(0),
@@ -25,9 +26,8 @@ Parser::BinaryTokenizer::BinaryTokenizer(const SBuf &data, const bool expectMore
 {
 }
 
-static inline
-std::ostream &
-operator <<(std::ostream &os, const Parser::BinaryTokenizerContext *context)
+static inline std::ostream &
+operator<<(std::ostream &os, const Parser::BinaryTokenizerContext *context)
 {
     if (context)
         os << context->parent << context->name;
@@ -36,17 +36,15 @@ operator <<(std::ostream &os, const Parser::BinaryTokenizerContext *context)
 
 /// debugging helper that prints a "standard" debugs() trailer
 #define BinaryTokenizer_tail(size, start) \
-    " occupying " << (size) << " bytes @" << (start) << " in " << this << \
-    (expectMore_ ? ';' : '.');
+    " occupying " << (size) << " bytes @" << (start) << " in " << this << (expectMore_ ? ';' : '.');
 
 /// logs and throws if fewer than size octets remain; no other side effects
 void
 Parser::BinaryTokenizer::want(uint64_t size, const char *description) const
 {
     if (parsed_ + size > data_.length()) {
-        debugs(24, 5, (parsed_ + size - data_.length()) << " more bytes for " <<
-               context << description << BinaryTokenizer_tail(size, parsed_));
-        Must(expectMore_); // throw an error on premature input termination
+        debugs(24, 5, (parsed_ + size - data_.length()) << " more bytes for " << context << description << BinaryTokenizer_tail(size, parsed_));
+        Must(expectMore_);  // throw an error on premature input termination
         throw InsufficientInput();
     }
 }
@@ -54,34 +52,28 @@ Parser::BinaryTokenizer::want(uint64_t size, const char *description) const
 void
 Parser::BinaryTokenizer::got(uint64_t size, const char *description) const
 {
-    debugs(24, 7, context << description <<
-           BinaryTokenizer_tail(size, parsed_ - size));
+    debugs(24, 7, context << description << BinaryTokenizer_tail(size, parsed_ - size));
 }
 
 /// debugging helper for parsed number fields
 void
 Parser::BinaryTokenizer::got(uint32_t value, uint64_t size, const char *description) const
 {
-    debugs(24, 7, context << description << '=' << value <<
-           BinaryTokenizer_tail(size, parsed_ - size));
+    debugs(24, 7, context << description << '=' << value << BinaryTokenizer_tail(size, parsed_ - size));
 }
 
 /// debugging helper for parsed areas/blobs
 void
 Parser::BinaryTokenizer::got(const SBuf &value, uint64_t size, const char *description) const
 {
-    debugs(24, 7, context << description << '=' <<
-           Raw(nullptr, value.rawContent(), value.length()).hex() <<
-           BinaryTokenizer_tail(size, parsed_ - size));
-
+    debugs(24, 7, context << description << '=' << Raw(nullptr, value.rawContent(), value.length()).hex() << BinaryTokenizer_tail(size, parsed_ - size));
 }
 
 /// debugging helper for parsed addresses
 void
 Parser::BinaryTokenizer::got(const Ip::Address &value, uint64_t size, const char *description) const
 {
-    debugs(24, 7, context << description << '=' << value <<
-           BinaryTokenizer_tail(size, parsed_ - size));
+    debugs(24, 7, context << description << '=' << value << BinaryTokenizer_tail(size, parsed_ - size));
 }
 
 /// debugging helper for skipped fields
@@ -89,7 +81,6 @@ void
 Parser::BinaryTokenizer::skipped(uint64_t size, const char *description) const
 {
     debugs(24, 7, context << description << BinaryTokenizer_tail(size, parsed_ - size));
-
 }
 
 /// Returns the next ready-for-shift byte, adjusting the number of parsed bytes.
@@ -238,4 +229,3 @@ Parser::BinaryTokenizer::pstring24(const char *description)
         return area(length, ".octets");
     return SBuf();
 }
-

@@ -70,13 +70,13 @@
 #undef ldap_start_tls_s
 #if LDAP_UNICODE
 #define LDAP_START_TLS_S "ldap_start_tls_sW"
-typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
+typedef WINLDAPAPI ULONG(LDAPAPI *PFldap_start_tls_s)(IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
 #else
 #define LDAP_START_TLS_S "ldap_start_tls_sA"
-typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
+typedef WINLDAPAPI ULONG(LDAPAPI *PFldap_start_tls_s)(IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
 #endif /* LDAP_UNICODE */
 PFldap_start_tls_s Win32_ldap_start_tls_s;
-#define ldap_start_tls_s(l,s,c) Win32_ldap_start_tls_s(l,NULL,NULL,s,c)
+#define ldap_start_tls_s(l, s, c) Win32_ldap_start_tls_s(l, NULL, NULL, s, c)
 #endif /* LDAP_VERSION3 */
 
 #else
@@ -119,7 +119,7 @@ static int use_tls = 0;
 static int version = -1;
 #endif
 
-static int searchLDAP(LDAP * ld, char *group, char *user, char *extension_dn);
+static int searchLDAP(LDAP *ld, char *group, char *user, char *extension_dn);
 
 static int readSecret(const char *filename);
 
@@ -131,30 +131,30 @@ static int readSecret(const char *filename);
 
 #if defined(LDAP_API_VERSION) && LDAP_API_VERSION > 1823
 static int
-squid_ldap_errno(LDAP * ld)
+squid_ldap_errno(LDAP *ld)
 {
     int err = 0;
     ldap_get_option(ld, LDAP_OPT_ERROR_NUMBER, &err);
     return err;
 }
 static void
-squid_ldap_set_aliasderef(LDAP * ld, int deref)
+squid_ldap_set_aliasderef(LDAP *ld, int deref)
 {
     ldap_set_option(ld, LDAP_OPT_DEREF, &deref);
 }
 static void
-squid_ldap_set_referrals(LDAP * ld, int referrals)
+squid_ldap_set_referrals(LDAP *ld, int referrals)
 {
-    int *value = static_cast<int*>(referrals ? LDAP_OPT_ON :LDAP_OPT_OFF);
+    int *value = static_cast<int *>(referrals ? LDAP_OPT_ON : LDAP_OPT_OFF);
     ldap_set_option(ld, LDAP_OPT_REFERRALS, value);
 }
 static void
-squid_ldap_set_timelimit(LDAP * ld, int aTimeLimit)
+squid_ldap_set_timelimit(LDAP *ld, int aTimeLimit)
 {
     ldap_set_option(ld, LDAP_OPT_TIMELIMIT, &aTimeLimit);
 }
 static void
-squid_ldap_set_connect_timeout(LDAP * ld, int aTimeLimit)
+squid_ldap_set_connect_timeout(LDAP *ld, int aTimeLimit)
 {
 #if defined(LDAP_OPT_NETWORK_TIMEOUT)
     struct timeval tv;
@@ -174,17 +174,17 @@ squid_ldap_memfree(char *p)
 
 #else
 static int
-squid_ldap_errno(LDAP * ld)
+squid_ldap_errno(LDAP *ld)
 {
     return ld->ld_errno;
 }
 static void
-squid_ldap_set_aliasderef(LDAP * ld, int deref)
+squid_ldap_set_aliasderef(LDAP *ld, int deref)
 {
     ld->ld_deref = deref;
 }
 static void
-squid_ldap_set_referrals(LDAP * ld, int referrals)
+squid_ldap_set_referrals(LDAP *ld, int referrals)
 {
     if (referrals)
         ld->ld_options |= ~LDAP_OPT_REFERRALS;
@@ -192,12 +192,12 @@ squid_ldap_set_referrals(LDAP * ld, int referrals)
         ld->ld_options &= ~LDAP_OPT_REFERRALS;
 }
 static void
-squid_ldap_set_timelimit(LDAP * ld, int timelimit)
+squid_ldap_set_timelimit(LDAP *ld, int timelimit)
 {
     ld->ld_timelimit = timelimit;
 }
 static void
-squid_ldap_set_connect_timeout(LDAP * ld, int timelimit)
+squid_ldap_set_connect_timeout(LDAP *ld, int timelimit)
 {
     fprintf(stderr, "WARNING: Connect timeouts not supported in your LDAP library\n");
 }
@@ -266,7 +266,7 @@ main(int argc, char **argv)
         case 'h':
             if (ldapServer) {
                 int len = strlen(ldapServer) + 1 + strlen(value) + 1;
-                char *newhost = static_cast<char*>(xmalloc(len));
+                char *newhost = static_cast<char *>(xmalloc(len));
                 snprintf(newhost, len, "%s %s", ldapServer, value);
                 free(ldapServer);
                 ldapServer = newhost;
@@ -395,7 +395,7 @@ main(int argc, char **argv)
         char *value = argv[1];
         if (ldapServer) {
             int len = strlen(ldapServer) + 1 + strlen(value) + 1;
-            char *newhost = static_cast<char*>(xmalloc(len));
+            char *newhost = static_cast<char *>(xmalloc(len));
             snprintf(newhost, len, "%s %s", ldapServer, value);
             free(ldapServer);
             ldapServer = newhost;
@@ -407,7 +407,7 @@ main(int argc, char **argv)
     }
 
     if (!ldapServer)
-        ldapServer = (char *) "localhost";
+        ldapServer = (char *)"localhost";
 
     if (!basedn || !searchfilter) {
         fprintf(stderr, "\n" PROGRAM_NAME " version " PROGRAM_VERSION "\n\n");
@@ -454,7 +454,7 @@ main(int argc, char **argv)
         HMODULE WLDAP32Handle;
 
         WLDAP32Handle = GetModuleHandle("wldap32");
-        if ((Win32_ldap_start_tls_s = (PFldap_start_tls_s) GetProcAddress(WLDAP32Handle, LDAP_START_TLS_S)) == NULL) {
+        if ((Win32_ldap_start_tls_s = (PFldap_start_tls_s)GetProcAddress(WLDAP32Handle, LDAP_START_TLS_S)) == NULL) {
             fprintf(stderr, PROGRAM_NAME ": FATAL: TLS (-Z) not supported on this platform.\n");
             exit(EXIT_FAILURE);
         }
@@ -509,7 +509,7 @@ main(int argc, char **argv)
         while (!found && user && (group = strtok(NULL, " \n")) != NULL) {
             rfc1738_unescape(group);
 
-recover:
+        recover:
             if (ld == NULL) {
 #if HAS_URI_SUPPORT
                 if (strstr(ldapServer, "://") != NULL) {
@@ -523,24 +523,24 @@ recover:
 #endif
 #if NETSCAPE_SSL
                     if (sslpath) {
-                        if (!sslinit && (ldapssl_client_init(sslpath, NULL) != LDAP_SUCCESS)) {
-                            fprintf(stderr, "FATAL: Unable to initialise SSL with cert path %s\n", sslpath);
-                            exit(EXIT_FAILURE);
-                        } else {
-                            ++sslinit;
-                        }
-                        if ((ld = ldapssl_init(ldapServer, port, 1)) == NULL) {
-                            fprintf(stderr, "FATAL: Unable to connect to SSL LDAP server: %s port:%d\n",
-                                    ldapServer, port);
-                            exit(EXIT_FAILURE);
-                        }
-                    } else
+                    if (!sslinit && (ldapssl_client_init(sslpath, NULL) != LDAP_SUCCESS)) {
+                        fprintf(stderr, "FATAL: Unable to initialise SSL with cert path %s\n", sslpath);
+                        exit(EXIT_FAILURE);
+                    } else {
+                        ++sslinit;
+                    }
+                    if ((ld = ldapssl_init(ldapServer, port, 1)) == NULL) {
+                        fprintf(stderr, "FATAL: Unable to connect to SSL LDAP server: %s port:%d\n",
+                                ldapServer, port);
+                        exit(EXIT_FAILURE);
+                    }
+                } else
 #endif
-                        if ((ld = ldap_init(ldapServer, port)) == NULL) {
-                            broken = HLP_MSG("Unable to connect to LDAP server");
-                            fprintf(stderr, "ERROR: %s:%s port:%d\n", broken, ldapServer, port);
-                            break;
-                        }
+                    if ((ld = ldap_init(ldapServer, port)) == NULL) {
+                    broken = HLP_MSG("Unable to connect to LDAP server");
+                    fprintf(stderr, "ERROR: %s:%s port:%d\n", broken, ldapServer, port);
+                    break;
+                }
                 if (connect_timeout)
                     squid_ldap_set_connect_timeout(ld, connect_timeout);
 
@@ -695,7 +695,8 @@ build_searchbase(const char *extension_dn, const char *base_dn)
     return searchBaseStream.str();
 }
 
-static bool ldap_search_ok(const int result)
+static bool
+ldap_search_ok(const int result)
 {
     if (result == LDAP_SUCCESS)
         return true;
@@ -705,13 +706,11 @@ static bool ldap_search_ok(const int result)
          */
         return true;
     }
-    std::cerr << PROGRAM_NAME << ": WARNING: LDAP search error '" <<
-              ldap_err2string(result) << "'" << std::endl;
+    std::cerr << PROGRAM_NAME << ": WARNING: LDAP search error '" << ldap_err2string(result) << "'" << std::endl;
 #if defined(NETSCAPE_SSL)
     if (sslpath && ((result == LDAP_SERVER_DOWN) || (result == LDAP_CONNECT_ERROR))) {
         int sslerr = PORT_GetError();
-        std::cerr << PROGRAM_NAME << ": WARNING: SSL error " << sslerr << " (" <<
-                  ldapssl_err2string(sslerr) << ")" << std::endl;
+        std::cerr << PROGRAM_NAME << ": WARNING: SSL error " << sslerr << " (" << ldapssl_err2string(sslerr) << ")" << std::endl;
     }
 #endif
     return false;
@@ -720,17 +719,16 @@ static bool ldap_search_ok(const int result)
 typedef const std::unique_ptr<LDAPMessage, decltype(&ldap_msgfree)> LdapResult;
 
 static int
-searchLDAPGroup(LDAP * ld, const char *group, const char *member, const char *extension_dn)
+searchLDAPGroup(LDAP *ld, const char *group, const char *member, const char *extension_dn)
 {
     std::string filter;
     LDAPMessage *res = NULL;
     int rc;
-    char *searchattr[] = {(char *) LDAP_NO_ATTRS, NULL};
+    char *searchattr[] = {(char *)LDAP_NO_ATTRS, NULL};
 
     const std::string searchbase = build_searchbase(extension_dn, basedn);
     if (!build_filter(filter, searchfilter, member, group)) {
-        std::cerr << PROGRAM_NAME  << ": ERROR: Failed to construct LDAP search filter. filter=\"" <<
-                  filter.c_str() << "\", user=\"" << member << "\", group=\"" << group << "\"" << std::endl;
+        std::cerr << PROGRAM_NAME << ": ERROR: Failed to construct LDAP search filter. filter=\"" << filter.c_str() << "\", user=\"" << member << "\", group=\"" << group << "\"" << std::endl;
         return -1;
     }
     debug("group filter '%s', searchbase '%s'\n", filter.c_str(), searchbase.c_str());
@@ -754,7 +752,7 @@ formatWithString(std::string &formatted, const std::string &value)
 }
 
 static int
-searchLDAP(LDAP * ld, char *group, char *login, char *extension_dn)
+searchLDAP(LDAP *ld, char *group, char *login, char *extension_dn)
 {
 
     const char *current_userdn = userbasedn ? userbasedn : basedn;
@@ -763,7 +761,7 @@ searchLDAP(LDAP * ld, char *group, char *login, char *extension_dn)
         LDAPMessage *entry;
         int rc;
         char *userdn;
-        char *searchattr[] = {(char *) LDAP_NO_ATTRS, NULL};
+        char *searchattr[] = {(char *)LDAP_NO_ATTRS, NULL};
         const std::string searchbase = build_searchbase(extension_dn, current_userdn);
         std::string filter(usersearchfilter);
         const std::string escaped_login = ldap_escape_value(login);
@@ -776,8 +774,7 @@ searchLDAP(LDAP * ld, char *group, char *login, char *extension_dn)
             return -1;
         entry = ldap_first_entry(ld, ldapRes.get());
         if (!entry) {
-            std::cerr << PROGRAM_NAME << ": WARNING: User '" << login <<
-                      " not found in '" << searchbase.c_str() << "'" << std::endl;
+            std::cerr << PROGRAM_NAME << ": WARNING: User '" << login << " not found in '" << searchbase.c_str() << "'" << std::endl;
             return 1;
         }
         userdn = ldap_get_dn(ld, entry);
@@ -826,4 +823,3 @@ readSecret(const char *filename)
 
     return 0;
 }
-

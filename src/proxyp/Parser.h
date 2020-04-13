@@ -20,8 +20,8 @@ class Parsed
 public:
     Parsed(const HeaderPointer &parsedHeader, const size_t parsedSize);
 
-    HeaderPointer header; ///< successfully parsed header; not nil
-    size_t size; ///< raw bytes parsed, including any magic/delimiters
+    HeaderPointer header;  ///< successfully parsed header; not nil
+    size_t size;           ///< raw bytes parsed, including any magic/delimiters
 };
 
 /// Parses a PROXY protocol header from the buffer, determining
@@ -30,7 +30,6 @@ public:
 /// \returns the successfully parsed header
 Parsed Parse(const SBuf &);
 
-} // namespace ProxyProtocol
+}  // namespace ProxyProtocol
 
 #endif
-

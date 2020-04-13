@@ -14,5 +14,5 @@
 #define STUB_API "http.cc"
 #include "tests/STUB.h"
 
-SBuf httpMakeVaryMark(HttpRequest *, HttpReply const *) STUB_RETVAL(SBuf())
-
+SBuf
+httpMakeVaryMark(HttpRequest *, HttpReply const *) STUB_RETVAL(SBuf())

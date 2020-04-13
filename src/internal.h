@@ -30,4 +30,3 @@ const char *internalHostname(void);
 int internalHostnameIs(const char *);
 
 #endif /* SQUID_INTERNAL_H_ */
-

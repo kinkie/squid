@@ -225,13 +225,13 @@ void *cbdataInternalFree(void *p, const char *, int);
 
 #if USE_CBDATA_DEBUG
 void cbdataInternalLockDbg(const void *p, const char *, int);
-#define cbdataInternalLock(a) cbdataInternalLockDbg(a,__FILE__,__LINE__)
+#define cbdataInternalLock(a) cbdataInternalLockDbg(a, __FILE__, __LINE__)
 
 void cbdataInternalUnlockDbg(const void *p, const char *, int);
-#define cbdataInternalUnlock(a) cbdataInternalUnlockDbg(a,__FILE__,__LINE__)
+#define cbdataInternalUnlock(a) cbdataInternalUnlockDbg(a, __FILE__, __LINE__)
 
 int cbdataInternalReferenceDoneValidDbg(void **p, void **tp, const char *, int);
-#define cbdataReferenceValidDone(var, ptr) cbdataInternalReferenceDoneValidDbg((void **)&(var), (ptr), __FILE__,__LINE__)
+#define cbdataReferenceValidDone(var, ptr) cbdataInternalReferenceDoneValidDbg((void **)&(var), (ptr), __FILE__, __LINE__)
 
 #else
 void cbdataInternalLock(const void *p);
@@ -273,19 +273,24 @@ int cbdataReferenceValid(const void *p);
 cbdata_type cbdataInternalAddType(cbdata_type type, const char *label, int size);
 
 /// declaration-generator used internally by CBDATA_CLASS() and CBDATA_CHILD()
-#define CBDATA_DECL_(type, methodSpecifiers) \
-    public: \
-        void *operator new(size_t size) { \
-          assert(size == sizeof(type)); \
-          if (!CBDATA_##type) CBDATA_##type = cbdataInternalAddType(CBDATA_##type, #type, sizeof(type)); \
-          return (type *)cbdataInternalAlloc(CBDATA_##type,__FILE__,__LINE__); \
-        } \
-        void operator delete (void *address) { \
-          if (address) cbdataInternalFree(address,__FILE__,__LINE__); \
-        } \
-        void *toCbdata() methodSpecifiers { return this; } \
-    private: \
-       static cbdata_type CBDATA_##type;
+#define CBDATA_DECL_(type, methodSpecifiers)                                           \
+public:                                                                                \
+    void *operator new(size_t size)                                                    \
+    {                                                                                  \
+        assert(size == sizeof(type));                                                  \
+        if (!CBDATA_##type)                                                            \
+            CBDATA_##type = cbdataInternalAddType(CBDATA_##type, #type, sizeof(type)); \
+        return (type *)cbdataInternalAlloc(CBDATA_##type, __FILE__, __LINE__);         \
+    }                                                                                  \
+    void operator delete(void *address)                                                \
+    {                                                                                  \
+        if (address)                                                                   \
+            cbdataInternalFree(address, __FILE__, __LINE__);                           \
+    }                                                                                  \
+    void *toCbdata() methodSpecifiers { return this; }                                 \
+                                                                                       \
+private:                                                                               \
+    static cbdata_type CBDATA_##type;
 
 /// Starts cbdata-protection in a class hierarchy.
 /// Child classes in the same hierarchy should use CBDATA_CHILD().
@@ -323,7 +328,7 @@ public:
  *
  * Place this in the appropriate .cc file for the class being registered.
  */
-#define CBDATA_NAMESPACED_CLASS_INIT(namespace, type) cbdata_type namespace::type::CBDATA_##type = CBDATA_UNKNOWN
+#define CBDATA_NAMESPACED_CLASS_INIT(namespace, type) cbdata_type namespace ::type::CBDATA_##type = CBDATA_UNKNOWN
 
 /**
  * Creates a new reference to a cbdata entry. Used when you need to
@@ -338,7 +343,7 @@ public:
  *       is quite different. It is best if the reference is thought of
  *       and handled as a "void *".
  */
-#define cbdataReference(var)    (cbdataInternalLock(var), var)
+#define cbdataReference(var) (cbdataInternalLock(var), var)
 
 /**
  * Removes a reference created by cbdataReference().
@@ -347,7 +352,13 @@ public:
  *
  * \param var The reference variable. Will be automatically cleared to NULL.
  */
-#define cbdataReferenceDone(var) do {if (var) {cbdataInternalUnlock(var); var = NULL;}} while(0)
+#define cbdataReferenceDone(var)       \
+    do {                               \
+        if (var) {                     \
+            cbdataInternalUnlock(var); \
+            var = NULL;                \
+        }                              \
+    } while (0)
 
 /**
  * A generic wrapper for passing object pointers through cbdata.
@@ -360,9 +371,12 @@ class generic_cbdata
     CBDATA_CLASS(generic_cbdata);
 
 public:
-    generic_cbdata(void *aData) : data(aData) {}
+    generic_cbdata(void *aData) :
+        data(aData) {}
 
-    template<typename wrapped_type>void unwrap(wrapped_type **output) {
+    template <typename wrapped_type>
+    void unwrap(wrapped_type **output)
+    {
         *output = static_cast<wrapped_type *>(data);
         delete this;
     }
@@ -376,21 +390,34 @@ private:
 class CallbackData
 {
 public:
-    CallbackData(): data_(nullptr) {}
-    CallbackData(void *data): data_(cbdataReference(data)) {}
-    CallbackData(const CallbackData &other): data_(cbdataReference(other.data_)) {}
-    CallbackData(CallbackData &&other): data_(other.data_) { other.data_ = nullptr; }
+    CallbackData() :
+        data_(nullptr) {}
+    CallbackData(void *data) :
+        data_(cbdataReference(data)) {}
+    CallbackData(const CallbackData &other) :
+        data_(cbdataReference(other.data_)) {}
+    CallbackData(CallbackData &&other) :
+        data_(other.data_) { other.data_ = nullptr; }
     ~CallbackData() { cbdataReferenceDone(data_); }
 
-    CallbackData &operator =(const CallbackData &other);
-    CallbackData &operator =(CallbackData &&other) { cbdataReferenceDone(data_); data_ = other.data_; other.data_ = nullptr; return *this; }
+    CallbackData &operator=(const CallbackData &other);
+    CallbackData &operator=(CallbackData &&other)
+    {
+        cbdataReferenceDone(data_);
+        data_ = other.data_;
+        other.data_ = nullptr;
+        return *this;
+    }
 
     bool valid() const { return cbdataReferenceValid(data_); }
-    void *validDone() { void *result; return cbdataReferenceValidDone(data_, &result) ? result : nullptr; }
+    void *validDone()
+    {
+        void *result;
+        return cbdataReferenceValidDone(data_, &result) ? result : nullptr;
+    }
 
 private:
-    void *data_; ///< raw callback data, maybe invalid
+    void *data_;  ///< raw callback data, maybe invalid
 };
 
 #endif /* SQUID_CBDATA_H */
-

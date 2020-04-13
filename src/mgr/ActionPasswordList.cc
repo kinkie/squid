@@ -13,6 +13,5 @@
 Mgr::ActionPasswordList::~ActionPasswordList()
 {
     xfree(passwd);
-    delete next; // recurse, these lists are usually not long
+    delete next;  // recurse, these lists are usually not long
 }
-

@@ -11,10 +11,10 @@
 #ifndef COMMREAD_H
 #define COMMREAD_H
 
+#include "CommCalls.h"
 #include "base/CbDataList.h"
 #include "comm.h"
 #include "comm/forward.h"
-#include "CommCalls.h"
 
 class CommRead
 {
@@ -33,14 +33,14 @@ class DeferredRead
 
 public:
     typedef void DeferrableRead(void *context, CommRead const &);
-    DeferredRead ();
-    DeferredRead (DeferrableRead *, void *, CommRead const &);
+    DeferredRead();
+    DeferredRead(DeferrableRead *, void *, CommRead const &);
     void markCancelled();
     DeferrableRead *theReader;
     void *theContext;
     CommRead theRead;
     bool cancelled;
-    AsyncCall::Pointer closer; ///< internal close handler used by Comm
+    AsyncCall::Pointer closer;  ///< internal close handler used by Comm
 
 private:
 };
@@ -62,4 +62,3 @@ private:
 };
 
 #endif /* COMMREAD_H */
-

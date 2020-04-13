@@ -9,10 +9,10 @@
 #ifndef SQUID_ASYNCCALL_H
 #define SQUID_ASYNCCALL_H
 
+#include "RefCount.h"
 #include "base/CodeContext.h"
 #include "base/InstanceId.h"
 #include "event.h"
-#include "RefCount.h"
 
 /**
  \defgroup AsynCallsAPI Async-Calls API
@@ -42,16 +42,16 @@ class AsyncCallQueue;
  \todo CBDATA_CLASS kids
  \ingroup AsyncCallsAPI
  */
-class AsyncCall: public RefCountable
+class AsyncCall : public RefCountable
 {
 public:
-    typedef RefCount <AsyncCall> Pointer;
+    typedef RefCount<AsyncCall> Pointer;
     friend class AsyncCallQueue;
 
     AsyncCall(int aDebugSection, int aDebugLevel, const char *aName);
     virtual ~AsyncCall();
 
-    void make(); // fire if we can; handles general call debugging
+    void make();  // fire if we can; handles general call debugging
 
     // can be called from canFire() for debugging; always returns false
     bool cancel(const char *reason);
@@ -65,11 +65,13 @@ public:
     /// remove us from the queue; we are head unless we are queued after prev
     void dequeue(AsyncCall::Pointer &head, AsyncCall::Pointer &prev);
 
-    void setNext(AsyncCall::Pointer aNext) {
+    void setNext(AsyncCall::Pointer aNext)
+    {
         theNext = aNext;
     }
 
-    AsyncCall::Pointer &Next() {
+    AsyncCall::Pointer &Next()
+    {
         return theNext;
     }
 
@@ -88,18 +90,18 @@ protected:
 
     virtual void fire() = 0;
 
-    AsyncCall::Pointer theNext; // used exclusively by AsyncCallQueue
+    AsyncCall::Pointer theNext;  // used exclusively by AsyncCallQueue
 
 private:
-    const char *isCanceled; // set to the cancellation reason by cancel()
+    const char *isCanceled;  // set to the cancellation reason by cancel()
 
     // not implemented to prevent nil calls from being passed around and unknowingly scheduled, for now.
     AsyncCall();
     AsyncCall(const AsyncCall &);
 };
 
-inline
-std::ostream &operator <<(std::ostream &os, AsyncCall &call)
+inline std::ostream &
+operator<<(std::ostream &os, AsyncCall &call)
 {
     call.print(os);
     return os;
@@ -127,14 +129,15 @@ public:
  * This template implements an AsyncCall using a specified Dialer class
  */
 template <class Dialer>
-class AsyncCallT: public AsyncCall
+class AsyncCallT : public AsyncCall
 {
 public:
     AsyncCallT(int aDebugSection, int aDebugLevel, const char *aName,
-               const Dialer &aDialer): AsyncCall(aDebugSection, aDebugLevel, aName),
+               const Dialer &aDialer) :
+        AsyncCall(aDebugSection, aDebugLevel, aName),
         dialer(aDialer) {}
 
-    AsyncCallT(const AsyncCallT<Dialer> &o):
+    AsyncCallT(const AsyncCallT<Dialer> &o) :
         AsyncCall(o.debugSection, o.debugLevel, o.name),
         dialer(o.dialer) {}
 
@@ -143,21 +146,20 @@ public:
     CallDialer *getDialer() { return &dialer; }
 
 protected:
-    virtual bool canFire() {
-        return AsyncCall::canFire() &&
-               dialer.canDial(*this);
+    virtual bool canFire()
+    {
+        return AsyncCall::canFire() && dialer.canDial(*this);
     }
     virtual void fire() { dialer.dial(*this); }
 
     Dialer dialer;
 
 private:
-    AsyncCallT & operator=(const AsyncCallT &); // not defined. call assignments not permitted.
+    AsyncCallT &operator=(const AsyncCallT &);  // not defined. call assignments not permitted.
 };
 
 template <class Dialer>
-inline
-AsyncCall *
+inline AsyncCall *
 asyncCall(int aDebugSection, int aDebugLevel, const char *aName,
           const Dialer &aDialer)
 {
@@ -171,4 +173,3 @@ bool ScheduleCall(const char *fileName, int fileLine, AsyncCall::Pointer &call);
 #define ScheduleCallHere(call) ScheduleCall(__FILE__, __LINE__, (call))
 
 #endif /* SQUID_ASYNCCALL_H */
-

@@ -65,4 +65,3 @@ char *xstrndup(const char *s, size_t n);
 #endif
 
 #endif /* SQUID_COMPAT_XSTRING_H */
-

@@ -9,25 +9,26 @@
 /* DEBUG: section 20    Storage Manager */
 
 #include "squid.h"
-#include "base/RunnersRegistry.h"
+#include "Transients.h"
 #include "CollapsedForwarding.h"
 #include "HttpReply.h"
-#include "ipc/mem/Page.h"
-#include "ipc/mem/Pages.h"
 #include "MemObject.h"
-#include "mime_header.h"
 #include "SquidConfig.h"
 #include "SquidMath.h"
 #include "StoreStats.h"
+#include "base/RunnersRegistry.h"
+#include "ipc/mem/Page.h"
+#include "ipc/mem/Pages.h"
+#include "mime_header.h"
 #include "tools.h"
-#include "Transients.h"
 
 #include <limits>
 
 /// shared memory segment path to use for Transients map
 static const SBuf MapLabel("transients_map");
 
-Transients::Transients(): map(NULL), locals(NULL)
+Transients::Transients() :
+    map(NULL), locals(NULL)
 {
 }
 
@@ -47,7 +48,7 @@ Transients::init()
     Must(!map);
     map = new TransientsMap(MapLabel);
     map->cleaner = this;
-    map->disableHitValidation(); // Transients lacks slices to validate
+    map->disableHitValidation();  // Transients lacks slices to validate
 
     locals = new Locals(entryLimit, 0);
 }
@@ -59,10 +60,8 @@ Transients::getStats(StoreInfoStats &stats) const
     const size_t pageSize = Ipc::Mem::PageSize();
 
     stats.mem.shared = true;
-    stats.mem.capacity =
-        Ipc::Mem::PageLimit(Ipc::Mem::PageId::cachePage) * pageSize;
-    stats.mem.size =
-        Ipc::Mem::PageLevel(Ipc::Mem::PageId::cachePage) * pageSize;
+    stats.mem.capacity = Ipc::Mem::PageLimit(Ipc::Mem::PageId::cachePage) * pageSize;
+    stats.mem.size = Ipc::Mem::PageLevel(Ipc::Mem::PageId::cachePage) * pageSize;
     stats.mem.count = currentCount();
 #endif
 }
@@ -72,7 +71,7 @@ Transients::stat(StoreEntry &e) const
 {
     storeAppendPrintf(&e, "\n\nTransient Objects\n");
 
-    storeAppendPrintf(&e, "Maximum Size: %.0f KB\n", maxSize()/1024.0);
+    storeAppendPrintf(&e, "Maximum Size: %.0f KB\n", maxSize() / 1024.0);
     storeAppendPrintf(&e, "Current Size: %.2f KB %.2f%%\n",
                       currentSize() / 1024.0,
                       Math::doublePercent(currentSize(), maxSize()));
@@ -96,7 +95,7 @@ Transients::maintain()
 uint64_t
 Transients::minSize() const
 {
-    return 0; // XXX: irrelevant, but Store parent forces us to implement this
+    return 0;  // XXX: irrelevant, but Store parent forces us to implement this
 }
 
 uint64_t
@@ -229,11 +228,11 @@ Transients::addEntry(StoreEntry *e, const cache_key *key, const Store::IoStatus 
     assert(e->mem_obj);
     assert(!e->hasTransients());
 
-    Must(map); // configured to track transients
+    Must(map);  // configured to track transients
 
     sfileno index = 0;
     Ipc::StoreMapAnchor *slot = map->openForWriting(key, index);
-    Must(slot); // no writer collisions
+    Must(slot);  // no writer collisions
 
     // set ASAP in hope to unlock the slot if something throws
     e->mem_obj->xitTable.index = index;
@@ -272,8 +271,7 @@ Transients::status(const StoreEntry &entry, Transients::EntryStatus &entryStatus
     assert(map);
     assert(entry.hasTransients());
     const auto idx = entry.mem_obj->xitTable.index;
-    const auto &anchor = isWriter(entry) ?
-                         map->writeableEntry(idx) : map->readableEntry(idx);
+    const auto &anchor = isWriter(entry) ? map->writeableEntry(idx) : map->readableEntry(idx);
     entryStatus.abortedByWriter = anchor.writerHalted;
     entryStatus.waitingToBeFreed = anchor.waitingToBeFreed;
     entryStatus.collapsed = EBIT_TEST(anchor.basics.flags, ENTRY_REQUIRES_COLLAPSING);
@@ -309,7 +307,7 @@ Transients::evictCached(StoreEntry &e)
             // Calling it directly/here creates complex reentrant call chains.
             CollapsedForwarding::Broadcast(e, true);
         }
-    } // else nothing to do because e must be private
+    }  // else nothing to do because e must be private
 }
 
 void
@@ -346,8 +344,7 @@ Transients::disconnect(StoreEntry &entry)
 int64_t
 Transients::EntryLimit()
 {
-    return (UsingSmp() && Store::Controller::SmpAware()) ?
-           Config.shared_transient_entries_limit : 0;
+    return (UsingSmp() && Store::Controller::SmpAware()) ? Config.shared_transient_entries_limit : 0;
 }
 
 bool
@@ -370,7 +367,7 @@ Transients::isWriter(const StoreEntry &e) const
 }
 
 /// initializes shared memory segment used by Transients
-class TransientsRr: public Ipc::Mem::RegisteredRunner
+class TransientsRr : public Ipc::Mem::RegisteredRunner
 {
 public:
     /* RegisteredRunner API */
@@ -398,7 +395,7 @@ TransientsRr::create()
 {
     const int64_t entryLimit = Transients::EntryLimit();
     if (entryLimit <= 0)
-        return; // no SMP configured or a misconfiguration
+        return;  // no SMP configured or a misconfiguration
 
     Must(!mapOwner);
     mapOwner = TransientsMap::Init(MapLabel, entryLimit);
@@ -408,4 +405,3 @@ TransientsRr::~TransientsRr()
 {
     delete mapOwner;
 }
-

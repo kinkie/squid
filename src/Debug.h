@@ -17,8 +17,8 @@
 
 #include <iostream>
 #undef assert
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 #if defined(assert)
 #undef assert
 #endif
@@ -28,9 +28,9 @@
 #elif defined(NODEBUG)
 #define assert(EX) ((void)0)
 #elif STDC_HEADERS
-#define assert(EX)  ((EX)?((void)0):xassert( # EX , __FILE__, __LINE__))
+#define assert(EX) ((EX) ? ((void)0) : xassert(#EX, __FILE__, __LINE__))
 #else
-#define assert(EX)  ((EX)?((void)0):xassert("EX", __FILE__, __LINE__))
+#define assert(EX) ((EX) ? ((void)0) : xassert("EX", __FILE__, __LINE__))
 #endif
 
 /* context-based debugging, the actual type is subject to change */
@@ -42,12 +42,12 @@ void ctx_exit(Ctx ctx);
 #define MAX_DEBUG_SECTIONS 100
 
 /* defined names for Debug Levels */
-#define DBG_CRITICAL    0   /**< critical messages always shown when they occur */
-#define DBG_IMPORTANT   1   /**< important messages always shown when their section is being checked */
+#define DBG_CRITICAL 0  /**< critical messages always shown when they occur */
+#define DBG_IMPORTANT 1 /**< important messages always shown when their section is being checked */
 /* levels 2-8 are still being discussed amongst the developers */
-#define DBG_DATA    9   /**< output is a large data dump only necessary for advanced debugging */
+#define DBG_DATA 9 /**< output is a large data dump only necessary for advanced debugging */
 
-#define DBG_PARSE_NOTE(x) (opt_parse_cfg_only?0:(x)) /**< output is always to be displayed on '-k parse' but at level-x normally. */
+#define DBG_PARSE_NOTE(x) (opt_parse_cfg_only ? 0 : (x)) /**< output is always to be displayed on '-k parse' but at level-x normally. */
 
 class Debug
 {
@@ -59,16 +59,16 @@ public:
     public:
         Context(const int aSectionLevel, const int aLevel);
 
-        int level; ///< minimum debugging level required by the debugs() call
-        int sectionLevel; ///< maximum debugging level allowed during the call
+        int level;         ///< minimum debugging level required by the debugs() call
+        int sectionLevel;  ///< maximum debugging level allowed during the call
 
     private:
         friend class Debug;
         void rewind(const int aSection, const int aLevel);
         void formatStream();
-        Context *upper; ///< previous or parent record in nested debugging calls
-        std::ostringstream buf; ///< debugs() output sink
-        bool forceAlert; ///< the current debugs() will be a syslog ALERT
+        Context *upper;          ///< previous or parent record in nested debugging calls
+        std::ostringstream buf;  ///< debugs() output sink
+        bool forceAlert;         ///< the current debugs() will be a syslog ALERT
     };
 
     /// whether debugging the given section and the given level produces output
@@ -101,10 +101,10 @@ public:
     static void ForceAlert();
 
     /// prefixes each grouped debugs() line after the first one in the group
-    static std::ostream& Extra(std::ostream &os) { return os << "\n    "; }
+    static std::ostream &Extra(std::ostream &os) { return os << "\n    "; }
 
 private:
-    static Context *Current; ///< deepest active context; nil outside debugs()
+    static Context *Current;  ///< deepest active context; nil outside debugs()
 };
 
 /// cache.log FILE or, as the last resort, stderr stream;
@@ -125,24 +125,24 @@ void ResyncDebugLog(FILE *newDestination);
  * debug section; to enable this, #define ENABLE_DEBUG_SECTION to the
  * section number before any header
  */
-#define debugs(SECTION, LEVEL, CONTENT) \
-   do { \
-        const int _dbg_level = (LEVEL); \
-        if (Debug::Enabled((SECTION), _dbg_level)) { \
+#define debugs(SECTION, LEVEL, CONTENT)                               \
+    do {                                                              \
+        const int _dbg_level = (LEVEL);                               \
+        if (Debug::Enabled((SECTION), _dbg_level)) {                  \
             std::ostream &_dbo = Debug::Start((SECTION), _dbg_level); \
-            if (_dbg_level > DBG_IMPORTANT) { \
-                _dbo << (SECTION) << ',' << _dbg_level << "| " \
-                     << Here() << ": "; \
-            } \
-            _dbo << CONTENT; \
-            Debug::Finish(); \
-        } \
-   } while (/*CONSTCOND*/ 0)
+            if (_dbg_level > DBG_IMPORTANT) {                         \
+                _dbo << (SECTION) << ',' << _dbg_level << "| "        \
+                     << Here() << ": ";                               \
+            }                                                         \
+            _dbo << CONTENT;                                          \
+            Debug::Finish();                                          \
+        }                                                             \
+    } while (/*CONSTCOND*/ 0)
 
 /// Does not change the stream being manipulated. Exists for its side effect:
 /// In a debugs() context, forces the message to become a syslog ALERT.
 /// Outside of debugs() context, has no effect and should not be used.
-std::ostream& ForceAlert(std::ostream& s);
+std::ostream &ForceAlert(std::ostream &s);
 
 /** stream manipulator which does nothing.
  * \deprecated Do not add to new code, and remove when editing old code
@@ -153,8 +153,8 @@ std::ostream& ForceAlert(std::ostream& s);
  *
  * His former objective is now absorbed in the debugs call itself
  */
-inline std::ostream&
-HERE(std::ostream& s)
+inline std::ostream &
+HERE(std::ostream &s)
 {
     return s;
 }
@@ -171,7 +171,8 @@ HERE(std::ostream& s)
 #endif
 
 /* some uint8_t do not like streaming control-chars (values 0-31, 127+) */
-inline std::ostream& operator <<(std::ostream &os, const uint8_t d)
+inline std::ostream &
+operator<<(std::ostream &os, const uint8_t d)
 {
     return (os << (int)d);
 }
@@ -188,16 +189,28 @@ void _db_rotate_log(void);
 class Raw
 {
 public:
-    Raw(const char *label, const char *data, const size_t size):
+    Raw(const char *label, const char *data, const size_t size) :
         level(-1), label_(label), data_(data), size_(size), useHex_(false), useGap_(true) {}
 
     /// limit data printing to at least the given debugging level
-    Raw &minLevel(const int aLevel) { level = aLevel; return *this; }
+    Raw &minLevel(const int aLevel)
+    {
+        level = aLevel;
+        return *this;
+    }
 
     /// print data using two hex digits per byte (decoder: xxd -r -p)
-    Raw &hex() { useHex_ = true; return *this; }
+    Raw &hex()
+    {
+        useHex_ = true;
+        return *this;
+    }
 
-    Raw &gap(bool useGap = true) { useGap_ = useGap; return *this; }
+    Raw &gap(bool useGap = true)
+    {
+        useGap_ = useGap;
+        return *this;
+    }
 
     /// If debugging is prohibited by the current debugs() or section level,
     /// prints nothing. Otherwise, dumps data using one of these formats:
@@ -215,27 +228,28 @@ public:
 private:
     void printHex(std::ostream &os) const;
 
-    const char *label_; ///< optional data name or ID; triggers size printing
-    const char *data_; ///< raw data to be printed
-    size_t size_; ///< data length
-    bool useHex_; ///< whether hex() has been called
-    bool useGap_; ///< whether to print leading space if label is missing
+    const char *label_;  ///< optional data name or ID; triggers size printing
+    const char *data_;   ///< raw data to be printed
+    size_t size_;        ///< data length
+    bool useHex_;        ///< whether hex() has been called
+    bool useGap_;        ///< whether to print leading space if label is missing
 };
 
-inline
-std::ostream &operator <<(std::ostream &os, const Raw &raw)
+inline std::ostream &
+operator<<(std::ostream &os, const Raw &raw)
 {
     return raw.print(os);
 }
 
 /// debugs objects pointed by possibly nil pointers: label=object
 template <class Pointer>
-class RawPointerT {
+class RawPointerT
+{
 public:
-    RawPointerT(const char *aLabel, const Pointer &aPtr):
+    RawPointerT(const char *aLabel, const Pointer &aPtr) :
         label(aLabel), ptr(aPtr) {}
-    const char *label; /// the name or description of the being-debugged object
-    const Pointer &ptr; /// a possibly nil pointer to the being-debugged object
+    const char *label;   /// the name or description of the being-debugged object
+    const Pointer &ptr;  /// a possibly nil pointer to the being-debugged object
 };
 
 /// convenience wrapper for creating  RawPointerT<> objects
@@ -249,7 +263,7 @@ RawPointer(const char *label, const Pointer &ptr)
 /// prints RawPointerT<>, dereferencing the raw pointer if possible
 template <class Pointer>
 inline std::ostream &
-operator <<(std::ostream &os, const RawPointerT<Pointer> &pd)
+operator<<(std::ostream &os, const RawPointerT<Pointer> &pd)
 {
     os << pd.label << '=';
     if (pd.ptr)
@@ -263,13 +277,14 @@ template <class Integer>
 class AsHex
 {
 public:
-    explicit AsHex(const Integer n): raw(n) {}
-    Integer raw; ///< the integer to print
+    explicit AsHex(const Integer n) :
+        raw(n) {}
+    Integer raw;  ///< the integer to print
 };
 
 template <class Integer>
 inline std::ostream &
-operator <<(std::ostream &os, const AsHex<Integer> number)
+operator<<(std::ostream &os, const AsHex<Integer> number)
 {
     const auto oldFlags = os.flags();
     os << std::hex << std::showbase << number.raw;
@@ -279,7 +294,10 @@ operator <<(std::ostream &os, const AsHex<Integer> number)
 
 /// a helper to ease AsHex object creation
 template <class Integer>
-inline AsHex<Integer> asHex(const Integer n) { return AsHex<Integer>(n); }
+inline AsHex<Integer>
+asHex(const Integer n)
+{
+    return AsHex<Integer>(n);
+}
 
 #endif /* SQUID_DEBUG_H */
-

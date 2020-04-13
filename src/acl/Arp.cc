@@ -12,9 +12,9 @@
 
 #if USE_SQUID_EUI
 
+#include "Debug.h"
 #include "acl/Arp.h"
 #include "acl/FilledChecklist.h"
-#include "Debug.h"
 #include "eui/Eui48.h"
 #include "globals.h"
 #include "ip/Address.h"
@@ -27,10 +27,13 @@ ACLARP::clone() const
     return new ACLARP(*this);
 }
 
-ACLARP::ACLARP (char const *theClass) : class_ (theClass)
-{}
+ACLARP::ACLARP(char const *theClass) :
+    class_(theClass)
+{
+}
 
-ACLARP::ACLARP (ACLARP const & old) : class_ (old.class_), aclArpData(old.aclArpData)
+ACLARP::ACLARP(ACLARP const &old) :
+    class_(old.class_), aclArpData(old.aclArpData)
 {
 }
 
@@ -41,7 +44,7 @@ ACLARP::typeString() const
 }
 
 bool
-ACLARP::empty () const
+ACLARP::empty() const
 {
     return aclArpData.empty();
 }
@@ -116,7 +119,7 @@ ACLARP::match(ACLChecklist *cl)
 
     /* IPv6 does not do ARP */
     if (!checklist->src_addr.isIPv4()) {
-        debugs(14, 3, "ACLARP::match: IPv4 Required for ARP Lookups. Skipping " << checklist->src_addr );
+        debugs(14, 3, "ACLARP::match: IPv4 Required for ARP Lookups. Skipping " << checklist->src_addr);
         return 0;
     }
 
@@ -131,7 +134,7 @@ ACLARP::dump() const
     SBufList sl;
     for (auto i = aclArpData.begin(); i != aclArpData.end(); ++i) {
         char buf[48];
-        i->encode(buf,48);
+        i->encode(buf, 48);
         sl.push_back(SBuf(buf));
     }
     return sl;
@@ -140,4 +143,3 @@ ACLARP::dump() const
 /* ==== END ARP ACL SUPPORT =============================================== */
 
 #endif /* USE_SQUID_EUI */
-

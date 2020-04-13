@@ -33,28 +33,28 @@
 /*
  * Hacks for non-synchronized heap implementation.
  */
-#define         mutex_lock(m)           (void)0
-#define         mutex_unlock(m)         (void)0
-#define         mutex_trylock(m)        (void)0
-#define         mutex_init(m)           ((m)=123456)
+#define mutex_lock(m) (void)0
+#define mutex_unlock(m) (void)0
+#define mutex_trylock(m) (void)0
+#define mutex_init(m) ((m) = 123456)
 
 /*
  * Private function prototypes.
  */
-static void _heap_ify_up(heap * hp, heap_node * elm);
-static void _heap_ify_down(heap * hp, heap_node * elm);
-static int _heap_should_grow(heap * hp);
-static void _heap_grow(heap * hp);
-static void _heap_swap_element(heap * hp, heap_node * elm1, heap_node * elm2);
-static int _heap_node_exist(heap * hp, int id);
+static void _heap_ify_up(heap *hp, heap_node *elm);
+static void _heap_ify_down(heap *hp, heap_node *elm);
+static int _heap_should_grow(heap *hp);
+static void _heap_grow(heap *hp);
+static void _heap_swap_element(heap *hp, heap_node *elm1, heap_node *elm2);
+static int _heap_node_exist(heap *hp, int id);
 
-#ifdef  HEAP_DEBUG
-void _heap_print_tree(heap * hp, heap_node * node);
+#ifdef HEAP_DEBUG
+void _heap_print_tree(heap *hp, heap_node *node);
 #endif /* HEAP_DEBUG */
 
 #define Left(x) (2 * (x) + 1)
 #define Right(x) (2 * (x) + 2)
-#define Parent(x) ((int)((x)-1)/2)
+#define Parent(x) ((int)((x)-1) / 2)
 
 #define Threshold 10000
 #define NormalRate 2
@@ -92,7 +92,7 @@ new_heap(int initSize, heap_key_func gen_key)
  * heap nodes, only the heap's internal memory.
  */
 void
-delete_heap(heap * hp)
+delete_heap(heap *hp)
 {
     int i;
     assert(hp != NULL);
@@ -114,7 +114,7 @@ delete_heap(heap * hp)
  * deletion.
  */
 heap_node *
-heap_insert(heap * hp, void *dat)
+heap_insert(heap *hp, void *dat)
 {
     heap_node *elm = xmalloc(sizeof(*elm));
 
@@ -139,7 +139,7 @@ heap_insert(heap * hp, void *dat)
  * in, which the caller must free if necessary.
  */
 heap_t
-heap_delete(heap * hp, heap_node * elm)
+heap_delete(heap *hp, heap_node *elm)
 {
     heap_node *lastNode;
     heap_t data = elm->data;
@@ -155,10 +155,10 @@ heap_delete(heap * hp, heap_node * elm)
          * lastNode just got freed, so don't access it in the next
          * block.
          */
-        (void) 0;
+        (void)0;
     } else if (hp->last > 0) {
         if (lastNode->key < hp->nodes[Parent(lastNode->id)]->key)
-            _heap_ify_up(hp, lastNode);     /* COOL! */
+            _heap_ify_up(hp, lastNode); /* COOL! */
         _heap_ify_down(hp, lastNode);
     }
     return data;
@@ -174,7 +174,7 @@ heap_delete(heap * hp, heap_node * elm)
  * Function to generate keys.  See macro definition in heap.h.
  */
 heap_key
-heap_gen_key(heap * hp, heap_t dat)
+heap_gen_key(heap *hp, heap_t dat)
 {
     return hp->gen_key(dat, hp->age);
 }
@@ -185,7 +185,7 @@ heap_gen_key(heap * hp, heap_t dat)
  * node from the heap.  Returns NULL if the heap was empty.
  */
 heap_t
-heap_extractmin(heap * hp)
+heap_extractmin(heap *hp)
 {
     heap_t data;
 
@@ -195,7 +195,7 @@ heap_extractmin(heap * hp)
     mutex_lock(hp->lock);
 
     data = hp->nodes[0]->data;
-    heap_delete(hp, hp->nodes[0]);  /* Delete the root */
+    heap_delete(hp, hp->nodes[0]); /* Delete the root */
 
     mutex_unlock(hp->lock);
 
@@ -207,7 +207,7 @@ heap_extractmin(heap * hp)
  * returns the data pointes to by the last node.
  */
 heap_t
-heap_extractlast(heap * hp)
+heap_extractlast(heap *hp)
 {
     heap_t data;
     assert(_heap_node_exist(hp, hp->last - 1));
@@ -225,7 +225,7 @@ heap_extractlast(heap * hp)
  * caller must free this as necessary.
  */
 heap_t
-heap_update(heap * hp, heap_node * elm, void *dat)
+heap_update(heap *hp, heap_node *elm, void *dat)
 {
     heap_t old = elm->data;
     heap_key ky = heap_gen_key(hp, dat);
@@ -244,7 +244,7 @@ heap_update(heap * hp, heap_node * elm, void *dat)
  * A pointer to the root node's DATA.
  */
 void *
-heap_peepmin(heap * hp)
+heap_peepmin(heap *hp)
 {
     assert(_heap_node_exist(hp, 0));
     return hp->nodes[0]->data;
@@ -254,7 +254,7 @@ heap_peepmin(heap * hp)
  * The KEY of the root node.
  */
 heap_key
-heap_peepminkey(heap * hp)
+heap_peepminkey(heap *hp)
 {
     assert(_heap_node_exist(hp, 0));
     return hp->nodes[0]->key;
@@ -265,7 +265,7 @@ heap_peepminkey(heap * hp)
  * Only meant for iteration.
  */
 heap_key
-heap_peepkey(heap * hp, int n)
+heap_peepkey(heap *hp, int n)
 {
     assert(_heap_node_exist(hp, n));
     return hp->nodes[n]->key;
@@ -278,7 +278,7 @@ heap_peepkey(heap * hp, int n)
  *      data = heap_peep(hp, i);
  */
 void *
-heap_peep(heap * hp, int n)
+heap_peep(heap *hp, int n)
 {
     void *data;
     assert(_heap_node_exist(hp, n));
@@ -291,7 +291,7 @@ heap_peep(heap * hp, int n)
  * Current number of nodes in HP.
  */
 int
-heap_nodes(heap * hp)
+heap_nodes(heap *hp)
 {
     return hp->last;
 }
@@ -303,7 +303,7 @@ heap_nodes(heap * hp)
  * otherwise.
  */
 int
-heap_empty(heap * hp)
+heap_empty(heap *hp)
 {
     return (hp->last <= 0) ? 1 : 0;
 }
@@ -316,7 +316,7 @@ heap_empty(heap * hp)
  * may only be violated at ELM downwards.  Assumes caller has locked the heap.
  */
 static void
-_heap_ify_down(heap * hp, heap_node * elm)
+_heap_ify_down(heap *hp, heap_node *elm)
 {
     heap_node *kid;
     int left = 0, right = 0;
@@ -349,14 +349,14 @@ _heap_ify_down(heap * hp, heap_node * elm)
  * Maintain the heap property above ELM.  Caller has locked the heap.
  */
 static void
-_heap_ify_up(heap * hp, heap_node * elm)
+_heap_ify_up(heap *hp, heap_node *elm)
 {
     heap_node *parentNode;
     while (elm->id > 0) {
         parentNode = hp->nodes[Parent(elm->id)];
         if (parentNode->key <= elm->key)
             break;
-        _heap_swap_element(hp, parentNode, elm);    /* Demote the parent. */
+        _heap_swap_element(hp, parentNode, elm); /* Demote the parent. */
     }
 }
 
@@ -365,7 +365,7 @@ _heap_ify_up(heap * hp, heap_node * elm)
  * swapped.
  */
 static void
-_heap_swap_element(heap * hp, heap_node * elm1, heap_node * elm2)
+_heap_swap_element(heap *hp, heap_node *elm1, heap_node *elm2)
 {
     int elm1Id = elm1->id;
     elm1->id = elm2->id;
@@ -374,12 +374,12 @@ _heap_swap_element(heap * hp, heap_node * elm1, heap_node * elm2)
     hp->nodes[elm2->id] = elm2;
 }
 
-#ifdef  NOTDEF
+#ifdef NOTDEF
 /*
  * Copy KEY and DATA fields of SRC to DEST. ID field is NOT copied.
  */
 static void
-_heap_copy_element(heap_node * src, heap_node * dest)
+_heap_copy_element(heap_node *src, heap_node *dest)
 {
     dest->key = src->key;
     dest->data = src->data;
@@ -391,7 +391,7 @@ _heap_copy_element(heap_node * src, heap_node * dest)
  * True if HP needs to be grown in size.
  */
 static int
-_heap_should_grow(heap * hp)
+_heap_should_grow(heap *hp)
 {
     if (hp->size <= hp->last)
         return 1;
@@ -402,7 +402,7 @@ _heap_should_grow(heap * hp)
  * Grow HP.
  */
 static void
-_heap_grow(heap * hp)
+_heap_grow(heap *hp)
 {
     int newSize;
 
@@ -425,7 +425,7 @@ _heap_grow(heap * hp)
  * True if a node with ID exists in HP.
  */
 static int
-_heap_node_exist(heap * hp, int id)
+_heap_node_exist(heap *hp, int id)
 {
     if ((id >= hp->last) || (id < 0) || (hp->nodes[id] == NULL))
         return 0;
@@ -440,7 +440,7 @@ _heap_node_exist(heap * hp, int id)
  * Print the heap in element order, id..last.
  */
 static void
-heap_print_inorder(heap * hp, int id)
+heap_print_inorder(heap *hp, int id)
 {
     while (id < hp->last) {
         printf("%d\tKey = %.04f\n", id, hp->nodes[id]->key);
@@ -452,7 +452,7 @@ heap_print_inorder(heap * hp, int id)
  * Returns 1 if HP maintains the heap property and 0 otherwise.
  */
 int
-verify_heap_property(heap * hp)
+verify_heap_property(heap *hp)
 {
     int i = 0;
     int correct = 1;
@@ -473,7 +473,7 @@ verify_heap_property(heap * hp)
     return correct;
 }
 
-#ifdef  MEASURE_HEAP_SKEW
+#ifdef MEASURE_HEAP_SKEW
 
 /****************************************************************************
  * Heap skew computation
@@ -482,8 +482,8 @@ verify_heap_property(heap * hp)
 int
 compare_heap_keys(const void *a, const void *b)
 {
-    heap_node **an = (heap_node **) a;
-    heap_node **bn = (heap_node **) b;
+    heap_node **an = (heap_node **)a;
+    heap_node **bn = (heap_node **)b;
     float cmp = (*an)->key - (*bn)->key;
     if (cmp < 0)
         return -1;
@@ -502,11 +502,11 @@ compare_heap_keys(const void *a, const void *b)
  * sorted heap.  It is faster not to replace.
  */
 float
-calc_heap_skew(heap * heap, int replace)
+calc_heap_skew(heap *heap, int replace)
 {
     heap_node **nodes;
     long id, diff, skew = 0;
-#ifdef  HEAP_DEBUG_SKEW
+#ifdef HEAP_DEBUG_SKEW
     long skewsq = 0;
 #endif /* HEAP_DEBUG_SKEW */
     float norm = 0;
@@ -540,9 +540,9 @@ calc_heap_skew(heap * heap, int replace)
         diff = id - nodes[id]->id;
         skew += abs(diff);
 
-#ifdef  HEAP_DEBUG_SKEW
+#ifdef HEAP_DEBUG_SKEW
         skewsq += diff * diff;
-#ifdef  HEAP_DEBUG_ALL
+#ifdef HEAP_DEBUG_ALL
         printf("%d\tKey = %f, diff = %d\n", id, nodes[id]->key, diff);
 #endif /* HEAP_DEBUG */
 #endif /* HEAP_DEBUG_SKEW */
@@ -582,4 +582,3 @@ calc_heap_skew(heap * heap, int replace)
 }
 
 #endif /* MEASURE_HEAP_SKEW */
-

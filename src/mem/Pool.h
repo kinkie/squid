@@ -47,16 +47,16 @@
 #endif
 
 /// \ingroup MemPoolsAPI
-#define toMB(size) ( ((double) size) / ((double)(1024*1024)) )
+#define toMB(size) (((double)size) / ((double)(1024 * 1024)))
 /// \ingroup MemPoolsAPI
-#define toKB(size) ( (size + 1024 - 1) / 1024 )
+#define toKB(size) ((size + 1024 - 1) / 1024)
 
 /// \ingroup MemPoolsAPI
 #define MEM_PAGE_SIZE 4096
 /// \ingroup MemPoolsAPI
-#define MEM_MIN_FREE  32
+#define MEM_MIN_FREE 32
 /// \ingroup MemPoolsAPI
-#define MEM_MAX_FREE  65535 /* unsigned short is max number of items per chunk */
+#define MEM_MAX_FREE 65535 /* unsigned short is max number of items per chunk */
 
 class MemImplementingAllocator;
 class MemPoolStats;
@@ -70,7 +70,7 @@ class MemPoolIterator
 {
 public:
     MemImplementingAllocator *pool;
-    MemPoolIterator * next;
+    MemPoolIterator *next;
 };
 
 /**
@@ -80,7 +80,8 @@ public:
 class mgb_t
 {
 public:
-    mgb_t() : count(0), bytes(0) {}
+    mgb_t() :
+        count(0), bytes(0) {}
     double count;
     double bytes;
 };
@@ -124,7 +125,7 @@ public:
      \param label   Name for the pool. Displayed in stats.
      \param obj_size    Size of elements in MemPool.
      */
-    MemImplementingAllocator * create(const char *label, size_t obj_size);
+    MemImplementingAllocator *create(const char *label, size_t obj_size);
 
     /**
      * Sets upper limit in bytes to amount of free ram kept in pools. This is
@@ -178,14 +179,14 @@ public:
 class MemAllocator
 {
 public:
-    MemAllocator (char const *aLabel);
+    MemAllocator(char const *aLabel);
     virtual ~MemAllocator() {}
 
     /**
      \param stats   Object to be filled with statistical data about pool.
      \retval        Number of objects in use, ie. allocated.
      */
-    virtual int getStats(MemPoolStats * stats, int accumulate = 0) = 0;
+    virtual int getStats(MemPoolStats *stats, int accumulate = 0) = 0;
 
     virtual MemPoolMeter const &getMeter() const = 0;
 
@@ -202,7 +203,7 @@ public:
     virtual char const *objectType() const;
     virtual size_t objectSize() const = 0;
     virtual int getInUseCount() = 0;
-    void zeroBlocks(bool doIt) {doZero = doIt;}
+    void zeroBlocks(bool doIt) { doZero = doIt; }
     int inUseCount();
 
     /**
@@ -261,13 +262,16 @@ public:
     virtual void clean(time_t maxage) = 0;
     virtual size_t objectSize() const;
     virtual int getInUseCount() = 0;
+
 protected:
     virtual void *allocate() = 0;
     virtual void deallocate(void *, bool aggressive) = 0;
     MemPoolMeter meter;
     int memPID;
+
 public:
     MemImplementingAllocator *next;
+
 public:
     size_t alloc_calls;
     size_t free_calls;
@@ -330,19 +334,19 @@ struct _MemPoolGlobalStats {
  * Initialise iteration through all of the pools.
  * \returns Iterator for use by memPoolIterateNext() and memPoolIterateDone()
  */
-extern MemPoolIterator * memPoolIterate(void);
+extern MemPoolIterator *memPoolIterate(void);
 
 /**
  \ingroup MemPoolsAPI
  * Get next pool pointer, until getting NULL pointer.
  */
-extern MemImplementingAllocator * memPoolIterateNext(MemPoolIterator * iter);
+extern MemImplementingAllocator *memPoolIterateNext(MemPoolIterator *iter);
 
 /**
  \ingroup MemPoolsAPI
  * Should be called after finished with iterating through all pools.
  */
-extern void memPoolIterateDone(MemPoolIterator ** iter);
+extern void memPoolIterateDone(MemPoolIterator **iter);
 
 /**
  \ingroup MemPoolsAPI
@@ -356,10 +360,9 @@ extern void memPoolIterateDone(MemPoolIterator ** iter);
  * \return Number of pools that have at least one object in use.
  *        Ie. number of dirty pools.
  */
-extern int memPoolGetGlobalStats(MemPoolGlobalStats * stats);
+extern int memPoolGetGlobalStats(MemPoolGlobalStats *stats);
 
 /// \ingroup MemPoolsAPI
 extern int memPoolsTotalAllocated(void);
 
 #endif /* _MEM_POOL_H_ */
-

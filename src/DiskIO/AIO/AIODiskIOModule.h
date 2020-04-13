@@ -21,8 +21,8 @@ public:
     AIODiskIOModule();
     virtual void init();
     virtual void gracefulShutdown();
-    virtual char const *type () const;
-    virtual DiskIOStrategy* createStrategy();
+    virtual char const *type() const;
+    virtual DiskIOStrategy *createStrategy();
 
 private:
     static AIODiskIOModule Instance;
@@ -30,4 +30,3 @@ private:
 
 #endif /* HAVE_DISKIO_MODULE_AIO */
 #endif /* SQUID_AIODISKIOMODULE_H */
-

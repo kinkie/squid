@@ -11,11 +11,11 @@
 #ifndef SQUID_NEIGHBORS_H_
 #define SQUID_NEIGHBORS_H_
 
+#include "ICP.h"
 #include "anyp/forward.h"
 #include "enums.h"
-#include "ICP.h"
 #include "lookup_t.h"
-#include "typedefs.h" //for IRCB
+#include "typedefs.h"  //for IRCB
 
 class HttpRequest;
 class HttpRequestMethod;
@@ -30,7 +30,7 @@ CachePeer *getSingleParent(PeerSelector *);
 int neighborsCount(PeerSelector *);
 int neighborsUdpPing(HttpRequest *,
                      StoreEntry *,
-                     IRCB * callback,
+                     IRCB *callback,
                      PeerSelector *ps,
                      int *exprep,
                      int *timeout);
@@ -44,17 +44,17 @@ void neighborsHtcpClear(StoreEntry *, const char *, HttpRequest *, const HttpReq
 #endif
 CachePeer *peerFindByName(const char *);
 CachePeer *peerFindByNameAndPort(const char *, unsigned short);
-CachePeer *getDefaultParent(PeerSelector*);
-CachePeer *getRoundRobinParent(PeerSelector*);
-CachePeer *getWeightedRoundRobinParent(PeerSelector*);
+CachePeer *getDefaultParent(PeerSelector *);
+CachePeer *getRoundRobinParent(PeerSelector *);
+CachePeer *getWeightedRoundRobinParent(PeerSelector *);
 void peerClearRRStart(void);
 void peerClearRR(void);
-lookup_t peerDigestLookup(CachePeer * p, PeerSelector *);
+lookup_t peerDigestLookup(CachePeer *p, PeerSelector *);
 CachePeer *neighborsDigestSelect(PeerSelector *);
-void peerNoteDigestLookup(HttpRequest * request, CachePeer * p, lookup_t lookup);
-void peerNoteDigestGone(CachePeer * p);
-int neighborUp(const CachePeer * e);
-const char *neighborTypeStr(const CachePeer * e);
+void peerNoteDigestLookup(HttpRequest *request, CachePeer *p, lookup_t lookup);
+void peerNoteDigestGone(CachePeer *p);
+int neighborUp(const CachePeer *e);
+const char *neighborTypeStr(const CachePeer *e);
 peer_t neighborType(const CachePeer *, const AnyP::Uri &);
 void peerConnectFailed(CachePeer *);
 void peerConnectSucceded(CachePeer *);
@@ -78,4 +78,3 @@ void peerConnClosed(CachePeer *p);
 CachePeer *whichPeer(const Ip::Address &from);
 
 #endif /* SQUID_NEIGHBORS_H_ */
-

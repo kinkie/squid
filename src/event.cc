@@ -10,10 +10,10 @@
 
 #include "squid.h"
 #include "event.h"
-#include "mgr/Registration.h"
-#include "profiler/Profiler.h"
 #include "SquidTime.h"
 #include "Store.h"
+#include "mgr/Registration.h"
+#include "profiler/Profiler.h"
 #include "tools.h"
 
 #include <cmath>
@@ -26,7 +26,7 @@ static const char *last_event_ran = NULL;
 
 // This AsyncCall dialer can be configured to check that the event cbdata is
 // valid before calling the event handler
-class EventDialer: public CallDialer
+class EventDialer : public CallDialer
 {
 public:
     typedef CallDialer Parent;
@@ -46,14 +46,14 @@ private:
     bool isLockedArg;
 };
 
-EventDialer::EventDialer(EVH *aHandler, void *anArg, bool lockedArg):
+EventDialer::EventDialer(EVH *aHandler, void *anArg, bool lockedArg) :
     theHandler(aHandler), theArg(anArg), isLockedArg(lockedArg)
 {
     if (isLockedArg)
         (void)cbdataReference(theArg);
 }
 
-EventDialer::EventDialer(const EventDialer &d):
+EventDialer::EventDialer(const EventDialer &d) :
     theHandler(d.theHandler), theArg(d.theArg), isLockedArg(d.isLockedArg)
 {
     if (isLockedArg)
@@ -88,7 +88,7 @@ EventDialer::print(std::ostream &os) const
     os << ')';
 }
 
-ev_entry::ev_entry(char const * aName, EVH * aFunction, void * aArgument, double evWhen, int aWeight, bool haveArg) :
+ev_entry::ev_entry(char const *aName, EVH *aFunction, void *aArgument, double evWhen, int aWeight, bool haveArg) :
     name(aName),
     func(aFunction),
     arg(haveArg ? cbdataReference(aArgument) : aArgument),
@@ -106,20 +106,20 @@ ev_entry::~ev_entry()
 }
 
 void
-eventAdd(const char *name, EVH * func, void *arg, double when, int weight, bool cbdata)
+eventAdd(const char *name, EVH *func, void *arg, double when, int weight, bool cbdata)
 {
     EventScheduler::GetInstance()->schedule(name, func, arg, when, weight, cbdata);
 }
 
 /* same as eventAdd but adds a random offset within +-1/3 of delta_ish */
 void
-eventAddIsh(const char *name, EVH * func, void *arg, double delta_ish, int weight)
+eventAddIsh(const char *name, EVH *func, void *arg, double delta_ish, int weight)
 {
     if (delta_ish >= 3.0) {
         // Default seed is fine. We just need values random enough
         // relative to each other to prevent waves of synchronised activity.
         static std::mt19937 rng;
-        auto third = (delta_ish/3.0);
+        auto third = (delta_ish / 3.0);
         xuniform_real_distribution<> thirdIsh(delta_ish - third, delta_ish + third);
         delta_ish = thirdIsh(rng);
     }
@@ -128,7 +128,7 @@ eventAddIsh(const char *name, EVH * func, void *arg, double delta_ish, int weigh
 }
 
 void
-eventDelete(EVH * func, void *arg)
+eventDelete(EVH *func, void *arg)
 {
     EventScheduler::GetInstance()->cancel(func, arg);
 }
@@ -140,7 +140,7 @@ eventInit(void)
 }
 
 static void
-eventDump(StoreEntry * sentry)
+eventDump(StoreEntry *sentry)
 {
     EventScheduler::GetInstance()->dump(sentry);
 }
@@ -152,15 +152,17 @@ eventFreeMemory(void)
 }
 
 int
-eventFind(EVH * func, void *arg)
+eventFind(EVH *func, void *arg)
 {
     return EventScheduler::GetInstance()->find(func, arg);
 }
 
 EventScheduler EventScheduler::_instance;
 
-EventScheduler::EventScheduler(): tasks(NULL)
-{}
+EventScheduler::EventScheduler() :
+    tasks(NULL)
+{
+}
 
 EventScheduler::~EventScheduler()
 {
@@ -168,7 +170,7 @@ EventScheduler::~EventScheduler()
 }
 
 void
-EventScheduler::cancel(EVH * func, void *arg)
+EventScheduler::cancel(EVH *func, void *arg)
 {
     ev_entry **E;
     ev_entry *event;
@@ -211,14 +213,14 @@ EventScheduler::timeRemaining() const
     if (!tasks)
         return EVENT_IDLE;
 
-    if (tasks->when <= current_dtime) // we are on time or late
-        return 0; // fire the event ASAP
+    if (tasks->when <= current_dtime)  // we are on time or late
+        return 0;                      // fire the event ASAP
 
-    const double diff = tasks->when - current_dtime; // microseconds
+    const double diff = tasks->when - current_dtime;  // microseconds
     // Round UP: If we come back a nanosecond earlier, we will wait again!
-    const int timeLeft = static_cast<int>(ceil(1000*diff)); // milliseconds
+    const int timeLeft = static_cast<int>(ceil(1000 * diff));  // milliseconds
     // Avoid hot idle: A series of rapid select() calls with zero timeout.
-    const int minDelay = 1; // millisecond
+    const int minDelay = 1;  // millisecond
     return max(minDelay, timeLeft);
 }
 
@@ -236,13 +238,12 @@ EventScheduler::checkEvents(int)
         assert(event);
 
         /* XXX assumes event->name is static memory! */
-        AsyncCall::Pointer call = asyncCall(41,5, event->name,
+        AsyncCall::Pointer call = asyncCall(41, 5, event->name,
                                             EventDialer(event->func, event->arg, event->cbdata));
         ScheduleCallHere(call);
 
-        last_event_ran = event->name; // XXX: move this to AsyncCallQueue
-        const bool heavy = event->weight &&
-                           (!event->cbdata || cbdataReferenceValid(event->arg));
+        last_event_ran = event->name;  // XXX: move this to AsyncCallQueue
+        const bool heavy = event->weight && (!event->cbdata || cbdataReferenceValid(event->arg));
 
         tasks = event->next;
         delete event;
@@ -252,7 +253,7 @@ EventScheduler::checkEvents(int)
         // XXX: We may be called again during the same event loop iteration.
         // Is there a point in breaking now?
         if (heavy)
-            break; // do not dequeue events following a heavy event
+            break;  // do not dequeue events following a heavy event
     } while (result == 0);
 
     PROF_stop(eventRun);
@@ -262,7 +263,7 @@ EventScheduler::checkEvents(int)
 void
 EventScheduler::clean()
 {
-    while (ev_entry * event = tasks) {
+    while (ev_entry *event = tasks) {
         tasks = event->next;
         delete event;
     }
@@ -271,7 +272,7 @@ EventScheduler::clean()
 }
 
 void
-EventScheduler::dump(StoreEntry * sentry)
+EventScheduler::dump(StoreEntry *sentry)
 {
 
     ev_entry *e = tasks;
@@ -294,7 +295,7 @@ EventScheduler::dump(StoreEntry * sentry)
 }
 
 bool
-EventScheduler::find(EVH * func, void * arg)
+EventScheduler::find(EVH *func, void *arg)
 {
 
     ev_entry *event;
@@ -314,7 +315,7 @@ EventScheduler::GetInstance()
 }
 
 void
-EventScheduler::schedule(const char *name, EVH * func, void *arg, double when, int weight, bool cbdata)
+EventScheduler::schedule(const char *name, EVH *func, void *arg, double when, int weight, bool cbdata)
 {
     // Use zero timestamp for when=0 events: Many of them are async calls that
     // must fire in the submission order. We cannot use current_dtime for them
@@ -334,4 +335,3 @@ EventScheduler::schedule(const char *name, EVH * func, void *arg, double when, i
     event->next = *E;
     *E = event;
 }
-

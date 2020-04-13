@@ -9,26 +9,26 @@
 /* DEBUG: section 49    SNMP Interface */
 
 #include "squid.h"
+#include "snmp/Request.h"
 #include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
-#include "snmp/Request.h"
 
 Snmp::Request::Request(int aRequestorId, unsigned int aRequestId,
-                       const Pdu& aPdu, const Session& aSession,
-                       int aFd, const Ip::Address& anAddress):
+                       const Pdu &aPdu, const Session &aSession,
+                       int aFd, const Ip::Address &anAddress) :
     Ipc::Request(aRequestorId, aRequestId),
     pdu(aPdu), session(aSession), fd(aFd), address(anAddress)
 {
 }
 
-Snmp::Request::Request(const Request& request):
+Snmp::Request::Request(const Request &request) :
     Ipc::Request(request.requestorId, request.requestId),
     pdu(request.pdu), session(request.session),
     fd(request.fd), address(request.address)
 {
 }
 
-Snmp::Request::Request(const Ipc::TypedMsgHdr& msg):
+Snmp::Request::Request(const Ipc::TypedMsgHdr &msg) :
     Ipc::Request(0, 0)
 {
     msg.checkType(Ipc::mtSnmpRequest);
@@ -43,7 +43,7 @@ Snmp::Request::Request(const Ipc::TypedMsgHdr& msg):
 }
 
 void
-Snmp::Request::pack(Ipc::TypedMsgHdr& msg) const
+Snmp::Request::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtSnmpRequest);
     msg.putPod(requestorId);
@@ -62,4 +62,3 @@ Snmp::Request::clone() const
 {
     return new Request(*this);
 }
-

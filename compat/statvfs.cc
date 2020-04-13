@@ -82,4 +82,3 @@ xstatvfs(const char *path, struct statvfs *sfs)
 }
 
 #endif /* HAVE_STATVFS */
-

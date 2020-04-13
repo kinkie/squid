@@ -11,10 +11,10 @@
 #include "ip/Address.h"
 #include "ip/tools.h"
 #include "rfc1123.h"
-#include "tools/squidclient/gssapi_support.h"
 #include "tools/squidclient/Parameters.h"
 #include "tools/squidclient/Ping.h"
 #include "tools/squidclient/Transport.h"
+#include "tools/squidclient/gssapi_support.h"
 
 #if _SQUID_WINDOWS_
 /** \cond AUTODOCS-IGNORE */
@@ -54,7 +54,7 @@ using namespace Squid;
 #endif
 
 #ifndef BUFSIZ
-#define BUFSIZ      8192
+#define BUFSIZ 8192
 #endif
 
 /* Local functions */
@@ -94,37 +94,36 @@ usage(const char *progname)
               << "Usage: " << progname << " [Basic Options] [HTTP Options]" << std::endl
               << std::endl;
     std::cerr
-            << "    -s | --quiet    Silent.  Do not print response message to stdout." << std::endl
-            << "    -v | --verbose  Verbose debugging. Repeat (-vv) to increase output level." << std::endl
-            << "                    Levels:" << std::endl
-            << "                      1 - Print outgoing request message to stderr." << std::endl
-            << "                      2 - Print action trace to stderr." << std::endl
-            << "    --help          Display this help text." << std::endl
-            << std::endl;
+        << "    -s | --quiet    Silent.  Do not print response message to stdout." << std::endl
+        << "    -v | --verbose  Verbose debugging. Repeat (-vv) to increase output level." << std::endl
+        << "                    Levels:" << std::endl
+        << "                      1 - Print outgoing request message to stderr." << std::endl
+        << "                      2 - Print action trace to stderr." << std::endl
+        << "    --help          Display this help text." << std::endl
+        << std::endl;
     Transport::Config.usage();
     Ping::Config.usage();
     std::cerr
-            << "HTTP Options:" << std::endl
-            << "    -a           Do NOT include Accept: header." << std::endl
-            << "    -A           User-Agent: header. Use \"\" to omit." << std::endl
-            << "    -H 'string'  Extra headers to send. Supports '\\\\', '\\n', '\\r' and '\\t'." << std::endl
-            << "    -i IMS       If-Modified-Since time (in Epoch seconds)." << std::endl
-            << "    -j hosthdr   Host header content" << std::endl
-            << "    -k           Keep the connection active. Default is to do only one request then close." << std::endl
-            << "    -m method    Request method, default is GET." << std::endl
+        << "HTTP Options:" << std::endl
+        << "    -a           Do NOT include Accept: header." << std::endl
+        << "    -A           User-Agent: header. Use \"\" to omit." << std::endl
+        << "    -H 'string'  Extra headers to send. Supports '\\\\', '\\n', '\\r' and '\\t'." << std::endl
+        << "    -i IMS       If-Modified-Since time (in Epoch seconds)." << std::endl
+        << "    -j hosthdr   Host header content" << std::endl
+        << "    -k           Keep the connection active. Default is to do only one request then close." << std::endl
+        << "    -m method    Request method, default is GET." << std::endl
 #if HAVE_GSSAPI
-            << "    -n           Proxy Negotiate(Kerberos) authentication" << std::endl
-            << "    -N           WWW Negotiate(Kerberos) authentication" << std::endl
+        << "    -n           Proxy Negotiate(Kerberos) authentication" << std::endl
+        << "    -N           WWW Negotiate(Kerberos) authentication" << std::endl
 #endif
-            << "    -P file      Send content from the named file as request payload" << std::endl
-            << "    -r           Force cache to reload URL" << std::endl
-            << "    -t count     Trace count cache-hops" << std::endl
-            << "    -u user      Proxy authentication username" << std::endl
-            << "    -U user      WWW authentication username" << std::endl
-            << "    -V version   HTTP Version. Use '-' for HTTP/0.9 omitted case" << std::endl
-            << "    -w password  Proxy authentication password" << std::endl
-            << "    -W password  WWW authentication password" << std::endl
-            ;
+        << "    -P file      Send content from the named file as request payload" << std::endl
+        << "    -r           Force cache to reload URL" << std::endl
+        << "    -t count     Trace count cache-hops" << std::endl
+        << "    -u user      Proxy authentication username" << std::endl
+        << "    -U user      WWW authentication username" << std::endl
+        << "    -V version   HTTP Version. Use '-' for HTTP/0.9 omitted case" << std::endl
+        << "    -w password  Proxy authentication password" << std::endl
+        << "    -W password  WWW authentication password" << std::endl;
     exit(EXIT_FAILURE);
 }
 
@@ -182,16 +181,16 @@ shellUnescape(char *buf)
 class Authorization
 {
 public:
-    Authorization(const char *aHeader, const char *aDestination):
+    Authorization(const char *aHeader, const char *aDestination) :
         header(aHeader), destination(aDestination) {}
 
     /// finalizes and writes the right HTTP header to the given stream
     void commit(std::ostream &os);
 
-    std::string header; ///< HTTP header name to send
-    std::string destination; ///< used when describing password
-    const char *user = nullptr; ///< user name to encode and send
-    const char *password = nullptr; ///< user password to encode and send
+    std::string header;              ///< HTTP header name to send
+    std::string destination;         ///< used when describing password
+    const char *user = nullptr;      ///< user name to encode and send
+    const char *password = nullptr;  ///< user password to encode and send
 };
 
 void
@@ -212,11 +211,11 @@ Authorization::commit(std::ostream &os)
     const auto buf = new char[bcapacity];
 
     size_t bsize = 0;
-    bsize += base64_encode_update(&ctx, buf, strlen(user), reinterpret_cast<const uint8_t*>(user));
-    bsize += base64_encode_update(&ctx, buf+bsize, 1, reinterpret_cast<const uint8_t*>(":"));
-    bsize += base64_encode_update(&ctx, buf+bsize, strlen(password), reinterpret_cast<const uint8_t*>(password));
-    bsize += base64_encode_final(&ctx, buf+bsize);
-    assert(bsize <= bcapacity); // paranoid and late but better than nothing
+    bsize += base64_encode_update(&ctx, buf, strlen(user), reinterpret_cast<const uint8_t *>(user));
+    bsize += base64_encode_update(&ctx, buf + bsize, 1, reinterpret_cast<const uint8_t *>(":"));
+    bsize += base64_encode_update(&ctx, buf + bsize, strlen(password), reinterpret_cast<const uint8_t *>(password));
+    bsize += base64_encode_final(&ctx, buf + bsize);
+    assert(bsize <= bcapacity);  // paranoid and late but better than nothing
 
     os << header << ": Basic ";
     os.write(buf, bsize);
@@ -254,9 +253,9 @@ main(int argc, char *argv[])
     to_stdout = true;
     reload = false;
 
-    Ip::ProbeTransport(); // determine IPv4 or IPv6 capabilities before parsing.
-    if (argc < 2 || argv[argc-1][0] == '-') {
-        usage(argv[0]);     /* need URL */
+    Ip::ProbeTransport();  // determine IPv4 or IPv6 capabilities before parsing.
+    if (argc < 2 || argv[argc - 1][0] == '-') {
+        usage(argv[0]); /* need URL */
     } else if (argc >= 2) {
         strncpy(url, argv[argc - 1], sizeof(url));
         url[sizeof(url) - 1] = '\0';
@@ -267,16 +266,15 @@ main(int argc, char *argv[])
         // options for controlling squidclient
         static struct option basicOptions[] = {
             /* These are the generic options for squidclient itself */
-            {"help",    no_argument, 0, '?'},
+            {"help", no_argument, 0, '?'},
             {"verbose", no_argument, 0, 'v'},
-            {"quiet",   no_argument, 0, 's'},
-            {"host",    required_argument, 0, 'h'},
-            {"local",   required_argument, 0, 'l'},
-            {"port",    required_argument, 0, 'p'},
-            {"ping",    no_argument, 0, '\1'},
-            {"https",   no_argument, 0, '\3'},
-            {0, 0, 0, 0}
-        };
+            {"quiet", no_argument, 0, 's'},
+            {"host", required_argument, 0, 'h'},
+            {"local", required_argument, 0, 'l'},
+            {"port", required_argument, 0, 'p'},
+            {"ping", no_argument, 0, '\1'},
+            {"https", no_argument, 0, '\3'},
+            {0, 0, 0, 0}};
 
         int c;
         while ((c = getopt_long(argc, argv, shortOpStr, basicOptions, &optIndex)) != -1) {
@@ -288,23 +286,23 @@ main(int argc, char *argv[])
                 Ping::Config.parseCommandOpts(argc, argv, c, optIndex);
                 continue;
 
-            case 'h':       /* remote host */
-            case 'l':       /* local host */
-            case 'p':       /* port number */
+            case 'h': /* remote host */
+            case 'l': /* local host */
+            case 'p': /* port number */
                 // rewind and let the Transport::Config parser handle
                 optind -= 2;
 
-            case '\3': // request over a TLS connection
+            case '\3':  // request over a TLS connection
                 Transport::Config.parseCommandOpts(argc, argv, c, optIndex);
                 continue;
 
-            default: // fall through to next switch
+            default:  // fall through to next switch
                 break;
             }
 
             switch (c) {
 
-            case '\0': // dummy value for end-of-options
+            case '\0':  // dummy value for end-of-options
                 break;
 
             case 'a':
@@ -323,15 +321,15 @@ main(int argc, char *argv[])
                 version = optarg;
                 break;
 
-            case 's':       /* silent */
+            case 's': /* silent */
                 to_stdout = false;
                 break;
 
-            case 'k':       /* backward compat */
+            case 'k': /* backward compat */
                 keep_alive = 1;
                 break;
 
-            case 'r':       /* reload */
+            case 'r': /* reload */
                 reload = true;
                 break;
 
@@ -339,8 +337,8 @@ main(int argc, char *argv[])
                 put_file = xstrdup(optarg);
                 break;
 
-            case 'i':       /* IMS */
-                ims = (time_t) atoi(optarg);
+            case 'i': /* IMS */
+                ims = (time_t)atoi(optarg);
                 break;
 
             case 'm':
@@ -407,7 +405,7 @@ main(int argc, char *argv[])
                 debugVerbose(2, "verbosity level set to " << scParams.verbosityLevel);
                 break;
 
-            case '?':       /* usage */
+            case '?': /* usage */
 
             default:
                 usage(argv[0]);
@@ -426,7 +424,7 @@ main(int argc, char *argv[])
     if (strncmp(url, "mgr:", 4) == 0) {
         char *t = xstrdup(url + 4);
         const char *at = NULL;
-        if (!strrchr(t, '@')) { // ignore any -w password if @ is explicit already.
+        if (!strrchr(t, '@')) {  // ignore any -w password if @ is explicit already.
             at = ProxyAuthorization.password;
         }
         // embed the -w proxy password into old-style cachemgr URLs
@@ -477,7 +475,7 @@ main(int argc, char *argv[])
         /* HTTP/0.9, no headers, no version */
         msg << method << " " << url << "\r\n";
     } else {
-        const auto versionImpliesHttp = xisdigit(version[0]); // is HTTP/n.n
+        const auto versionImpliesHttp = xisdigit(version[0]);  // is HTTP/n.n
         msg << method << " "
             << url << " "
             << (versionImpliesHttp ? "HTTP/" : "") << version
@@ -488,10 +486,10 @@ main(int argc, char *argv[])
         }
 
         if (!useragent) {
-            msg  << "User-Agent: squidclient/" << VERSION << "\r\n";
+            msg << "User-Agent: squidclient/" << VERSION << "\r\n";
         } else if (useragent[0] != '\0') {
             msg << "User-Agent: " << useragent << "\r\n";
-        } // else custom: no value U-A header
+        }  // else custom: no value U-A header
 
         if (reload) {
             msg << "Cache-Control: no-cache\r\n";
@@ -543,12 +541,14 @@ main(int argc, char *argv[])
             msg << extra_hdrs;
             safe_free(extra_hdrs);
         }
-        msg << "\r\n"; // empty line ends MIME header block
+        msg << "\r\n";  // empty line ends MIME header block
     }
 
     msg.flush();
     const auto messageHeader = msg.str();
-    debugVerbose(1, "Request:" << std::endl << messageHeader << std::endl << ".");
+    debugVerbose(1, "Request:" << std::endl
+                               << messageHeader << std::endl
+                               << ".");
 
     uint32_t loops = Ping::Init();
 
@@ -579,7 +579,8 @@ main(int argc, char *argv[])
                 int xerrno = errno;
                 std::cerr << "ERROR: lseek: " << xstrerr(xerrno) << std::endl;
 
-            } else while ((x = read(put_fd, buf, sizeof(buf))) > 0) {
+            } else
+                while ((x = read(put_fd, buf, sizeof(buf))) > 0) {
 
                     x = Transport::Write(buf, x);
 
@@ -661,4 +662,3 @@ set_our_signal(void)
     signal(SIGPIPE, pipe_handler);
 #endif
 }
-

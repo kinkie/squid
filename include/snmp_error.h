@@ -39,26 +39,26 @@
  * PDU : Error Status Values
  */
 
-#define SNMP_ERR_NOERROR             (0x0)
-#define SNMP_ERR_TOOBIG              (0x1)
-#define SNMP_ERR_NOSUCHNAME          (0x2)
-#define SNMP_ERR_BADVALUE            (0x3)
-#define SNMP_ERR_READONLY            (0x4)
-#define SNMP_ERR_GENERR              (0x5)
-#define SNMP_ERR_NOACCESS            (0x6)
-#define SNMP_ERR_WRONGTYPE           (0x7)
-#define SNMP_ERR_WRONGLENGTH         (0x8)
-#define SNMP_ERR_WRONGENCODING       (0x9)
+#define SNMP_ERR_NOERROR (0x0)
+#define SNMP_ERR_TOOBIG (0x1)
+#define SNMP_ERR_NOSUCHNAME (0x2)
+#define SNMP_ERR_BADVALUE (0x3)
+#define SNMP_ERR_READONLY (0x4)
+#define SNMP_ERR_GENERR (0x5)
+#define SNMP_ERR_NOACCESS (0x6)
+#define SNMP_ERR_WRONGTYPE (0x7)
+#define SNMP_ERR_WRONGLENGTH (0x8)
+#define SNMP_ERR_WRONGENCODING (0x9)
 /* 0x0A - 0x0F undefined */
-#define SNMP_ERR_WRONGVALUE          (0x10)
-#define SNMP_ERR_NOCREATION          (0x11)
-#define SNMP_ERR_INCONSISTENTVALUE   (0x12)
+#define SNMP_ERR_WRONGVALUE (0x10)
+#define SNMP_ERR_NOCREATION (0x11)
+#define SNMP_ERR_INCONSISTENTVALUE (0x12)
 #define SNMP_ERR_RESOURCEUNAVAILABLE (0x13)
-#define SNMP_ERR_COMMITFAILED        (0x14)
-#define SNMP_ERR_UNDOFAILED          (0x15)
-#define SNMP_ERR_AUTHORIZATIONERROR  (0x16)
-#define SNMP_ERR_NOTWRITABLE         (0x17)
-#define SNMP_ERR_INCONSISTENTNAME    (0x18)
+#define SNMP_ERR_COMMITFAILED (0x14)
+#define SNMP_ERR_UNDOFAILED (0x15)
+#define SNMP_ERR_AUTHORIZATIONERROR (0x16)
+#define SNMP_ERR_NOTWRITABLE (0x17)
+#define SNMP_ERR_INCONSISTENTNAME (0x18)
 
 #ifdef __cplusplus
 
@@ -71,5 +71,4 @@ const char *snmp_errstring(int);
 }
 #endif
 
-#endif              /* SQUID_SNMP_ERROR_H */
-
+#endif /* SQUID_SNMP_ERROR_H */

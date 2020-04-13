@@ -13,5 +13,5 @@
 
 class FwdState;
 
-void whoisStart(FwdState *) STUB
-
+void
+whoisStart(FwdState *) STUB

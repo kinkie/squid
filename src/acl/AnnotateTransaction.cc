@@ -8,20 +8,19 @@
 
 #include "squid.h"
 #include "acl/AnnotateTransaction.h"
-#include "acl/AnnotationData.h"
-#include "acl/FilledChecklist.h"
 #include "HttpRequest.h"
 #include "Notes.h"
+#include "acl/AnnotationData.h"
+#include "acl/FilledChecklist.h"
 
 int
-ACLAnnotateTransactionStrategy::match(ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLAnnotateTransactionStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     if (const auto request = checklist->request) {
-        ACLAnnotationData *tdata = dynamic_cast<ACLAnnotationData*>(data);
+        ACLAnnotationData *tdata = dynamic_cast<ACLAnnotationData *>(data);
         assert(tdata);
         tdata->annotate(request->notes(), &delimiters.value, checklist->al);
         return 1;
     }
     return 0;
 }
-

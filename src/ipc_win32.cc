@@ -9,6 +9,9 @@
 /* DEBUG: section 54    Windows Interprocess Communication */
 
 #include "squid.h"
+#include "SquidConfig.h"
+#include "SquidIpc.h"
+#include "SquidTime.h"
 #include "cache_cf.h"
 #include "comm.h"
 #include "comm/Connection.h"
@@ -17,9 +20,6 @@
 #include "globals.h"
 #include "ip/Address.h"
 #include "rfc1738.h"
-#include "SquidConfig.h"
-#include "SquidIpc.h"
-#include "SquidTime.h"
 #include "tools.h"
 
 #include <cerrno>
@@ -122,9 +122,9 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         *hIpc = NULL;
 
     if (WIN32_OS_version != _WIN_OS_WINNT) {
-        getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, &optlen);
+        getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, &optlen);
         opt = opt & ~(SO_SYNCHRONOUS_NONALERT | SO_SYNCHRONOUS_ALERT);
-        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, sizeof(opt));
+        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, sizeof(opt));
     }
 
     if (type == IPC_TCP_SOCKET) {
@@ -134,9 +134,9 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
                                 COMM_NOCLOEXEC,
                                 name);
         prfd = pwfd = comm_open(SOCK_STREAM,
-                                IPPROTO_TCP,    /* protocol */
+                                IPPROTO_TCP, /* protocol */
                                 local_addr,
-                                0,          /* blocking */
+                                0, /* blocking */
                                 name);
     } else if (type == IPC_UDP_SOCKET) {
         crfd = cwfd = comm_open(SOCK_DGRAM,
@@ -162,9 +162,9 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
     debugs(54, 3, "ipcCreate: cwfd FD " << cwfd);
 
     if (WIN32_OS_version != _WIN_OS_WINNT) {
-        getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, &optlen);
+        getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, &optlen);
         opt = opt | SO_SYNCHRONOUS_NONALERT;
-        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen);
+        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, optlen);
     }
 
     if (crfd < 0) {
@@ -177,12 +177,12 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         return ipcCloseAllFD(prfd, pwfd, crfd, cwfd);
     }
 
-// AYJ: these flags should be neutral, but if not IPv6 version needs adding
+    // AYJ: these flags should be neutral, but if not IPv6 version needs adding
     if (type == IPC_TCP_SOCKET || type == IPC_UDP_SOCKET) {
 
         Ip::Address::InitAddr(aiPS);
 
-        if (getsockname(pwfd, aiPS->ai_addr, &(aiPS->ai_addrlen) ) < 0) {
+        if (getsockname(pwfd, aiPS->ai_addr, &(aiPS->ai_addrlen)) < 0) {
             int xerrno = errno;
             debugs(54, DBG_CRITICAL, "ipcCreate: getsockname: " << xstrerr(xerrno));
             Ip::Address::FreeAddr(aiPS);
@@ -192,11 +192,11 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         tmp_addr = *aiPS;
         Ip::Address::FreeAddr(aiPS);
 
-        debugs(54, 3, "ipcCreate: FD " << pwfd << " sockaddr " << tmp_addr );
+        debugs(54, 3, "ipcCreate: FD " << pwfd << " sockaddr " << tmp_addr);
 
         Ip::Address::InitAddr(aiCS);
 
-        if (getsockname(crfd, aiCS->ai_addr, &(aiCS->ai_addrlen) ) < 0) {
+        if (getsockname(crfd, aiCS->ai_addr, &(aiCS->ai_addrlen)) < 0) {
             int xerrno = errno;
             debugs(54, DBG_CRITICAL, "ipcCreate: getsockname: " << xstrerr(xerrno));
             Ip::Address::FreeAddr(aiCS);
@@ -207,7 +207,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         tmp_addr = *aiCS;
         Ip::Address::FreeAddr(aiCS);
 
-        debugs(54, 3, "ipcCreate: FD " << crfd << " sockaddr " << tmp_addr );
+        debugs(54, 3, "ipcCreate: FD " << crfd << " sockaddr " << tmp_addr);
     }
 
     if (type == IPC_TCP_SOCKET) {
@@ -235,7 +235,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 
     params.prog = prog;
 
-    params.args = (char **) args;
+    params.args = (char **)args;
 
     thread = _beginthreadex(NULL, 0, ipc_thread_1, &params, 0, NULL);
 
@@ -247,7 +247,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 
     /* NP: tmp_addr was left with eiether empty or aiCS in Ip::Address format */
     if (comm_connect_addr(pwfd, tmp_addr) == Comm::COMM_ERROR) {
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     }
 
@@ -258,13 +258,13 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         int xerrno = errno;
         debugs(54, DBG_CRITICAL, "ipcCreate: PARENT: hello read test failed");
         debugs(54, DBG_CRITICAL, "--> read: " << xstrerr(xerrno));
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     } else if (strcmp(hello_buf, hello_string)) {
         debugs(54, DBG_CRITICAL, "ipcCreate: PARENT: hello read test failed");
         debugs(54, DBG_CRITICAL, "--> read returned " << x);
         debugs(54, DBG_CRITICAL, "--> got '" << rfc1738_escape(hello_buf) << "'");
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     }
 
@@ -274,7 +274,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         int xerrno = errno;
         debugs(54, DBG_CRITICAL, "ipcCreate: PARENT: OK write test failed");
         debugs(54, DBG_CRITICAL, "--> read: " << xstrerr(xerrno));
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     }
 
@@ -285,13 +285,13 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         int xerrno = errno;
         debugs(54, DBG_CRITICAL, "ipcCreate: PARENT: OK read test failed");
         debugs(54, DBG_CRITICAL, "--> read: " << xstrerr(xerrno));
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     } else if (!strcmp(hello_buf, err_string)) {
         debugs(54, DBG_CRITICAL, "ipcCreate: PARENT: OK read test failed");
         debugs(54, DBG_CRITICAL, "--> read returned " << x);
         debugs(54, DBG_CRITICAL, "--> got '" << rfc1738_escape(hello_buf) << "'");
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     }
 
@@ -325,13 +325,13 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         Sleep(sl);
     }
 
-    if (GetExitCodeThread((HANDLE) thread, &ecode) && ecode == STILL_ACTIVE) {
+    if (GetExitCodeThread((HANDLE)thread, &ecode) && ecode == STILL_ACTIVE) {
         if (hIpc)
-            *hIpc = (HANDLE) thread;
+            *hIpc = (HANDLE)thread;
 
         return pid;
     } else {
-        CloseHandle((HANDLE) thread);
+        CloseHandle((HANDLE)thread);
         return ipcCloseAllFD(prfd, pwfd, -1, -1);
     }
 }
@@ -350,8 +350,7 @@ ipcSend(int cwfd, const char *buf, int len)
     return x;
 }
 
-static unsigned int __stdcall
-ipc_thread_1(void *in_params)
+static unsigned int __stdcall ipc_thread_1(void *in_params)
 {
     int t1, t2, t3, retval = -1;
     int p2c[2] = {-1, -1};
@@ -374,7 +373,7 @@ ipc_thread_1(void *in_params)
     struct addrinfo *aiPS_ipc = NULL;
     struct addrinfo *aiCS_ipc = NULL;
 
-    struct ipc_params *params = (struct ipc_params *) in_params;
+    struct ipc_params *params = (struct ipc_params *)in_params;
     int type = params->type;
     int crfd = params->crfd;
     int cwfd = params->cwfd;
@@ -407,7 +406,7 @@ ipc_thread_1(void *in_params)
 
         debugs(54, 3, "ipcCreate: CHILD accepted new FD " << fd);
         comm_close(crfd);
-        snprintf(buf1, bufSz-1, "%s CHILD socket", prog);
+        snprintf(buf1, bufSz - 1, "%s CHILD socket", prog);
         fd_open(fd, FD_SOCKET, buf1);
         fd_table[fd].flags.ipc = 1;
         cwfd = crfd = fd;
@@ -427,7 +426,7 @@ ipc_thread_1(void *in_params)
 
     PutEnvironment();
     memset(buf1, '\0', bufSz);
-    x = recv(crfd, (void *)buf1, bufSz-1, 0);
+    x = recv(crfd, (void *)buf1, bufSz - 1, 0);
 
     if (x < 0) {
         int xerrno = errno;
@@ -516,7 +515,7 @@ ipc_thread_1(void *in_params)
             ipcSend(cwfd, err_string, strlen(err_string));
             goto cleanup;
         }
-    }               /* IPC_UDP_SOCKET */
+    } /* IPC_UDP_SOCKET */
 
     t1 = dup(0);
 
@@ -540,11 +539,11 @@ ipc_thread_1(void *in_params)
 
     si.cb = sizeof(STARTUPINFO);
 
-    si.hStdInput = (HANDLE) _get_osfhandle(0);
+    si.hStdInput = (HANDLE)_get_osfhandle(0);
 
-    si.hStdOutput = (HANDLE) _get_osfhandle(1);
+    si.hStdOutput = (HANDLE)_get_osfhandle(1);
 
-    si.hStdError = (HANDLE) _get_osfhandle(2);
+    si.hStdError = (HANDLE)_get_osfhandle(2);
 
     si.dwFlags = STARTF_USESTDHANDLES;
 
@@ -553,7 +552,7 @@ ipc_thread_1(void *in_params)
         if ((F = _get_osfhandle(x)) == -1)
             continue;
 
-        SetHandleInformation((HANDLE) F, HANDLE_FLAG_INHERIT, 0);
+        SetHandleInformation((HANDLE)F, HANDLE_FLAG_INHERIT, 0);
     }
 
     *buf1 = '\0';
@@ -608,7 +607,7 @@ ipc_thread_1(void *in_params)
             goto cleanup;
         }
 
-        x = write(c2p[1], (const char *) &wpi, sizeof(wpi));
+        x = write(c2p[1], (const char *)&wpi, sizeof(wpi));
 
         if (x < (ssize_t)sizeof(wpi)) {
             int xerrno = errno;
@@ -618,7 +617,7 @@ ipc_thread_1(void *in_params)
             goto cleanup;
         }
 
-        x = read(p2c[0], buf1, bufSz-1);
+        x = read(p2c[0], buf1, bufSz - 1);
 
         if (x < 0) {
             int xerrno = errno;
@@ -635,7 +634,7 @@ ipc_thread_1(void *in_params)
             goto cleanup;
         }
 
-        x = write(c2p[1], (const char *) &PS_ipc, sizeof(PS_ipc));
+        x = write(c2p[1], (const char *)&PS_ipc, sizeof(PS_ipc));
 
         if (x < (ssize_t)sizeof(PS_ipc)) {
             int xerrno = errno;
@@ -645,7 +644,7 @@ ipc_thread_1(void *in_params)
             goto cleanup;
         }
 
-        x = read(p2c[0], buf1, bufSz-1);
+        x = read(p2c[0], buf1, bufSz - 1);
 
         if (x < 0) {
             int xerrno = errno;
@@ -663,19 +662,19 @@ ipc_thread_1(void *in_params)
         }
 
         x = send(pwfd_ipc, (const void *)ok_string, strlen(ok_string), 0);
-        x = recv(prfd_ipc, (void *)(buf1 + 200), bufSz -1 - 200, 0);
-        assert((size_t) x == strlen(ok_string)
+        x = recv(prfd_ipc, (void *)(buf1 + 200), bufSz - 1 - 200, 0);
+        assert((size_t)x == strlen(ok_string)
                && !strncmp(ok_string, buf1 + 200, strlen(ok_string)));
-    }               /* IPC_UDP_SOCKET */
+    } /* IPC_UDP_SOCKET */
 
-    snprintf(buf1, bufSz-1, "%s(%ld) CHILD socket", prog, (long int) pid);
+    snprintf(buf1, bufSz - 1, "%s(%ld) CHILD socket", prog, (long int)pid);
 
     fd_note(fd, buf1);
 
     if (prfd_ipc != -1) {
-        snprintf(buf1, bufSz-1, "%s(%ld) <-> ipc CHILD socket", prog, (long int) pid);
+        snprintf(buf1, bufSz - 1, "%s(%ld) <-> ipc CHILD socket", prog, (long int)pid);
         fd_note(crfd_ipc, buf1);
-        snprintf(buf1, bufSz-1, "%s(%ld) <-> ipc PARENT socket", prog, (long int) pid);
+        snprintf(buf1, bufSz - 1, "%s(%ld) <-> ipc PARENT socket", prog, (long int)pid);
         fd_note(prfd_ipc, buf1);
     }
 
@@ -702,7 +701,7 @@ ipc_thread_1(void *in_params)
         goto cleanup;
     }
 
-    snprintf(buf1, bufSz-1, "%ld\n", (long int) pid);
+    snprintf(buf1, bufSz - 1, "%ld\n", (long int)pid);
 
     if (-1 == ipcSend(cwfd, buf1, strlen(buf1)))
         goto cleanup;
@@ -711,7 +710,7 @@ ipc_thread_1(void *in_params)
 
     /* cycle */
     for (;;) {
-        x = recv(crfd, (void *)buf1, bufSz-1, 0);
+        x = recv(crfd, (void *)buf1, bufSz - 1, 0);
 
         if (x <= 0) {
             debugs(54, 3, "ipc(" << prog << "," << pid << "): " << x << " bytes received from parent. Exiting...");
@@ -759,19 +758,15 @@ cleanup:
 
     ipcCloseAllFD(prfd_ipc, pwfd_ipc, crfd_ipc, cwfd_ipc);
 
-    if (hProcess && WAIT_OBJECT_0 !=
-            WaitForSingleObject(hProcess, type == IPC_UDP_SOCKET ? 12000 : 5000)) {
+    if (hProcess && WAIT_OBJECT_0 != WaitForSingleObject(hProcess, type == IPC_UDP_SOCKET ? 12000 : 5000)) {
 
         getCurrentTime();
-        debugs(54, DBG_CRITICAL, "ipc(" << prog << "," << pid << "): WARNING: " << prog <<
-               " didn't exit in " << (type == IPC_UDP_SOCKET ? 12 : 5) << " seconds.");
-
+        debugs(54, DBG_CRITICAL, "ipc(" << prog << "," << pid << "): WARNING: " << prog << " didn't exit in " << (type == IPC_UDP_SOCKET ? 12 : 5) << " seconds.");
     }
 
     if (thread && WAIT_OBJECT_0 != WaitForSingleObject(thread, 3000)) {
         getCurrentTime();
         debugs(54, DBG_CRITICAL, "ipc(" << prog << "," << pid << "): WARNING: ipc_thread_2 didn't exit in 3 seconds.");
-
     }
 
     getCurrentTime();
@@ -794,12 +789,11 @@ cleanup:
     return retval;
 }
 
-static unsigned int __stdcall
-ipc_thread_2(void *in_params)
+static unsigned int __stdcall ipc_thread_2(void *in_params)
 {
     int x;
 
-    struct thread_params *params = (struct thread_params *) in_params;
+    struct thread_params *params = (struct thread_params *)in_params;
     int type = params->type;
     int rfd = params->rfd;
     int send_fd = params->send_fd;
@@ -810,12 +804,11 @@ ipc_thread_2(void *in_params)
 
     for (;;) {
         if (type == IPC_TCP_SOCKET)
-            x = read(rfd, buf2, bufSz-1);
+            x = read(rfd, buf2, bufSz - 1);
         else
-            x = recv(rfd, (void *)buf2, bufSz-1, 0);
+            x = recv(rfd, (void *)buf2, bufSz - 1, 0);
 
-        if ((x <= 0 && type == IPC_TCP_SOCKET) ||
-                (x < 0 && type == IPC_UDP_SOCKET)) {
+        if ((x <= 0 && type == IPC_TCP_SOCKET) || (x < 0 && type == IPC_UDP_SOCKET)) {
             debugs(54, 3, "ipc(" << prog << "," << pid << "): " << x << " bytes read from " << prog << ". Exiting...");
 
             break;
@@ -840,8 +833,7 @@ ipc_thread_2(void *in_params)
 
         x = send(send_fd, (const void *)buf2, x, 0);
 
-        if ((x <= 0 && type == IPC_TCP_SOCKET) ||
-                (x < 0 && type == IPC_UDP_SOCKET)) {
+        if ((x <= 0 && type == IPC_TCP_SOCKET) || (x < 0 && type == IPC_UDP_SOCKET)) {
             debugs(54, 3, "ipc(" << prog << "," << pid << "): " << x << " bytes sent to parent. Exiting...");
 
             break;
@@ -852,4 +844,3 @@ ipc_thread_2(void *in_params)
     xfree(buf2);
     return 0;
 }
-

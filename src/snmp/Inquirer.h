@@ -13,22 +13,21 @@
 
 #include "comm/forward.h"
 #include "ipc/Inquirer.h"
-#include "snmp/forward.h"
 #include "snmp/Pdu.h"
+#include "snmp/forward.h"
 
 class CommCloseCbParams;
 
-namespace Snmp
-{
+namespace Snmp {
 
 /// Coordinator's job that sends a PDU request to each strand,
 /// aggregates strand responses and send back the result to client
-class Inquirer: public Ipc::Inquirer
+class Inquirer : public Ipc::Inquirer
 {
     CBDATA_CLASS(Inquirer);
 
 public:
-    Inquirer(const Request& aRequest, const Ipc::StrandCoords& coords);
+    Inquirer(const Request &aRequest, const Ipc::StrandCoords &coords);
 
 protected:
     /* AsyncJob API */
@@ -37,22 +36,21 @@ protected:
 
     /* Ipc::Inquirer API */
     virtual void cleanup();
-    virtual void handleException(const std::exception& e);
+    virtual void handleException(const std::exception &e);
     virtual void sendResponse();
     virtual bool aggregate(Ipc::Response::Pointer aResponse);
 
 private:
-    void noteCommClosed(const CommCloseCbParams& params);
+    void noteCommClosed(const CommCloseCbParams &params);
 
 private:
-    Pdu aggrPdu; ///< aggregated pdu
-    Comm::ConnectionPointer conn; ///< client connection descriptor
+    Pdu aggrPdu;                   ///< aggregated pdu
+    Comm::ConnectionPointer conn;  ///< client connection descriptor
 
-    AsyncCall::Pointer writer; ///< comm_write callback
-    AsyncCall::Pointer closer; ///< comm_close handler
+    AsyncCall::Pointer writer;  ///< comm_write callback
+    AsyncCall::Pointer closer;  ///< comm_close handler
 };
 
-} // namespace Snmp
+}  // namespace Snmp
 
 #endif /* SQUID_SNMPX_INQUIRER_H */
-

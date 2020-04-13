@@ -11,17 +11,17 @@
 #ifndef SQUID_ESIASSIGN_H
 #define SQUID_ESIASSIGN_H
 
+#include "SquidString.h"
 #include "esi/Element.h"
 #include "esi/VarState.h"
-#include "SquidString.h"
 
 /** This is a variable that is itself an expression */
 class ESIVariableExpression : public ESIVarState::Variable
 {
 public:
     ~ESIVariableExpression();
-    ESIVariableExpression (String const &value);
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    ESIVariableExpression(String const &value);
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
 
 private:
     String expression;
@@ -34,14 +34,14 @@ class ESIAssign : public ESIElement
     MEMPROXY_CLASS(ESIAssign);
 
 public:
-    ESIAssign (esiTreeParentPtr, int, const char **, ESIContext *);
-    ESIAssign (ESIAssign const &);
+    ESIAssign(esiTreeParentPtr, int, const char **, ESIContext *);
+    ESIAssign(ESIAssign const &);
     ESIAssign &operator=(ESIAssign const &);
     ~ESIAssign();
-    esiProcessResult_t process (int dovars);
+    esiProcessResult_t process(int dovars);
     void render(ESISegment::Pointer);
     bool addElement(ESIElement::Pointer);
-    void provideData (ESISegment::Pointer data, ESIElement * source);
+    void provideData(ESISegment::Pointer data, ESIElement *source);
     Pointer makeCacheable() const;
     Pointer makeUsable(esiTreeParentPtr, ESIVarState &) const;
     void finish();
@@ -51,10 +51,9 @@ private:
     esiTreeParentPtr parent;
     ESIVarState *varState;
     String name;
-    ESIVariableExpression * value;
+    ESIVariableExpression *value;
     ESIElement::Pointer variable;
     String unevaluatedVariable;
 };
 
 #endif /* SQUID_ESIASSIGN_H */
-

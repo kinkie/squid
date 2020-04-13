@@ -18,7 +18,7 @@
 #endif
 
 #include "ntlmauth/ntlmauth.h"
-#include "util.h"       /* for base64-related stuff */
+#include "util.h" /* for base64-related stuff */
 
 /* ************************************************************************* */
 /* DEBUG functions */
@@ -47,8 +47,7 @@ ntlm_dump_ntlmssp_flags(uint32_t flags)
             (flags & NTLM_CHALLENGE_TARGET_IS_SHARE ? "Tgt_is_share " : ""),
             (flags & NTLM_REQUEST_INIT_RESPONSE ? "Req_init_response " : ""),
             (flags & NTLM_REQUEST_ACCEPT_RESPONSE ? "Req_accept_response " : ""),
-            (flags & NTLM_REQUEST_NON_NT_SESSION_KEY ? "Req_nonnt_sesskey " : "")
-           );
+            (flags & NTLM_REQUEST_NON_NT_SESSION_KEY ? "Req_nonnt_sesskey " : ""));
 }
 
 /* ************************************************************************* */
@@ -63,7 +62,7 @@ ntlm_dump_ntlmssp_flags(uint32_t flags)
  * \retval NTLM_ERR_PROTOCOL  Packet is not the expected type.
  */
 int
-ntlm_validate_packet(const ntlmhdr * hdr, const int32_t type)
+ntlm_validate_packet(const ntlmhdr *hdr, const int32_t type)
 {
     /*
      * Must be the correct security package and request type.
@@ -94,7 +93,7 @@ ntlm_validate_packet(const ntlmhdr * hdr, const int32_t type)
  * String may be either ASCII or UNICODE depending on whether flags contains NTLM_NEGOTIATE_ASCII
  */
 lstring
-ntlm_fetch_string(const ntlmhdr *packet, const int32_t packet_size, const strhdr * str, const uint32_t flags)
+ntlm_fetch_string(const ntlmhdr *packet, const int32_t packet_size, const strhdr *str, const uint32_t flags)
 {
     static char buf[NTLM_MAX_FIELD_LENGTH];
     lstring rv;
@@ -108,7 +107,7 @@ ntlm_fetch_string(const ntlmhdr *packet, const int32_t packet_size, const strhdr
     // debug("ntlm_fetch_string(plength=%d,l=%d,o=%d)\n",packet_size,l,o);
 
     if (l < 0 || l > NTLM_MAX_FIELD_LENGTH || o + l > packet_size || o == 0) {
-        debug("ntlm_fetch_string: insane data (pkt-sz: %d, fetch len: %d, offset: %d)\n", packet_size,l,o);
+        debug("ntlm_fetch_string: insane data (pkt-sz: %d, fetch len: %d, offset: %d)\n", packet_size, l, o);
         return rv;
     }
     rv.str = (char *)packet + o;
@@ -118,13 +117,13 @@ ntlm_fetch_string(const ntlmhdr *packet, const int32_t packet_size, const strhdr
         unsigned short *s = (unsigned short *)rv.str;
         rv.str = d = buf;
 
-        for (uint32_t len = (l>>1); len; ++s, --len) {
+        for (uint32_t len = (l >> 1); len; ++s, --len) {
             uint16_t c = le16toh(*s);
             if (c > 254 || c == '\0') {
                 fprintf(stderr, "ntlmssp: bad unicode: %04x\n", c);
                 return rv;
             }
-            *d = static_cast<char>(c&0xFF);
+            *d = static_cast<char>(c & 0xFF);
             ++d;
             ++rv.l;
         }
@@ -132,7 +131,7 @@ ntlm_fetch_string(const ntlmhdr *packet, const int32_t packet_size, const strhdr
         /* ASCII/OEM string */
         char *sc = rv.str;
 
-        for (; l>=0; ++sc, --l) {
+        for (; l >= 0; ++sc, --l) {
             if (*sc == '\0' || !xisprint(*sc)) {
                 fprintf(stderr, "ntlmssp: bad ascii: %04x\n", *sc);
                 return rv;
@@ -154,7 +153,7 @@ void
 ntlm_add_to_payload(const ntlmhdr *packet_hdr,
                     char *payload,
                     int *payload_length,
-                    strhdr * hdr,
+                    strhdr *hdr,
                     const char *toadd,
                     const uint16_t toadd_length)
 {
@@ -202,9 +201,9 @@ ntlm_make_challenge(ntlm_challenge *ch,
                     const uint32_t flags)
 {
     int pl = 0;
-    memset(ch, 0, sizeof(ntlm_challenge));  /* reset */
-    memcpy(ch->hdr.signature, "NTLMSSP", 8);        /* set the signature */
-    ch->hdr.type = htole32(NTLM_CHALLENGE); /* this is a challenge */
+    memset(ch, 0, sizeof(ntlm_challenge));   /* reset */
+    memcpy(ch->hdr.signature, "NTLMSSP", 8); /* set the signature */
+    ch->hdr.type = htole32(NTLM_CHALLENGE);  /* this is a challenge */
     if (domain != NULL) {
         // silently truncate the domain if it exceeds 2^16-1 bytes.
         // NTLM packets normally expect 2^8 bytes of domain.
@@ -212,7 +211,7 @@ ntlm_make_challenge(ntlm_challenge *ch,
         ntlm_add_to_payload(&ch->hdr, ch->payload, &pl, &ch->target, domain, dlen);
     }
     ch->flags = htole32(flags);
-    ch->context_low = 0;        /* check this out */
+    ch->context_low = 0; /* check this out */
     ch->context_high = 0;
     memcpy(ch->challenge, challenge_nonce, challenge_nonce_len);
 }
@@ -271,4 +270,3 @@ ntlm_unpack_auth(const ntlm_authenticate *auth, char *user, char *domain, const 
 
     return NTLM_ERR_NONE;
 }
-

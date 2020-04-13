@@ -9,14 +9,14 @@
 /* DEBUG: section 79    Squid-side DISKD I/O functions. */
 
 #include "squid.h"
-#include "ConfigOption.h"
-#include "diomsg.h"
 #include "DiskdFile.h"
-#include "DiskdIOStrategy.h"
+#include "ConfigOption.h"
 #include "DiskIO/IORequestor.h"
 #include "DiskIO/ReadRequest.h"
 #include "DiskIO/WriteRequest.h"
+#include "DiskdIOStrategy.h"
 #include "StatCounters.h"
+#include "diomsg.h"
 
 #if HAVE_SYS_IPC_H
 #include <sys/ipc.h>
@@ -46,7 +46,7 @@ DiskdFile::DiskdFile(char const *aPath, DiskdIOStrategy *anIO) :
 DiskdFile::~DiskdFile()
 {
     assert(inProgressIOs == 0);
-    safe_free (path_);
+    safe_free(path_);
 }
 
 void
@@ -84,9 +84,9 @@ void
 DiskdFile::create(int flags, mode_t, RefCount<IORequestor> callback)
 {
     debugs(79, 3, "DiskdFile::create: " << this << " creating for " << callback.getRaw());
-    assert (ioRequestor.getRaw() == NULL);
+    assert(ioRequestor.getRaw() == NULL);
     ioRequestor = callback;
-    assert (callback.getRaw());
+    assert(callback.getRaw());
     mode = flags;
     ssize_t shm_offset;
     char *buf = (char *)IO->shm.get(&shm_offset);
@@ -117,7 +117,7 @@ DiskdFile::create(int flags, mode_t, RefCount<IORequestor> callback)
 void
 DiskdFile::read(ReadRequest *aRead)
 {
-    assert (ioRequestor.getRaw() != NULL);
+    assert(ioRequestor.getRaw() != NULL);
     ssize_t shm_offset;
     char *rbuf = (char *)IO->shm.get(&shm_offset);
     assert(rbuf);
@@ -148,7 +148,7 @@ void
 DiskdFile::close()
 {
     debugs(79, 3, "DiskdFile::close: " << this << " closing for " << ioRequestor.getRaw());
-    assert (ioRequestor.getRaw());
+    assert(ioRequestor.getRaw());
     ioAway();
     int x = IO->send(_MQD_CLOSE,
                      id,
@@ -207,7 +207,7 @@ DiskdFile::notifyClient()
 void
 DiskdFile::completed(diomsg *M)
 {
-    assert (M->newstyle);
+    assert(M->newstyle);
 
     switch (M->mtype) {
 
@@ -232,7 +232,7 @@ DiskdFile::completed(diomsg *M)
         break;
 
     case _MQD_UNLINK:
-        assert (0);
+        assert(0);
         break;
 
     default:
@@ -323,7 +323,7 @@ DiskdFile::ioCompleted()
 }
 
 void
-DiskdFile::closeDone(diomsg * M)
+DiskdFile::closeDone(diomsg *M)
 {
     ++statCounter.syscalls.disk.closes;
     debugs(79, 3, "DiskdFile::closeDone: status " << M->status);
@@ -344,11 +344,11 @@ DiskdFile::closeDone(diomsg * M)
 }
 
 void
-DiskdFile::readDone(diomsg * M)
+DiskdFile::readDone(diomsg *M)
 {
     ++statCounter.syscalls.disk.reads;
     debugs(79, 3, "DiskdFile::readDone: status " << M->status);
-    assert (M->requestor);
+    assert(M->requestor);
     ReadRequest::Pointer readRequest = dynamic_cast<ReadRequest *>(M->requestor);
 
     /* remove the free protection */
@@ -369,7 +369,7 @@ DiskdFile::readDone(diomsg * M)
     ++diskd_stats.read.success;
 
     ioCompleted();
-    ioRequestor->readCompleted (IO->shm.buf + M->shm_offset,  M->status, DISK_OK, readRequest);
+    ioRequestor->readCompleted(IO->shm.buf + M->shm_offset, M->status, DISK_OK, readRequest);
 }
 
 void
@@ -377,7 +377,7 @@ DiskdFile::writeDone(diomsg *M)
 {
     ++statCounter.syscalls.disk.writes;
     debugs(79, 3, "storeDiskdWriteDone: status " << M->status);
-    assert (M->requestor);
+    assert(M->requestor);
     WriteRequest::Pointer writeRequest = dynamic_cast<WriteRequest *>(M->requestor);
 
     /* remove the free protection */
@@ -391,18 +391,17 @@ DiskdFile::writeDone(diomsg *M)
         errorOccured = true;
         ++diskd_stats.write.fail;
         ioCompleted();
-        ioRequestor->writeCompleted (DISK_ERROR,0, writeRequest);
+        ioRequestor->writeCompleted(DISK_ERROR, 0, writeRequest);
         return;
     }
 
     ++diskd_stats.write.success;
     ioCompleted();
-    ioRequestor->writeCompleted (DISK_OK,M->status, writeRequest);
+    ioRequestor->writeCompleted(DISK_OK, M->status, writeRequest);
 }
 
 bool
-DiskdFile::ioInProgress()const
+DiskdFile::ioInProgress() const
 {
     return inProgressIOs != 0;
 }
-

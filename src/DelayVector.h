@@ -22,25 +22,24 @@ public:
     typedef RefCount<DelayVector> Pointer;
     DelayVector();
     virtual ~DelayVector();
-    virtual void stats(StoreEntry * sentry);
+    virtual void stats(StoreEntry *sentry);
     virtual void dump(StoreEntry *entry) const;
     virtual void update(int incr);
     virtual void parse();
 
     virtual DelayIdComposite::Pointer id(CompositeSelectionDetails &);
-    void push_back (CompositePoolNode::Pointer);
+    void push_back(CompositePoolNode::Pointer);
 
 private:
-
     /// \ingroup DelayPoolsInternal
-    class Id:public DelayIdComposite
+    class Id : public DelayIdComposite
     {
         MEMPROXY_CLASS(DelayVector::Id);
 
     public:
-        Id (RefCount<DelayVector>,CompositeSelectionDetails &);
+        Id(RefCount<DelayVector>, CompositeSelectionDetails &);
         ~Id();
-        virtual int bytesWanted (int min, int max) const;
+        virtual int bytesWanted(int min, int max) const;
         virtual void bytesIn(int qty);
         virtual void delayRead(DeferredRead const &);
 
@@ -60,4 +59,3 @@ private:
 
 #endif /* USE_DELAY_POOLS */
 #endif /* SQUID_DELAYVECTOR_H */
-

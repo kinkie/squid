@@ -19,8 +19,8 @@
  */
 
 #include "squid.h"
-#include "DiskIO/AIO/AIODiskFile.h"
 #include "DiskIO/AIO/AIODiskIOStrategy.h"
+#include "DiskIO/AIO/AIODiskFile.h"
 #include "DiskIO/IORequestor.h"
 #include "DiskIO/ReadRequest.h"
 #include "DiskIO/WriteRequest.h"
@@ -35,8 +35,7 @@ AIODiskIOStrategy::AIODiskIOStrategy() :
 
 AIODiskIOStrategy::~AIODiskIOStrategy()
 {
-    assert(aq.aq_state == AQ_STATE_SETUP ||
-           aq.aq_numpending == 0);
+    assert(aq.aq_state == AQ_STATE_SETUP || aq.aq_numpending == 0);
 
     sync();
     aq.aq_state = AQ_STATE_NONE;
@@ -55,13 +54,13 @@ AIODiskIOStrategy::load()
 }
 
 RefCount<DiskFile>
-AIODiskIOStrategy::newFile (char const *path)
+AIODiskIOStrategy::newFile(char const *path)
 {
     if (shedLoad()) {
         return NULL;
     }
 
-    return new AIODiskFile (path, this);
+    return new AIODiskFile(path, this);
 }
 
 void
@@ -86,8 +85,9 @@ AIODiskIOStrategy::unlinkdUseful() const
 }
 
 void
-AIODiskIOStrategy::unlinkFile (char const *)
-{}
+AIODiskIOStrategy::unlinkFile(char const *)
+{
+}
 
 /*
  * Note: we grab the state and free the state before calling the callback
@@ -186,7 +186,8 @@ AIODiskIOStrategy::init()
 
 void
 AIODiskIOStrategy::statfs(StoreEntry &) const
-{}
+{
+}
 
 ConfigOption *
 AIODiskIOStrategy::getOptionTree() const
@@ -212,4 +213,3 @@ AIODiskIOStrategy::findSlot()
     /* found nothing */
     return -1;
 }
-

@@ -18,4 +18,3 @@ void carpInit(void);
 CachePeer *carpSelectParent(PeerSelector *);
 
 #endif /* SQUID_CARP_H_ */
-

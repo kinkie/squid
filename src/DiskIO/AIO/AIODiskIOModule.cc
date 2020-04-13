@@ -24,11 +24,13 @@ AIODiskIOModule::GetInstance()
 
 void
 AIODiskIOModule::init()
-{}
+{
+}
 
 void
 AIODiskIOModule::gracefulShutdown()
-{}
+{
+}
 
 DiskIOStrategy *
 AIODiskIOModule::createStrategy()
@@ -39,8 +41,7 @@ AIODiskIOModule::createStrategy()
 AIODiskIOModule AIODiskIOModule::Instance;
 
 char const *
-AIODiskIOModule::type () const
+AIODiskIOModule::type() const
 {
     return "AIO";
 }
-

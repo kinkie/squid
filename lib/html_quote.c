@@ -21,29 +21,17 @@ static struct {
     const char *quote;
 } htmlstandardentities[] =
 
-{
-    /* NOTE: The quoted form MUST not be larger than 6 character.
+    {
+        /* NOTE: The quoted form MUST not be larger than 6 character.
      * see close to the MemPool commend below
      */
-    {
-        '<', "&lt;"
-    },
-    {
-        '>', "&gt;"
-    },
-    {
-        '"', "&quot;"
-    },
-    {
-        '&', "&amp;"
-    },
-    {
-        '\'', "&#39;"
-    },
-    {
-        0, NULL
-    }
-};
+        {
+            '<', "&lt;"},
+        {'>', "&gt;"},
+        {'"', "&quot;"},
+        {'&', "&amp;"},
+        {'\'', "&#39;"},
+        {0, NULL}};
 
 /*
  *  html_do_quote - Returns a static buffer containing the quoted
@@ -85,7 +73,7 @@ html_quote(const char *string)
          */
         if (!escape && (ch <= 0x1F || ch >= 0x7f) && ch != '\n' && ch != '\r' && ch != '\t') {
             static char dec_encoded[7];
-            snprintf(dec_encoded, sizeof dec_encoded, "&#%3d;", (int) ch);
+            snprintf(dec_encoded, sizeof dec_encoded, "&#%3d;", (int)ch);
             escape = dec_encoded;
         }
         if (escape) {
@@ -101,4 +89,3 @@ html_quote(const char *string)
     *dst = '\0';
     return (buf);
 }
-

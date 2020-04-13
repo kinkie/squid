@@ -9,25 +9,25 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/Forwarder.h"
 #include "AccessLogEntry.h"
+#include "CommCalls.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "base/AsyncJobCalls.h"
 #include "base/TextException.h"
 #include "comm/Connection.h"
-#include "CommCalls.h"
 #include "errorpage.h"
 #include "globals.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 #include "ipc/Port.h"
-#include "mgr/Forwarder.h"
 #include "mgr/Request.h"
-#include "SquidTime.h"
-#include "Store.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Mgr, Forwarder);
 
 Mgr::Forwarder::Forwarder(const Comm::ConnectionPointer &aConn, const ActionParams &aParams,
-                          HttpRequest* aRequest, StoreEntry* anEntry, const AccessLogEntryPointer &anAle):
+                          HttpRequest *aRequest, StoreEntry *anEntry, const AccessLogEntryPointer &anAle) :
     Ipc::Forwarder(new Request(KidIdentifier, 0, aConn, aParams), 10),
     httpRequest(aRequest), entry(anEntry), conn(aConn), ale(anAle)
 {
@@ -97,7 +97,7 @@ void
 Mgr::Forwarder::noteCommClosed(const CommCloseCbParams &)
 {
     debugs(16, 5, HERE);
-    conn = NULL; // needed?
+    conn = NULL;  // needed?
     mustStop("commClosed");
 }
 
@@ -117,4 +117,3 @@ Mgr::Forwarder::sendError(ErrorState *error)
     entry->flush();
     entry->complete();
 }
-

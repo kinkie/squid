@@ -9,29 +9,29 @@
 /* DEBUG: section 73    HTTP Request */
 
 #include "squid.h"
+#include "HttpRequest.h"
 #include "AccessLogEntry.h"
+#include "CachePeer.h"
+#include "Downloader.h"
+#include "HttpHdrCc.h"
+#include "HttpHeaderRange.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "Store.h"
 #include "acl/AclSizeLimit.h"
 #include "acl/FilledChecklist.h"
-#include "CachePeer.h"
 #include "client_side.h"
 #include "client_side_request.h"
 #include "dns/LookupDetails.h"
-#include "Downloader.h"
 #include "err_detail_type.h"
 #include "globals.h"
 #include "gopher.h"
 #include "http.h"
 #include "http/ContentLengthInterpreter.h"
-#include "http/one/RequestParser.h"
 #include "http/Stream.h"
-#include "HttpHdrCc.h"
-#include "HttpHeaderRange.h"
-#include "HttpRequest.h"
+#include "http/one/RequestParser.h"
 #include "log/Config.h"
-#include "MemBuf.h"
 #include "sbuf/StringConvert.h"
-#include "SquidConfig.h"
-#include "Store.h"
 
 #if USE_AUTH
 #include "auth/UserRequest.h"
@@ -48,13 +48,13 @@ HttpRequest::HttpRequest(const MasterXaction::Pointer &mx) :
     init();
 }
 
-HttpRequest::HttpRequest(const HttpRequestMethod& aMethod, AnyP::ProtocolType aProtocol, const char *aSchemeImg, const char *aUrlpath, const MasterXaction::Pointer &mx) :
+HttpRequest::HttpRequest(const HttpRequestMethod &aMethod, AnyP::ProtocolType aProtocol, const char *aSchemeImg, const char *aUrlpath, const MasterXaction::Pointer &mx) :
     Http::Message(hoRequest),
     masterXaction(mx)
 {
     assert(mx);
     static unsigned int id = 1;
-    debugs(93,7, HERE << "constructed, this=" << this << " id=" << ++id);
+    debugs(93, 7, HERE << "constructed, this=" << this << " id=" << ++id);
     init();
     initHTTP(aMethod, aProtocol, aSchemeImg, aUrlpath);
 }
@@ -62,11 +62,11 @@ HttpRequest::HttpRequest(const HttpRequestMethod& aMethod, AnyP::ProtocolType aP
 HttpRequest::~HttpRequest()
 {
     clean();
-    debugs(93,7, HERE << "destructed, this=" << this);
+    debugs(93, 7, HERE << "destructed, this=" << this);
 }
 
 void
-HttpRequest::initHTTP(const HttpRequestMethod& aMethod, AnyP::ProtocolType aProtocol, const char *aSchemeImg, const char *aUrlpath)
+HttpRequest::initHTTP(const HttpRequestMethod &aMethod, AnyP::ProtocolType aProtocol, const char *aSchemeImg, const char *aUrlpath)
 {
     method = aMethod;
     url.setScheme(aProtocol, aSchemeImg);
@@ -93,8 +93,8 @@ HttpRequest::init()
     dnsWait = -1;
     errType = ERR_NONE;
     errDetail = ERR_DETAIL_NONE;
-    peer_login = NULL;      // not allocated/deallocated by this class
-    peer_domain = NULL;     // not allocated/deallocated by this class
+    peer_login = NULL;   // not allocated/deallocated by this class
+    peer_domain = NULL;  // not allocated/deallocated by this class
     peer_host = NULL;
     vary_headers = SBuf();
     myportname = null_string;
@@ -115,7 +115,7 @@ HttpRequest::init()
 #if ICAP_CLIENT
     icapHistory_ = NULL;
 #endif
-    rangeOffsetLimit = -2; //a value of -2 means not checked yet
+    rangeOffsetLimit = -2;  //a value of -2 means not checked yet
     forcedBodyContinuation = false;
 }
 
@@ -183,7 +183,7 @@ HttpRequest::clone() const
     copy->hdrCacheInit();
     copy->hdr_sz = hdr_sz;
     copy->http_ver = http_ver;
-    copy->pstate = pstate; // TODO: should we assert a specific state here?
+    copy->pstate = pstate;  // TODO: should we assert a specific state here?
     copy->body_pipe = body_pipe;
 
     copy->url = url;
@@ -191,7 +191,7 @@ HttpRequest::clone() const
     // range handled in hdrCacheInit()
     copy->ims = ims;
     copy->imslen = imslen;
-    copy->hier = hier; // Is it safe to copy? Should we?
+    copy->hier = hier;  // Is it safe to copy? Should we?
 
     copy->errType = errType;
 
@@ -215,7 +215,7 @@ HttpRequest::clone() const
 bool
 HttpRequest::inheritProperties(const Http::Message *aMsg)
 {
-    const HttpRequest* aReq = dynamic_cast<const HttpRequest*>(aMsg);
+    const HttpRequest *aReq = dynamic_cast<const HttpRequest *>(aMsg);
     if (!aReq)
         return false;
 
@@ -305,17 +305,17 @@ HttpRequest::parseFirstLine(const char *start, const char *end)
     // cheaper than allocate+copy+deallocate cycle to SBuf convert a piece of start.
     const char *t = start + strcspn(start, w_space);
 
-    start = t + strspn(t, w_space); // skip w_space after method
+    start = t + strspn(t, w_space);  // skip w_space after method
 
     const char *ver = findTrailingHTTPVersion(start, end);
 
     if (ver) {
         end = ver - 1;
 
-        while (xisspace(*end)) // find prev non-space
+        while (xisspace(*end))  // find prev non-space
             --end;
 
-        ++end;                 // back to space
+        ++end;  // back to space
 
         if (2 != sscanf(ver + 5, "%d.%d", &http_ver.major, &http_ver.minor)) {
             debugs(73, DBG_IMPORTANT, "parseRequestLine: Invalid HTTP identifier.");
@@ -326,15 +326,15 @@ HttpRequest::parseFirstLine(const char *start, const char *end)
         http_ver.minor = 9;
     }
 
-    if (end < start)   // missing URI
+    if (end < start)  // missing URI
         return false;
 
-    return url.parse(method, SBuf(start, size_t(end-start)));
+    return url.parse(method, SBuf(start, size_t(end - start)));
 }
 
 /* swaps out request using httpRequestPack */
 void
-HttpRequest::swapOut(StoreEntry * e)
+HttpRequest::swapOut(StoreEntry *e)
 {
     assert(e);
     e->buffer();
@@ -344,7 +344,7 @@ HttpRequest::swapOut(StoreEntry * e)
 
 /* packs request-line and headers, appends <crlf> terminator */
 void
-HttpRequest::pack(Packable * p) const
+HttpRequest::pack(Packable *p) const
 {
     assert(p);
     /* pack request-line */
@@ -363,7 +363,7 @@ HttpRequest::pack(Packable * p) const
 void
 httpRequestPack(void *obj, Packable *p)
 {
-    HttpRequest *request = static_cast<HttpRequest*>(obj);
+    HttpRequest *request = static_cast<HttpRequest *>(obj);
     request->pack(p);
 }
 
@@ -371,10 +371,7 @@ httpRequestPack(void *obj, Packable *p)
 int
 HttpRequest::prefixLen() const
 {
-    return method.image().length() + 1 +
-           url.path().length() + 1 +
-           4 + 1 + 3 + 2 +
-           header.len + 2;
+    return method.image().length() + 1 + url.path().length() + 1 + 4 + 1 + 3 + 2 + header.len + 2;
 }
 
 /* sync this routine when you update HttpRequest struct */
@@ -394,7 +391,7 @@ HttpRequest::icapHistory() const
     if (!icapHistory_) {
         if (Log::TheConfig.hasIcapToken || IcapLogfileStatus == LOG_ENABLE) {
             icapHistory_ = new Adaptation::Icap::History();
-            debugs(93,4, HERE << "made " << icapHistory_ << " for " << this);
+            debugs(93, 4, HERE << "made " << icapHistory_ << " for " << this);
         }
     }
 
@@ -408,7 +405,7 @@ HttpRequest::adaptHistory(bool createIfNone) const
 {
     if (!adaptHistory_ && createIfNone) {
         adaptHistory_ = new Adaptation::History();
-        debugs(93,4, HERE << "made " << adaptHistory_ << " for " << this);
+        debugs(93, 4, HERE << "made " << adaptHistory_ << " for " << this);
     }
 
     return adaptHistory_;
@@ -424,7 +421,7 @@ void
 HttpRequest::adaptHistoryImport(const HttpRequest &them)
 {
     if (!adaptHistory_) {
-        adaptHistory_ = them.adaptHistory_; // may be nil
+        adaptHistory_ = them.adaptHistory_;  // may be nil
     } else {
         // check that histories did not diverge
         Must(!them.adaptHistory_ || them.adaptHistory_ == adaptHistory_);
@@ -487,7 +484,7 @@ HttpRequest::clearError()
 }
 
 void
-HttpRequest::packFirstLineInto(Packable * p, bool full_uri) const
+HttpRequest::packFirstLineInto(Packable *p, bool full_uri) const
 {
     const SBuf tmp(full_uri ? effectiveRequestUri() : url.path());
 
@@ -532,7 +529,7 @@ HttpRequest::expectingBody(const HttpRequestMethod &, int64_t &theSize) const
  * If the request cannot be created cleanly, NULL is returned
  */
 HttpRequest *
-HttpRequest::FromUrl(const SBuf &url, const MasterXaction::Pointer &mx, const HttpRequestMethod& method)
+HttpRequest::FromUrl(const SBuf &url, const MasterXaction::Pointer &mx, const HttpRequestMethod &method)
 {
     std::unique_ptr<HttpRequest> req(new HttpRequest(mx));
     if (req->url.parse(method, url)) {
@@ -543,7 +540,7 @@ HttpRequest::FromUrl(const SBuf &url, const MasterXaction::Pointer &mx, const Ht
 }
 
 HttpRequest *
-HttpRequest::FromUrlXXX(const char * url, const MasterXaction::Pointer &mx, const HttpRequestMethod& method)
+HttpRequest::FromUrlXXX(const char *url, const MasterXaction::Pointer &mx, const HttpRequestMethod &method)
 {
     return FromUrl(SBuf(url), mx, method);
 }
@@ -596,16 +593,14 @@ HttpRequest::maybeCacheable()
 bool
 HttpRequest::conditional() const
 {
-    return flags.ims ||
-           header.has(Http::HdrType::IF_MATCH) ||
-           header.has(Http::HdrType::IF_NONE_MATCH);
+    return flags.ims || header.has(Http::HdrType::IF_MATCH) || header.has(Http::HdrType::IF_NONE_MATCH);
 }
 
 void
 HttpRequest::recordLookup(const Dns::LookupDetails &dns)
 {
-    if (dns.wait >= 0) { // known delay
-        if (dnsWait >= 0) { // have recorded DNS wait before
+    if (dns.wait >= 0) {     // known delay
+        if (dnsWait >= 0) {  // have recorded DNS wait before
             debugs(78, 7, this << " " << dnsWait << " += " << dns);
             dnsWait += dns.wait;
         } else {
@@ -624,16 +619,16 @@ HttpRequest::getRangeOffsetLimit()
     if (rangeOffsetLimit != -2)
         return rangeOffsetLimit;
 
-    rangeOffsetLimit = 0; // default value for rangeOffsetLimit
+    rangeOffsetLimit = 0;  // default value for rangeOffsetLimit
 
     ACLFilledChecklist ch(NULL, this, NULL);
     ch.src_addr = client_addr;
-    ch.my_addr =  my_addr;
+    ch.my_addr = my_addr;
 
-    for (AclSizeLimit *l = Config.rangeOffsetLimit; l; l = l -> next) {
+    for (AclSizeLimit *l = Config.rangeOffsetLimit; l; l = l->next) {
         /* if there is no ACL list or if the ACLs listed match use this limit value */
         if (!l->aclList || ch.fastCheck(l->aclList).allowed()) {
-            rangeOffsetLimit = l->size; // may be -1
+            rangeOffsetLimit = l->size;  // may be -1
             debugs(58, 4, rangeOffsetLimit);
             break;
         }
@@ -646,7 +641,7 @@ void
 HttpRequest::ignoreRange(const char *reason)
 {
     if (range) {
-        debugs(73, 3, static_cast<void*>(range) << " for " << reason);
+        debugs(73, 3, static_cast<void *>(range) << " for " << reason);
         delete range;
         range = NULL;
     }
@@ -661,7 +656,7 @@ HttpRequest::canHandle1xx() const
 {
     // old clients do not support 1xx unless they sent Expect: 100-continue
     // (we reject all other Http::HdrType::EXPECT values so just check for Http::HdrType::EXPECT)
-    if (http_ver <= Http::ProtocolVersion(1,0) && !header.has(Http::HdrType::EXPECT))
+    if (http_ver <= Http::ProtocolVersion(1, 0) && !header.has(Http::HdrType::EXPECT))
         return false;
 
     // others must support 1xx control messages
@@ -705,7 +700,7 @@ const SBuf &
 HttpRequest::effectiveRequestUri() const
 {
     if (method.id() == Http::METHOD_CONNECT || url.getScheme() == AnyP::PROTO_AUTHORITY_FORM)
-        return url.authority(true); // host:port
+        return url.authority(true);  // host:port
     return url.absolute();
 }
 
@@ -746,7 +741,7 @@ HttpRequest::manager(const CbcPointer<ConnStateData> &aMgr, const AccessLogEntry
     }
 
     if (auto clientConnection = clientConnectionManager->clientConnection) {
-        client_addr = clientConnection->remote; // XXX: remove request->client_addr member.
+        client_addr = clientConnection->remote;  // XXX: remove request->client_addr member.
 #if FOLLOW_X_FORWARDED_FOR
         // indirect client gets stored here because it is an HTTP header result (from X-Forwarded-For:)
         // not details about the TCP connection itself
@@ -755,7 +750,7 @@ HttpRequest::manager(const CbcPointer<ConnStateData> &aMgr, const AccessLogEntry
         my_addr = clientConnection->local;
 
         flags.intercepted = ((clientConnection->flags & COMM_INTERCEPTION) != 0);
-        flags.interceptTproxy = ((clientConnection->flags & COMM_TRANSPARENT) != 0 ) ;
+        flags.interceptTproxy = ((clientConnection->flags & COMM_TRANSPARENT) != 0);
         const bool proxyProtocolPort = port ? port->flags.proxySurrogate : false;
         if (flags.interceptTproxy && !proxyProtocolPort) {
             if (Config.accessList.spoof_client_ip) {
@@ -809,7 +804,7 @@ FindListeningPortAddress(const HttpRequest *callerRequest, const AccessLogEntry 
     if (!request && ale)
         request = ale->request;
     if (!request)
-        return nullptr; // not enough information
+        return nullptr;  // not enough information
 
     const Ip::Address *ip = FindListeningPortAddressInPort(request->masterXaction->squidPort);
     if (!ip && ale)
@@ -823,6 +818,5 @@ FindListeningPortAddress(const HttpRequest *callerRequest, const AccessLogEntry 
     ip = FindListeningPortAddressInConn(request->masterXaction->tcpClient);
     if (!ip && ale)
         ip = FindListeningPortAddressInConn(ale->tcpClient);
-    return ip; // may still be nil
+    return ip;  // may still be nil
 }
-

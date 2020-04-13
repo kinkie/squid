@@ -130,17 +130,15 @@ static const struct afd {
     int a_socklen;
     int a_off;
     int a_portoff;
-} afdl [] = {
+} afdl[] = {
 #if INET6
-    {   PF_INET6, sizeof(struct in6_addr), sizeof(struct sockaddr_in6),
-        offsetof(struct sockaddr_in6, sin6_addr),
-        offsetof(struct sockaddr_in6, sin6_port)
-    },
+    {PF_INET6, sizeof(struct in6_addr), sizeof(struct sockaddr_in6),
+     offsetof(struct sockaddr_in6, sin6_addr),
+     offsetof(struct sockaddr_in6, sin6_port)},
 #endif
-    {   PF_INET, sizeof(struct in_addr), sizeof(struct sockaddr_in),
-        offsetof(struct sockaddr_in, sin_addr),
-        offsetof(struct sockaddr_in, sin_port)
-    },
+    {PF_INET, sizeof(struct in_addr), sizeof(struct sockaddr_in),
+     offsetof(struct sockaddr_in, sin_addr),
+     offsetof(struct sockaddr_in, sin_port)},
     {0, 0, 0, 0, 0},
 };
 
@@ -215,7 +213,7 @@ found:
     switch (sa->sa_family) {
     case AF_INET:
         v4a = (uint32_t)
-              ntohl(((const struct sockaddr_in *)sa)->sin_addr.s_addr);
+            ntohl(((const struct sockaddr_in *)sa)->sin_addr.s_addr);
         if (IN_MULTICAST(v4a) || IN_EXPERIMENTAL(v4a))
             flags |= NI_NUMERICHOST;
         v4a >>= IN_CLASSA_NSHIFT;
@@ -242,8 +240,7 @@ found:
                 flags |= NI_NUMERICHOST;
             break;
         }
-    }
-    break;
+    } break;
 #endif
     }
     if (host == NULL || hostlen == 0) {
@@ -265,7 +262,7 @@ found:
         hp = getipnodebyaddr(addr, afd->a_addrlen, afd->a_af, &h_error);
 #else
         hp = gethostbyaddr(addr, afd->a_addrlen, afd->a_af);
-#if 0 // getnameinfo.c:161:9: error: variable 'h_error' set but not used
+#if 0  // getnameinfo.c:161:9: error: variable 'h_error' set but not used
 #if HAVE_H_ERRNO
         h_error = h_errno;
 #else
@@ -309,7 +306,7 @@ found:
             if (flags & NI_NAMEREQD)
                 return EAI_NONAME;
 
-numeric:
+        numeric:
             switch (afd->a_af) {
 #if INET6
             case AF_INET6: {
@@ -317,26 +314,28 @@ numeric:
 
                 if ((error = ip6_parsenumeric(sa, addr, host,
                                               hostlen,
-                                              flags)) != 0)
-                    return(error);
+                                              flags))
+                    != 0)
+                    return (error);
                 break;
             }
 #endif
             default:
                 if (inet_ntop(afd->a_af, addr, host,
-                              hostlen) == NULL)
+                              hostlen)
+                    == NULL)
                     return EAI_SYSTEM;
                 break;
             }
         }
     }
-    return(0);
+    return (0);
 }
 
 #if INET6
 static int
-ip6_parsenumeric(sa, addr, host, hostlen, flags)
-const struct sockaddr *sa;
+    ip6_parsenumeric(sa, addr, host, hostlen, flags)
+        const struct sockaddr *sa;
 const char *addr;
 char *host;
 size_t hostlen;
@@ -358,8 +357,8 @@ int flags;
         int zonelen;
 
         zonelen = ip6_sa2str(
-                      (const struct sockaddr_in6 *)(const void *)sa,
-                      zonebuf, sizeof(zonebuf), flags);
+            (const struct sockaddr_in6 *)(const void *)sa,
+            zonebuf, sizeof(zonebuf), flags);
         if (zonelen < 0)
             return EAI_OVERFLOW;
         if (zonelen + 1 + numaddrlen + 1 > hostlen)
@@ -377,8 +376,8 @@ int flags;
 
 /* ARGSUSED */
 static int
-ip6_sa2str(sa6, buf, bufsiz, flags)
-const struct sockaddr_in6 *sa6;
+    ip6_sa2str(sa6, buf, bufsiz, flags)
+        const struct sockaddr_in6 *sa6;
 char *buf;
 size_t bufsiz;
 int flags;
@@ -401,8 +400,7 @@ int flags;
 #endif
 
     /* if_indextoname() does not take buffer size.  not a good api... */
-    if ((IN6_IS_ADDR_LINKLOCAL(a6) || IN6_IS_ADDR_MC_LINKLOCAL(a6) ||
-            IN6_IS_ADDR_MC_NODELOCAL(a6)) && bufsiz >= IF_NAMESIZE) {
+    if ((IN6_IS_ADDR_LINKLOCAL(a6) || IN6_IS_ADDR_MC_LINKLOCAL(a6) || IN6_IS_ADDR_MC_NODELOCAL(a6)) && bufsiz >= IF_NAMESIZE) {
         char *p = if_indextoname(ifindex, buf);
         if (p)
             return (strlen(p));
@@ -417,4 +415,3 @@ int flags;
 }
 #endif /* INET6 */
 #endif /* HAVE_DECL_GETNAMEINFO */
-

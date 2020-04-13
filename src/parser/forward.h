@@ -15,8 +15,9 @@ class BinaryTokenizer;
 
 // TODO: Move this declaration (to parser/Elements.h) if we need more like it.
 /// thrown by modern "incremental" parsers when they need more data
-class InsufficientInput {};
-} // namespace Parser
+class InsufficientInput
+{
+};
+}  // namespace Parser
 
 #endif /* SQUID_PARSER_FORWARD_H */
-

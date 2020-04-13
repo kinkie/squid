@@ -13,8 +13,7 @@
 
 #include "auth/SchemeConfig.h"
 
-namespace Auth
-{
+namespace Auth {
 
 /**
  * Stores authentication schemes list, configured by auth_schemes
@@ -23,7 +22,8 @@ namespace Auth
 class SchemesConfig
 {
 public:
-    SchemesConfig(const char *s, const bool q) : schemes(s), quoted(q), rawSchemes(schemes.c_str()) {}
+    SchemesConfig(const char *s, const bool q) :
+        schemes(s), quoted(q), rawSchemes(schemes.c_str()) {}
     /// Expands special "ALL" scheme name (if provided), removes
     /// duplicates and fills authConfigs vector.
     void expand();
@@ -42,8 +42,7 @@ public:
     const char *rawSchemes;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* SQUID_SCHEMES_CONFIG_H */
-

@@ -20,11 +20,11 @@ class acl_ip_data
 
 public:
     static acl_ip_data *FactoryParse(char const *);
-    static int NetworkCompare(acl_ip_data * const & a, acl_ip_data * const &b);
+    static int NetworkCompare(acl_ip_data *const &a, acl_ip_data *const &b);
 
-    acl_ip_data ();
+    acl_ip_data();
 
-    acl_ip_data (Ip::Address const &, Ip::Address const &, Ip::Address const &, acl_ip_data *);
+    acl_ip_data(Ip::Address const &, Ip::Address const &, Ip::Address const &, acl_ip_data *);
     void toStr(char *buf, int len) const;
     SBuf toSBuf() const;
 
@@ -34,10 +34,9 @@ public:
 
     Ip::Address mask; /**< \todo This should perhapse be stored as a CIDR range now instead of a full IP mask. */
 
-    acl_ip_data *next;      /**< used for parsing, not for storing */
+    acl_ip_data *next; /**< used for parsing, not for storing */
 
 private:
-
     static bool DecodeMask(const char *asc, Ip::Address &mask, int string_format_type);
 };
 
@@ -47,7 +46,8 @@ public:
     void *operator new(size_t);
     void operator delete(void *);
 
-    ACLIP() : data(NULL) {}
+    ACLIP() :
+        data(NULL) {}
     ~ACLIP();
 
     typedef Splay<acl_ip_data *> IPSplay;
@@ -57,14 +57,11 @@ public:
     //    virtual bool isProxyAuth() const {return true;}
     virtual int match(ACLChecklist *checklist) = 0;
     virtual SBufList dump() const;
-    virtual bool empty () const;
+    virtual bool empty() const;
 
 protected:
-
     int match(const Ip::Address &);
     IPSplay *data;
-
 };
 
 #endif /* SQUID_ACLIP_H */
-

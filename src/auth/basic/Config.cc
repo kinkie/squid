@@ -14,23 +14,23 @@
 
 #include "squid.h"
 #include "auth/basic/Config.h"
-#include "auth/basic/Scheme.h"
-#include "auth/basic/User.h"
-#include "auth/basic/UserRequest.h"
+#include "HttpHeaderTools.h"
+#include "HttpReply.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "auth/CredentialsCache.h"
 #include "auth/Gadgets.h"
 #include "auth/State.h"
+#include "auth/basic/Scheme.h"
+#include "auth/basic/User.h"
+#include "auth/basic/UserRequest.h"
 #include "auth/toUtf.h"
 #include "base64.h"
 #include "cache_cf.h"
 #include "helper.h"
-#include "HttpHeaderTools.h"
-#include "HttpReply.h"
 #include "mgr/Registration.h"
 #include "rfc1738.h"
 #include "sbuf/SBuf.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "util.h"
 #include "wordlist.h"
 
@@ -118,18 +118,18 @@ Auth::Basic::Config::done()
 }
 
 bool
-Auth::Basic::Config::dump(StoreEntry * entry, const char *name, Auth::SchemeConfig * scheme) const
+Auth::Basic::Config::dump(StoreEntry *entry, const char *name, Auth::SchemeConfig *scheme) const
 {
     if (!Auth::SchemeConfig::dump(entry, name, scheme))
-        return false; // not configured
+        return false;  // not configured
 
-    storeAppendPrintf(entry, "%s basic credentialsttl %d seconds\n", name, (int) credentialsTTL);
+    storeAppendPrintf(entry, "%s basic credentialsttl %d seconds\n", name, (int)credentialsTTL);
     storeAppendPrintf(entry, "%s basic casesensitive %s\n", name, casesensitive ? "on" : "off");
     return true;
 }
 
 Auth::Basic::Config::Config() :
-    credentialsTTL( 2*60*60 ),
+    credentialsTTL(2 * 60 * 60),
     casesensitive(0)
 {
     static const SBuf defaultRealm("Squid proxy-caching web server");
@@ -137,7 +137,7 @@ Auth::Basic::Config::Config() :
 }
 
 void
-Auth::Basic::Config::parse(Auth::SchemeConfig * scheme, int n_configured, char *param_str)
+Auth::Basic::Config::parse(Auth::SchemeConfig *scheme, int n_configured, char *param_str)
 {
     if (strcmp(param_str, "credentialsttl") == 0) {
         parse_time_t(&credentialsTTL);
@@ -148,7 +148,7 @@ Auth::Basic::Config::parse(Auth::SchemeConfig * scheme, int n_configured, char *
 }
 
 static void
-authenticateBasicStats(StoreEntry * sentry)
+authenticateBasicStats(StoreEntry *sentry)
 {
     if (basicauthenticators)
         basicauthenticators->packStatsInto(sentry, "Basic Authenticator Statistics");
@@ -173,18 +173,17 @@ Auth::Basic::Config::decodeCleartext(const char *httpAuthHeader, const HttpReque
     strtok(eek, "\n");
 
     const size_t srcLen = strlen(eek);
-    char *cleartext = static_cast<char*>(xmalloc(BASE64_DECODE_LENGTH(srcLen)+1));
+    char *cleartext = static_cast<char *>(xmalloc(BASE64_DECODE_LENGTH(srcLen) + 1));
 
     struct base64_decode_ctx ctx;
     base64_decode_init(&ctx);
 
     size_t dstLen = 0;
-    if (base64_decode_update(&ctx, &dstLen, reinterpret_cast<uint8_t*>(cleartext), srcLen, eek) && base64_decode_final(&ctx)) {
+    if (base64_decode_update(&ctx, &dstLen, reinterpret_cast<uint8_t *>(cleartext), srcLen, eek) && base64_decode_final(&ctx)) {
         cleartext[dstLen] = '\0';
 
         if (utf8 && !isValidUtf8String(cleartext, cleartext + dstLen)) {
-            auto str = isCP1251EncodingAllowed(request) ?
-                       Cp1251ToUtf8(cleartext) : Latin1ToUtf8(cleartext);
+            auto str = isCP1251EncodingAllowed(request) ? Cp1251ToUtf8(cleartext) : Latin1ToUtf8(cleartext);
             safe_free(cleartext);
             cleartext = xstrdup(str.c_str());
         }
@@ -218,7 +217,7 @@ Auth::Basic::Config::decodeCleartext(const char *httpAuthHeader, const HttpReque
 Auth::UserRequest::Pointer
 Auth::Basic::Config::decode(char const *proxy_auth, const HttpRequest *request, const char *aRequestRealm)
 {
-    Auth::UserRequest::Pointer auth_user_request = dynamic_cast<Auth::UserRequest*>(new Auth::Basic::UserRequest);
+    Auth::UserRequest::Pointer auth_user_request = dynamic_cast<Auth::UserRequest *>(new Auth::Basic::UserRequest);
     /* decode the username */
 
     // retrieve the cleartext (in a dynamically allocated char*)
@@ -239,7 +238,7 @@ Auth::Basic::Config::decode(char const *proxy_auth, const HttpRequest *request, 
     if (separator) {
         /* terminate the username */
         *separator = '\0';
-        local_basic->passwd = xstrdup(separator+1);
+        local_basic->passwd = xstrdup(separator + 1);
     }
 
     if (!casesensitive)
@@ -325,4 +324,3 @@ Auth::Basic::Config::registerWithCacheManager(void)
                         "Basic User Authenticator Stats",
                         authenticateBasicStats, 0, 1);
 }
-

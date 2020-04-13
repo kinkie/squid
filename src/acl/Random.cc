@@ -9,10 +9,10 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/Random.h"
 #include "Debug.h"
 #include "Parsing.h"
+#include "acl/FilledChecklist.h"
 #include "wordlist.h"
 
 #include <random>
@@ -23,18 +23,21 @@ ACLRandom::clone() const
     return new ACLRandom(*this);
 }
 
-ACLRandom::ACLRandom(char const *theClass) : data(0.0), class_(theClass)
+ACLRandom::ACLRandom(char const *theClass) :
+    data(0.0), class_(theClass)
 {
     memset(pattern, 0, sizeof(pattern));
 }
 
-ACLRandom::ACLRandom(ACLRandom const & old) : data(old.data), class_(old.class_)
+ACLRandom::ACLRandom(ACLRandom const &old) :
+    data(old.data), class_(old.class_)
 {
     memcpy(pattern, old.pattern, sizeof(pattern));
 }
 
 ACLRandom::~ACLRandom()
-{ }
+{
+}
 
 char const *
 ACLRandom::typeString() const
@@ -43,7 +46,7 @@ ACLRandom::typeString() const
 }
 
 bool
-ACLRandom::empty () const
+ACLRandom::empty() const
 {
     return data == 0.0;
 }
@@ -80,7 +83,7 @@ ACLRandom::parse()
             debugs(28, DBG_CRITICAL, "ERROR: ACL random with bad pattern: '" << t << "'");
             return;
         } else
-            data = a / (double)(a+b);
+            data = a / (double)(a + b);
     } else if (sscanf(t, "%[0-9]/%[0-9]", bufa, bufb) == 2) {
         int a = xatoi(bufa);
         int b = xatoi(bufb);
@@ -88,7 +91,7 @@ ACLRandom::parse()
             debugs(28, DBG_CRITICAL, "ERROR: ACL random with bad pattern: '" << t << "'");
             return;
         } else
-            data = (double) a / (double) b;
+            data = (double)a / (double)b;
     } else if (sscanf(t, "0.%[0-9]", bufa) == 1) {
         data = atof(t);
     } else {
@@ -97,7 +100,7 @@ ACLRandom::parse()
     }
 
     // save the exact input pattern. so we can display it later.
-    memcpy(pattern, t, min(sizeof(pattern)-1,strlen(t)));
+    memcpy(pattern, t, min(sizeof(pattern) - 1, strlen(t)));
 }
 
 int
@@ -112,8 +115,8 @@ ACLRandom::match(ACLChecklist *)
 
     const double random = dist(mt);
 
-    debugs(28, 3, "ACL Random: " << name << " " << pattern << " test: " << data << " > " << random << " = " << ((data > random)?"MATCH":"NO MATCH") );
-    return (data > random)?1:0;
+    debugs(28, 3, "ACL Random: " << name << " " << pattern << " test: " << data << " > " << random << " = " << ((data > random) ? "MATCH" : "NO MATCH"));
+    return (data > random) ? 1 : 0;
 }
 
 SBufList
@@ -123,4 +126,3 @@ ACLRandom::dump() const
     sl.push_back(SBuf(pattern));
     return sl;
 }
-

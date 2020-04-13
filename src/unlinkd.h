@@ -21,11 +21,26 @@ void unlinkdUnlink(const char *);
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-inline bool unlinkdNeeded(void) { return false; }
-inline void unlinkdInit(void) { return; }
-inline void unlinkdClose(void) { return; }
-inline void unlinkdUnlink(const char * path) { ::unlink(path); }
+inline bool
+unlinkdNeeded(void)
+{
+    return false;
+}
+inline void
+unlinkdInit(void)
+{
+    return;
+}
+inline void
+unlinkdClose(void)
+{
+    return;
+}
+inline void
+unlinkdUnlink(const char *path)
+{
+    ::unlink(path);
+}
 #endif /* USE_UNLINKD */
 
 #endif /* SQUID_UNLINKD_H_ */
-

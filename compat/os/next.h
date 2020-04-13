@@ -55,4 +55,3 @@
 
 #endif /* _SQUID_NEXT_ */
 #endif /* SQUID_OS_NEXT_H */
-

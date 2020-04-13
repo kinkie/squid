@@ -11,10 +11,10 @@
 #ifndef SQUID_BLOCKINGFILE_H
 #define SQUID_BLOCKINGFILE_H
 
-#include "cbdata.h"
 #include "DiskIO/DiskFile.h"
 #include "DiskIO/IORequestor.h"
-#include "typedefs.h" //DRCB, DWCB
+#include "cbdata.h"
+#include "typedefs.h"  //DRCB, DWCB
 
 class BlockingFile : public DiskFile
 {
@@ -29,7 +29,7 @@ public:
     virtual void write(WriteRequest *);
     virtual void close();
     virtual bool error() const;
-    virtual int getFD() const { return fd;}
+    virtual int getFD() const { return fd; }
 
     virtual bool canRead() const;
     virtual bool ioInProgress() const;
@@ -39,7 +39,7 @@ private:
     static DWCB WriteDone;
     int fd;
     bool closed;
-    void error (bool const &);
+    void error(bool const &);
     bool error_;
     char const *path_;
     RefCount<IORequestor> ioRequestor;
@@ -51,4 +51,3 @@ private:
 };
 
 #endif /* SQUID_BLOCKINGFILE_H */
-

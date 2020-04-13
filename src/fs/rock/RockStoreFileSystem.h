@@ -12,15 +12,14 @@
 #include "StoreFileSystem.h"
 
 class StoreEntry;
-namespace Rock
-{
+namespace Rock {
 
 /// \ingroup Rock, FileSystems
-class StoreFileSystem: public ::StoreFileSystem
+class StoreFileSystem : public ::StoreFileSystem
 {
 
 public:
-    static void Stats(StoreEntry * sentry);
+    static void Stats(StoreEntry *sentry);
 
     StoreFileSystem();
     virtual ~StoreFileSystem();
@@ -34,11 +33,10 @@ public:
 private:
     //static Stats Stats_;
 
-    StoreFileSystem(const StoreFileSystem &); // not implemented
-    StoreFileSystem &operator=(const StoreFileSystem &); // not implemented
+    StoreFileSystem(const StoreFileSystem &);             // not implemented
+    StoreFileSystem &operator=(const StoreFileSystem &);  // not implemented
 };
 
-} // namespace Rock
+}  // namespace Rock
 
 #endif /* SQUID_FS_ROCK_FS_H */
-

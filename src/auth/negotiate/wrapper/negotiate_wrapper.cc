@@ -34,8 +34,8 @@
 #include "base64.h"
 
 #include <cerrno>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #if HAVE_NETDB_H
 #include <netdb.h>
@@ -60,7 +60,7 @@
 #define VERSION "1.0.1"
 
 #ifndef MAX_AUTHTOKEN_LEN
-#define MAX_AUTHTOKEN_LEN   65535
+#define MAX_AUTHTOKEN_LEN 65535
 #endif
 
 static const unsigned char ntlmProtocol[] = {'N', 'T', 'L', 'M', 'S', 'S', 'P', 0};
@@ -74,7 +74,7 @@ LogTime()
 
     gettimeofday(&now, NULL);
     if (now.tv_sec != last_t) {
-        time_t *tmp = (time_t *) & now.tv_sec;
+        time_t *tmp = (time_t *)&now.tv_sec;
         struct tm *tm = localtime(tmp);
         strftime(buf, 127, "%Y/%m/%d %H:%M:%S", tm);
         last_t = now.tv_sec;
@@ -82,7 +82,8 @@ LogTime()
     return buf;
 }
 
-void usage(void)
+void
+usage(void)
 {
     fprintf(stderr, "Usage: \n");
     fprintf(stderr, "negotiate_wrapper [-h] [-d] --ntlm ntlm helper + arguments --kerberos kerberos helper + arguments\n");
@@ -110,7 +111,7 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
 {
     char buf[MAX_AUTHTOKEN_LEN];
     char tbuff[MAX_AUTHTOKEN_LEN];
-    char buff[MAX_AUTHTOKEN_LEN+2];
+    char buff[MAX_AUTHTOKEN_LEN + 2];
     char *c;
     size_t length;
     uint8_t *token = NULL;
@@ -126,12 +127,12 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
                             strerror(ferror(stdin)));
 
                 fprintf(stdout, "BH input error\n");
-                return 1;        /* BIIG buffer */
+                return 1; /* BIIG buffer */
             }
             fprintf(stdout, "BH input error\n");
             return 0;
         }
-        c = static_cast<char*>(memchr(buf, '\n', sizeof(buf) - 1));
+        c = static_cast<char *>(memchr(buf, '\n', sizeof(buf) - 1));
         if (c) {
             *c = '\0';
             length = c - buf;
@@ -179,13 +180,13 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
             fprintf(stdout, "BH Invalid negotiate request\n");
             continue;
         }
-        length = BASE64_DECODE_LENGTH(strlen(buf+3));
+        length = BASE64_DECODE_LENGTH(strlen(buf + 3));
         if (debug_enabled)
             fprintf(stderr, "%s| %s: Decode '%s' (decoded length: %" PRIuSIZE ").\n",
                     LogTime(), PROGRAM, buf + 3, length);
 
         safe_free(token);
-        if (!(token = static_cast<uint8_t *>(xmalloc(length+1)))) {
+        if (!(token = static_cast<uint8_t *>(xmalloc(length + 1)))) {
             fprintf(stderr, "%s| %s: Error allocating memory for token\n", LogTime(), PROGRAM);
             return 1;
         }
@@ -193,10 +194,9 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
         struct base64_decode_ctx ctx;
         base64_decode_init(&ctx);
         size_t dstLen = 0;
-        if (!base64_decode_update(&ctx, &dstLen, token, strlen(buf+3), buf+3) ||
-                !base64_decode_final(&ctx)) {
+        if (!base64_decode_update(&ctx, &dstLen, token, strlen(buf + 3), buf + 3) || !base64_decode_final(&ctx)) {
             if (debug_enabled)
-                fprintf(stderr, "%s| %s: Invalid base64 token [%s]\n", LogTime(), PROGRAM, buf+3);
+                fprintf(stderr, "%s| %s: Invalid base64 token [%s]\n", LogTime(), PROGRAM, buf + 3);
             fprintf(stdout, "BH Invalid negotiate request token\n");
             continue;
         }
@@ -204,13 +204,11 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
         length = dstLen;
         token[dstLen] = '\0';
 
-        if ((static_cast<size_t>(length) >= sizeof(ntlmProtocol) + 1) &&
-                (!memcmp(token, ntlmProtocol, sizeof ntlmProtocol))) {
+        if ((static_cast<size_t>(length) >= sizeof(ntlmProtocol) + 1) && (!memcmp(token, ntlmProtocol, sizeof ntlmProtocol))) {
             if (debug_enabled)
                 fprintf(stderr, "%s| %s: received type %d NTLM token\n",
-                        LogTime(), PROGRAM, (int) *((unsigned char *) token +
-                                                    sizeof ntlmProtocol));
-            fprintf(FDNIN, "%s\n",buf);
+                        LogTime(), PROGRAM, (int)*((unsigned char *)token + sizeof ntlmProtocol));
+            fprintf(FDNIN, "%s\n", buf);
             if (fgets(tbuff, sizeof(tbuff) - 1, FDNOUT) == NULL) {
                 xfree(token);
                 if (ferror(FDNOUT)) {
@@ -229,20 +227,20 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
              *  NA reason => NA blob reason
              *  Set blob to '='
              */
-            if (strlen(tbuff) >= 3 && (!strncmp(tbuff,"AF ",3) || !strncmp(tbuff,"NA ",3))) {
-                strncpy(buff,tbuff,3);
-                buff[3]='=';
-                for (unsigned int i=2; i<=strlen(tbuff); ++i)
-                    buff[i+2] = tbuff[i];
+            if (strlen(tbuff) >= 3 && (!strncmp(tbuff, "AF ", 3) || !strncmp(tbuff, "NA ", 3))) {
+                strncpy(buff, tbuff, 3);
+                buff[3] = '=';
+                for (unsigned int i = 2; i <= strlen(tbuff); ++i)
+                    buff[i + 2] = tbuff[i];
             } else {
-                strcpy(buff,tbuff);
+                strcpy(buff, tbuff);
             }
         } else {
             if (debug_enabled)
                 fprintf(stderr, "%s| %s: received Kerberos token\n",
                         LogTime(), PROGRAM);
 
-            fprintf(FDKIN, "%s\n",buf);
+            fprintf(FDKIN, "%s\n", buf);
             if (fgets(buff, sizeof(buff) - 1, FDKOUT) == NULL) {
                 xfree(token);
                 if (ferror(FDKOUT)) {
@@ -256,7 +254,7 @@ processingLoop(FILE *FDKIN, FILE *FDKOUT, FILE *FDNIN, FILE *FDNOUT)
                 return 0;
             }
         }
-        fprintf(stdout,"%s",buff);
+        fprintf(stdout, "%s", buff);
         if (debug_enabled)
             fprintf(stderr, "%s| %s: Return '%s'\n",
                     LogTime(), PROGRAM, buff);
@@ -281,31 +279,31 @@ main(int argc, char *const argv[])
     setbuf(stdout, NULL);
     setbuf(stdin, NULL);
 
-    if (argc ==1 || !strncasecmp(argv[1],"-h",2)) {
+    if (argc == 1 || !strncasecmp(argv[1], "-h", 2)) {
         usage();
         exit(EXIT_SUCCESS);
     }
 
     int j = 1;
-    if (!strncasecmp(argv[1],"-d",2)) {
+    if (!strncasecmp(argv[1], "-d", 2)) {
         debug_enabled = 1;
         j = 2;
     }
 
-    for (int i=j; i<argc; ++i) {
-        if (!strncasecmp(argv[i],"--ntlm",6))
+    for (int i = j; i < argc; ++i) {
+        if (!strncasecmp(argv[i], "--ntlm", 6))
             nstart = i;
-        if (!strncasecmp(argv[i],"--kerberos",10))
+        if (!strncasecmp(argv[i], "--kerberos", 10))
             kstart = i;
     }
     if (nstart > kstart) {
-        kend = nstart-1;
-        nend = argc-1;
+        kend = nstart - 1;
+        nend = argc - 1;
     } else {
-        kend = argc-1;
-        nend = kstart-1;
+        kend = argc - 1;
+        nend = kstart - 1;
     }
-    if (nstart == 0 || kstart == 0 || kend-kstart <= 0 || nend-nstart <= 0 ) {
+    if (nstart == 0 || kstart == 0 || kend - kstart <= 0 || nend - nstart <= 0) {
         usage();
         exit(EXIT_SUCCESS);
     }
@@ -314,27 +312,27 @@ main(int argc, char *const argv[])
         fprintf(stderr, "%s| %s: Starting version %s\n", LogTime(), PROGRAM,
                 VERSION);
 
-    if ((nargs = (char **)xmalloc((nend-nstart+1)*sizeof(char *))) == NULL) {
+    if ((nargs = (char **)xmalloc((nend - nstart + 1) * sizeof(char *))) == NULL) {
         fprintf(stderr, "%s| %s: Error allocating memory for ntlm helper\n", LogTime(), PROGRAM);
         exit(EXIT_FAILURE);
     }
-    memcpy(nargs,argv+nstart+1,(nend-nstart)*sizeof(char *));
-    nargs[nend-nstart]=NULL;
+    memcpy(nargs, argv + nstart + 1, (nend - nstart) * sizeof(char *));
+    nargs[nend - nstart] = NULL;
     if (debug_enabled) {
         fprintf(stderr, "%s| %s: NTLM command: ", LogTime(), PROGRAM);
-        for (int i=0; i<nend-nstart; ++i)
+        for (int i = 0; i < nend - nstart; ++i)
             fprintf(stderr, "%s ", nargs[i]);
         fprintf(stderr, "\n");
     }
-    if ((kargs = (char **)xmalloc((kend-kstart+1)*sizeof(char *))) == NULL) {
+    if ((kargs = (char **)xmalloc((kend - kstart + 1) * sizeof(char *))) == NULL) {
         fprintf(stderr, "%s| %s: Error allocating memory for kerberos helper\n", LogTime(), PROGRAM);
         exit(EXIT_FAILURE);
     }
-    memcpy(kargs,argv+kstart+1,(kend-kstart)*sizeof(char *));
-    kargs[kend-kstart]=NULL;
+    memcpy(kargs, argv + kstart + 1, (kend - kstart) * sizeof(char *));
+    kargs[kend - kstart] = NULL;
     if (debug_enabled) {
         fprintf(stderr, "%s| %s: Kerberos command: ", LogTime(), PROGRAM);
-        for (int i=0; i<kend-kstart; ++i)
+        for (int i = 0; i < kend - kstart; ++i)
             fprintf(stderr, "%s ", kargs[i]);
         fprintf(stderr, "\n");
     }
@@ -352,20 +350,20 @@ main(int argc, char *const argv[])
         exit(EXIT_FAILURE);
     }
 
-    if  (( fpid = vfork()) < 0 ) {
+    if ((fpid = vfork()) < 0) {
         fprintf(stderr, "%s| %s: Failed first fork\n", LogTime(), PROGRAM);
         exit(EXIT_FAILURE);
     }
 
-    if ( fpid == 0 ) {
+    if (fpid == 0) {
         /* First Child for Kerberos helper */
 
         close(pkin[1]);
-        dup2(pkin[0],STDIN_FILENO);
+        dup2(pkin[0], STDIN_FILENO);
         close(pkin[0]);
 
         close(pkout[0]);
-        dup2(pkout[1],STDOUT_FILENO);
+        dup2(pkout[1], STDOUT_FILENO);
         close(pkout[1]);
 
         setbuf(stdin, NULL);
@@ -388,20 +386,20 @@ main(int argc, char *const argv[])
         exit(EXIT_FAILURE);
     }
 
-    if  (( fpid = vfork()) < 0 ) {
+    if ((fpid = vfork()) < 0) {
         fprintf(stderr, "%s| %s: Failed second fork\n", LogTime(), PROGRAM);
         exit(EXIT_FAILURE);
     }
 
-    if ( fpid == 0 ) {
+    if (fpid == 0) {
         /* Second Child for NTLM helper */
 
         close(pnin[1]);
-        dup2(pnin[0],STDIN_FILENO);
+        dup2(pnin[0], STDIN_FILENO);
         close(pnin[0]);
 
         close(pnout[0]);
-        dup2(pnout[1],STDOUT_FILENO);
+        dup2(pnout[1], STDOUT_FILENO);
         close(pnout[1]);
 
         setbuf(stdin, NULL);
@@ -415,11 +413,11 @@ main(int argc, char *const argv[])
     close(pnin[0]);
     close(pnout[1]);
 
-    FILE *FDKIN=fdopen(pkin[1],"w");
-    FILE *FDKOUT=fdopen(pkout[0],"r");
+    FILE *FDKIN = fdopen(pkin[1], "w");
+    FILE *FDKOUT = fdopen(pkout[0], "r");
 
-    FILE *FDNIN=fdopen(pnin[1],"w");
-    FILE *FDNOUT=fdopen(pnout[0],"r");
+    FILE *FDNIN = fdopen(pnin[1], "w");
+    FILE *FDNOUT = fdopen(pnout[0], "r");
 
     if (!FDKIN || !FDKOUT || !FDNIN || !FDNOUT) {
         fprintf(stderr, "%s| %s: Could not assign streams for FDKIN/FDKOUT/FDNIN/FDNOUT\n", LogTime(), PROGRAM);
@@ -436,4 +434,3 @@ main(int argc, char *const argv[])
     closeFds(FDKIN, FDKOUT, FDNIN, FDNOUT);
     return result;
 }
-

@@ -11,15 +11,15 @@
 #include "squid.h"
 #include "CachePeer.h"
 #include "HttpRequest.h"
-#include "mgr/Registration.h"
-#include "neighbors.h"
 #include "PeerSelectState.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "mgr/Registration.h"
+#include "neighbors.h"
 
 #include <cmath>
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
 static int n_sourcehash_peers = 0;
 static CachePeer **sourcehash_peers = NULL;
@@ -87,14 +87,14 @@ peerSourceHashInit(void)
         p->sourcehash.hash = 0;
 
         for (t = p->name; *t != 0; ++t)
-            p->sourcehash.hash += ROTATE_LEFT(p->sourcehash.hash, 19) + (unsigned int) *t;
+            p->sourcehash.hash += ROTATE_LEFT(p->sourcehash.hash, 19) + (unsigned int)*t;
 
         p->sourcehash.hash += p->sourcehash.hash * 0x62531965;
 
         p->sourcehash.hash = ROTATE_LEFT(p->sourcehash.hash, 21);
 
         /* and load factor */
-        p->sourcehash.load_factor = ((double) p->weight) / (double) W;
+        p->sourcehash.load_factor = ((double)p->weight) / (double)W;
 
         if (floor(p->sourcehash.load_factor * 1000.0) == 0.0)
             p->sourcehash.load_factor = 0.0;
@@ -116,14 +116,14 @@ peerSourceHashInit(void)
      */
     K = n_sourcehash_peers;
 
-    P_last = 0.0;       /* Empty P_0 */
+    P_last = 0.0; /* Empty P_0 */
 
-    Xn = 1.0;           /* Empty starting point of X_1 * X_2 * ... * X_{x-1} */
+    Xn = 1.0; /* Empty starting point of X_1 * X_2 * ... * X_{x-1} */
 
-    X_last = 0.0;       /* Empty X_0, nullifies the first pow statement */
+    X_last = 0.0; /* Empty X_0, nullifies the first pow statement */
 
     for (k = 1; k <= K; ++k) {
-        double Kk1 = (double) (K - k + 1);
+        double Kk1 = (double)(K - k + 1);
         p = sourcehash_peers[k - 1];
         p->sourcehash.load_multiplier = (Kk1 * (p->sourcehash.load_factor - P_last)) / Xn;
         p->sourcehash.load_multiplier += pow(X_last, Kk1);
@@ -176,8 +176,7 @@ peerSourceHashSelectParent(PeerSelector *ps)
         combined_hash += combined_hash * 0x62531965;
         combined_hash = ROTATE_LEFT(combined_hash, 21);
         score = combined_hash * tp->sourcehash.load_multiplier;
-        debugs(39, 3, "peerSourceHashSelectParent: " << tp->name << " combined_hash " << combined_hash  <<
-               " score " << std::setprecision(0) << score);
+        debugs(39, 3, "peerSourceHashSelectParent: " << tp->name << " combined_hash " << combined_hash << " score " << std::setprecision(0) << score);
 
         if ((score > high_score) && peerHTTPOkay(tp, ps)) {
             p = tp;
@@ -192,7 +191,7 @@ peerSourceHashSelectParent(PeerSelector *ps)
 }
 
 static void
-peerSourceHashCachemgr(StoreEntry * sentry)
+peerSourceHashCachemgr(StoreEntry *sentry)
 {
     CachePeer *p;
     int sumfetches = 0;
@@ -211,7 +210,6 @@ peerSourceHashCachemgr(StoreEntry * sentry)
                           p->name, p->sourcehash.hash,
                           p->sourcehash.load_multiplier,
                           p->sourcehash.load_factor,
-                          sumfetches ? (double) p->stats.fetches / sumfetches : -1.0);
+                          sumfetches ? (double)p->stats.fetches / sumfetches : -1.0);
     }
 }
-

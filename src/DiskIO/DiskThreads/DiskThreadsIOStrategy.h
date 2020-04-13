@@ -11,13 +11,13 @@
 #ifndef __STORE_DISKTHREADEDIOSTRATEGY_H__
 #define __STORE_DISKTHREADEDIOSTRATEGY_H__
 
-#define _AIO_OPEN   0
-#define _AIO_READ   1
-#define _AIO_WRITE  2
-#define _AIO_CLOSE  3
+#define _AIO_OPEN 0
+#define _AIO_READ 1
+#define _AIO_WRITE 2
+#define _AIO_CLOSE 3
 #define _AIO_UNLINK 4
-#define _AIO_OPENDIR    5
-#define _AIO_STAT   6
+#define _AIO_OPENDIR 5
+#define _AIO_STAT 6
 #include "DiskIO/DiskIOStrategy.h"
 
 class DiskThreadsIOStrategy : public DiskIOStrategy
@@ -29,7 +29,7 @@ public:
     virtual int load();
     virtual RefCount<DiskFile> newFile(char const *path);
     virtual bool unlinkdUseful() const;
-    virtual void unlinkFile (char const *);
+    virtual void unlinkFile(char const *);
     virtual int callback();
     virtual void sync();
     virtual void init();
@@ -39,9 +39,8 @@ public:
     static DiskThreadsIOStrategy Instance;
 
 private:
-    static void aioStats(StoreEntry * sentry);
+    static void aioStats(StoreEntry *sentry);
     void registerWithCacheManager(void);
 };
 
 #endif
-

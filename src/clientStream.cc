@@ -9,11 +9,11 @@
 /* DEBUG: section 87    Client-side Stream routines. */
 
 #include "squid.h"
-#include "client_side_request.h"
 #include "clientStream.h"
-#include "http/Stream.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
+#include "client_side_request.h"
+#include "http/Stream.h"
 
 /**
  \defgroup ClientStreamInternal Client Streams Internals
@@ -83,14 +83,15 @@
 
 CBDATA_CLASS_INIT(clientStreamNode);
 
-clientStreamNode::clientStreamNode(CSR * aReadfunc, CSCB * aCallback, CSD * aDetach, CSS * aStatus, ClientStreamData aData) :
+clientStreamNode::clientStreamNode(CSR *aReadfunc, CSCB *aCallback, CSD *aDetach, CSS *aStatus, ClientStreamData aData) :
     head(NULL),
     readfunc(aReadfunc),
     callback(aCallback),
     detach(aDetach),
     status(aStatus),
     data(aData)
-{}
+{
+}
 
 clientStreamNode::~clientStreamNode()
 {
@@ -109,8 +110,8 @@ clientStreamNode::~clientStreamNode()
  * tailbuf and taillen are the initial buffer and length for the tail.
  */
 void
-clientStreamInit(dlink_list * list, CSR * func, CSD * rdetach, CSS * readstatus,
-                 ClientStreamData readdata, CSCB * callback, CSD * cdetach, ClientStreamData callbackdata,
+clientStreamInit(dlink_list *list, CSR *func, CSD *rdetach, CSS *readstatus,
+                 ClientStreamData readdata, CSCB *callback, CSD *cdetach, ClientStreamData callbackdata,
                  StoreIOBuffer tailBuffer)
 {
     clientStreamNode *temp = new clientStreamNode(func, NULL, rdetach, readstatus, readdata);
@@ -128,16 +129,15 @@ clientStreamInit(dlink_list * list, CSR * func, CSD * rdetach, CSS * readstatus,
  * This function is not suitable for inserting the real HEAD.
  */
 void
-clientStreamInsertHead(dlink_list * list, CSR * func, CSCB * callback,
-                       CSD * detach, CSS * status, ClientStreamData data)
+clientStreamInsertHead(dlink_list *list, CSR *func, CSCB *callback,
+                       CSD *detach, CSS *status, ClientStreamData data)
 {
     /* test preconditions */
     assert(list != NULL);
     assert(list->head);
     clientStreamNode *temp = new clientStreamNode(func, callback, detach, status, data);
     temp->head = list;
-    debugs(87, 3, "clientStreamInsertHead: Inserted node " << temp <<
-           " with data " << data.getRaw() << " after head");
+    debugs(87, 3, "clientStreamInsertHead: Inserted node " << temp << " with data " << data.getRaw() << " after head");
 
     if (list->head->next)
         temp->readBuffer = ((clientStreamNode *)list->head->next->data)->readBuffer;
@@ -147,15 +147,14 @@ clientStreamInsertHead(dlink_list * list, CSR * func, CSCB * callback,
 
 // API
 void
-clientStreamCallback(clientStreamNode * thisObject, ClientHttpRequest * http,
-                     HttpReply * rep, StoreIOBuffer replyBuffer)
+clientStreamCallback(clientStreamNode *thisObject, ClientHttpRequest *http,
+                     HttpReply *rep, StoreIOBuffer replyBuffer)
 {
     clientStreamNode *next;
     assert(thisObject && http && thisObject->node.next);
     next = thisObject->next();
 
-    debugs(87, 3, "clientStreamCallback: Calling " << next->callback << " with cbdata " <<
-           next->data.getRaw() << " from node " << thisObject);
+    debugs(87, 3, "clientStreamCallback: Calling " << next->callback << " with cbdata " << next->data.getRaw() << " from node " << thisObject);
     next->callback(next, http, rep, replyBuffer);
 }
 
@@ -168,7 +167,7 @@ clientStreamCallback(clientStreamNode * thisObject, ClientHttpRequest * http,
  \param readBuffer  ??
  */
 void
-clientStreamRead(clientStreamNode * thisObject, ClientHttpRequest * http,
+clientStreamRead(clientStreamNode *thisObject, ClientHttpRequest *http,
                  StoreIOBuffer readBuffer)
 {
     /* place the parameters on the 'stack' */
@@ -176,8 +175,7 @@ clientStreamRead(clientStreamNode * thisObject, ClientHttpRequest * http,
     assert(thisObject && http && thisObject->prev());
     prev = thisObject->prev();
 
-    debugs(87, 3, "clientStreamRead: Calling " << prev->readfunc <<
-           " with cbdata " << prev->data.getRaw() << " from node " << thisObject);
+    debugs(87, 3, "clientStreamRead: Calling " << prev->readfunc << " with cbdata " << prev->data.getRaw() << " from node " << thisObject);
     thisObject->readBuffer = readBuffer;
     prev->readfunc(prev, http);
 }
@@ -190,7 +188,7 @@ clientStreamRead(clientStreamNode * thisObject, ClientHttpRequest * http,
  \param http        ??
  */
 void
-clientStreamDetach(clientStreamNode * thisObject, ClientHttpRequest * http)
+clientStreamDetach(clientStreamNode *thisObject, ClientHttpRequest *http)
 {
     clientStreamNode *temp = thisObject;
 
@@ -233,7 +231,7 @@ clientStreamDetach(clientStreamNode * thisObject, ClientHttpRequest * http)
  \param http        ??
  */
 void
-clientStreamAbort(clientStreamNode * thisObject, ClientHttpRequest * http)
+clientStreamAbort(clientStreamNode *thisObject, ClientHttpRequest *http)
 {
     dlink_list *list;
 
@@ -255,7 +253,7 @@ clientStreamAbort(clientStreamNode * thisObject, ClientHttpRequest * http)
  \param http        ??
  */
 clientStream_status_t
-clientStreamStatus(clientStreamNode * thisObject, ClientHttpRequest * http)
+clientStreamStatus(clientStreamNode *thisObject, ClientHttpRequest *http)
 {
     clientStreamNode *prev;
     assert(thisObject && http && thisObject->node.prev);
@@ -289,4 +287,3 @@ clientStreamNode::next() const
     else
         return NULL;
 }
-

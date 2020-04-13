@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
+#include "LoadableModules.h"
 #include "Debug.h"
 #include "LoadableModule.h"
-#include "LoadableModules.h"
 #include "wordlist.h"
 
 static void
@@ -32,4 +32,3 @@ LoadableModulesConfigure(const wordlist *names)
         LoadModule(i->key);
     debugs(1, DBG_IMPORTANT, "Squid plugin modules loaded: " << count);
 }
-

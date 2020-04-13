@@ -21,11 +21,11 @@
 
 #include "mem/forward.h"
 
-#define MAX_ASYNCOP     128
+#define MAX_ASYNCOP 128
 
 typedef enum {
-    AQ_STATE_NONE,      /* Not active/uninitialised */
-    AQ_STATE_SETUP      /* Initialised */
+    AQ_STATE_NONE, /* Not active/uninitialised */
+    AQ_STATE_SETUP /* Initialised */
 } async_queue_state_t;
 
 typedef enum {
@@ -68,10 +68,9 @@ struct _async_queue_entry {
 
 struct _async_queue {
     async_queue_state_t aq_state;
-    async_queue_entry_t aq_queue[MAX_ASYNCOP];  /* queued ops */
-    int aq_numpending;      /* Num of pending ops */
+    async_queue_entry_t aq_queue[MAX_ASYNCOP]; /* queued ops */
+    int aq_numpending;                         /* Num of pending ops */
 };
 
 #endif /* HAVE_DISKIO_MODULE_AIO */
 #endif /* __ASYNC_IO_H_ */
-

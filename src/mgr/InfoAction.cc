@@ -9,27 +9,27 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/InfoAction.h"
+#include "HttpReply.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "base/TextException.h"
 #include "comm/Connection.h"
 #include "globals.h"
-#include "HttpReply.h"
 #include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
 #include "ipc/UdsOp.h"
 #include "mgr/Filler.h"
-#include "mgr/InfoAction.h"
 #include "mgr/Request.h"
 #include "mgr/Response.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "tools.h"
 
-void GetInfo(Mgr::InfoActionData& stats);
-void DumpInfo(Mgr::InfoActionData& stats, StoreEntry* sentry);
-void DumpMallocStatistics(StoreEntry* sentry);
+void GetInfo(Mgr::InfoActionData &stats);
+void DumpInfo(Mgr::InfoActionData &stats, StoreEntry *sentry);
+void DumpMallocStatistics(StoreEntry *sentry);
 
-Mgr::InfoActionData&
-Mgr::InfoActionData::operator += (const InfoActionData& stats)
+Mgr::InfoActionData &
+Mgr::InfoActionData::operator+=(const InfoActionData &stats)
 {
     if (!timerisset(&squid_start) || timercmp(&squid_start, &stats.squid_start, >))
         squid_start = stats.squid_start;
@@ -107,21 +107,21 @@ Mgr::InfoAction::Create(const CommandPointer &cmd)
     return new InfoAction(cmd);
 }
 
-Mgr::InfoAction::InfoAction(const CommandPointer &aCmd):
+Mgr::InfoAction::InfoAction(const CommandPointer &aCmd) :
     Action(aCmd), data()
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::InfoAction::add(const Action& action)
+Mgr::InfoAction::add(const Action &action)
 {
     debugs(16, 5, HERE);
-    data += dynamic_cast<const InfoAction&>(action).data;
+    data += dynamic_cast<const InfoAction &>(action).data;
 }
 
 void
-Mgr::InfoAction::respond(const Request& request)
+Mgr::InfoAction::respond(const Request &request)
 {
     debugs(16, 5, HERE);
     Ipc::ImportFdIntoComm(request.conn, SOCK_STREAM, IPPROTO_TCP, Ipc::fdnHttpSocket);
@@ -137,7 +137,7 @@ Mgr::InfoAction::collect()
 }
 
 void
-Mgr::InfoAction::dump(StoreEntry* entry)
+Mgr::InfoAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
@@ -154,16 +154,15 @@ Mgr::InfoAction::dump(StoreEntry* entry)
 }
 
 void
-Mgr::InfoAction::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::InfoAction::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtCacheMgrResponse);
     msg.putPod(data);
 }
 
 void
-Mgr::InfoAction::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::InfoAction::unpack(const Ipc::TypedMsgHdr &msg)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
     msg.getPod(data);
 }
-

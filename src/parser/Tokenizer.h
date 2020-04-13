@@ -13,8 +13,7 @@
 #include "sbuf/SBuf.h"
 
 /// Generic protocol-agnostic parsing tools
-namespace Parser
-{
+namespace Parser {
 
 /**
  * Lexical processor to tokenize a buffer.
@@ -29,7 +28,8 @@ namespace Parser
 class Tokenizer
 {
 public:
-    explicit Tokenizer(const SBuf &inBuf) : buf_(inBuf), parsed_(0) {}
+    explicit Tokenizer(const SBuf &inBuf) :
+        buf_(inBuf), parsed_(0) {}
 
     /// yet unparsed data
     SBuf buf() const { return buf_; }
@@ -41,7 +41,7 @@ public:
     bool atEnd() const { return buf_.isEmpty(); }
 
     /// the remaining unprocessed section of buffer
-    const SBuf& remaining() const { return buf_; }
+    const SBuf &remaining() const { return buf_; }
 
     /// reinitialize processing for a new buffer
     void reset(const SBuf &newBuf) { undoParse(newBuf, 0); }
@@ -163,14 +163,17 @@ protected:
     SBuf::size_type successTrailing(const SBuf::size_type n);
 
     /// reset the buffer and parsed stats to a saved checkpoint
-    void undoParse(const SBuf &newBuf, SBuf::size_type cParsed) { buf_ = newBuf; parsed_ = cParsed; }
+    void undoParse(const SBuf &newBuf, SBuf::size_type cParsed)
+    {
+        buf_ = newBuf;
+        parsed_ = cParsed;
+    }
 
 private:
-    SBuf buf_; ///< yet unparsed input
-    SBuf::size_type parsed_; ///< bytes successfully parsed, including skipped
+    SBuf buf_;                ///< yet unparsed input
+    SBuf::size_type parsed_;  ///< bytes successfully parsed, including skipped
 };
 
 } /* namespace Parser */
 
 #endif /* SQUID_PARSER_TOKENIZER_H_ */
-

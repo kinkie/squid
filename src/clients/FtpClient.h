@@ -14,8 +14,7 @@
 #include "clients/Client.h"
 
 class String;
-namespace Ftp
-{
+namespace Ftp {
 
 extern const char *const crlf;
 
@@ -32,11 +31,11 @@ public:
      */
     void close();
 
-    void forget(); /// remove the close handler, leave connection open
+    void forget();  /// remove the close handler, leave connection open
 
-    void clear(); ///< just drops conn and close handler. does not close active connections.
+    void clear();  ///< just drops conn and close handler. does not close active connections.
 
-    Comm::ConnectionPointer conn; ///< channel descriptor
+    Comm::ConnectionPointer conn;  ///< channel descriptor
 
     /** A temporary handle to the connection being listened on.
      * Closing this will also close the waiting Data channel acceptor.
@@ -45,14 +44,14 @@ public:
      */
     Comm::ConnectionPointer listenConn;
 
-    AsyncCall::Pointer opener; ///< Comm opener handler callback.
+    AsyncCall::Pointer opener;  ///< Comm opener handler callback.
 private:
-    AsyncCall::Pointer closer; ///< Comm close handler callback
+    AsyncCall::Pointer closer;  ///< Comm close handler callback
 };
 
 /// FTP channel for control commands.
 /// This channel is opened once per transaction.
-class CtrlChannel: public Ftp::Channel
+class CtrlChannel : public Ftp::Channel
 {
 public:
     CtrlChannel();
@@ -67,19 +66,19 @@ public:
     int replycode;
 
 private:
-    CtrlChannel(const CtrlChannel &); // not implemented
-    CtrlChannel &operator =(const CtrlChannel &); // not implemented
+    CtrlChannel(const CtrlChannel &);             // not implemented
+    CtrlChannel &operator=(const CtrlChannel &);  // not implemented
 };
 
 /// FTP channel for data exchanges.
 /// This channel may be opened/closed a few times.
-class DataChannel: public Ftp::Channel
+class DataChannel : public Ftp::Channel
 {
 public:
     DataChannel();
     ~DataChannel();
 
-    void addr(const Ip::Address &addr); ///< import host and port
+    void addr(const Ip::Address &addr);  ///< import host and port
 
 public:
     MemBuf *readBuf;
@@ -89,7 +88,7 @@ public:
 };
 
 /// FTP client functionality shared among FTP Gateway and Relay clients.
-class Client: public ::Client
+class Client : public ::Client
 {
     CBDATA_CLASS(Client);
 
@@ -121,8 +120,8 @@ public:
     bool openListenSocket();
     void switchTimeoutToDataChannel();
 
-    CtrlChannel ctrl; ///< FTP control channel state
-    DataChannel data; ///< FTP data channel state
+    CtrlChannel ctrl;  ///< FTP control channel state
+    DataChannel data;  ///< FTP data channel state
 
     enum {
         BEGIN,
@@ -150,8 +149,8 @@ public:
         SENT_FEAT,
         SENT_PWD,
         SENT_CDUP,
-        SENT_DATA_REQUEST, // LIST, NLST or RETR requests..
-        SENT_COMMAND, // General command
+        SENT_DATA_REQUEST,  // LIST, NLST or RETR requests..
+        SENT_COMMAND,       // General command
         END
     } ftp_state_t;
 
@@ -166,7 +165,7 @@ protected:
     /* Client API */
     virtual void closeServer();
     virtual bool doneWithServer() const;
-    virtual const Comm::ConnectionPointer & dataConnection() const;
+    virtual const Comm::ConnectionPointer &dataConnection() const;
     virtual void abortAll(const char *reason);
 
     virtual Http::StatusCode failedHttpStatus(err_type &error);
@@ -194,7 +193,6 @@ private:
     bool shortenReadTimeout;
 };
 
-} // namespace Ftp
+}  // namespace Ftp
 
 #endif /* SQUID_FTP_CLIENT_H */
-

@@ -9,17 +9,16 @@
 #ifndef _SQUID_SRC_HELPER_REPLY_H
 #define _SQUID_SRC_HELPER_REPLY_H
 
-#include "base/CbcPointer.h"
-#include "helper/forward.h"
-#include "helper/ReservationId.h"
-#include "helper/ResultCode.h"
 #include "MemBuf.h"
 #include "Notes.h"
+#include "base/CbcPointer.h"
+#include "helper/ReservationId.h"
+#include "helper/ResultCode.h"
+#include "helper/forward.h"
 
 #include <ostream>
 
-namespace Helper
-{
+namespace Helper {
 
 /**
  * This object stores the reply message from a helper lookup
@@ -31,15 +30,16 @@ class Reply
 private:
     // copy are prohibited for now
     Reply(const Helper::Reply &r);
-    Reply &operator =(const Helper::Reply &r);
+    Reply &operator=(const Helper::Reply &r);
 
 public:
-    explicit Reply(Helper::ResultCode res) : result(res), notes() {}
+    explicit Reply(Helper::ResultCode res) :
+        result(res), notes() {}
 
     /// Creates a NULL reply
     Reply();
 
-    const MemBuf &other() const {return other_.isNull() ? emptyBuf() : other_;};
+    const MemBuf &other() const { return other_.isNull() ? emptyBuf() : other_; };
 
     /** parse a helper response line format:
      *   line     := [ result ] *#( kv-pair )
@@ -63,6 +63,7 @@ public:
 
     /// The stateful replies should include the reservation ID
     Helper::ReservationId reservationId;
+
 private:
     void parseResponseKeys();
 
@@ -73,9 +74,8 @@ private:
     MemBuf other_;
 };
 
-} // namespace Helper
+}  // namespace Helper
 
-std::ostream &operator <<(std::ostream &os, const Helper::Reply &r);
+std::ostream &operator<<(std::ostream &os, const Helper::Reply &r);
 
 #endif /* _SQUID_SRC_HELPER_REPLY_H */
-

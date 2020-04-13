@@ -27,4 +27,3 @@ IcmpConfig::parse()
 }
 
 #endif /* USE_ICMP */
-

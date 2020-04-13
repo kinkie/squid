@@ -13,8 +13,8 @@
 #include "acl/Data.h"
 #include "acl/StringData.h"
 #include "ssl/support.h"
-#include <string>
 #include <list>
+#include <string>
 
 /// \ingroup ACLAPI
 class ACLCertificateData : public ACLData<X509 *>
@@ -24,7 +24,7 @@ class ACLCertificateData : public ACLData<X509 *>
 public:
     ACLCertificateData(Ssl::GETX509ATTRIBUTE *, const char *attributes, bool optionalAttr = false);
     ACLCertificateData(ACLCertificateData const &);
-    ACLCertificateData &operator= (ACLCertificateData const &);
+    ACLCertificateData &operator=(ACLCertificateData const &);
     virtual ~ACLCertificateData();
     bool match(X509 *);
     virtual SBufList dump() const;
@@ -50,4 +50,3 @@ private:
 };
 
 #endif /* SQUID_ACLCERTIFICATEDATA_H */
-

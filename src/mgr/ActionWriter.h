@@ -14,12 +14,11 @@
 #include "comm/forward.h"
 #include "mgr/StoreToCommWriter.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// Creates Store entry, fills it using action's fillEntry(), and
 /// Comm-writes it using parent StoreToCommWriter.
-class ActionWriter: public StoreToCommWriter
+class ActionWriter : public StoreToCommWriter
 {
     CBDATA_CLASS(ActionWriter);
 
@@ -31,10 +30,9 @@ protected:
     virtual void start();
 
 private:
-    Action::Pointer action; ///< action that fills the entry
+    Action::Pointer action;  ///< action that fills the entry
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_ACTION_WRITER_H */
-

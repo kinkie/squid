@@ -9,20 +9,20 @@
 /* DEBUG: section 00    Client Database */
 
 #include "squid.h"
-#include "base/RunnersRegistry.h"
 #include "client_db.h"
 #include "ClientInfo.h"
+#include "SquidConfig.h"
+#include "SquidMath.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "Store.h"
+#include "base/RunnersRegistry.h"
 #include "event.h"
 #include "format/Token.h"
 #include "fqdncache.h"
 #include "ip/Address.h"
 #include "log/access_log.h"
 #include "mgr/Registration.h"
-#include "SquidConfig.h"
-#include "SquidMath.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
-#include "Store.h"
 #include "tools.h"
 
 #if SQUID_SNMP
@@ -60,7 +60,8 @@ ClientInfo::ClientInfo(const Ip::Address &ip) :
     n_established(0),
     last_seen(0)
 #if USE_DELAY_POOLS
-    , writeLimitingActive(false),
+    ,
+    writeLimitingActive(false),
     firstTimeConnection(true),
     quotaQueue(nullptr),
     rationedQuota(0),
@@ -68,16 +69,16 @@ ClientInfo::ClientInfo(const Ip::Address &ip) :
     eventWaiting(false)
 #endif
 {
-    debugs(77, 9, "ClientInfo constructed, this=" << static_cast<void*>(this));
-    char *buf = static_cast<char*>(xmalloc(MAX_IPSTRLEN)); // becomes hash.key
-    key = addr.toStr(buf,MAX_IPSTRLEN);
+    debugs(77, 9, "ClientInfo constructed, this=" << static_cast<void *>(this));
+    char *buf = static_cast<char *>(xmalloc(MAX_IPSTRLEN));  // becomes hash.key
+    key = addr.toStr(buf, MAX_IPSTRLEN);
 }
 
 static ClientInfo *
 clientdbAdd(const Ip::Address &addr)
 {
     ClientInfo *c = new ClientInfo(addr);
-    hash_join(client_table, static_cast<hash_link*>(c));
+    hash_join(client_table, static_cast<hash_link *>(c));
     ++statCounter.client_http.clients;
 
     if ((statCounter.client_http.clients > max_clients) && !cleanup_running && cleanup_scheduled < 2) {
@@ -94,10 +95,10 @@ clientdbInit(void)
     if (client_table)
         return;
 
-    client_table = hash_create((HASHCMP *) strcmp, CLIENT_DB_HASH_SIZE, hash_string);
+    client_table = hash_create((HASHCMP *)strcmp, CLIENT_DB_HASH_SIZE, hash_string);
 }
 
-class ClientDbRr: public RegisteredRunner
+class ClientDbRr : public RegisteredRunner
 {
 public:
     /* RegisteredRunner API */
@@ -117,7 +118,8 @@ ClientDbRr::useConfig()
    Returns NULL if no such client (or clientdb turned off)
    (it is assumed that clientdbEstablished will be called before and create client record if needed)
 */
-ClientInfo * clientdbGetInfo(const Ip::Address &addr)
+ClientInfo *
+clientdbGetInfo(const Ip::Address &addr)
 {
     char key[MAX_IPSTRLEN];
     ClientInfo *c;
@@ -125,11 +127,11 @@ ClientInfo * clientdbGetInfo(const Ip::Address &addr)
     if (!Config.onoff.client_db)
         return NULL;
 
-    addr.toStr(key,MAX_IPSTRLEN);
+    addr.toStr(key, MAX_IPSTRLEN);
 
-    c = (ClientInfo *) hash_lookup(client_table, key);
-    if (c==NULL) {
-        debugs(77, DBG_IMPORTANT,"Client db does not contain information for given IP address "<<(const char*)key);
+    c = (ClientInfo *)hash_lookup(client_table, key);
+    if (c == NULL) {
+        debugs(77, DBG_IMPORTANT, "Client db does not contain information for given IP address " << (const char *)key);
         return NULL;
     }
     return c;
@@ -144,9 +146,9 @@ clientdbUpdate(const Ip::Address &addr, const LogTags &ltype, AnyP::ProtocolType
     if (!Config.onoff.client_db)
         return;
 
-    addr.toStr(key,MAX_IPSTRLEN);
+    addr.toStr(key, MAX_IPSTRLEN);
 
-    c = (ClientInfo *) hash_lookup(client_table, key);
+    c = (ClientInfo *)hash_lookup(client_table, key);
 
     if (c == NULL)
         c = clientdbAdd(addr);
@@ -155,15 +157,15 @@ clientdbUpdate(const Ip::Address &addr, const LogTags &ltype, AnyP::ProtocolType
         debug_trap("clientdbUpdate: Failed to add entry");
 
     if (p == AnyP::PROTO_HTTP) {
-        ++ c->Http.n_requests;
-        ++ c->Http.result_hist[ltype.oldType];
+        ++c->Http.n_requests;
+        ++c->Http.result_hist[ltype.oldType];
         c->Http.kbytes_out += size;
 
         if (ltype.isTcpHit())
             c->Http.hit_kbytes_out += size;
     } else if (p == AnyP::PROTO_ICP) {
-        ++ c->Icp.n_requests;
-        ++ c->Icp.result_hist[ltype.oldType];
+        ++c->Icp.n_requests;
+        ++c->Icp.result_hist[ltype.oldType];
         c->Icp.kbytes_out += size;
 
         if (LOG_UDP_HIT == ltype.oldType)
@@ -188,9 +190,9 @@ clientdbEstablished(const Ip::Address &addr, int delta)
     if (!Config.onoff.client_db)
         return 0;
 
-    addr.toStr(key,MAX_IPSTRLEN);
+    addr.toStr(key, MAX_IPSTRLEN);
 
-    c = (ClientInfo *) hash_lookup(client_table, key);
+    c = (ClientInfo *)hash_lookup(client_table, key);
 
     if (c == NULL) {
         c = clientdbAdd(addr);
@@ -218,9 +220,9 @@ clientdbCutoffDenied(const Ip::Address &addr)
     if (!Config.onoff.client_db)
         return 0;
 
-    addr.toStr(key,MAX_IPSTRLEN);
+    addr.toStr(key, MAX_IPSTRLEN);
 
-    c = (ClientInfo *) hash_lookup(client_table, key);
+    c = (ClientInfo *)hash_lookup(client_table, key);
 
     if (c == NULL)
         return 0;
@@ -249,11 +251,9 @@ clientdbCutoffDenied(const Ip::Address &addr)
 
     debugs(1, DBG_CRITICAL, "WARNING: Probable misconfigured neighbor at " << key);
 
-    debugs(1, DBG_CRITICAL, "WARNING: " << ND << " of the last " << NR <<
-           " ICP replies are DENIED");
+    debugs(1, DBG_CRITICAL, "WARNING: " << ND << " of the last " << NR << " ICP replies are DENIED");
 
-    debugs(1, DBG_CRITICAL, "WARNING: No replies will be sent for the next " <<
-           CUTOFF_SECONDS << " seconds");
+    debugs(1, DBG_CRITICAL, "WARNING: No replies will be sent for the next " << CUTOFF_SECONDS << " seconds");
 
     c->cutoff.time = squid_curtime;
 
@@ -265,7 +265,7 @@ clientdbCutoffDenied(const Ip::Address &addr)
 }
 
 void
-clientdbDump(StoreEntry * sentry)
+clientdbDump(StoreEntry *sentry)
 {
     const char *name;
     int icp_total = 0;
@@ -278,7 +278,7 @@ clientdbDump(StoreEntry * sentry)
     while (hash_link *hash = hash_next(client_table)) {
         const ClientInfo *c = static_cast<const ClientInfo *>(hash);
         storeAppendPrintf(sentry, "Address: %s\n", hashKeyStr(hash));
-        if ( (name = fqdncache_gethostbyaddr(c->addr, 0)) ) {
+        if ((name = fqdncache_gethostbyaddr(c->addr, 0))) {
             storeAppendPrintf(sentry, "Name:    %s\n", name);
         }
         storeAppendPrintf(sentry, "Currently established connections: %d\n",
@@ -340,11 +340,11 @@ ClientInfo::~ClientInfo()
 #if USE_DELAY_POOLS
     if (CommQuotaQueue *q = quotaQueue) {
         q->clientInfo = NULL;
-        delete q; // invalidates cbdata, cancelling any pending kicks
+        delete q;  // invalidates cbdata, cancelling any pending kicks
     }
 #endif
 
-    debugs(77, 9, "ClientInfo destructed, this=" << static_cast<void*>(this));
+    debugs(77, 9, "ClientInfo destructed, this=" << static_cast<void *>(this));
 }
 
 void
@@ -390,7 +390,7 @@ clientdbGC(void *)
         if (age < 60)
             continue;
 
-        hash_remove_link(client_table, static_cast<hash_link*>(c));
+        hash_remove_link(client_table, static_cast<hash_link *>(c));
 
         clientdbFreeItem(c);
 
@@ -433,7 +433,7 @@ client_entry(Ip::Address *current)
     hash_first(client_table);
 
     if (current) {
-        current->toStr(key,MAX_IPSTRLEN);
+        current->toStr(key, MAX_IPSTRLEN);
         while (hash_link *hash = hash_next(client_table)) {
             if (!strcmp(key, hashKeyStr(hash)))
                 break;
@@ -448,7 +448,7 @@ client_entry(Ip::Address *current)
 }
 
 variable_list *
-snmp_meshCtblFn(variable_list * Var, snint * ErrP)
+snmp_meshCtblFn(variable_list *Var, snint *ErrP)
 {
     char key[MAX_IPSTRLEN];
     ClientInfo *c = NULL;
@@ -468,7 +468,7 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 
     keyIp.toStr(key, sizeof(key));
     debugs(49, 5, HERE << "[" << key << "] requested!");
-    c = (ClientInfo *) hash_lookup(client_table, key);
+    c = (ClientInfo *)hash_lookup(client_table, key);
 
     if (c == NULL) {
         debugs(49, 5, HERE << "not found.");
@@ -483,11 +483,10 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 
     case MESH_CTBL_ADDR_TYPE: {
         int ival;
-        ival = c->addr.isIPv4() ? INETADDRESSTYPE_IPV4 : INETADDRESSTYPE_IPV6 ;
+        ival = c->addr.isIPv4() ? INETADDRESSTYPE_IPV4 : INETADDRESSTYPE_IPV6;
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
                                       ival, SMI_INTEGER);
-    }
-    break;
+    } break;
 
     case MESH_CTBL_ADDR: {
         Answer = snmp_var_new(Var->name, Var->name_length);
@@ -496,20 +495,19 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
         // See: rfc4001.txt
         Answer->type = ASN_OCTET_STR;
         char client[MAX_IPSTRLEN];
-        c->addr.toStr(client,MAX_IPSTRLEN);
+        c->addr.toStr(client, MAX_IPSTRLEN);
         Answer->val_len = strlen(client);
-        Answer->val.string =  (u_char *) xstrdup(client);
-    }
-    break;
+        Answer->val.string = (u_char *)xstrdup(client);
+    } break;
     case MESH_CTBL_HTBYTES:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) c->Http.kbytes_out.kb,
+                                      (snint)c->Http.kbytes_out.kb,
                                       SMI_COUNTER32);
         break;
 
     case MESH_CTBL_HTREQ:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) c->Http.n_requests,
+                                      (snint)c->Http.n_requests,
                                       SMI_COUNTER32);
         break;
 
@@ -522,38 +520,38 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
         }
 
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) aggr,
+                                      (snint)aggr,
                                       SMI_COUNTER32);
         break;
 
     case MESH_CTBL_HTHITBYTES:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) c->Http.hit_kbytes_out.kb,
+                                      (snint)c->Http.hit_kbytes_out.kb,
                                       SMI_COUNTER32);
         break;
 
     case MESH_CTBL_ICPBYTES:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) c->Icp.kbytes_out.kb,
+                                      (snint)c->Icp.kbytes_out.kb,
                                       SMI_COUNTER32);
         break;
 
     case MESH_CTBL_ICPREQ:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) c->Icp.n_requests,
+                                      (snint)c->Icp.n_requests,
                                       SMI_COUNTER32);
         break;
 
     case MESH_CTBL_ICPHITS:
         aggr = c->Icp.result_hist[LOG_UDP_HIT];
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) aggr,
+                                      (snint)aggr,
                                       SMI_COUNTER32);
         break;
 
     case MESH_CTBL_ICPHITBYTES:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      (snint) c->Icp.hit_kbytes_out.kb,
+                                      (snint)c->Icp.hit_kbytes_out.kb,
                                       SMI_COUNTER32);
         break;
 
@@ -567,4 +565,3 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 }
 
 #endif /*SQUID_SNMP */
-

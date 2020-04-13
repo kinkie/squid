@@ -38,15 +38,15 @@ SOFTWARE.
 /*
  * Set fields in session and pdu to the following to get a default or unconfigured value.
  */
-#define SNMP_DEFAULT_COMMUNITY_LEN  0   /* to get a default community name */
-#define SNMP_DEFAULT_RETRIES        3
-#define SNMP_DEFAULT_TIMEOUT        1
-#define SNMP_DEFAULT_REMPORT        0
-#define SNMP_DEFAULT_PEERNAME       NULL
-#define SNMP_DEFAULT_ENTERPRISE_LENGTH  0
-#define SNMP_DEFAULT_TIME       0
+#define SNMP_DEFAULT_COMMUNITY_LEN 0 /* to get a default community name */
+#define SNMP_DEFAULT_RETRIES 3
+#define SNMP_DEFAULT_TIMEOUT 1
+#define SNMP_DEFAULT_REMPORT 0
+#define SNMP_DEFAULT_PEERNAME NULL
+#define SNMP_DEFAULT_ENTERPRISE_LENGTH 0
+#define SNMP_DEFAULT_TIME 0
 #define SNMP_DEFAULT_MAXREPETITIONS 5
-#define SNMP_DEFAULT_MACREPEATERS   0
+#define SNMP_DEFAULT_MACREPEATERS 0
 
 #ifdef __cplusplus
 extern "C" {
@@ -176,5 +176,4 @@ void snmp_api_stats(void *);
 
 #endif
 
-#endif              /* SQUID_SNMP_API_H */
-
+#endif /* SQUID_SNMP_API_H */

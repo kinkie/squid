@@ -13,10 +13,10 @@
  * or perhaps use membuffers here?
  */
 
+#include "SquidString.h"
 #include "base/RefCount.h"
 #include "cbdata.h"
 #include "defines.h"
-#include "SquidString.h"
 
 class ESISegment : public RefCountable
 {
@@ -24,34 +24,34 @@ class ESISegment : public RefCountable
 
 public:
     typedef RefCount<ESISegment> Pointer;
-    static void ListAppend (Pointer &, char const *, size_t);
-    static void ListTransfer (Pointer &from, Pointer &to);
+    static void ListAppend(Pointer &, char const *, size_t);
+    static void ListTransfer(Pointer &from, Pointer &to);
 
-    ESISegment() : len(0), next(NULL) {*buf = 0;}
+    ESISegment() :
+        len(0), next(NULL) { *buf = 0; }
     ESISegment(ESISegment const &);
     ~ESISegment() {}
 
     ESISegment::Pointer cloneList() const;
     char *listToChar() const;
-    void listAppend (char const *s, size_t length);
-    void adsorbList (ESISegment::Pointer from);
+    void listAppend(char const *s, size_t length);
+    void adsorbList(ESISegment::Pointer from);
     size_t space() const;
 
     char buf[HTTP_REQBUF_SZ];
     size_t len; /* how much data has been pushed into this */
     Pointer next;
     size_t append(char const *, size_t);
-    size_t append (Pointer);
+    size_t append(Pointer);
     ESISegment const *tail() const;
     ESISegment *tail();
     void dumpToLog() const;
 
 private:
-    size_t listLength()const;
+    size_t listLength() const;
     void dumpOne() const;
 };
 
-void ESISegmentFreeList (ESISegment::Pointer &head);
+void ESISegmentFreeList(ESISegment::Pointer &head);
 
 #endif /* SQUID_ESISEGMENT_H */
-

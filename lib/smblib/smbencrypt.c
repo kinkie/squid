@@ -32,14 +32,13 @@
 
 #include "squid.h"
 
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <dirent.h>
-#include <string.h>
 #include <ctype.h>
+#include <dirent.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 /* AI inclusion for Solaris filesystem */
 #ifdef SOLARIS
@@ -64,22 +63,22 @@ static void strupper(char *s);
  * It takes a password, a 8 byte "crypt key" and puts 24 bytes of
  * encrypted password into p24 */
 void
-SMBencrypt(uchar * passwd, uchar * c8, uchar * p24)
+SMBencrypt(uchar *passwd, uchar *c8, uchar *p24)
 {
     uchar p14[15], p21[21];
 
     memset(p21, '\0', 21);
     memset(p14, '\0', 14);
-    StrnCpy((char *) p14, (char *) passwd, 14);
+    StrnCpy((char *)p14, (char *)passwd, 14);
 
-    strupper((char *) p14);
+    strupper((char *)p14);
     E_P16(p14, p21);
     E_P24(p21, c8, p24);
 }
 
 /* Routines for Windows NT MD4 Hash functions. */
 static int
-_my_wcslen(int16_t * str)
+_my_wcslen(int16_t *str)
 {
     int len = 0;
     while (*str++ != 0)
@@ -95,7 +94,7 @@ _my_wcslen(int16_t * str)
  */
 
 static int
-_my_mbstowcs(int16_t * dst, uchar * src, int len)
+_my_mbstowcs(int16_t *dst, uchar *src, int len)
 {
     int i;
     int16_t val;
@@ -116,28 +115,28 @@ _my_mbstowcs(int16_t * dst, uchar * src, int len)
  */
 
 void
-E_md4hash(uchar * passwd, uchar * p16)
+E_md4hash(uchar *passwd, uchar *p16)
 {
     int len;
     int16_t wpwd[129];
 
     /* Password cannot be longer than 128 characters */
-    len = strlen((char *) passwd);
+    len = strlen((char *)passwd);
     if (len > 128)
         len = 128;
     /* Password must be converted to NT unicode */
     _my_mbstowcs(wpwd, passwd, len);
-    wpwd[len] = 0;      /* Ensure string is null terminated */
+    wpwd[len] = 0; /* Ensure string is null terminated */
     /* Calculate length in bytes */
     len = _my_wcslen(wpwd) * sizeof(int16_t);
 
-    mdfour(p16, (unsigned char *) wpwd, len);
+    mdfour(p16, (unsigned char *)wpwd, len);
 }
 
 /* Does the NT MD4 hash then des encryption. */
 
 void
-SMBNTencrypt(uchar * passwd, uchar * c8, uchar * p24)
+SMBNTencrypt(uchar *passwd, uchar *c8, uchar *p24)
 {
     uchar p21[21];
 
@@ -157,7 +156,7 @@ nt_lm_owf_gen(char *pwd, char *nt_p16, char *p16)
 
     /* Calculate the MD4 hash (NT compatible) of the password */
     memset(nt_p16, '\0', 16);
-    E_md4hash((uchar *) passwd, (uchar *) nt_p16);
+    E_md4hash((uchar *)passwd, (uchar *)nt_p16);
 
     /* Mangle the passwords into Lanman format */
     passwd[14] = '\0';
@@ -166,7 +165,7 @@ nt_lm_owf_gen(char *pwd, char *nt_p16, char *p16)
     /* Calculate the SMB (lanman) hash functions of the password */
 
     memset(p16, '\0', 16);
-    E_P16((uchar *) passwd, (uchar *) p16);
+    E_P16((uchar *)passwd, (uchar *)p16);
 
     /* clear out local copy of user's password (just being paranoid). */
     memset(passwd, 0, sizeof(passwd));
@@ -185,7 +184,8 @@ StrnCpy(char *dest, char *src, int n)
         *dest = 0;
         return (dest);
     }
-    while (n-- && (*d++ = *src++));
+    while (n-- && (*d++ = *src++))
+        ;
     *d = 0;
     return (dest);
 }
@@ -219,4 +219,3 @@ strupper(char *s)
         }
     }
 }
-

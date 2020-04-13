@@ -19,7 +19,7 @@
 
 #if !defined(HAVE_GETPAGESIZE)
 #define HAVE_GETPAGESIZE
-#define getpagesize( )   sysconf(_SC_PAGE_SIZE)
+#define getpagesize() sysconf(_SC_PAGE_SIZE)
 #endif
 
 /*
@@ -27,7 +27,7 @@
  */
 #if !HAVE_GETRUSAGE
 #define HAVE_GETRUSAGE 1
-#define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
+#define getrusage(a, b) syscall(SYS_GETRUSAGE, a, b)
 #endif
 
 /*
@@ -35,9 +35,8 @@
  */
 #if !defined(HAVE_GETPAGESIZE)
 #define HAVE_GETPAGESIZE
-#define getpagesize( )   sysconf(_SC_PAGE_SIZE)
+#define getpagesize() sysconf(_SC_PAGE_SIZE)
 #endif
 
 #endif /* _SQUID_HPUX_ */
 #endif /* SQUID_OS_HPUX_H */
-

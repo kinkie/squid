@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
-#include "Store.h"
 #include "testStore.h"
+#include "Store.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testStore );
+CPPUNIT_TEST_SUITE_REGISTRATION(testStore);
 
 int
 TestStore::callback()
@@ -19,19 +19,21 @@ TestStore::callback()
     return 1;
 }
 
-StoreEntry*
-TestStore::get(const cache_key*)
+StoreEntry *
+TestStore::get(const cache_key *)
 {
     return NULL;
 }
 
 void
-TestStore::get(String, void (*)(StoreEntry*, void*), void*)
-{}
+TestStore::get(String, void (*)(StoreEntry *, void *), void *)
+{
+}
 
 void
 TestStore::init()
-{}
+{
+}
 
 uint64_t
 TestStore::maxSize() const
@@ -98,7 +100,7 @@ testStore::testUnsetRoot()
     Store::Init(aStore);
     Store::FreeMemory();
     Store::Init(aStore2);
-    CPPUNIT_ASSERT_EQUAL(&Store::Root(),aStore2);
+    CPPUNIT_ASSERT_EQUAL(&Store::Root(), aStore2);
     Store::FreeMemory();
 }
 
@@ -122,4 +124,3 @@ testStore::testMaxSize()
     CPPUNIT_ASSERT_EQUAL(static_cast<uint64_t>(3), aStore->maxSize());
     Store::FreeMemory();
 }
-

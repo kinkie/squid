@@ -9,13 +9,13 @@
 #ifndef SQUID_SRC_MASTERXACTION_H
 #define SQUID_SRC_MASTERXACTION_H
 
-#include "anyp/forward.h"
+#include "XactionInitiator.h"
 #include "anyp/PortCfg.h"
+#include "anyp/forward.h"
 #include "base/InstanceId.h"
 #include "base/Lock.h"
 #include "base/RefCount.h"
 #include "comm/forward.h"
-#include "XactionInitiator.h"
 
 /** Master transaction details.
  *
@@ -41,7 +41,8 @@ class MasterXaction : public RefCountable
 public:
     typedef RefCount<MasterXaction> Pointer;
 
-    explicit MasterXaction(const XactionInitiator anInitiator) : initiator(anInitiator) {};
+    explicit MasterXaction(const XactionInitiator anInitiator) :
+        initiator(anInitiator) {};
 
     /// transaction ID.
     InstanceId<MasterXaction, uint64_t> id;
@@ -62,4 +63,3 @@ public:
 };
 
 #endif /* SQUID_SRC_MASTERXACTION_H */
-

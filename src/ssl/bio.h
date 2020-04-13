@@ -11,10 +11,10 @@
 
 #if USE_OPENSSL
 
-#include "compat/openssl.h"
 #include "FadingCounter.h"
-#include "fd.h"
 #include "MemBuf.h"
+#include "compat/openssl.h"
+#include "fd.h"
 #include "security/Handshake.h"
 #include "ssl/support.h"
 
@@ -26,8 +26,7 @@
 #include <string>
 #include <type_traits>
 
-namespace Ssl
-{
+namespace Ssl {
 
 /// BIO source and sink node, handling socket I/O and monitoring SSL state
 class Bio
@@ -46,7 +45,7 @@ public:
     /// The Ssl::Bio does not buffer any data, so this method has nothing to do
     virtual void flush(BIO *table) {}
 
-    int fd() const { return fd_; } ///< The SSL socket descriptor
+    int fd() const { return fd_; }  ///< The SSL socket descriptor
 
     /// Called by linked SSL connection whenever state changes, an alert
     /// appears, or an error occurs. See SSL_set_info_callback().
@@ -58,16 +57,16 @@ public:
     /// Tells ssl connection to use BIO and monitor state via stateChanged()
     static void Link(SSL *ssl, BIO *bio);
 
-    const SBuf &rBufData() {return rbuf;} ///< The buffered input data
+    const SBuf &rBufData() { return rbuf; }  ///< The buffered input data
 protected:
-    const int fd_; ///< the SSL socket we are reading and writing
-    SBuf rbuf;  ///< Used to buffer input data.
+    const int fd_;  ///< the SSL socket we are reading and writing
+    SBuf rbuf;      ///< Used to buffer input data.
 };
 
 /// BIO node to handle socket IO for squid client side
 /// If bumping is enabled  this Bio detects and analyses client hello message
 /// to retrieve the SSL features supported by the client
-class ClientBio: public Bio
+class ClientBio : public Bio
 {
 public:
     explicit ClientBio(const int anFd);
@@ -83,12 +82,13 @@ public:
     /// to socket and sets the "read retry" flag of the BIO to true
     virtual int read(char *buf, int size, BIO *table);
     /// Prevents or allow writing on socket.
-    void hold(bool h) {holdRead_ = holdWrite_ = h;}
+    void hold(bool h) { holdRead_ = holdWrite_ = h; }
 
     /// Sets the buffered input data (Bio::rbuf).
     /// Used to pass payload data (normally client HELLO data) retrieved
     /// by the caller.
-    void setReadBufData(SBuf &data) {rbuf = data;}
+    void setReadBufData(SBuf &data) { rbuf = data; }
+
 private:
     /// approximate size of a time window for computing client-initiated renegotiation rate (in seconds)
     static const time_t RenegotiationsWindow = 10;
@@ -96,10 +96,10 @@ private:
     /// the maximum tolerated number of client-initiated renegotiations in RenegotiationsWindow
     static const int RenegotiationsLimit = 5;
 
-    bool holdRead_; ///< The read hold state of the bio.
-    bool holdWrite_;  ///< The write hold state of the bio.
-    int helloSize; ///< The SSL hello message sent by client size
-    FadingCounter renegotiations; ///< client requested renegotiations limit control
+    bool holdRead_;                ///< The read hold state of the bio.
+    bool holdWrite_;               ///< The write hold state of the bio.
+    int helloSize;                 ///< The SSL hello message sent by client size
+    FadingCounter renegotiations;  ///< client requested renegotiations limit control
 
     /// why we should terminate the connection during next TLS operation (or nil)
     const char *abortReason;
@@ -120,7 +120,7 @@ private:
 ///  object members to replace hello message with web client hello message.
 ///  This is may allow bumping in peek mode and splicing in stare mode after
 ///  the server hello message received.
-class ServerBio: public Bio
+class ServerBio : public Bio
 {
 public:
     explicit ServerBio(const int anFd);
@@ -144,22 +144,22 @@ public:
     bool resumingSession();
 
     /// The write hold state
-    bool holdWrite() const {return holdWrite_;}
+    bool holdWrite() const { return holdWrite_; }
     /// Enables or disables the write hold state
-    void holdWrite(bool h) {holdWrite_ = h;}
+    void holdWrite(bool h) { holdWrite_ = h; }
     /// The read hold state
-    bool holdRead() const {return holdRead_;}
+    bool holdRead() const { return holdRead_; }
     /// Enables or disables the read hold state
-    void holdRead(bool h) {holdRead_ = h;}
+    void holdRead(bool h) { holdRead_ = h; }
     /// Enables or disables the input data recording, for internal analysis.
-    void recordInput(bool r) {record_ = r;}
+    void recordInput(bool r) { record_ = r; }
     /// Whether we can splice or not the SSL stream
-    bool canSplice() {return allowSplice;}
+    bool canSplice() { return allowSplice; }
     /// Whether we can bump or not the SSL stream
-    bool canBump() {return allowBump;}
+    bool canBump() { return allowBump; }
     /// The bumping mode
-    void mode(Ssl::BumpMode m) {bumpMode_ = m;}
-    Ssl::BumpMode bumpMode() {return bumpMode_;} ///< return the bumping mode
+    void mode(Ssl::BumpMode m) { bumpMode_ = m; }
+    Ssl::BumpMode bumpMode() { return bumpMode_; }  ///< return the bumping mode
 
     /// \retval true if the Server hello message received
     bool gotHello() const { return (parsedHandshake && !parseError); }
@@ -171,7 +171,7 @@ public:
     const Security::CertList &serverCertificatesIfAny() { return parser_.serverCertificates; }
 
     /// \return the TLS Details advertised by TLS server.
-    const Security::TlsDetails::Pointer &receivedHelloDetails() const {return parser_.details;}
+    const Security::TlsDetails::Pointer &receivedHelloDetails() const { return parser_.details; }
 
 private:
     int readAndGive(char *buf, const int size, BIO *table);
@@ -183,28 +183,27 @@ private:
     Security::TlsDetails::Pointer clientTlsDetails;
     /// TLS client hello message, used to adapt our tls Hello message to the server
     SBuf clientSentHello;
-    SBuf helloMsg; ///< Used to buffer output data.
-    mb_size_t  helloMsgSize;
-    bool helloBuild; ///< True if the client hello message sent to the server
-    bool allowSplice; ///< True if the SSL stream can be spliced
-    bool allowBump;  ///< True if the SSL stream can be bumped
-    bool holdWrite_;  ///< The write hold state of the bio.
-    bool holdRead_;  ///< The read hold state of the bio.
-    bool record_; ///< If true the input data recorded to rbuf for internal use
-    bool parsedHandshake; ///< whether we are done parsing TLS Hello
-    bool parseError; ///< error while parsing server hello message
+    SBuf helloMsg;  ///< Used to buffer output data.
+    mb_size_t helloMsgSize;
+    bool helloBuild;       ///< True if the client hello message sent to the server
+    bool allowSplice;      ///< True if the SSL stream can be spliced
+    bool allowBump;        ///< True if the SSL stream can be bumped
+    bool holdWrite_;       ///< The write hold state of the bio.
+    bool holdRead_;        ///< The read hold state of the bio.
+    bool record_;          ///< If true the input data recorded to rbuf for internal use
+    bool parsedHandshake;  ///< whether we are done parsing TLS Hello
+    bool parseError;       ///< error while parsing server hello message
     Ssl::BumpMode bumpMode_;
 
     /// The size of data stored in rbuf which passed to the openSSL
     size_t rbufConsumePos;
-    Security::HandshakeParser parser_; ///< The TLS/SSL messages parser.
+    Security::HandshakeParser parser_;  ///< The TLS/SSL messages parser.
 };
 
-} // namespace Ssl
+}  // namespace Ssl
 
 void
 applyTlsDetailsToSSL(SSL *ssl, Security::TlsDetails::Pointer const &details, Ssl::BumpMode bumpMode);
 
 #endif /* USE_OPENSSL */
 #endif /* SQUID_SSL_BIO_H */
-

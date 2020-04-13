@@ -9,9 +9,9 @@
 #ifndef SQUID_SRC_HTTP_STREAM_H
 #define SQUID_SRC_HTTP_STREAM_H
 
+#include "StoreIOBuffer.h"
 #include "http/forward.h"
 #include "mem/forward.h"
-#include "StoreIOBuffer.h"
 #if USE_DELAY_POOLS
 #include "MessageBucket.h"
 #endif
@@ -19,8 +19,7 @@
 class clientStreamNode;
 class ClientHttpRequest;
 
-namespace Http
-{
+namespace Http {
 
 /**
  * The processing context for a single HTTP transaction (stream).
@@ -79,7 +78,7 @@ public:
     void registerWithConn();
 
     /// whether it is registered with a Server
-    bool connRegistered() const {return connRegistered_;};
+    bool connRegistered() const { return connRegistered_; };
 
     /// whether the reply has started being sent
     bool startOfOutput() const;
@@ -110,8 +109,8 @@ public:
     /// add Range headers (if any) to the given HTTP reply message
     void buildRangeHeader(HttpReply *);
 
-    clientStreamNode * getTail() const;
-    clientStreamNode * getClientReplyContext() const;
+    clientStreamNode *getTail() const;
+    clientStreamNode *getClientReplyContext() const;
 
     ConnStateData *getConn() const;
 
@@ -126,20 +125,20 @@ public:
 
     void deferRecipientForLater(clientStreamNode *, HttpReply *, StoreIOBuffer receivedData);
 
-public: // HTTP/1.x state data
-
-    Comm::ConnectionPointer clientConnection; ///< details about the client connection socket
-    ClientHttpRequest *http;    /* we pretend to own that Job */
+public:                                        // HTTP/1.x state data
+    Comm::ConnectionPointer clientConnection;  ///< details about the client connection socket
+    ClientHttpRequest *http;                   /* we pretend to own that Job */
     HttpReply *reply;
     char reqbuf[HTTP_REQBUF_SZ];
     struct {
-        unsigned deferred:1; ///< This is a pipelined request waiting for the current object to complete
-        unsigned parsed_ok:1; ///< Was this parsed correctly?
+        unsigned deferred : 1;   ///< This is a pipelined request waiting for the current object to complete
+        unsigned parsed_ok : 1;  ///< Was this parsed correctly?
     } flags;
 
-    bool mayUseConnection() const {return mayUseConnection_;}
+    bool mayUseConnection() const { return mayUseConnection_; }
 
-    void mayUseConnection(bool aBool) {
+    void mayUseConnection(bool aBool)
+    {
         mayUseConnection_ = aBool;
         debugs(33, 3, "This " << this << " marked " << aBool);
     }
@@ -165,11 +164,10 @@ private:
     bool mayUseConnection_; /* This request may use the connection. Don't read anymore requests for now */
     bool connRegistered_;
 #if USE_DELAY_POOLS
-    MessageBucket::Pointer writeQuotaHandler; ///< response write limiter, if configured
+    MessageBucket::Pointer writeQuotaHandler;  ///< response write limiter, if configured
 #endif
 };
 
-} // namespace Http
+}  // namespace Http
 
 #endif /* SQUID_SRC_HTTP_STREAM_H */
-

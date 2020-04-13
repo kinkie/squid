@@ -18,8 +18,7 @@
 #endif
 #endif
 
-namespace Security
-{
+namespace Security {
 
 /// TLS squid.conf settings for a listening port
 class ServerOptions : public PeerOptions
@@ -30,20 +29,27 @@ public:
     typedef std::unique_ptr<STACK_OF(X509_NAME), Security::ServerOptions::sk_X509_NAME_free_wrapper> X509_NAME_STACK_Pointer;
 #endif
 
-    ServerOptions() : PeerOptions() {
+    ServerOptions() :
+        PeerOptions()
+    {
         // Bug 4005: dynamic contexts use a lot of memory and it
         // is more secure to have only a small set of trusted CA.
         flags.tlsDefaultCa.defaultTo(false);
     }
-    ServerOptions(const ServerOptions &o): ServerOptions() { *this = o; }
-    ServerOptions &operator =(const ServerOptions &);
-    ServerOptions(ServerOptions &&o) { this->operator =(o); }
-    ServerOptions &operator =(ServerOptions &&o) { this->operator =(o); return *this; }
+    ServerOptions(const ServerOptions &o) :
+        ServerOptions() { *this = o; }
+    ServerOptions &operator=(const ServerOptions &);
+    ServerOptions(ServerOptions &&o) { this->operator=(o); }
+    ServerOptions &operator=(ServerOptions &&o)
+    {
+        this->operator=(o);
+        return *this;
+    }
     virtual ~ServerOptions() = default;
 
     /* Security::PeerOptions API */
     virtual void parse(const char *);
-    virtual void clear() {*this = ServerOptions();}
+    virtual void clear() { *this = ServerOptions(); }
     virtual Security::ContextPointer createBlankContext() const;
     virtual void dumpCfg(Packable *, const char *pfx) const;
 
@@ -69,26 +75,26 @@ public:
 public:
     /// TLS context to use for HTTPS accelerator or static SSL-Bump
     Security::ContextPointer staticContext;
-    SBuf staticContextSessionId; ///< "session id context" for staticContext
+    SBuf staticContextSessionId;  ///< "session id context" for staticContext
 
 #if USE_OPENSSL
-    bool generateHostCertificates = true; ///< dynamically make host cert
+    bool generateHostCertificates = true;  ///< dynamically make host cert
 #elif USE_GNUTLS
     // TODO: GnuTLS does implement TLS server connections so the cert
     // generate vs static choice can be reached in the code now.
     // But this feature is not fully working implemented so must not
     // be enabled by default for production installations.
-    bool generateHostCertificates = false; ///< dynamically make host cert
+    bool generateHostCertificates = false;  ///< dynamically make host cert
 #else
     // same as OpenSSL so config errors show up easily
-    bool generateHostCertificates = true; ///< dynamically make host cert
+    bool generateHostCertificates = true;  ///< dynamically make host cert
 #endif
 
-    Security::KeyData signingCa; ///< x509 certificate and key for signing generated certificates
-    Security::KeyData untrustedSigningCa; ///< x509 certificate and key for signing untrusted generated certificates
+    Security::KeyData signingCa;           ///< x509 certificate and key for signing generated certificates
+    Security::KeyData untrustedSigningCa;  ///< x509 certificate and key for signing untrusted generated certificates
 
     /// max size of generated certificates memory cache (4 MB default)
-    size_t dynamicCertMemCacheSize = 4*1024*1024;
+    size_t dynamicCertMemCacheSize = 4 * 1024 * 1024;
 
 private:
     bool loadClientCaFile();
@@ -116,10 +122,9 @@ private:
     SBuf dhParamsFile;  ///< Diffi-Helman ciphers parameter file
     SBuf eecdhCurve;    ///< Elliptic curve for ephemeral EC-based DH key exchanges
 
-    Security::DhePointer parsedDhParams; ///< DH parameters for temporary/ephemeral DH key exchanges
+    Security::DhePointer parsedDhParams;  ///< DH parameters for temporary/ephemeral DH key exchanges
 };
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_SERVEROPTIONS_H */
-

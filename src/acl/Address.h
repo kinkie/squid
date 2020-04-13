@@ -12,8 +12,7 @@
 #include "acl/Acl.h"
 #include "ip/Address.h"
 
-namespace Acl
-{
+namespace Acl {
 
 /// list of address-based ACLs.
 class Address
@@ -21,7 +20,8 @@ class Address
     CBDATA_CLASS(Address);
 
 public:
-    Address() : next(NULL), aclList(NULL) {}
+    Address() :
+        next(NULL), aclList(NULL) {}
     ~Address();
 
     Acl::Address *next;
@@ -30,7 +30,6 @@ public:
     Ip::Address addr;
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* _SQUID_SRC_ACL_ADDRESS_H */
-

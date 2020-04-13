@@ -9,35 +9,34 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "ipc/TypedMsgHdr.h"
 #include "mgr/StringParam.h"
+#include "ipc/TypedMsgHdr.h"
 
-Mgr::StringParam::StringParam():
+Mgr::StringParam::StringParam() :
     QueryParam(QueryParam::ptString), str()
 {
 }
 
-Mgr::StringParam::StringParam(const String& aString):
+Mgr::StringParam::StringParam(const String &aString) :
     QueryParam(QueryParam::ptString), str(aString)
 {
 }
 
 void
-Mgr::StringParam::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::StringParam::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.putPod(type);
     msg.putString(str);
 }
 
 void
-Mgr::StringParam::unpackValue(const Ipc::TypedMsgHdr& msg)
+Mgr::StringParam::unpackValue(const Ipc::TypedMsgHdr &msg)
 {
     msg.getString(str);
 }
 
-const String&
+const String &
 Mgr::StringParam::value() const
 {
     return str;
 }
-

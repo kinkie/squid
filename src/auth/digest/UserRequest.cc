@@ -7,19 +7,19 @@
  */
 
 #include "squid.h"
-#include "AccessLogEntry.h"
-#include "auth/digest/Config.h"
-#include "auth/digest/User.h"
 #include "auth/digest/UserRequest.h"
-#include "auth/State.h"
-#include "format/Format.h"
-#include "helper.h"
-#include "helper/Reply.h"
+#include "AccessLogEntry.h"
 #include "HttpHeaderTools.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "MemBuf.h"
 #include "SquidTime.h"
+#include "auth/State.h"
+#include "auth/digest/Config.h"
+#include "auth/digest/User.h"
+#include "format/Format.h"
+#include "helper.h"
+#include "helper/Reply.h"
 
 Auth::Digest::UserRequest::UserRequest() :
     noncehex(NULL),
@@ -43,7 +43,7 @@ Auth::Digest::UserRequest::UserRequest() :
  */
 Auth::Digest::UserRequest::~UserRequest()
 {
-    assert(LockCount()==0);
+    assert(LockCount() == 0);
 
     safe_free(noncehex);
     safe_free(cnonce);
@@ -77,7 +77,7 @@ Auth::Digest::UserRequest::credentialsStr()
 /** log a digest user in
  */
 void
-Auth::Digest::UserRequest::authenticate(HttpRequest * request, ConnStateData *, Http::HdrType)
+Auth::Digest::UserRequest::authenticate(HttpRequest *request, ConnStateData *, Http::HdrType)
 {
     HASHHEX SESSIONKEY;
     HASHHEX HA2 = "";
@@ -90,7 +90,7 @@ Auth::Digest::UserRequest::authenticate(HttpRequest * request, ConnStateData *, 
 
     Auth::User::Pointer auth_user = user();
 
-    Auth::Digest::User *digest_user = dynamic_cast<Auth::Digest::User*>(auth_user.getRaw());
+    Auth::Digest::User *digest_user = dynamic_cast<Auth::Digest::User *>(auth_user.getRaw());
     assert(digest_user != NULL);
 
     Auth::Digest::UserRequest *digest_request = this;
@@ -126,7 +126,7 @@ Auth::Digest::UserRequest::authenticate(HttpRequest * request, ConnStateData *, 
             return;
         }
 
-        if (static_cast<Auth::Digest::Config*>(Auth::SchemeConfig::Find("digest"))->PostWorkaround && request->method != Http::METHOD_GET) {
+        if (static_cast<Auth::Digest::Config *>(Auth::SchemeConfig::Find("digest"))->PostWorkaround && request->method != Http::METHOD_GET) {
             /* Ugly workaround for certain very broken browsers using the
              * wrong method to calculate the request-digest on POST request.
              * This should be deleted once Digest authentication becomes more
@@ -155,10 +155,7 @@ Auth::Digest::UserRequest::authenticate(HttpRequest * request, ConnStateData *, 
                 }
 
                 if (last_broken_addr != request->client_addr) {
-                    debugs(29, DBG_IMPORTANT, "Digest POST bug detected from " <<
-                           request->client_addr << " using '" <<
-                           (useragent ? useragent : "-") <<
-                           "'. Please upgrade browser. See Bug #630 for details.");
+                    debugs(29, DBG_IMPORTANT, "Digest POST bug detected from " << request->client_addr << " using '" << (useragent ? useragent : "-") << "'. Please upgrade browser. See Bug #630 for details.");
 
                     last_broken_addr = request->client_addr;
                 }
@@ -215,13 +212,13 @@ Auth::Digest::UserRequest::module_direction()
 }
 
 void
-Auth::Digest::UserRequest::addAuthenticationInfoHeader(HttpReply * rep, int accel)
+Auth::Digest::UserRequest::addAuthenticationInfoHeader(HttpReply *rep, int accel)
 {
     Http::HdrType type;
 
     /* don't add to authentication error pages */
     if ((!accel && rep->sline.status() == Http::scProxyAuthenticationRequired)
-            || (accel && rep->sline.status() == Http::scUnauthorized))
+        || (accel && rep->sline.status() == Http::scUnauthorized))
         return;
 
     type = accel ? Http::HdrType::AUTHENTICATION_INFO : Http::HdrType::PROXY_AUTHENTICATION_INFO;
@@ -232,7 +229,7 @@ Auth::Digest::UserRequest::addAuthenticationInfoHeader(HttpReply * rep, int acce
         return;
 #endif
 
-    if ((static_cast<Auth::Digest::Config*>(Auth::SchemeConfig::Find("digest"))->authenticateProgram) && authDigestNonceLastRequest(nonce)) {
+    if ((static_cast<Auth::Digest::Config *>(Auth::SchemeConfig::Find("digest"))->authenticateProgram) && authDigestNonceLastRequest(nonce)) {
         flags.authinfo_sent = true;
         Auth::Digest::User *digest_user = dynamic_cast<Auth::Digest::User *>(user().getRaw());
         if (!digest_user)
@@ -250,7 +247,7 @@ Auth::Digest::UserRequest::addAuthenticationInfoHeader(HttpReply * rep, int acce
 
 #if WAITING_FOR_TE
 void
-Auth::Digest::UserRequest::addAuthenticationInfoTrailer(HttpReply * rep, int accel)
+Auth::Digest::UserRequest::addAuthenticationInfoTrailer(HttpReply *rep, int accel)
 {
     int type;
 
@@ -263,12 +260,12 @@ Auth::Digest::UserRequest::addAuthenticationInfoTrailer(HttpReply * rep, int acc
 
     /* don't add to authentication error pages */
     if ((!accel && rep->sline.status() == Http::scProxyAuthenticationRequired)
-            || (accel && rep->sline.status() == Http::scUnauthorized))
+        || (accel && rep->sline.status() == Http::scUnauthorized))
         return;
 
     type = accel ? Http::HdrType::AUTHENTICATION_INFO : Http::HdrType::PROXY_AUTHENTICATION_INFO;
 
-    if ((static_cast<Auth::Digest::Config*>(digestScheme::GetInstance()->getConfig())->authenticate) && authDigestNonceLastRequest(nonce)) {
+    if ((static_cast<Auth::Digest::Config *>(digestScheme::GetInstance()->getConfig())->authenticate) && authDigestNonceLastRequest(nonce)) {
         Auth::Digest::User *digest_user = dynamic_cast<Auth::Digest::User *>(auth_user_request->user().getRaw());
         nonce = digest_user->currentNonce();
         if (!nonce) {
@@ -283,14 +280,14 @@ Auth::Digest::UserRequest::addAuthenticationInfoTrailer(HttpReply * rep, int acc
 
 /* send the initial data to a digest authenticator module */
 void
-Auth::Digest::UserRequest::startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB * handler, void *data)
+Auth::Digest::UserRequest::startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *handler, void *data)
 {
     char buf[8192];
 
     assert(user() != NULL && user()->auth_type == Auth::AUTH_DIGEST);
     debugs(29, 9, HERE << "'\"" << user()->username() << "\":\"" << realm << "\"'");
 
-    if (static_cast<Auth::Digest::Config*>(Auth::SchemeConfig::Find("digest"))->authenticateProgram == NULL) {
+    if (static_cast<Auth::Digest::Config *>(Auth::SchemeConfig::Find("digest"))->authenticateProgram == NULL) {
         debugs(29, DBG_CRITICAL, "ERROR: No Digest authentication program configured.");
         handler(data);
         return;
@@ -317,7 +314,7 @@ Auth::Digest::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
 
     // add new helper kv-pair notes to the credentials object
     // so that any transaction using those credentials can access them
-    static const NotePairs::Names appendables = { SBuf("group"), SBuf("nonce"), SBuf("tag") };
+    static const NotePairs::Names appendables = {SBuf("group"), SBuf("nonce"), SBuf("tag")};
     auth_user_request->user()->notes.replaceOrAddOrAppend(&reply.notes, appendables);
     // remove any private credentials detail which got added.
     auth_user_request->user()->notes.remove("ha1");
@@ -329,7 +326,7 @@ Auth::Digest::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
         // the HA1 will be found in content() for these responses.
         if (!oldHelperWarningDone) {
             debugs(29, DBG_IMPORTANT, "WARNING: Digest auth helper returned old format HA1 response. It needs to be upgraded.");
-            oldHelperWarningDone=true;
+            oldHelperWarningDone = true;
         }
 
         /* allow this because the digest_request pointer is purely local */
@@ -338,8 +335,7 @@ Auth::Digest::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
 
         CvtBin(reply.other().content(), digest_user->HA1);
         digest_user->HA1created = 1;
-    }
-    break;
+    } break;
 
     case Helper::Okay: {
         /* allow this because the digest_request pointer is purely local */
@@ -352,12 +348,11 @@ Auth::Digest::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
         } else {
             debugs(29, DBG_IMPORTANT, "ERROR: Digest auth helper did not produce a HA1. Using the wrong helper program? received: " << reply);
         }
-    }
-    break;
+    } break;
 
     case Helper::TT:
         debugs(29, DBG_IMPORTANT, "ERROR: Digest auth does not support the result code received. Using the wrong helper program? received: " << reply);
-    // fall through to next case. Handle this as an ERR response.
+        // fall through to next case. Handle this as an ERR response.
 
     case Helper::TimedOut:
     case Helper::BrokenHelper:
@@ -379,11 +374,10 @@ Auth::Digest::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
             digest_request->setDenyMessage(reply.other().content());
             if (!oldHelperWarningDone) {
                 debugs(29, DBG_IMPORTANT, "WARNING: Digest auth helper returned old format ERR response. It needs to be upgraded.");
-                oldHelperWarningDone=true;
+                oldHelperWarningDone = true;
             }
         }
-    }
-    break;
+    } break;
     }
 
     void *cbdata = NULL;
@@ -392,4 +386,3 @@ Auth::Digest::UserRequest::HandleReply(void *data, const Helper::Reply &reply)
 
     delete replyData;
 }
-

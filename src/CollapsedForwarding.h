@@ -11,8 +11,8 @@
 #ifndef SQUID_COLLAPSED_FORWARDING_H
 #define SQUID_COLLAPSED_FORWARDING_H
 
-#include "ipc/forward.h"
 #include "ipc/Queue.h"
+#include "ipc/forward.h"
 #include "store/forward.h"
 
 #include <memory>
@@ -44,8 +44,7 @@ public:
 
 private:
     typedef Ipc::MultiQueue Queue;
-    static std::unique_ptr<Queue> queue; ///< IPC queue
+    static std::unique_ptr<Queue> queue;  ///< IPC queue
 };
 
 #endif /* SQUID_COLLAPSED_FORWARDING_H */
-

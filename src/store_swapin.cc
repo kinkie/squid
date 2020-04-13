@@ -9,17 +9,17 @@
 /* DEBUG: section 20    Storage Manager Swapin Functions */
 
 #include "squid.h"
-#include "globals.h"
+#include "store_swapin.h"
 #include "StatCounters.h"
 #include "Store.h"
-#include "store_swapin.h"
 #include "StoreClient.h"
+#include "globals.h"
 
 static StoreIOState::STIOCB storeSwapInFileClosed;
 static StoreIOState::STFNCB storeSwapInFileNotify;
 
 void
-storeSwapInStart(store_client * sc)
+storeSwapInStart(store_client *sc)
 {
     StoreEntry *e = sc->entry;
 
@@ -31,7 +31,7 @@ storeSwapInStart(store_client * sc)
     if (e->mem_status != NOT_IN_MEMORY)
         debugs(20, 3, HERE << "already IN_MEMORY");
 
-    debugs(20, 3, *e << " " <<  e->getMD5Text());
+    debugs(20, 3, *e << " " << e->getMD5Text());
 
     if (!e->hasDisk()) {
         debugs(20, DBG_IMPORTANT, "BUG: Attempt to swap in a not-stored entry " << *e << ". Salvaged.");
@@ -55,7 +55,7 @@ storeSwapInFileClosed(void *data, int errflag, StoreIOState::Pointer)
     sc->swapin_sio = NULL;
 
     if (sc->_callback.pending()) {
-        assert (errflag <= 0);
+        assert(errflag <= 0);
         sc->callback(0, errflag ? true : false);
     }
 
@@ -68,12 +68,9 @@ storeSwapInFileNotify(void *data, int, StoreIOState::Pointer)
     store_client *sc = (store_client *)data;
     StoreEntry *e = sc->entry;
 
-    debugs(1, 3, "storeSwapInFileNotify: changing " << e->swap_filen << "/" <<
-           e->swap_dirn << " to " << sc->swapin_sio->swap_filen << "/" <<
-           sc->swapin_sio->swap_dirn);
+    debugs(1, 3, "storeSwapInFileNotify: changing " << e->swap_filen << "/" << e->swap_dirn << " to " << sc->swapin_sio->swap_filen << "/" << sc->swapin_sio->swap_dirn);
 
-    assert(e->swap_filen < 0); // if this fails, call SwapDir::disconnect(e)
+    assert(e->swap_filen < 0);  // if this fails, call SwapDir::disconnect(e)
     e->swap_filen = sc->swapin_sio->swap_filen;
     e->swap_dirn = sc->swapin_sio->swap_dirn;
 }
-

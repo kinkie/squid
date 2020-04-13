@@ -45,10 +45,9 @@ int authenticateActiveSchemeCount(void);
 int authenticateSchemeCount(void);
 
 /// \ingroup AuthAPI
-void authenticateOnCloseConnection(ConnStateData * conn);
+void authenticateOnCloseConnection(ConnStateData *conn);
 
 std::vector<Auth::User::Pointer> authenticateCachedUsersList();
 
 #endif /* USE_AUTH */
 #endif /* SQUID_AUTH_GADGETS_H */
-

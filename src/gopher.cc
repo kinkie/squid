@@ -9,24 +9,24 @@
 /* DEBUG: section 10    Gopher */
 
 #include "squid.h"
+#include "FwdState.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "Store.h"
 #include "comm.h"
 #include "comm/Read.h"
 #include "comm/Write.h"
 #include "errorpage.h"
 #include "fd.h"
-#include "FwdState.h"
 #include "globals.h"
 #include "html_quote.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
-#include "MemBuf.h"
 #include "mime.h"
 #include "parser/Tokenizer.h"
 #include "rfc1738.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
-#include "Store.h"
 #include "tools.h"
 
 #if USE_DELAY_POOLS
@@ -35,40 +35,40 @@
 #endif
 
 /* gopher type code from rfc. Anawat. */
-#define GOPHER_FILE         '0'
-#define GOPHER_DIRECTORY    '1'
-#define GOPHER_CSO          '2'
-#define GOPHER_ERROR        '3'
-#define GOPHER_MACBINHEX    '4'
-#define GOPHER_DOSBIN       '5'
-#define GOPHER_UUENCODED    '6'
-#define GOPHER_INDEX        '7'
-#define GOPHER_TELNET       '8'
-#define GOPHER_BIN          '9'
-#define GOPHER_REDUNT       '+'
-#define GOPHER_3270         'T'
-#define GOPHER_GIF          'g'
-#define GOPHER_IMAGE        'I'
+#define GOPHER_FILE '0'
+#define GOPHER_DIRECTORY '1'
+#define GOPHER_CSO '2'
+#define GOPHER_ERROR '3'
+#define GOPHER_MACBINHEX '4'
+#define GOPHER_DOSBIN '5'
+#define GOPHER_UUENCODED '6'
+#define GOPHER_INDEX '7'
+#define GOPHER_TELNET '8'
+#define GOPHER_BIN '9'
+#define GOPHER_REDUNT '+'
+#define GOPHER_3270 'T'
+#define GOPHER_GIF 'g'
+#define GOPHER_IMAGE 'I'
 
-#define GOPHER_HTML         'h'
-#define GOPHER_INFO         'i'
+#define GOPHER_HTML 'h'
+#define GOPHER_INFO 'i'
 
 ///  W3 address
-#define GOPHER_WWW          'w'
-#define GOPHER_SOUND        's'
+#define GOPHER_WWW 'w'
+#define GOPHER_SOUND 's'
 
-#define GOPHER_PLUS_IMAGE   ':'
-#define GOPHER_PLUS_MOVIE   ';'
-#define GOPHER_PLUS_SOUND   '<'
+#define GOPHER_PLUS_IMAGE ':'
+#define GOPHER_PLUS_MOVIE ';'
+#define GOPHER_PLUS_SOUND '<'
 
-#define GOPHER_PORT         70
+#define GOPHER_PORT 70
 
-#define TAB                 '\t'
+#define TAB '\t'
 
 // TODO CODE: should this be a protocol-specific thing?
-#define TEMP_BUF_SIZE       4096
+#define TEMP_BUF_SIZE 4096
 
-#define MAX_CSO_RESULT      1024
+#define MAX_CSO_RESULT 1024
 
 /**
  * Gopher Gateway Internals
@@ -97,7 +97,11 @@ public:
         entry->lock("gopherState");
         *replybuf = 0;
     }
-    ~GopherStateData() {if(buf) swanSong();}
+    ~GopherStateData()
+    {
+        if (buf)
+            swanSong();
+    }
 
     /* AsyncJob API emulated */
     void deleteThis(const char *aReason);
@@ -119,7 +123,7 @@ public:
     char request[MAX_URL];
     int cso_recno;
     int len;
-    char *buf;          /* pts to a 4k page */
+    char *buf; /* pts to a 4k page */
     Comm::ConnectionPointer serverConn;
     FwdState::Pointer fwd;
     HttpReply::Pointer reply_;
@@ -130,7 +134,7 @@ CBDATA_CLASS_INIT(GopherStateData);
 
 static CLCB gopherStateFree;
 static void gopherMimeCreate(GopherStateData *);
-static void gopher_request_parse(const HttpRequest * req,
+static void gopher_request_parse(const HttpRequest *req,
                                  char *type_id,
                                  char *request);
 static void gopherEndHTML(GopherStateData *);
@@ -178,7 +182,7 @@ GopherStateData::swanSong()
  * Create MIME Header for Gopher Data
  */
 static void
-gopherMimeCreate(GopherStateData * gopherState)
+gopherMimeCreate(GopherStateData *gopherState)
 {
     StoreEntry *entry = gopherState->entry;
     const char *mime_type = NULL;
@@ -256,28 +260,28 @@ gopherMimeCreate(GopherStateData * gopherState)
  * Parse a gopher request into components.  By Anawat.
  */
 static void
-gopher_request_parse(const HttpRequest * req, char *type_id, char *request)
+gopher_request_parse(const HttpRequest *req, char *type_id, char *request)
 {
     ::Parser::Tokenizer tok(req->url.path());
 
     if (request)
         *request = 0;
 
-    tok.skip('/'); // ignore failures? path could be ab-empty
+    tok.skip('/');  // ignore failures? path could be ab-empty
 
     if (tok.atEnd()) {
         *type_id = GOPHER_DIRECTORY;
         return;
     }
 
-    static const CharacterSet anyByte("UTF-8",0x00, 0xFF);
+    static const CharacterSet anyByte("UTF-8", 0x00, 0xFF);
 
     SBuf typeId;
-    (void)tok.prefix(typeId, anyByte, 1); // never fails since !atEnd()
+    (void)tok.prefix(typeId, anyByte, 1);  // never fails since !atEnd()
     *type_id = typeId[0];
 
     if (request) {
-        SBufToCstring(request, tok.remaining().substr(0, MAX_URL-1));
+        SBufToCstring(request, tok.remaining().substr(0, MAX_URL - 1));
         /* convert %xx to char */
         rfc1738_unescape(request);
     }
@@ -291,7 +295,7 @@ gopher_request_parse(const HttpRequest * req, char *type_id, char *request)
  * \retval 1    Cachable.
  */
 int
-gopherCachable(const HttpRequest * req)
+gopherCachable(const HttpRequest *req)
 {
     int cachable = 1;
     char type_id;
@@ -320,7 +324,7 @@ gopherCachable(const HttpRequest * req)
 }
 
 static void
-gopherHTMLHeader(StoreEntry * e, const char *title, const char *substring)
+gopherHTMLHeader(StoreEntry *e, const char *title, const char *substring)
 {
     storeAppendPrintf(e, "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n");
     storeAppendPrintf(e, "<HTML><HEAD><TITLE>");
@@ -333,7 +337,7 @@ gopherHTMLHeader(StoreEntry * e, const char *title, const char *substring)
 }
 
 static void
-gopherHTMLFooter(StoreEntry * e)
+gopherHTMLFooter(StoreEntry *e)
 {
     storeAppendPrintf(e, "<HR noshade size=\"1px\">\n");
     storeAppendPrintf(e, "<ADDRESS>\n");
@@ -345,7 +349,7 @@ gopherHTMLFooter(StoreEntry * e)
 }
 
 static void
-gopherEndHTML(GopherStateData * gopherState)
+gopherEndHTML(GopherStateData *gopherState)
 {
     StoreEntry *e = gopherState->entry;
 
@@ -365,7 +369,7 @@ gopherEndHTML(GopherStateData * gopherState)
  * Borrow part of code from libwww2 came with Mosaic distribution.
  */
 static void
-gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
+gopherToHTML(GopherStateData *gopherState, char *inbuf, int len)
 {
     char *pos = inbuf;
     char *lpos = NULL;
@@ -424,7 +428,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
         else
             gopherHTMLHeader(entry, "Gopher Menu", NULL);
 
-        outbuf.append ("<PRE>");
+        outbuf.append("<PRE>");
 
         gopherState->HTML_header_added = 1;
 
@@ -436,13 +440,13 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
         int left = len - (pos - inbuf);
         lpos = (char *)memchr(pos, '\n', left);
         if (lpos) {
-            ++lpos;             /* Next line is after \n */
+            ++lpos; /* Next line is after \n */
             llen = lpos - pos;
         } else {
             llen = left;
         }
         if (gopherState->len + llen >= TEMP_BUF_SIZE) {
-            debugs(10, DBG_IMPORTANT, "GopherHTML: Buffer overflow. Lost some data on URL: " << entry->url()  );
+            debugs(10, DBG_IMPORTANT, "GopherHTML: Buffer overflow. Lost some data on URL: " << entry->url());
             llen = TEMP_BUF_SIZE - gopherState->len - 1;
         }
         if (!lpos) {
@@ -501,22 +505,22 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
                         junk = strchr(host, TAB);
 
                         if (junk)
-                            *junk++ = 0;    /* Chop port */
+                            *junk++ = 0; /* Chop port */
                         else {
                             junk = strchr(host, '\r');
 
                             if (junk)
-                                *junk++ = 0;    /* Chop port */
+                                *junk++ = 0; /* Chop port */
                             else {
                                 junk = strchr(host, '\n');
 
                                 if (junk)
-                                    *junk++ = 0;    /* Chop port */
+                                    *junk++ = 0; /* Chop port */
                             }
                         }
 
                         if ((port[1] == '0') && (!port[2]))
-                            port[0] = 0;    /* 0 means none */
+                            port[0] = 0; /* 0 means none */
                     }
 
                     /* escape a selector here */
@@ -621,7 +625,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
             }
 
             break;
-            }           /* HTML_DIR, HTML_INDEX_RESULT */
+        } /* HTML_DIR, HTML_INDEX_RESULT */
 
         case GopherStateData::HTML_CSO_RESULT: {
             if (line[0] == '-') {
@@ -671,9 +675,9 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
                     break;
                 }
 
-                case 102:   /* Number of matches */
+                case 102: /* Number of matches */
 
-                case 501:   /* No Match */
+                case 501: /* No Match */
 
                 case 502: { /* Too Many Matches */
                     /* Print the message the server returns */
@@ -681,18 +685,17 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
                     outbuf.append(tmpbuf);
                     break;
                 }
-
                 }
             }
 
-            }           /* HTML_CSO_RESULT */
+        } /* HTML_CSO_RESULT */
 
         default:
-            break;      /* do nothing */
+            break; /* do nothing */
 
-        }           /* switch */
+        } /* switch */
 
-    }               /* while loop */
+    } /* while loop */
 
     if (outbuf.size() > 0) {
         entry->append(outbuf.rawBuf(), outbuf.size());
@@ -708,7 +711,7 @@ static void
 gopherTimeout(const CommTimeoutCbParams &io)
 {
     GopherStateData *gopherState = static_cast<GopherStateData *>(io.data);
-    debugs(10, 4, HERE << io.conn << ": '" << gopherState->entry->url() << "'" );
+    debugs(10, 4, HERE << io.conn << ": '" << gopherState->entry->url() << "'");
 
     gopherState->fwd->fail(new ErrorState(ERR_READ_TIMEOUT, Http::scGatewayTimeout, gopherState->fwd->request, gopherState->fwd->al));
 
@@ -786,7 +789,7 @@ gopherReadReply(const Comm::ConnectionPointer &conn, char *buf, size_t len, Comm
         debugs(50, DBG_IMPORTANT, MYNAME << "error reading: " << xstrerr(xerrno));
 
         if (ignoreErrno(xerrno)) {
-            AsyncCall::Pointer call = commCbCall(5,4, "gopherReadReply",
+            AsyncCall::Pointer call = commCbCall(5, 4, "gopherReadReply",
                                                  CommIoCbPtrFun(gopherReadReply, gopherState));
             comm_read(conn, buf, read_sz, call);
         } else {
@@ -815,7 +818,7 @@ gopherReadReply(const Comm::ConnectionPointer &conn, char *buf, size_t len, Comm
         } else {
             entry->append(buf, len);
         }
-        AsyncCall::Pointer call = commCbCall(5,4, "gopherReadReply",
+        AsyncCall::Pointer call = commCbCall(5, 4, "gopherReadReply",
                                              CommIoCbPtrFun(gopherReadReply, gopherState));
         comm_read(conn, buf, read_sz, call);
     }
@@ -827,7 +830,7 @@ gopherReadReply(const Comm::ConnectionPointer &conn, char *buf, size_t len, Comm
 static void
 gopherSendComplete(const Comm::ConnectionPointer &conn, char *, size_t size, Comm::Flag errflag, int xerrno, void *data)
 {
-    GopherStateData *gopherState = (GopherStateData *) data;
+    GopherStateData *gopherState = (GopherStateData *)data;
     StoreEntry *entry = gopherState->entry;
     debugs(10, 5, HERE << conn << " size: " << size << " errflag: " << errflag);
 
@@ -882,8 +885,8 @@ gopherSendComplete(const Comm::ConnectionPointer &conn, char *, size_t size, Com
     }
 
     /* Schedule read reply. */
-    AsyncCall::Pointer call =  commCbCall(5,5, "gopherReadReply",
-                                          CommIoCbPtrFun(gopherReadReply, gopherState));
+    AsyncCall::Pointer call = commCbCall(5, 5, "gopherReadReply",
+                                         CommIoCbPtrFun(gopherReadReply, gopherState));
     entry->delayAwareRead(conn, gopherState->replybuf, BUFSIZ, call);
 }
 
@@ -901,7 +904,7 @@ gopherSendRequest(int, void *data)
         const char *t = strchr(gopherState->request, '?');
 
         if (t)
-            ++t;        /* skip the ? */
+            ++t; /* skip the ? */
         else
             t = "";
 
@@ -916,7 +919,7 @@ gopherSendRequest(int, void *data)
     mb.append("\r\n", 2);
 
     debugs(10, 5, gopherState->serverConn);
-    AsyncCall::Pointer call = commCbCall(5,5, "gopherSendComplete",
+    AsyncCall::Pointer call = commCbCall(5, 5, "gopherSendComplete",
                                          CommIoCbPtrFun(gopherSendComplete, gopherState));
     Comm::Write(gopherState->serverConn, &mb, call);
 
@@ -925,15 +928,15 @@ gopherSendRequest(int, void *data)
 }
 
 void
-gopherStart(FwdState * fwd)
+gopherStart(FwdState *fwd)
 {
     GopherStateData *gopherState = new GopherStateData(fwd);
 
     debugs(10, 3, gopherState->entry->url());
 
-    ++ statCounter.server.all.requests;
+    ++statCounter.server.all.requests;
 
-    ++ statCounter.server.other.requests;
+    ++statCounter.server.other.requests;
 
     /* Parse url. */
     gopher_request_parse(fwd->request,
@@ -942,7 +945,7 @@ gopherStart(FwdState * fwd)
     comm_add_close_handler(fwd->serverConnection()->fd, gopherStateFree, gopherState);
 
     if (((gopherState->type_id == GOPHER_INDEX) || (gopherState->type_id == GOPHER_CSO))
-            && (strchr(gopherState->request, '?') == NULL)) {
+        && (strchr(gopherState->request, '?') == NULL)) {
         /* Index URL without query word */
         /* We have to generate search page back to client. No need for connection */
         gopherMimeCreate(gopherState);
@@ -957,7 +960,7 @@ gopherStart(FwdState * fwd)
             }
         }
 
-        gopherToHTML(gopherState, (char *) NULL, 0);
+        gopherToHTML(gopherState, (char *)NULL, 0);
         fwd->complete();
         return;
     }
@@ -965,7 +968,6 @@ gopherStart(FwdState * fwd)
     gopherState->serverConn = fwd->serverConnection();
     gopherSendRequest(fwd->serverConnection()->fd, gopherState);
     AsyncCall::Pointer timeoutCall = commCbCall(5, 4, "gopherTimeout",
-                                     CommTimeoutCbPtrFun(gopherTimeout, gopherState));
+                                                CommTimeoutCbPtrFun(gopherTimeout, gopherState));
     commSetConnTimeout(fwd->serverConnection(), Config.Timeout.read, timeoutCall);
 }
-

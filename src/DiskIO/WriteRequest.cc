@@ -10,6 +10,7 @@
 #include "WriteRequest.h"
 
 CBDATA_CLASS_INIT(WriteRequest);
-WriteRequest::WriteRequest(char const *aBuf, off_t anOffset, size_t aLen, FREE *aFree) : buf (aBuf), offset(anOffset), len(aLen), free_func(aFree)
-{}
-
+WriteRequest::WriteRequest(char const *aBuf, off_t anOffset, size_t aLen, FREE *aFree) :
+    buf(aBuf), offset(anOffset), len(aLen), free_func(aFree)
+{
+}

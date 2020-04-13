@@ -15,11 +15,10 @@
 /* disk.c / diskd.c callback typedefs */
 typedef void DRCB(int, const char *buf, int size, int errflag, void *data);
 /* Disk read CB */
-typedef void DWCB(int, int, size_t, void *);    /* disk write CB */
+typedef void DWCB(int, int, size_t, void *); /* disk write CB */
 
 #include "anyp/ProtocolType.h"
 class CachePeer;
 typedef void IRCB(CachePeer *, peer_t, AnyP::ProtocolType, void *, void *data);
 
 #endif /* SQUID_TYPEDEFS_H */
-

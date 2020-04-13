@@ -9,15 +9,14 @@
 #ifndef _SQUID_SRC_COMM_OPENERSTATEDATA_H
 #define _SQUID_SRC_COMM_OPENERSTATEDATA_H
 
+#include "CommCalls.h"
 #include "base/AsyncCall.h"
 #include "base/AsyncJob.h"
 #include "cbdata.h"
 #include "comm/Flag.h"
 #include "comm/forward.h"
-#include "CommCalls.h"
 
-namespace Comm
-{
+namespace Comm {
 
 /**
  * Async-opener of a Comm connection.
@@ -36,8 +35,8 @@ public:
     ConnOpener(Comm::ConnectionPointer &, const AsyncCall::Pointer &handler, time_t connect_timeout);
     ~ConnOpener();
 
-    void setHost(const char *);    ///< set the hostname note for this connection
-    const char * getHost() const;  ///< get the hostname noted for this connection
+    void setHost(const char *);   ///< set the hostname note for this connection
+    const char *getHost() const;  ///< get the hostname noted for this connection
 
 protected:
     virtual void start();
@@ -46,7 +45,7 @@ protected:
 private:
     // Undefined because two openers cannot share a connection
     ConnOpener(const ConnOpener &);
-    ConnOpener & operator =(const ConnOpener &c);
+    ConnOpener &operator=(const ConnOpener &c);
 
     void earlyAbort(const CommCloseCbParams &);
     void timeout(const CommTimeoutCbParams &);
@@ -68,10 +67,10 @@ private:
     void cancelSleep();
 
 private:
-    char *host_;                         ///< domain name we are trying to connect to.
-    int temporaryFd_;                    ///< the FD being opened. Do NOT set conn_->fd until it is fully open.
-    Comm::ConnectionPointer conn_;       ///< single connection currently to be opened.
-    AsyncCall::Pointer callback_;        ///< handler to be called on connection completion.
+    char *host_;                    ///< domain name we are trying to connect to.
+    int temporaryFd_;               ///< the FD being opened. Do NOT set conn_->fd until it is fully open.
+    Comm::ConnectionPointer conn_;  ///< single connection currently to be opened.
+    AsyncCall::Pointer callback_;   ///< handler to be called on connection completion.
 
     int totalTries_;   ///< total number of connection attempts over all destinations so far.
     int failRetries_;  ///< number of retries current destination has been tried.
@@ -89,7 +88,6 @@ private:
     } calls_;
 };
 
-}; // namespace Comm
+};  // namespace Comm
 
 #endif /* _SQUID_SRC_COMM_CONNOPENER_H */
-

@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
+#include "MemBuf.h"
 #include "base/CharacterSet.h"
 #include "base64.h"
 #include "getfullhostname.h"
 #include "html_quote.h"
 #include "ip/Address.h"
-#include "MemBuf.h"
 #include "rfc1123.h"
 #include "rfc1738.h"
 #include "util.h"
@@ -103,7 +103,7 @@ typedef struct {
 /*
  * Static variables and constants
  */
-static const time_t passwd_ttl = 60 * 60 * 3;   /* in sec */
+static const time_t passwd_ttl = 60 * 60 * 3; /* in sec */
 static const char *script_name = "/cgi-bin/cachemgr.cgi";
 static const char *progname = NULL;
 static time_t now;
@@ -116,23 +116,24 @@ static const char *xstrtok(char **str, char del);
 static void print_trailer(void);
 static void auth_html(const char *host, int port, const char *user_name);
 static void error_html(const char *msg);
-static char *menu_url(cachemgr_request * req, const char *action);
+static char *menu_url(cachemgr_request *req, const char *action);
 static int parse_status_line(const char *sline, const char **statusStr);
 static cachemgr_request *read_request(void);
 static char *read_get_request(void);
 static char *read_post_request(void);
 
-static void make_pub_auth(cachemgr_request * req);
-static void decode_pub_auth(cachemgr_request * req);
-static void reset_auth(cachemgr_request * req);
-static const char *make_auth_header(const cachemgr_request * req);
+static void make_pub_auth(cachemgr_request *req);
+static void decode_pub_auth(cachemgr_request *req);
+static void reset_auth(cachemgr_request *req);
+static const char *make_auth_header(const cachemgr_request *req);
 
 static int check_target_acl(const char *hostname, int port);
 
 #if _SQUID_WINDOWS_
 static int s_iInitCount = 0;
 
-int Win32SockInit(void)
+int
+Win32SockInit(void)
 {
     int iVersionRequested;
     WSADATA wsaData;
@@ -147,15 +148,14 @@ int Win32SockInit(void)
     /* s_iInitCount == 0. Do the initialization */
     iVersionRequested = MAKEWORD(2, 0);
 
-    err = WSAStartup((WORD) iVersionRequested, &wsaData);
+    err = WSAStartup((WORD)iVersionRequested, &wsaData);
 
     if (err) {
         s_iInitCount = -1;
         return (s_iInitCount);
     }
 
-    if (LOBYTE(wsaData.wVersion) != 2 ||
-            HIBYTE(wsaData.wVersion) != 0) {
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 0) {
         s_iInitCount = -2;
         WSACleanup();
         return (s_iInitCount);
@@ -165,7 +165,8 @@ int Win32SockInit(void)
     return (s_iInitCount);
 }
 
-void Win32SockCleanup(void)
+void
+Win32SockCleanup(void)
 {
     if (--s_iInitCount == 0)
         WSACleanup();
@@ -219,8 +220,7 @@ xstrtok(char **str, char del)
 bool
 hostname_check(const char *uri)
 {
-    static CharacterSet hostChars = CharacterSet("host",".:[]_") +
-                                    CharacterSet::ALPHA + CharacterSet::DIGIT;
+    static CharacterSet hostChars = CharacterSet("host", ".:[]_") + CharacterSet::ALPHA + CharacterSet::DIGIT;
 
     const auto limit = strlen(uri);
     for (size_t i = 0; i < limit; i++) {
@@ -417,7 +417,8 @@ parse_status_line(const char *sline, const char **statusStr)
     if (strncasecmp(sline, "HTTP/", 5) || !sp)
         return -1;
 
-    while (xisspace(*++sp));
+    while (xisspace(*++sp))
+        ;
     if (!xisdigit(*sp))
         return -1;
 
@@ -428,7 +429,7 @@ parse_status_line(const char *sline, const char **statusStr)
 }
 
 static char *
-menu_url(cachemgr_request * req, const char *action)
+menu_url(cachemgr_request *req, const char *action)
 {
     static char url[1024];
     snprintf(url, sizeof(url), "%s?host=%s&port=%d&user_name=%s&operation=%s&auth=%s",
@@ -442,7 +443,7 @@ menu_url(cachemgr_request * req, const char *action)
 }
 
 static void
-munge_menu_line(MemBuf &out, const char *buf, cachemgr_request * req)
+munge_menu_line(MemBuf &out, const char *buf, cachemgr_request *req)
 {
     char *x;
     const char *a;
@@ -457,7 +458,7 @@ munge_menu_line(MemBuf &out, const char *buf, cachemgr_request * req)
         return;
     }
 
-    buf_copy = x = xstrndup(buf, bufLen+1);
+    buf_copy = x = xstrndup(buf, bufLen + 1);
 
     a = xstrtok(&x, '\t');
 
@@ -473,21 +474,21 @@ munge_menu_line(MemBuf &out, const char *buf, cachemgr_request * req)
     else
         /* disable a hidden action (requires a password, but password is not in squid.conf) */
         if (!strcmp(p, "hidden"))
-            out.appendf("<LI type=\"circle\">%s (hidden)<A HREF=\"%s\">.</A>\n", d, a_url);
-        else
-            /* disable link if authentication is required and we have no password */
-            if (!strcmp(p, "protected") && !req->passwd)
-                out.appendf("<LI type=\"circle\">%s (requires <a href=\"%s\">authentication</a>)<A HREF=\"%s\">.</A>\n",
-                            d, menu_url(req, "authenticate"), a_url);
-            else
-                /* highlight protected but probably available entries */
-                if (!strcmp(p, "protected"))
-                    out.appendf("<LI type=\"square\"><A HREF=\"%s\"><font color=\"#FF0000\">%s</font></A>\n",
-                                a_url, d);
+        out.appendf("<LI type=\"circle\">%s (hidden)<A HREF=\"%s\">.</A>\n", d, a_url);
+    else
+        /* disable link if authentication is required and we have no password */
+        if (!strcmp(p, "protected") && !req->passwd)
+        out.appendf("<LI type=\"circle\">%s (requires <a href=\"%s\">authentication</a>)<A HREF=\"%s\">.</A>\n",
+                    d, menu_url(req, "authenticate"), a_url);
+    else
+        /* highlight protected but probably available entries */
+        if (!strcmp(p, "protected"))
+        out.appendf("<LI type=\"square\"><A HREF=\"%s\"><font color=\"#FF0000\">%s</font></A>\n",
+                    a_url, d);
 
     /* public entry or unknown type of protection */
-                else
-                    out.appendf("<LI type=\"disk\"><A HREF=\"%s\">%s</A>\n", a_url, d);
+    else
+        out.appendf("<LI type=\"disk\"><A HREF=\"%s\">%s</A>\n", a_url, d);
 
     xfree(a_url);
 
@@ -559,7 +560,7 @@ munge_other_line(MemBuf &out, const char *buf, cachemgr_request *)
 }
 
 static const char *
-munge_action_line(const char *_buf, cachemgr_request * req)
+munge_action_line(const char *_buf, cachemgr_request *req)
 {
     static char html[2 * 1024];
     char *buf = xstrdup(_buf);
@@ -583,7 +584,7 @@ munge_action_line(const char *_buf, cachemgr_request * req)
 }
 
 static int
-read_reply(int s, cachemgr_request * req)
+read_reply(int s, cachemgr_request *req)
 {
     char buf[4 * 1024];
 #if _SQUID_WINDOWS_
@@ -597,8 +598,18 @@ read_reply(int s, cachemgr_request * req)
 #endif
     /* interpretation states */
     enum {
-        isStatusLine, isHeaders, isActions, isBodyStart, isBody, isForward, isEof, isForwardEof, isSuccess, isError
-    } istate = isStatusLine;
+        isStatusLine,
+        isHeaders,
+        isActions,
+        isBodyStart,
+        isBody,
+        isForward,
+        isEof,
+        isForwardEof,
+        isSuccess,
+        isError
+    } istate
+        = isStatusLine;
     int parse_menu = 0;
     const char *action = req->action;
     const char *statusStr = NULL;
@@ -624,7 +635,7 @@ read_reply(int s, cachemgr_request * req)
 
 #if _SQUID_WINDOWS_
 
-    while ((reply=recv(s, buf, sizeof(buf), 0)) > 0)
+    while ((reply = recv(s, buf, sizeof(buf), 0)) > 0)
         fwrite(buf, 1, reply, fp);
 
     rewind(fp);
@@ -651,7 +662,7 @@ read_reply(int s, cachemgr_request * req)
 
             if (status == 401 || status == 407) {
                 reset_auth(req);
-                status = 403;   /* Forbidden, see comments in case isForward: */
+                status = 403; /* Forbidden, see comments in case isForward: */
             }
 
             /* this is a way to pass HTTP status to the Web server */
@@ -662,12 +673,12 @@ read_reply(int s, cachemgr_request * req)
 
         case isHeaders:
             /* forward header field */
-            if (!strcmp(buf, "\r\n")) {     /* end of headers */
-                fputs("Content-Type: text/html\r\n", stdout);   /* add our type */
+            if (!strcmp(buf, "\r\n")) {                       /* end of headers */
+                fputs("Content-Type: text/html\r\n", stdout); /* add our type */
                 istate = isBodyStart;
             }
 
-            if (strncasecmp(buf, "Content-Type:", 13))  /* filter out their type */
+            if (strncasecmp(buf, "Content-Type:", 13)) /* filter out their type */
                 fputs(buf, stdout);
 
             break;
@@ -693,7 +704,7 @@ read_reply(int s, cachemgr_request * req)
             }
 
             istate = isActions;
-        /* yes, fall through, we do not want to loose the first line */
+            /* yes, fall through, we do not want to loose the first line */
 
         case isActions:
             if (strncmp(buf, "action:", 7) == 0) {
@@ -709,10 +720,9 @@ read_reply(int s, cachemgr_request * req)
             }
 
             istate = isBody;
-        /* yes, fall through, we do not want to loose the first line */
+            /* yes, fall through, we do not want to loose the first line */
 
-        case isBody:
-        {
+        case isBody: {
             /* interpret [and reformat] cache response */
             MemBuf out;
             out.init();
@@ -722,8 +732,7 @@ read_reply(int s, cachemgr_request * req)
                 munge_other_line(out, buf, req);
 
             fputs(out.buf, stdout);
-        }
-        break;
+        } break;
 
         case isForward:
             /* forward: no modifications allowed */
@@ -732,7 +741,8 @@ read_reply(int s, cachemgr_request * req)
              * 401 to .cgi because web server filters out all auth info. Thus we
              * disable authentication headers for now.
              */
-            if (!strncasecmp(buf, "WWW-Authenticate:", 17) || !strncasecmp(buf, "Proxy-Authenticate:", 19));    /* skip */
+            if (!strncasecmp(buf, "WWW-Authenticate:", 17) || !strncasecmp(buf, "Proxy-Authenticate:", 19))
+                ; /* skip */
             else
                 fputs(buf, stdout);
 
@@ -777,7 +787,7 @@ read_reply(int s, cachemgr_request * req)
 }
 
 static int
-process_request(cachemgr_request * req)
+process_request(cachemgr_request *req)
 {
 
     char ipbuf[MAX_IPSTRLEN];
@@ -818,10 +828,10 @@ process_request(cachemgr_request * req)
 
     S = *gethostbyname(req->hostname);
 
-    if ( !S.isAnyAddr() ) {
-        (void) 0;
+    if (!S.isAnyAddr()) {
+        (void)0;
     } else if ((S = req->hostname))
-        (void) 0;
+        (void)0;
     else {
         if (hostname_check(req->hostname)) {
             snprintf(buf, sizeof(buf), "Unknown Host: %s\n", req->hostname);
@@ -839,7 +849,7 @@ process_request(cachemgr_request * req)
     S.getAddrInfo(AI);
 
 #if USE_IPV6
-    if ((s = socket( AI->ai_family, SOCK_STREAM, 0)) < 0) {
+    if ((s = socket(AI->ai_family, SOCK_STREAM, 0)) < 0) {
 #else
     if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 #endif
@@ -852,7 +862,7 @@ process_request(cachemgr_request * req)
 
     if (connect(s, AI->ai_addr, AI->ai_addrlen) < 0) {
         int xerrno = errno;
-        snprintf(buf, sizeof(buf), "connect %s: %s\n", S.toUrl(ipbuf,MAX_IPSTRLEN), xstrerr(xerrno));
+        snprintf(buf, sizeof(buf), "connect %s: %s\n", S.toUrl(ipbuf, MAX_IPSTRLEN), xstrerr(xerrno));
         error_html(buf);
         Ip::Address::FreeAddr(AI);
         close(s);
@@ -865,16 +875,16 @@ process_request(cachemgr_request * req)
                  "GET cache_object://%s/%s%s%s HTTP/1.0\r\n"
                  "User-Agent: cachemgr.cgi/%s\r\n"
                  "Accept: */*\r\n"
-                 "%s"           /* Authentication info or nothing */
+                 "%s" /* Authentication info or nothing */
                  "\r\n",
                  req->hostname,
                  req->action,
-                 req->workers? "?workers=" : (req->processes ? "?processes=" : ""),
-                 req->workers? req->workers : (req->processes ? req->processes: ""),
+                 req->workers ? "?workers=" : (req->processes ? "?processes=" : ""),
+                 req->workers ? req->workers : (req->processes ? req->processes : ""),
                  VERSION,
                  make_auth_header(req));
     if (write(s, buf, l) < 0) {
-        fprintf(stderr,"ERROR: (%d) writing request: '%s'\n", errno, buf);
+        fprintf(stderr, "ERROR: (%d) writing request: '%s'\n", errno, buf);
     } else {
         debug("wrote request: '%s'\n", buf);
     }
@@ -892,8 +902,8 @@ main(int argc, char *argv[])
 
     Win32SockInit();
     atexit(Win32SockCleanup);
-    _setmode( _fileno( stdin ), _O_BINARY );
-    _setmode( _fileno( stdout ), _O_BINARY );
+    _setmode(_fileno(stdin), _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
     _fmode = _O_BINARY;
 
     if ((s = strrchr(argv[0], '\\')))
@@ -911,14 +921,14 @@ main(int argc, char *argv[])
 
     char **args = argv;
     while (argc > 1 && args[1][0] == '-') {
-//        const char *value = "";
+        //        const char *value = "";
         char option = args[1][1];
         switch (option) {
         case 'd':
             debug_enabled = 1;
             break;
         default:
-#if 0 // unused for now.
+#if 0  // unused for now.
             if (strlen(args[1]) > 2) {
                 value = args[1] + 2;
             } else if (argc > 2) {
@@ -953,12 +963,12 @@ read_post_request(void)
     if ((s = getenv("CONTENT_LENGTH")) == NULL)
         return NULL;
 
-    if (*s == '-') // negative length content huh?
+    if (*s == '-')  // negative length content huh?
         return NULL;
 
     uint64_t len;
 
-    char *endptr = s+ strlen(s);
+    char *endptr = s + strlen(s);
     if ((len = strtoll(s, &endptr, 10)) <= 0)
         return NULL;
 
@@ -1007,9 +1017,9 @@ read_request(void)
     char *q;
 
     if ((buf = read_post_request()) != NULL)
-        (void) 0;
+        (void)0;
     else if ((buf = read_get_request()) != NULL)
-        (void) 0;
+        (void)0;
     else
         return NULL;
 
@@ -1083,7 +1093,7 @@ read_request(void)
  * Currently no powerful encryption is used.
  */
 static void
-make_pub_auth(cachemgr_request * req)
+make_pub_auth(cachemgr_request *req)
 {
     static char buf[1024];
     safe_free(req->pub_auth);
@@ -1095,23 +1105,23 @@ make_pub_auth(cachemgr_request * req)
     /* host | time | user | passwd */
     const int bufLen = snprintf(buf, sizeof(buf), "%s|%d|%s|%s",
                                 req->hostname,
-                                (int) now,
+                                (int)now,
                                 rfc1738_escape(safe_str(req->user_name)),
                                 rfc1738_escape(req->passwd));
     debug("cmgr: pre-encoded for pub: %s\n", buf);
 
     const int encodedLen = base64_encode_len(bufLen);
-    req->pub_auth = (char *) xmalloc(encodedLen);
+    req->pub_auth = (char *)xmalloc(encodedLen);
     struct base64_encode_ctx ctx;
     base64_encode_init(&ctx);
-    size_t blen = base64_encode_update(&ctx, req->pub_auth, bufLen, reinterpret_cast<uint8_t*>(buf));
+    size_t blen = base64_encode_update(&ctx, req->pub_auth, bufLen, reinterpret_cast<uint8_t *>(buf));
     blen += base64_encode_final(&ctx, req->pub_auth + blen);
     req->pub_auth[blen] = '\0';
     debug("cmgr: encoded: '%s'\n", req->pub_auth);
 }
 
 static void
-decode_pub_auth(cachemgr_request * req)
+decode_pub_auth(cachemgr_request *req)
 {
     const char *host_name;
     const char *time_str;
@@ -1122,12 +1132,11 @@ decode_pub_auth(cachemgr_request * req)
     if (!req->pub_auth || strlen(req->pub_auth) < 4 + strlen(safe_str(req->hostname)))
         return;
 
-    char *buf = static_cast<char*>(xmalloc(BASE64_DECODE_LENGTH(strlen(req->pub_auth))+1));
+    char *buf = static_cast<char *>(xmalloc(BASE64_DECODE_LENGTH(strlen(req->pub_auth)) + 1));
     struct base64_decode_ctx ctx;
     base64_decode_init(&ctx);
     size_t decodedLen = 0;
-    if (!base64_decode_update(&ctx, &decodedLen, reinterpret_cast<uint8_t*>(buf), strlen(req->pub_auth), req->pub_auth) ||
-            !base64_decode_final(&ctx)) {
+    if (!base64_decode_update(&ctx, &decodedLen, reinterpret_cast<uint8_t *>(buf), strlen(req->pub_auth), req->pub_auth) || !base64_decode_final(&ctx)) {
         debug("cmgr: base64 decode failure. Incomplete auth token string.\n");
         xfree(buf);
         return;
@@ -1149,7 +1158,7 @@ decode_pub_auth(cachemgr_request * req)
         return;
     }
 
-    debug("cmgr: decoded time: '%s' (now: %d)\n", time_str, (int) now);
+    debug("cmgr: decoded time: '%s' (now: %d)\n", time_str, (int)now);
 
     char *user_name;
     if ((user_name = strtok(NULL, "|")) == NULL) {
@@ -1193,14 +1202,14 @@ decode_pub_auth(cachemgr_request * req)
 }
 
 static void
-reset_auth(cachemgr_request * req)
+reset_auth(cachemgr_request *req)
 {
     safe_free(req->passwd);
     safe_free(req->pub_auth);
 }
 
 static const char *
-make_auth_header(const cachemgr_request * req)
+make_auth_header(const cachemgr_request *req)
 {
     static char buf[1024];
     size_t stringLength = 0;
@@ -1219,8 +1228,8 @@ make_auth_header(const cachemgr_request * req)
     char *str64 = static_cast<char *>(xmalloc(encodedLen));
     struct base64_encode_ctx ctx;
     base64_encode_init(&ctx);
-    size_t blen = base64_encode_update(&ctx, str64, bufLen, reinterpret_cast<uint8_t*>(buf));
-    blen += base64_encode_final(&ctx, str64+blen);
+    size_t blen = base64_encode_update(&ctx, str64, bufLen, reinterpret_cast<uint8_t *>(buf));
+    blen += base64_encode_final(&ctx, str64 + blen);
     str64[blen] = '\0';
 
     stringLength += snprintf(buf, sizeof(buf), "Authorization: Basic %.*s\r\n", (int)blen, str64);
@@ -1293,10 +1302,10 @@ check_target_acl(const char *hostname, int port)
 
             if (strcmp(token, "*") == 0)
 
-                ;   /* Wildcard port specification */
+                ; /* Wildcard port specification */
             else if (strcmp(token, "any") == 0)
 
-                ;   /* Wildcard port specification */
+                ; /* Wildcard port specification */
             else if (sscanf(token, "%d", &i) != 1)
                 continue;
 
@@ -1313,4 +1322,3 @@ check_target_acl(const char *hostname, int port)
     fclose(fp);
     return ret;
 }
-

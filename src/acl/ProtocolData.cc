@@ -9,10 +9,10 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/ProtocolData.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
 #include "wordlist.h"
 
 ACLProtocolData::ACLProtocolData(ACLProtocolData const &old)
@@ -75,4 +75,3 @@ ACLProtocolData::clone() const
     assert(values.empty());
     return new ACLProtocolData(*this);
 }
-

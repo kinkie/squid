@@ -15,4 +15,3 @@ Rock::DbCellHeader::DbCellHeader()
 {
     memset(this, 0, sizeof(*this));
 }
-

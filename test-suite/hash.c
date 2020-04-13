@@ -44,7 +44,7 @@ hash_url(const void *data, unsigned int size)
     unsigned int i, j, n;
     j = strlen(s);
     for (i = j / 2, n = 0; i < j; i++)
-        n ^= 271 * (unsigned) s[i];
+        n ^= 271 * (unsigned)s[i];
     i = n ^ (j * 271);
     return i % size;
 }
@@ -58,7 +58,7 @@ hash_string(const void *data, unsigned int size)
     unsigned int i = 0;
     while (*s) {
         j++;
-        n ^= 271 * (unsigned) *s++;
+        n ^= 271 * (unsigned)*s++;
     }
     i = n ^ (j * 271);
     return i % size;
@@ -76,8 +76,8 @@ hash_string(const void *data, unsigned int size)
  * This came from ejb's hsearch.
  */
 
-#define PRIME1      37
-#define PRIME2      1048583
+#define PRIME1 37
+#define PRIME2 1048583
 
 /* Hash function from Chris Torek. */
 unsigned int
@@ -88,8 +88,8 @@ hash4(const void *data, unsigned int size)
     unsigned int h;
     size_t len;
 
-#define HASH4a   h = (h << 5) - h + *key++;
-#define HASH4b   h = (h << 5) + h + *key++;
+#define HASH4a h = (h << 5) - h + *key++;
+#define HASH4b h = (h << 5) + h + *key++;
 #define HASH4 HASH4b
 
     h = 0;
@@ -131,13 +131,13 @@ hash4(const void *data, unsigned int size)
  *  otherwise returns a negative number on error.
  */
 hash_table *
-hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
+hash_create(HASHCMP *cmp_func, int hash_sz, HASHHASH *hash_func)
 {
     hash_table *hid = calloc(1, sizeof(hash_table));
     if (!hash_sz)
-        hid->size = (unsigned int) DEFAULT_HASH_SIZE;
+        hid->size = (unsigned int)DEFAULT_HASH_SIZE;
     else
-        hid->size = (unsigned int) hash_sz;
+        hid->size = (unsigned int)hash_sz;
     /* allocate and null the buckets */
     hid->buckets = calloc(hid->size, sizeof(hash_link *));
     hid->cmp = cmp_func;
@@ -155,7 +155,7 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
  *  It does not copy any data into the hash table, only pointers.
  */
 void
-hash_insert(hash_table * hid, const char *k, void *item)
+hash_insert(hash_table *hid, const char *k, void *item)
 {
     int i;
     hash_link *new;
@@ -168,7 +168,7 @@ hash_insert(hash_table * hid, const char *k, void *item)
         exit(1);
     }
     new->item = item;
-    new->key = (char *) k;
+    new->key = (char *)k;
     i = hid->hash(k, hid->size);
     new->next = hid->buckets[i];
     hid->buckets[i] = new;
@@ -181,7 +181,7 @@ hash_insert(hash_table * hid, const char *k, void *item)
  *  It does not copy any data into the hash table, only links pointers.
  */
 void
-hash_join(hash_table * hid, hash_link * lnk)
+hash_join(hash_table *hid, hash_link *lnk)
 {
     int i;
     i = hid->hash(lnk->key, hid->size);
@@ -195,14 +195,14 @@ hash_join(hash_table * hid, hash_link * lnk)
  *  returns NULL.
  */
 hash_link *
-hash_lookup(hash_table * hid, const void *k)
+hash_lookup(hash_table *hid, const void *k)
 {
     hash_link *walker;
     int b;
     assert(k != NULL);
     b = hid->hash(k, hid->size);
     for (walker = hid->buckets[b]; walker != NULL; walker = walker->next) {
-        if ((hid->cmp) (k, walker->key) == 0)
+        if ((hid->cmp)(k, walker->key) == 0)
             return (walker);
         assert(walker != walker->next);
     }
@@ -214,7 +214,7 @@ hash_lookup(hash_table * hid, const void *k)
  *  Otherwise, returns NULL on error.
  */
 hash_link *
-hash_first(hash_table * hid)
+hash_first(hash_table *hid)
 {
     int i;
 
@@ -233,14 +233,14 @@ hash_first(hash_table * hid)
  *  MUST call hash_first() before hash_next().
  */
 hash_link *
-hash_next(hash_table * hid)
+hash_next(hash_table *hid)
 {
     int i;
 
     if (hid->current_ptr != NULL) {
         hid->current_ptr = hid->current_ptr->next;
         if (hid->current_ptr != NULL)
-            return (hid->current_ptr);  /* next item */
+            return (hid->current_ptr); /* next item */
     }
     /* find next bucket */
     for (i = hid->current_slot + 1; i < hid->size; i++) {
@@ -248,11 +248,11 @@ hash_next(hash_table * hid)
         if (hid->buckets[i] != NULL)
             return (hid->current_ptr = hid->buckets[i]);
     }
-    return NULL;        /* end of list */
+    return NULL; /* end of list */
 }
 
 int
-hash_delete(hash_table * hid, const char *key)
+hash_delete(hash_table *hid, const char *key)
 {
     return hash_delete_link(hid, hash_lookup(hid, key));
 }
@@ -265,7 +265,7 @@ hash_delete(hash_table * hid, const char *key)
  *  returns non-zero on error.
  */
 int
-hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
+hash_unlink(hash_table *hid, hash_link *hl, int FreeLink)
 {
     hash_link *walker, *prev;
     int i;
@@ -273,12 +273,12 @@ hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
         return -1;
     i = hid->hash(hl->key, hid->size);
     for (prev = NULL, walker = hid->buckets[i];
-            walker != NULL; prev = walker, walker = walker->next) {
+         walker != NULL; prev = walker, walker = walker->next) {
         if (walker == hl) {
             if (prev == NULL) { /* it's the head */
                 hid->buckets[i] = walker->next;
             } else {
-                prev->next = walker->next;  /* skip it */
+                prev->next = walker->next; /* skip it */
             }
             /* fix walker state if needed */
             if (walker == hid->current_ptr)
@@ -296,14 +296,14 @@ hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
 
 /* take link off and free link node */
 int
-hash_delete_link(hash_table * hid, hash_link * hl)
+hash_delete_link(hash_table *hid, hash_link *hl)
 {
     return (hash_unlink(hid, hl, 1));
 }
 
 /* take link off only */
 int
-hash_remove_link(hash_table * hid, hash_link * hl)
+hash_remove_link(hash_table *hid, hash_link *hl)
 {
     return (hash_unlink(hid, hl, 0));
 }
@@ -313,7 +313,7 @@ hash_remove_link(hash_table * hid, hash_link * hl)
  *  in the hash table 'hid'. Otherwise, returns NULL on error.
  */
 hash_link *
-hash_get_bucket(hash_table * hid, unsigned int bucket)
+hash_get_bucket(hash_table *hid, unsigned int bucket)
 {
     if (bucket >= hid->size)
         return NULL;
@@ -321,9 +321,10 @@ hash_get_bucket(hash_table * hid, unsigned int bucket)
 }
 
 void
-hashFreeMemory(hash_table * hid)
+hashFreeMemory(hash_table *hid)
 {
-    if (hid->buckets);
+    if (hid->buckets)
+        ;
     free(hid->buckets);
     if (hid)
         free(hid);
@@ -355,13 +356,13 @@ main(void)
     printf("done creating hash table: %d\n", hid);
 
     std::mt19937 mt;
-    xuniform_int_distribution<> dist(0,16);
+    xuniform_int_distribution<> dist(0, 16);
 
     while (fgets(buf, BUFSIZ, stdin)) {
         buf[strlen(buf) - 1] = '\0';
         printf("Inserting '%s' for item %p to hash table: %d\n",
                buf, buf, hid);
-        hash_insert(hid, xstrdup(buf), (void *) 0x12345678);
+        hash_insert(hid, xstrdup(buf), (void *)0x12345678);
         if (dist(mt) == 0)
             strcpy(todelete, buf);
     }
@@ -389,4 +390,3 @@ main(void)
     exit(0);
 }
 #endif
-

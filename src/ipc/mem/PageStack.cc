@@ -10,15 +10,14 @@
 
 #include "squid.h"
 
-#include "base/TextException.h"
 #include "Debug.h"
+#include "base/TextException.h"
 #include "ipc/mem/Page.h"
 #include "ipc/mem/PageStack.h"
 
 /* Ipc::Mem::PageStackStorageSlot */
 
-static_assert(sizeof(Ipc::Mem::PageStackStorageSlot::Pointer) ==
-              sizeof(decltype(Ipc::Mem::PageId::number)), "page indexing types are consistent");
+static_assert(sizeof(Ipc::Mem::PageStackStorageSlot::Pointer) == sizeof(decltype(Ipc::Mem::PageId::number)), "page indexing types are consistent");
 
 void
 Ipc::Mem::PageStackStorageSlot::take()
@@ -37,7 +36,7 @@ Ipc::Mem::PageStackStorageSlot::put(const PointerOrMarker expected, const Pointe
 
 /* Ipc::Mem::PageStack */
 
-Ipc::Mem::PageStack::PageStack(const PoolId aPoolId, const PageCount aCapacity, const size_t aPageSize):
+Ipc::Mem::PageStack::PageStack(const PoolId aPoolId, const PageCount aCapacity, const size_t aPageSize) :
     thePoolId(aPoolId), capacity_(aCapacity), thePageSize(aPageSize),
     size_(0),
     head_(Slot::NilPtr),
@@ -50,12 +49,12 @@ Ipc::Mem::PageStack::PageStack(const PoolId aPoolId, const PageCount aCapacity, 
 
     // initially, all pages are free
     if (capacity_) {
-        const auto lastIndex = capacity_-1;
+        const auto lastIndex = capacity_ - 1;
         // FlexibleArray cannot construct its phantom elements so, technically,
         // all slots (except the very first one) are uninitialized until now.
         for (Slot::Pointer i = 0; i < lastIndex; ++i)
-            (void)new(&slots_[i])Slot(i+1);
-        (void)new(&slots_[lastIndex])Slot(Slot::NilPtr);
+            (void)new (&slots_[i]) Slot(i + 1);
+        (void)new (&slots_[lastIndex]) Slot(Slot::NilPtr);
         size_ = capacity_;
         head_ = 0;
     }
@@ -114,8 +113,7 @@ Ipc::Mem::PageStack::push(PageId &page)
 bool
 Ipc::Mem::PageStack::pageIdIsValid(const PageId &page) const
 {
-    return page.pool == thePoolId &&
-           0 < page.number && page.number <= capacity();
+    return page.pool == thePoolId && 0 < page.number && page.number <= capacity();
 }
 
 size_t
@@ -150,4 +148,3 @@ Ipc::Mem::PageStack::LevelsPaddingSize(const PageCount capacity)
     const auto displacement = StackSize(capacity) % alignof(Levels_t);
     return displacement ? alignof(Levels_t) - displacement : 0;
 }
-

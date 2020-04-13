@@ -9,20 +9,21 @@
 /* DEBUG: section 81    aio_xxx() POSIX emulation on Windows */
 
 #include "squid.h"
-#include "comm.h"
 #include "DiskIO/AIO/aio_win32.h"
-#include "fd.h"
 #include "StatCounters.h"
+#include "comm.h"
+#include "fd.h"
 #include "win32.h"
 
 #include <cerrno>
 
 #if _SQUID_WINDOWS_
-VOID CALLBACK IoCompletionRoutine(DWORD dwErrorCode,
-                                  DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
+VOID CALLBACK
+IoCompletionRoutine(DWORD dwErrorCode,
+                    DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
 {
 
-    struct aiocb *aiocbp = (struct aiocb *) lpOverlapped->hEvent;
+    struct aiocb *aiocbp = (struct aiocb *)lpOverlapped->hEvent;
 
     aiocbp->aio_sigevent.sigev_notify = dwErrorCode;
     aiocbp->aio_sigevent.sigev_signo = dwNumberOfBytesTransfered;
@@ -30,30 +31,31 @@ VOID CALLBACK IoCompletionRoutine(DWORD dwErrorCode,
     xfree(lpOverlapped);
 }
 
-int aio_read(struct aiocb *aiocbp)
+int
+aio_read(struct aiocb *aiocbp)
 {
     LPOVERLAPPED Overlapped;
     BOOL IoOperationStatus;
 
     /* Allocate an overlapped structure. */
-    Overlapped = (LPOVERLAPPED) xcalloc(1, sizeof(OVERLAPPED));
+    Overlapped = (LPOVERLAPPED)xcalloc(1, sizeof(OVERLAPPED));
 
     if (!Overlapped) {
         errno = ENOMEM;
         return -1;
     }
 
-#if _FILE_OFFSET_BITS==64
+#if _FILE_OFFSET_BITS == 64
 #ifdef __GNUC__
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000LL);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000LL);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000LL);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000LL);
 
 #else
 
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000);
 
 #endif
 #else
@@ -79,7 +81,7 @@ int aio_read(struct aiocb *aiocbp)
     /* Test to see if the I/O was queued successfully. */
     if (!IoOperationStatus) {
         errno = GetLastError();
-        debugs(81, DBG_IMPORTANT, "aio_read: GetLastError=" << errno  );
+        debugs(81, DBG_IMPORTANT, "aio_read: GetLastError=" << errno);
         return -1;
     }
 
@@ -89,13 +91,14 @@ int aio_read(struct aiocb *aiocbp)
     return 0;
 }
 
-int aio_read64(struct aiocb64 *aiocbp)
+int
+aio_read64(struct aiocb64 *aiocbp)
 {
     LPOVERLAPPED Overlapped;
     BOOL IoOperationStatus;
 
     /* Allocate an overlapped structure. */
-    Overlapped = (LPOVERLAPPED) xcalloc(1, sizeof(OVERLAPPED));
+    Overlapped = (LPOVERLAPPED)xcalloc(1, sizeof(OVERLAPPED));
 
     if (!Overlapped) {
         errno = ENOMEM;
@@ -103,15 +106,15 @@ int aio_read64(struct aiocb64 *aiocbp)
     }
 
 #ifdef __GNUC__
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000LL);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000LL);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000LL);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000LL);
 
 #else
 
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000);
 
 #endif
 
@@ -130,7 +133,7 @@ int aio_read64(struct aiocb64 *aiocbp)
     /* Test to see if the I/O was queued successfully. */
     if (!IoOperationStatus) {
         errno = GetLastError();
-        debugs(81, DBG_IMPORTANT, "aio_read: GetLastError=" << errno  );
+        debugs(81, DBG_IMPORTANT, "aio_read: GetLastError=" << errno);
         return -1;
     }
 
@@ -140,30 +143,31 @@ int aio_read64(struct aiocb64 *aiocbp)
     return 0;
 }
 
-int aio_write(struct aiocb *aiocbp)
+int
+aio_write(struct aiocb *aiocbp)
 {
     LPOVERLAPPED Overlapped;
     BOOL IoOperationStatus;
 
     /* Allocate an overlapped structure. */
-    Overlapped = (LPOVERLAPPED) xcalloc(1, sizeof(OVERLAPPED));
+    Overlapped = (LPOVERLAPPED)xcalloc(1, sizeof(OVERLAPPED));
 
     if (!Overlapped) {
         errno = ENOMEM;
         return -1;
     }
 
-#if _FILE_OFFSET_BITS==64
+#if _FILE_OFFSET_BITS == 64
 #ifdef __GNUC__
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000LL);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000LL);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000LL);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000LL);
 
 #else
 
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000);
 
 #endif
 #else
@@ -189,7 +193,7 @@ int aio_write(struct aiocb *aiocbp)
     /* Test to see if the I/O was queued successfully. */
     if (!IoOperationStatus) {
         errno = GetLastError();
-        debugs(81, DBG_IMPORTANT, "aio_write: GetLastError=" << errno  );
+        debugs(81, DBG_IMPORTANT, "aio_write: GetLastError=" << errno);
         return -1;
     }
 
@@ -199,13 +203,14 @@ int aio_write(struct aiocb *aiocbp)
     return 0;
 }
 
-int aio_write64(struct aiocb64 *aiocbp)
+int
+aio_write64(struct aiocb64 *aiocbp)
 {
     LPOVERLAPPED Overlapped;
     BOOL IoOperationStatus;
 
     /* Allocate an overlapped structure. */
-    Overlapped = (LPOVERLAPPED) xcalloc(1, sizeof(OVERLAPPED));
+    Overlapped = (LPOVERLAPPED)xcalloc(1, sizeof(OVERLAPPED));
 
     if (!Overlapped) {
         errno = ENOMEM;
@@ -213,15 +218,15 @@ int aio_write64(struct aiocb64 *aiocbp)
     }
 
 #ifdef __GNUC__
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000LL);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000LL);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000LL);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000LL);
 
 #else
 
-    Overlapped->Offset = (DWORD) (aiocbp->aio_offset % 0x100000000);
+    Overlapped->Offset = (DWORD)(aiocbp->aio_offset % 0x100000000);
 
-    Overlapped->OffsetHigh = (DWORD) (aiocbp->aio_offset / 0x100000000);
+    Overlapped->OffsetHigh = (DWORD)(aiocbp->aio_offset / 0x100000000);
 
 #endif
 
@@ -240,7 +245,7 @@ int aio_write64(struct aiocb64 *aiocbp)
     /* Test to see if the I/O was queued successfully. */
     if (!IoOperationStatus) {
         errno = GetLastError();
-        debugs(81, DBG_IMPORTANT, "aio_write: GetLastError=" << errno  );
+        debugs(81, DBG_IMPORTANT, "aio_write: GetLastError=" << errno);
         return -1;
     }
 
@@ -250,17 +255,20 @@ int aio_write64(struct aiocb64 *aiocbp)
     return 0;
 }
 
-int aio_error(const struct aiocb * aiocbp)
+int
+aio_error(const struct aiocb *aiocbp)
 {
     return aiocbp->aio_sigevent.sigev_notify;
 }
 
-int aio_error64(const struct aiocb64 * aiocbp)
+int
+aio_error64(const struct aiocb64 *aiocbp)
 {
     return aiocbp->aio_sigevent.sigev_notify;
 }
 
-int aio_open(const char *path, int mode)
+int
+aio_open(const char *path, int mode)
 {
     HANDLE hndl;
     DWORD dwCreationDisposition;
@@ -284,16 +292,17 @@ int aio_open(const char *path, int mode)
     else
         dwCreationDisposition = (mode & O_CREAT) ? OPEN_ALWAYS : OPEN_EXISTING;
 
-    if ((hndl = CreateFile(path,                    /* file name               */
-                           dwDesiredAccess,         /* access mode             */
-                           0,                       /* share mode              */
-                           NULL,                    /* SD                      */
-                           dwCreationDisposition,   /* how to create           */
-                           FILE_FLAG_OVERLAPPED,    /* file attributes         */
-                           NULL                     /* handle to template file */
-                          )) != INVALID_HANDLE_VALUE) {
-        ++ statCounter.syscalls.disk.opens;
-        fd = _open_osfhandle((long) hndl, 0);
+    if ((hndl = CreateFile(path,                  /* file name               */
+                           dwDesiredAccess,       /* access mode             */
+                           0,                     /* share mode              */
+                           NULL,                  /* SD                      */
+                           dwCreationDisposition, /* how to create           */
+                           FILE_FLAG_OVERLAPPED,  /* file attributes         */
+                           NULL                   /* handle to template file */
+                           ))
+        != INVALID_HANDLE_VALUE) {
+        ++statCounter.syscalls.disk.opens;
+        fd = _open_osfhandle((long)hndl, 0);
         commSetCloseOnExec(fd);
         fd_open(fd, FD_FILE, path);
     } else {
@@ -304,22 +313,24 @@ int aio_open(const char *path, int mode)
     return fd;
 }
 
-void aio_close(int fd)
+void
+aio_close(int fd)
 {
     CloseHandle((HANDLE)_get_osfhandle(fd));
     fd_close(fd);
-    ++ statCounter.syscalls.disk.closes;
+    ++statCounter.syscalls.disk.closes;
 }
 
-ssize_t aio_return(struct aiocb * aiocbp)
+ssize_t
+aio_return(struct aiocb *aiocbp)
 {
     return aiocbp->aio_sigevent.sigev_signo;
 }
 
-ssize_t aio_return64(struct aiocb64 * aiocbp)
+ssize_t
+aio_return64(struct aiocb64 *aiocbp)
 
 {
     return aiocbp->aio_sigevent.sigev_signo;
 }
 #endif /* _SQUID_WINDOWS_ */
-

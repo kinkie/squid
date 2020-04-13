@@ -43,14 +43,18 @@ bool CreateServerSession(const Security::ContextPointer &, const Comm::Connectio
 #if USE_OPENSSL
 typedef std::shared_ptr<SSL> SessionPointer;
 
-typedef std::unique_ptr<SSL_SESSION, HardFun<void, SSL_SESSION*, &SSL_SESSION_free>> SessionStatePointer;
+typedef std::unique_ptr<SSL_SESSION, HardFun<void, SSL_SESSION *, &SSL_SESSION_free>> SessionStatePointer;
 
 #elif USE_GNUTLS
 typedef std::shared_ptr<struct gnutls_session_int> SessionPointer;
 
 // wrapper function to get around gnutls_free being a typedef
-inline void squid_gnutls_free(void *d) {gnutls_free(d);}
-typedef std::unique_ptr<gnutls_datum_t, HardFun<void, void*, &Security::squid_gnutls_free>> SessionStatePointer;
+inline void
+squid_gnutls_free(void *d)
+{
+    gnutls_free(d);
+}
+typedef std::unique_ptr<gnutls_datum_t, HardFun<void, void *, &Security::squid_gnutls_free>> SessionStatePointer;
 
 #else
 typedef std::shared_ptr<void> SessionPointer;
@@ -90,7 +94,7 @@ inline Security::ContextPointer
 GetFrom(Security::SessionPointer &s)
 {
     auto *ctx = SSL_get_SSL_CTX(s.get());
-    return Security::ContextPointer(ctx, [](SSL_CTX *) {/* nothing to unlock/free */});
+    return Security::ContextPointer(ctx, [](SSL_CTX *) { /* nothing to unlock/free */ });
 }
 
 /// \deprecated use the PeerOptions/ServerOptions API methods instead.
@@ -99,7 +103,6 @@ GetFrom(Security::SessionPointer &s)
 Security::SessionPointer NewSessionObject(const Security::ContextPointer &);
 #endif
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_SESSION_H */
-

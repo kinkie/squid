@@ -24,4 +24,3 @@
 
 #endif /* _SQUID_QNX_ */
 #endif /* SQUID_OS_QNX_H */
-

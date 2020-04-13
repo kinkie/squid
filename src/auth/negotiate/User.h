@@ -13,34 +13,31 @@
 
 #include "auth/User.h"
 
-namespace Auth
-{
+namespace Auth {
 
 class SchemeConfig;
 
-namespace Negotiate
-{
+namespace Negotiate {
 
-/** User credentials for the Negotiate authentication protocol */
-class User : public Auth::User
-{
-    MEMPROXY_CLASS(Auth::Negotiate::User);
+    /** User credentials for the Negotiate authentication protocol */
+    class User : public Auth::User
+    {
+        MEMPROXY_CLASS(Auth::Negotiate::User);
 
-public:
-    User(Auth::SchemeConfig *, const char *requestRealm);
-    virtual ~User();
-    virtual int32_t ttl() const override;
+    public:
+        User(Auth::SchemeConfig *, const char *requestRealm);
+        virtual ~User();
+        virtual int32_t ttl() const override;
 
-    /* Auth::User API */
-    static CbcPointer<Auth::CredentialsCache> Cache();
-    virtual void addToNameCache() override;
+        /* Auth::User API */
+        static CbcPointer<Auth::CredentialsCache> Cache();
+        virtual void addToNameCache() override;
 
-    dlink_list proxy_auth_list;
-};
+        dlink_list proxy_auth_list;
+    };
 
-} // namespace Negotiate
-} // namespace Auth
+}  // namespace Negotiate
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_NEGOTIATE */
 #endif /* _SQUID_AUTH_NEGOTIATE_USER_H */
-

@@ -9,6 +9,8 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "SquidConfig.h"
+#include "SquidIpc.h"
 #include "comm/Connection.h"
 #include "fd.h"
 #include "fde.h"
@@ -16,8 +18,6 @@
 #include "ip/Address.h"
 #include "ipc/Kid.h"
 #include "rfc1738.h"
-#include "SquidConfig.h"
-#include "SquidIpc.h"
 #include "tools.h"
 
 static const char *hello_string = "hi there\n";
@@ -88,11 +88,12 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         *hIpc = NULL;
 
 // NP: no wrapping around d and c usage since we *want* code expansion
-#define IPC_CHECK_FAIL(f,d,c) \
-    if ((f) < 0) { \
+#define IPC_CHECK_FAIL(f, d, c)                                                     \
+    if ((f) < 0) {                                                                  \
         debugs(54, DBG_CRITICAL, "ERROR: Failed to create helper " d " FD: " << c); \
-        return ipcCloseAllFD(prfd, pwfd, crfd, cwfd); \
-    } else void(0)
+        return ipcCloseAllFD(prfd, pwfd, crfd, cwfd);                               \
+    } else                                                                          \
+        void(0)
 
     if (type == IPC_TCP_SOCKET) {
         crfd = cwfd = comm_open(SOCK_STREAM,
@@ -101,9 +102,9 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
                                 COMM_NOCLOEXEC,
                                 name);
         prfd = pwfd = comm_open(SOCK_STREAM,
-                                0,          /* protocol */
+                                0, /* protocol */
                                 local_addr,
-                                0,          /* blocking */
+                                0, /* blocking */
                                 name);
         IPC_CHECK_FAIL(crfd, "child read", "TCP " << local_addr);
         IPC_CHECK_FAIL(prfd, "parent read", "TCP " << local_addr);
@@ -127,7 +128,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         if (pipe(p2c) < 0) {
             xerrno = errno;
             debugs(54, DBG_CRITICAL, "ipcCreate: pipe: " << xstrerr(xerrno));
-            return -1; // maybe ipcCloseAllFD(prfd, pwfd, crfd, cwfd);
+            return -1;  // maybe ipcCloseAllFD(prfd, pwfd, crfd, cwfd);
         }
         fd_open(prfd = p2c[0], FD_PIPE, "IPC FIFO Parent Read");
         fd_open(cwfd = p2c[1], FD_PIPE, "IPC FIFO Child Write");
@@ -156,22 +157,22 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         }
 
         errno = 0;
-        if (setsockopt(fds[0], SOL_SOCKET, SO_SNDBUF, (void *) &buflen, sizeof(buflen)) == -1)  {
+        if (setsockopt(fds[0], SOL_SOCKET, SO_SNDBUF, (void *)&buflen, sizeof(buflen)) == -1) {
             xerrno = errno;
             debugs(54, DBG_IMPORTANT, "setsockopt failed: " << xstrerr(xerrno));
             errno = 0;
         }
-        if (setsockopt(fds[0], SOL_SOCKET, SO_RCVBUF, (void *) &buflen, sizeof(buflen)) == -1) {
+        if (setsockopt(fds[0], SOL_SOCKET, SO_RCVBUF, (void *)&buflen, sizeof(buflen)) == -1) {
             xerrno = errno;
             debugs(54, DBG_IMPORTANT, "setsockopt failed: " << xstrerr(xerrno));
             errno = 0;
         }
-        if (setsockopt(fds[1], SOL_SOCKET, SO_SNDBUF, (void *) &buflen, sizeof(buflen)) == -1) {
+        if (setsockopt(fds[1], SOL_SOCKET, SO_SNDBUF, (void *)&buflen, sizeof(buflen)) == -1) {
             xerrno = errno;
             debugs(54, DBG_IMPORTANT, "setsockopt failed: " << xstrerr(xerrno));
             errno = 0;
         }
-        if (setsockopt(fds[1], SOL_SOCKET, SO_RCVBUF, (void *) &buflen, sizeof(buflen)) == -1) {
+        if (setsockopt(fds[1], SOL_SOCKET, SO_RCVBUF, (void *)&buflen, sizeof(buflen)) == -1) {
             xerrno = errno;
             debugs(54, DBG_IMPORTANT, "setsockopt failed: " << xstrerr(xerrno));
             errno = 0;
@@ -235,8 +236,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 
         Ip::Address::FreeAddr(AI);
 
-        debugs(54, 3, "ipcCreate: FD " << crfd << " sockaddr " << ChS );
-
+        debugs(54, 3, "ipcCreate: FD " << crfd << " sockaddr " << ChS);
     }
 
     if (type == IPC_TCP_SOCKET) {
@@ -258,7 +258,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         return ipcCloseAllFD(prfd, pwfd, crfd, cwfd);
     }
 
-    if (pid > 0) {      /* parent */
+    if (pid > 0) { /* parent */
         /* close shared socket with child */
         comm_close(crfd);
 
@@ -273,9 +273,9 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         }
 
         if (type == IPC_UDP_SOCKET)
-            x = comm_udp_recv(prfd, hello_buf, sizeof(hello_buf)-1, 0);
+            x = comm_udp_recv(prfd, hello_buf, sizeof(hello_buf) - 1, 0);
         else
-            x = read(prfd, hello_buf, sizeof(hello_buf)-1);
+            x = read(prfd, hello_buf, sizeof(hello_buf) - 1);
         xerrno = errno;
         if (x >= 0)
             hello_buf[x] = '\0';
@@ -319,7 +319,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 
     /* child */
     TheProcessKind = pkHelper;
-    no_suid();          /* give up extra privileges */
+    no_suid(); /* give up extra privileges */
 
     /* close shared socket with parent */
     close(prfd);
@@ -413,7 +413,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
         setsid();
 #endif
 
-    execvp(prog, (char *const *) args);
+    execvp(prog, (char *const *)args);
     xerrno = errno;
 
     ResyncDebugLog(fdopen(2, "a+"));
@@ -424,4 +424,3 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 
     return 0;
 }
-

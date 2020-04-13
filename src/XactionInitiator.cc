@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "cache_cf.h"
-#include "Debug.h"
 #include "XactionInitiator.h"
+#include "Debug.h"
+#include "cache_cf.h"
 
 #include <map>
 #include <string>
@@ -34,8 +34,7 @@ XactionInitiator::ParseInitiators(const char *name)
         {"icon", initIcon},
         {"peer-mcast", initPeerMcast},
         {"internal", InternalInitiators()},
-        {"all", AllInitiators()}
-    };
+        {"all", AllInitiators()}};
     const auto it = SupportedInitiators.find(name);
     if (it != SupportedInitiators.cend())
         return it->second;
@@ -44,4 +43,3 @@ XactionInitiator::ParseInitiators(const char *name)
     self_destruct();
     return 0;
 }
-

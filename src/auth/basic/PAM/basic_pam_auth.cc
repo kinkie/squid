@@ -97,7 +97,7 @@
 #endif
 
 #if _SQUID_SOLARIS_
-static char *password = NULL;   /* Workaround for Solaris 2.6 brokenness */
+static char *password = NULL; /* Workaround for Solaris 2.6 brokenness */
 #endif
 
 extern "C" int password_conversation(int num_msg, PAM_CONV_FUNC_CONST_PARM struct pam_message **msg,
@@ -133,7 +133,7 @@ password_conversation(int num_msg, PAM_CONV_FUNC_CONST_PARM struct pam_message *
         debug("ERROR: Out of memory!\n");
         return PAM_CONV_ERR;
     }
-    (*resp)[0].resp = xstrdup((char *) appdata_ptr);
+    (*resp)[0].resp = xstrdup((char *)appdata_ptr);
     (*resp)[0].resp_retcode = 0;
 
     return ((*resp)[0].resp ? PAM_SUCCESS : PAM_CONV_ERR);
@@ -141,10 +141,10 @@ password_conversation(int num_msg, PAM_CONV_FUNC_CONST_PARM struct pam_message *
 
 static struct pam_conv conv = {
     &password_conversation,
-    NULL
-};
+    NULL};
 
-static void usage(char *program)
+static void
+usage(char *program)
 {
     fprintf(stderr, "Usage: %s [options..]\n", program);
     fprintf(stderr, " -n service_name\n");
@@ -224,17 +224,19 @@ start:
         ++password_buf;
         rfc1738_unescape(user);
         rfc1738_unescape(password_buf);
-        conv.appdata_ptr = (char *) password_buf;   /* from buf above. not allocated */
+        conv.appdata_ptr = (char *)password_buf; /* from buf above. not allocated */
 
         if (no_realm) {
             /* Remove DOMAIN\.. and ...@domain from the user name in case the user
              * thought this was an NTLM or Negotiate authentication popup box
              */
-            char * user_ptr = strchr(user, '@');
-            if (user_ptr) *user_ptr = 0;
+            char *user_ptr = strchr(user, '@');
+            if (user_ptr)
+                *user_ptr = 0;
             else {
                 user_ptr = strchr(user, '\\');
-                if (user_ptr) user = user_ptr + 1;
+                if (user_ptr)
+                    user = user_ptr + 1;
             }
         }
 
@@ -282,7 +284,7 @@ start:
         if (retval == PAM_SUCCESS) {
             SEND_OK("");
         } else {
-error:
+        error:
             SEND_ERR("");
         }
         /* cleanup */
@@ -310,4 +312,3 @@ error:
     }
     return EXIT_SUCCESS;
 }
-

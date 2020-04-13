@@ -9,22 +9,22 @@
 #ifndef SQUID_STORE_H
 #define SQUID_STORE_H
 
+#include "CommRead.h"
+#include "HttpReply.h"
+#include "MemObject.h"
+#include "RemovalPolicy.h"
+#include "StoreIOBuffer.h"
+#include "StoreStats.h"
 #include "base/Packable.h"
 #include "base/Range.h"
 #include "base/RefCount.h"
 #include "comm/forward.h"
-#include "CommRead.h"
 #include "hash.h"
-#include "http/forward.h"
 #include "http/RequestMethod.h"
-#include "HttpReply.h"
-#include "MemObject.h"
-#include "RemovalPolicy.h"
+#include "http/forward.h"
 #include "store/Controller.h"
 #include "store/forward.h"
 #include "store_key_md5.h"
-#include "StoreIOBuffer.h"
-#include "StoreStats.h"
 
 #if USE_SQUID_ESI
 #include "esi/Element.h"
@@ -49,8 +49,16 @@ public:
     StoreEntry();
     virtual ~StoreEntry();
 
-    MemObject &mem() { assert(mem_obj); return *mem_obj; }
-    const MemObject &mem() const { assert(mem_obj); return *mem_obj; }
+    MemObject &mem()
+    {
+        assert(mem_obj);
+        return *mem_obj;
+    }
+    const MemObject &mem() const
+    {
+        assert(mem_obj);
+        return *mem_obj;
+    }
 
     /// \retval * the address of freshest reply (if mem_obj exists)
     /// \retval nullptr when mem_obj does not exist
@@ -76,7 +84,7 @@ public:
     /// Store a prepared error response. MemObject locks the reply object.
     void storeErrorResponse(HttpReply *reply);
     void replaceHttpReply(const HttpReplyPointer &, const bool andStartWriting = true);
-    void startWriting(); ///< pack and write reply headers and, maybe, body
+    void startWriting();  ///< pack and write reply headers and, maybe, body
     /// whether we may start writing to disk (now or in the future)
     bool mayStartSwapOut();
     void trimMemory(const bool preserveSwappable);
@@ -100,10 +108,10 @@ public:
     void clearPublicKeyScope();
 
     /// \returns public key (if the entry has it) or nil (otherwise)
-    const cache_key *publicKey() const {
-        return (!EBIT_TEST(flags, KEY_PRIVATE)) ?
-               reinterpret_cast<const cache_key*>(key): // may be nil
-               nullptr;
+    const cache_key *publicKey() const
+    {
+        return (!EBIT_TEST(flags, KEY_PRIVATE)) ? reinterpret_cast<const cache_key *>(key) :  // may be nil
+            nullptr;
     }
 
     /// Either fills this entry with private key or changes the existing key
@@ -116,9 +124,9 @@ public:
     /// for eventual removal from the Store.
     void releaseRequest(const bool shareable = false);
     void negativeCache();
-    bool cacheNegatively();     /** \todo argh, why both? */
+    bool cacheNegatively(); /** \todo argh, why both? */
     void invokeHandlers();
-    void cacheInMemory(); ///< start or continue storing in memory cache
+    void cacheInMemory();  ///< start or continue storing in memory cache
     void swapOut();
     /// whether we are in the process of writing this entry to disk
     bool swappingOut() const { return swap_status == SWAPOUT_WRITING; }
@@ -135,7 +143,7 @@ public:
     int checkNegativeHit() const;
     int locked() const { return lock_count; }
     int validToSend() const;
-    bool memoryCachable(); ///< checkCachable() and can be cached in memory
+    bool memoryCachable();  ///< checkCachable() and can be cached in memory
 
     /// initialize mem_obj; assert if mem_obj already exists
     /// avoid this method in favor of createMemObject(trio)!
@@ -150,7 +158,7 @@ public:
     void dump(int debug_lvl) const;
     void hashDelete();
     void hashInsert(const cache_key *);
-    void registerAbort(STABH * cb, void *);
+    void registerAbort(STABH *cb, void *);
     void reset();
     void setMemStatus(mem_status_t);
     bool timestampsSet();
@@ -160,10 +168,11 @@ public:
 
     void delayAwareRead(const Comm::ConnectionPointer &conn, char *buf, int len, AsyncCall::Pointer callback);
 
-    void setNoDelay (bool const);
+    void setNoDelay(bool const);
     void lastModified(const time_t when) { lastModified_ = when; }
     /// \returns entry's 'effective' modification time
-    time_t lastModified() const {
+    time_t lastModified() const
+    {
         // may still return -1 if timestamp is not set
         return lastModified_ < 0 ? timestamp : lastModified_;
     }
@@ -212,8 +221,9 @@ public:
     time_t timestamp;
     time_t lastref;
     time_t expires;
+
 private:
-    time_t lastModified_; ///< received Last-Modified value or -1; use lastModified()
+    time_t lastModified_;  ///< received Last-Modified value or -1; use lastModified()
 public:
     uint64_t swap_file_sz;
     uint16_t refcount;
@@ -221,23 +231,23 @@ public:
     /* END OF ON-DISK STORE_META_STD */
 
     /// unique ID inside a cache_dir for swapped out entries; -1 for others
-    sfileno swap_filen:25; // keep in sync with SwapFilenMax
+    sfileno swap_filen : 25;  // keep in sync with SwapFilenMax
 
-    sdirno swap_dirn:7;
+    sdirno swap_dirn : 7;
 
-    mem_status_t mem_status:3;
+    mem_status_t mem_status : 3;
 
-    ping_status_t ping_status:3;
+    ping_status_t ping_status : 3;
 
-    store_status_t store_status:3;
+    store_status_t store_status : 3;
 
-    swap_status_t swap_status:3;
+    swap_status_t swap_status : 3;
 
 public:
     static size_t inUseCount();
-    static void getPublicByRequestMethod(StoreClient * aClient, HttpRequest * request, const HttpRequestMethod& method);
-    static void getPublicByRequest(StoreClient * aClient, HttpRequest * request);
-    static void getPublic(StoreClient * aClient, const char *uri, const HttpRequestMethod& method);
+    static void getPublicByRequestMethod(StoreClient *aClient, HttpRequest *request, const HttpRequestMethod &method);
+    static void getPublicByRequest(StoreClient *aClient, HttpRequest *request);
+    static void getPublic(StoreClient *aClient, const char *uri, const HttpRequestMethod &method);
 
     void *operator new(size_t byteCount);
     void operator delete(void *address);
@@ -245,7 +255,10 @@ public:
 
     ESIElement::Pointer cachedESITree;
 #endif
-    int64_t objectLen() const { return mem().object_sz; }
+    int64_t objectLen() const
+    {
+        return mem().object_sz;
+    }
     int64_t contentLen() const { return objectLen() - mem().baseReply().hdr_sz; }
 
     /// claim shared ownership of this entry (for use in a given context)
@@ -272,11 +285,16 @@ public:
     /// May destroy this object if it is unlocked; does nothing otherwise.
     /// Unlike release(), may not trigger eviction of underlying store entries,
     /// but, unlike destroyStoreEntry(), does honor an earlier release request.
-    void abandon(const char *context) { if (!locked()) doAbandon(context); }
+    void abandon(const char *context)
+    {
+        if (!locked())
+            doAbandon(context);
+    }
 
     /// May the caller commit to treating this [previously locked]
     /// entry as a cache hit?
-    bool mayStartHitting() const {
+    bool mayStartHitting() const
+    {
         return !EBIT_TEST(flags, KEY_PRIVATE) || shareableWhenPrivate;
     }
 
@@ -309,7 +327,7 @@ private:
 
     static MemAllocator *pool;
 
-    unsigned short lock_count;      /* Assume < 65536! */
+    unsigned short lock_count; /* Assume < 65536! */
 
     /// Nobody can find/lock KEY_PRIVATE entries, but some transactions
     /// (e.g., collapsed requests) find/lock a public entry before it becomes
@@ -326,46 +344,51 @@ private:
     bool validLength() const;
     bool hasOneOfEtags(const String &reqETags, const bool allowWeakMatch) const;
 
-    friend std::ostream &operator <<(std::ostream &os, const StoreEntry &e);
+    friend std::ostream &operator<<(std::ostream &os, const StoreEntry &e);
 };
 
-std::ostream &operator <<(std::ostream &os, const StoreEntry &e);
+std::ostream &operator<<(std::ostream &os, const StoreEntry &e);
 
 /// \ingroup StoreAPI
-typedef void (*STOREGETCLIENT) (StoreEntry *, void *cbdata);
+typedef void (*STOREGETCLIENT)(StoreEntry *, void *cbdata);
 
 namespace Store {
 
 /// a smart pointer similar to std::unique_ptr<> that automatically
 /// release()s and unlock()s the guarded Entry on stack-unwinding failures
-class EntryGuard {
+class EntryGuard
+{
 public:
     /// \param entry either nil or a locked Entry to manage
     /// \param context default unlock() message
-    EntryGuard(Entry *entry, const char *context):
-        entry_(entry), context_(context) {
+    EntryGuard(Entry *entry, const char *context) :
+        entry_(entry), context_(context)
+    {
         assert(!entry_ || entry_->locked());
     }
 
-    ~EntryGuard() {
+    ~EntryGuard()
+    {
         if (entry_) {
             // something went wrong -- the caller did not unlockAndReset() us
             onException();
         }
     }
 
-    EntryGuard(EntryGuard &&) = delete; // no copying or moving (for now)
+    EntryGuard(EntryGuard &&) = delete;  // no copying or moving (for now)
 
     /// like std::unique_ptr::get()
     /// \returns nil or the guarded (locked) entry
-    Entry *get() {
+    Entry *get()
+    {
         return entry_;
     }
 
     /// like std::unique_ptr::reset()
     /// stops guarding the entry
     /// unlocks the entry (which may destroy it)
-    void unlockAndReset(const char *resetContext = nullptr) {
+    void unlockAndReset(const char *resetContext = nullptr)
+    {
         if (entry_) {
             entry_->unlock(resetContext ? resetContext : context_);
             entry_ = nullptr;
@@ -375,13 +398,13 @@ public:
 private:
     void onException() noexcept;
 
-    Entry *entry_; ///< the guarded Entry or nil
-    const char *context_; ///< default unlock() message
+    Entry *entry_;         ///< the guarded Entry or nil
+    const char *context_;  ///< default unlock() message
 };
 
 void Stats(StoreEntry *output);
 void Maintain(void *unused);
-}; // namespace Store
+};  // namespace Store
 
 /// \ingroup StoreAPI
 size_t storeEntryInUse();
@@ -393,21 +416,21 @@ const char *storeEntryFlags(const StoreEntry *);
 void storeEntryReplaceObject(StoreEntry *, HttpReply *);
 
 /// \ingroup StoreAPI
-StoreEntry *storeGetPublic(const char *uri, const HttpRequestMethod& method);
+StoreEntry *storeGetPublic(const char *uri, const HttpRequestMethod &method);
 
 /// \ingroup StoreAPI
-StoreEntry *storeGetPublicByRequest(HttpRequest * request, const KeyScope keyScope = ksDefault);
+StoreEntry *storeGetPublicByRequest(HttpRequest *request, const KeyScope keyScope = ksDefault);
 
 /// \ingroup StoreAPI
-StoreEntry *storeGetPublicByRequestMethod(HttpRequest * request, const HttpRequestMethod& method, const KeyScope keyScope = ksDefault);
+StoreEntry *storeGetPublicByRequestMethod(HttpRequest *request, const HttpRequestMethod &method, const KeyScope keyScope = ksDefault);
 
 /// \ingroup StoreAPI
 /// Like storeCreatePureEntry(), but also locks the entry and sets entry key.
-StoreEntry *storeCreateEntry(const char *, const char *, const RequestFlags &, const HttpRequestMethod&);
+StoreEntry *storeCreateEntry(const char *, const char *, const RequestFlags &, const HttpRequestMethod &);
 
 /// \ingroup StoreAPI
 /// Creates a new StoreEntry with mem_obj and sets initial flags/states.
-StoreEntry *storeCreatePureEntry(const char *storeId, const char *logUrl, const HttpRequestMethod&);
+StoreEntry *storeCreatePureEntry(const char *storeId, const char *logUrl, const HttpRequestMethod &);
 
 /// \ingroup StoreAPI
 void storeInit(void);
@@ -422,7 +445,7 @@ void storeFreeMemory(void);
 int expiresMoreThan(time_t, time_t);
 
 /// \ingroup StoreAPI
-void storeAppendPrintf(StoreEntry *, const char *,...) PRINTF_FORMAT_ARG2;
+void storeAppendPrintf(StoreEntry *, const char *, ...) PRINTF_FORMAT_ARG2;
 
 /// \ingroup StoreAPI
 void storeAppendVPrintf(StoreEntry *, const char *, va_list ap);
@@ -434,7 +457,7 @@ int storeTooManyDiskFilesOpen(void);
 void storeHeapPositionUpdate(StoreEntry *, SwapDir *);
 
 /// \ingroup StoreAPI
-void storeSwapFileNumberSet(StoreEntry * e, sfileno filn);
+void storeSwapFileNumberSet(StoreEntry *e, sfileno filn);
 
 /// \ingroup StoreAPI
 void storeFsInit(void);
@@ -455,4 +478,3 @@ extern FREE destroyStoreEntry;
 void storeGetMemSpace(int size);
 
 #endif /* SQUID_STORE_H */
-

@@ -14,6 +14,7 @@
 class dlink_node
 {
     MEMPROXY_CLASS(dlink_node);
+
 public:
     void *data = nullptr;
     dlink_node *prev = nullptr;
@@ -32,7 +33,6 @@ extern dlink_list ClientActiveRequests;
 void dlinkAdd(void *data, dlink_node *, dlink_list *);
 void dlinkAddAfter(void *, dlink_node *, dlink_node *, dlink_list *);
 void dlinkAddTail(void *data, dlink_node *, dlink_list *);
-void dlinkDelete(dlink_node * m, dlink_list * list);
+void dlinkDelete(dlink_node *m, dlink_list *list);
 
 #endif /* SQUID_DLINK_H */
-

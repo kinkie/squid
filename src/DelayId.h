@@ -22,17 +22,17 @@ class DelayId
 
 public:
     static DelayId DelayClient(ClientHttpRequest *, HttpReply *reply = nullptr);
-    DelayId ();
-    DelayId (unsigned short);
-    ~DelayId ();
+    DelayId();
+    DelayId(unsigned short);
+    ~DelayId();
     unsigned short pool() const;
     DelayIdComposite::Pointer compositePosition();
     DelayIdComposite::Pointer const compositePosition() const;
-    void compositePosition(DelayIdComposite::Pointer );
-    bool operator == (DelayId const &rhs) const;
+    void compositePosition(DelayIdComposite::Pointer);
+    bool operator==(DelayId const &rhs) const;
     operator bool() const;
     int bytesWanted(int min, int max) const;
-    void bytesIn (int qty);
+    void bytesIn(int qty);
     void setNoDelay(bool const);
     void delayRead(DeferredRead const &);
 
@@ -44,4 +44,3 @@ private:
 
 #endif /* USE_DELAY_POOLS */
 #endif /* SQUID_DELAYID_H */
-

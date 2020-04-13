@@ -9,18 +9,18 @@
 #ifndef SQUID_HTTPACCESSLOGENTRY_H
 #define SQUID_HTTPACCESSLOGENTRY_H
 
-#include "anyp/PortCfg.h"
-#include "base/CodeContext.h"
-#include "comm/Connection.h"
 #include "HierarchyLogEntry.h"
-#include "http/ProtocolVersion.h"
-#include "http/RequestMethod.h"
 #include "HttpHeader.h"
-#include "icp_opcode.h"
-#include "ip/Address.h"
 #include "LogTags.h"
 #include "MessageSizes.h"
 #include "Notes.h"
+#include "anyp/PortCfg.h"
+#include "base/CodeContext.h"
+#include "comm/Connection.h"
+#include "http/ProtocolVersion.h"
+#include "http/RequestMethod.h"
+#include "icp_opcode.h"
+#include "ip/Address.h"
 #include "proxyp/forward.h"
 #include "sbuf/SBuf.h"
 #if ICAP_CLIENT
@@ -36,7 +36,7 @@ class HttpReply;
 class HttpRequest;
 class CustomLog;
 
-class AccessLogEntry: public CodeContext
+class AccessLogEntry : public CodeContext
 {
 
 public:
@@ -126,8 +126,8 @@ public:
     class SslDetails
     {
     public:
-        const char *user = nullptr; ///< emailAddress from the SSL client certificate
-        int bumpMode = ::Ssl::bumpEnd; ///< whether and how the request was SslBumped
+        const char *user = nullptr;     ///< emailAddress from the SSL client certificate
+        int bumpMode = ::Ssl::bumpEnd;  ///< whether and how the request was SslBumped
     } ssl;
 #endif
 
@@ -139,7 +139,8 @@ public:
     class CacheDetails
     {
     public:
-        CacheDetails() {
+        CacheDetails()
+        {
             caddr.setNoAddr();
             memset(&start_time, 0, sizeof(start_time));
             memset(&trTime, 0, sizeof(start_time));
@@ -149,13 +150,13 @@ public:
         int64_t highOffset = 0;
         int64_t objectSize = 0;
         LogTags code;
-        struct timeval start_time; ///< The time the master transaction started
-        struct timeval trTime; ///< The response time
+        struct timeval start_time;  ///< The time the master transaction started
+        struct timeval trTime;      ///< The response time
         const char *rfc931 = nullptr;
         const char *extuser = nullptr;
 #if USE_OPENSSL
         const char *ssluser = nullptr;
-        Security::CertPointer sslClientCert; ///< cert received from the client
+        Security::CertPointer sslClientCert;  ///< cert received from the client
 #endif
         AnyP::PortCfgPointer port;
     } cache;
@@ -166,8 +167,8 @@ public:
     class Headers
     {
     public:
-        char *request = nullptr; //< virgin HTTP request headers
-        char *adapted_request = nullptr; //< HTTP request headers after adaptation and redirection
+        char *request = nullptr;          //< virgin HTTP request headers
+        char *adapted_request = nullptr;  //< HTTP request headers after adaptation and redirection
     } headers;
 
 #if USE_ADAPTATION
@@ -182,13 +183,13 @@ public:
     } adapt;
 #endif
 
-    const char *lastAclName = nullptr; ///< string for external_acl_type %ACL format code
-    SBuf lastAclData; ///< string for external_acl_type %DATA format code
+    const char *lastAclName = nullptr;  ///< string for external_acl_type %ACL format code
+    SBuf lastAclData;                   ///< string for external_acl_type %DATA format code
 
     HierarchyLogEntry hier;
     HttpReplyPointer reply;
-    HttpRequest *request = nullptr; //< virgin HTTP request
-    HttpRequest *adapted_request = nullptr; //< HTTP request after adaptation and redirection
+    HttpRequest *request = nullptr;          //< virgin HTTP request
+    HttpRequest *adapted_request = nullptr;  //< HTTP request after adaptation and redirection
 
     /// key:value pairs set by squid.conf note directive and
     /// key=value pairs returned from URL rewrite/redirect helper
@@ -204,27 +205,28 @@ public:
     class IcapLogEntry
     {
     public:
-        IcapLogEntry() {
+        IcapLogEntry()
+        {
             memset(&trTime, 0, sizeof(trTime));
             memset(&ioTime, 0, sizeof(ioTime));
             memset(&processingTime, 0, sizeof(processingTime));
         }
 
-        Ip::Address hostAddr; ///< ICAP server IP address
-        String serviceName;        ///< ICAP service name
-        String reqUri;             ///< ICAP Request-URI
-        Adaptation::Icap::ICAP::Method reqMethod = Adaptation::methodNone; ///< ICAP request method
-        int64_t bytesSent = 0;       ///< number of bytes sent to ICAP server so far
-        int64_t bytesRead = 0;       ///< number of bytes read from ICAP server so far
+        Ip::Address hostAddr;                                               ///< ICAP server IP address
+        String serviceName;                                                 ///< ICAP service name
+        String reqUri;                                                      ///< ICAP Request-URI
+        Adaptation::Icap::ICAP::Method reqMethod = Adaptation::methodNone;  ///< ICAP request method
+        int64_t bytesSent = 0;                                              ///< number of bytes sent to ICAP server so far
+        int64_t bytesRead = 0;                                              ///< number of bytes read from ICAP server so far
         /**
          * number of ICAP body bytes read from ICAP server or -1 for no encapsulated
          * message data in ICAP reply (eg 204 responses)
          */
         int64_t bodyBytesRead = -1;
-        HttpRequest* request = nullptr;    ///< ICAP request
-        HttpReply* reply = nullptr;        ///< ICAP reply
+        HttpRequest *request = nullptr;  ///< ICAP request
+        HttpReply *reply = nullptr;      ///< ICAP reply
 
-        Adaptation::Icap::XactOutcome outcome = Adaptation::Icap::xoUnknown; ///< final transaction status
+        Adaptation::Icap::XactOutcome outcome = Adaptation::Icap::xoUnknown;  ///< final transaction status
         /** \brief Transaction response time.
          * The timer starts when the ICAP transaction
          *  is created and stops when the result of the transaction is logged
@@ -236,10 +238,9 @@ public:
          * ICAP response is received.
          */
         struct timeval ioTime;
-        Http::StatusCode resStatus = Http::scNone;   ///< ICAP response status code
-        struct timeval processingTime;      ///< total ICAP processing time
-    }
-    icap;
+        Http::StatusCode resStatus = Http::scNone;  ///< ICAP response status code
+        struct timeval processingTime;              ///< total ICAP processing time
+    } icap;
 #endif
 
     /// Effective URI of the received client (or equivalent) HTTP request or,
@@ -265,12 +266,11 @@ class ACLChecklist;
 class StoreEntry;
 
 /* Should be in 'AccessLog.h' as the driver */
-void accessLogLogTo(CustomLog* log, AccessLogEntry::Pointer &al, ACLChecklist* checklist = NULL);
-void accessLogLog(AccessLogEntry::Pointer &, ACLChecklist * checklist);
+void accessLogLogTo(CustomLog *log, AccessLogEntry::Pointer &al, ACLChecklist *checklist = NULL);
+void accessLogLog(AccessLogEntry::Pointer &, ACLChecklist *checklist);
 void accessLogRotate(void);
 void accessLogClose(void);
 void accessLogInit(void);
 const char *accessLogTime(time_t);
 
 #endif /* SQUID_HTTPACCESSLOGENTRY_H */
-

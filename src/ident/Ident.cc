@@ -11,19 +11,18 @@
 #include "squid.h"
 
 #if USE_IDENT
+#include "CommCalls.h"
+#include "MemBuf.h"
 #include "comm.h"
-#include "comm/Connection.h"
 #include "comm/ConnOpener.h"
+#include "comm/Connection.h"
 #include "comm/Read.h"
 #include "comm/Write.h"
-#include "CommCalls.h"
 #include "globals.h"
 #include "ident/Config.h"
 #include "ident/Ident.h"
-#include "MemBuf.h"
 
-namespace Ident
-{
+namespace Ident {
 
 #define IDENT_PORT 113
 #define IDENT_KEY_SZ 50
@@ -39,7 +38,7 @@ typedef struct _IdentClient {
 class IdentStateData
 {
 public:
-    hash_link hash;     /* must be first */
+    hash_link hash; /* must be first */
 private:
     CBDATA_CLASS(IdentStateData);
 
@@ -66,9 +65,9 @@ static CLCB Close;
 static CTCB Timeout;
 static CNCB ConnectDone;
 static hash_table *ident_hash = NULL;
-static void ClientAdd(IdentStateData * state, IDCB * callback, void *callback_data);
+static void ClientAdd(IdentStateData *state, IDCB *callback, void *callback_data);
 
-} // namespace Ident
+}  // namespace Ident
 
 Ident::IdentConfig Ident::TheConfig;
 
@@ -90,7 +89,7 @@ Ident::IdentStateData::swanSong()
         conn->close();
     }
 
-    hash_remove_link(ident_hash, (hash_link *) this);
+    hash_remove_link(ident_hash, (hash_link *)this);
     xfree(hash.key);
 }
 
@@ -152,14 +151,14 @@ Ident::ConnectDone(const Comm::ConnectionPointer &conn, Comm::Flag status, int, 
     assert(conn != NULL && conn == state->conn);
     comm_add_close_handler(conn->fd, Ident::Close, state);
 
-    AsyncCall::Pointer writeCall = commCbCall(5,4, "Ident::WriteFeedback",
-                                   CommIoCbPtrFun(Ident::WriteFeedback, state));
+    AsyncCall::Pointer writeCall = commCbCall(5, 4, "Ident::WriteFeedback",
+                                              CommIoCbPtrFun(Ident::WriteFeedback, state));
     Comm::Write(conn, &state->queryMsg, writeCall);
-    AsyncCall::Pointer readCall = commCbCall(5,4, "Ident::ReadReply",
-                                  CommIoCbPtrFun(Ident::ReadReply, state));
+    AsyncCall::Pointer readCall = commCbCall(5, 4, "Ident::ReadReply",
+                                             CommIoCbPtrFun(Ident::ReadReply, state));
     comm_read(conn, state->buf, IDENT_BUFSIZE, readCall);
-    AsyncCall::Pointer timeoutCall = commCbCall(5,4, "Ident::Timeout",
-                                     CommTimeoutCbPtrFun(Ident::Timeout, state));
+    AsyncCall::Pointer timeoutCall = commCbCall(5, 4, "Ident::Timeout",
+                                                CommTimeoutCbPtrFun(Ident::Timeout, state));
     commSetConnTimeout(conn, Ident::TheConfig.timeout, timeoutCall);
 }
 
@@ -208,7 +207,8 @@ Ident::ReadReply(const Comm::ConnectionPointer &conn, char *buf, size_t len, Com
 
     if (strstr(buf, "USERID")) {
         if ((ident = strrchr(buf, ':'))) {
-            while (xisspace(*++ident));
+            while (xisspace(*++ident))
+                ;
             if (ident && *ident == '\0')
                 ident = NULL;
             state->notify(ident);
@@ -219,14 +219,15 @@ Ident::ReadReply(const Comm::ConnectionPointer &conn, char *buf, size_t len, Com
 }
 
 void
-Ident::ClientAdd(IdentStateData * state, IDCB * callback, void *callback_data)
+Ident::ClientAdd(IdentStateData *state, IDCB *callback, void *callback_data)
 {
     IdentClient *c = (IdentClient *)xcalloc(1, sizeof(*c));
     IdentClient **C;
     c->callback = callback;
     c->callback_data = cbdataReference(callback_data);
 
-    for (C = &state->clients; *C; C = &(*C)->next);
+    for (C = &state->clients; *C; C = &(*C)->next)
+        ;
     *C = c;
 }
 
@@ -234,12 +235,12 @@ Ident::ClientAdd(IdentStateData * state, IDCB * callback, void *callback_data)
  * start a TCP connection to the peer host on port 113
  */
 void
-Ident::Start(const Comm::ConnectionPointer &conn, IDCB * callback, void *data)
+Ident::Start(const Comm::ConnectionPointer &conn, IDCB *callback, void *data)
 {
     IdentStateData *state;
     char key1[IDENT_KEY_SZ];
     char key2[IDENT_KEY_SZ];
-    char key[IDENT_KEY_SZ*2+2]; // key1 + ',' + key2 + terminator
+    char key[IDENT_KEY_SZ * 2 + 2];  // key1 + ',' + key2 + terminator
 
     conn->local.toUrl(key1, IDENT_KEY_SZ);
     conn->remote.toUrl(key2, IDENT_KEY_SZ);
@@ -271,7 +272,7 @@ Ident::Start(const Comm::ConnectionPointer &conn, IDCB * callback, void *data)
     ClientAdd(state, callback, data);
     hash_join(ident_hash, &state->hash);
 
-    AsyncCall::Pointer call = commCbCall(30,3, "Ident::ConnectDone", CommConnectCbPtrFun(Ident::ConnectDone, state));
+    AsyncCall::Pointer call = commCbCall(30, 3, "Ident::ConnectDone", CommConnectCbPtrFun(Ident::ConnectDone, state));
     AsyncJob::Start(new Comm::ConnOpener(state->conn, call, Ident::TheConfig.timeout));
 }
 
@@ -283,10 +284,9 @@ Ident::Init(void)
         return;
     }
 
-    ident_hash = hash_create((HASHCMP *) strcmp,
+    ident_hash = hash_create((HASHCMP *)strcmp,
                              hashPrime(Squid_MaxFD / 8),
                              hash4);
 }
 
 #endif /* USE_IDENT */
-

@@ -16,8 +16,7 @@
 /* Local functions */
 static StatHistBinDumper statHistBinDumper;
 
-namespace Math
-{
+namespace Math {
 hbase_f Log;
 hbase_f Exp;
 hbase_f Null;
@@ -25,7 +24,7 @@ hbase_f Null;
 
 /* low level init, higher level functions has less params */
 void
-StatHist::init(unsigned int newCapacity, hbase_f * val_in_, hbase_f * val_out_, double newMin, double newMax)
+StatHist::init(unsigned int newCapacity, hbase_f *val_in_, hbase_f *val_out_, double newMin, double newMax)
 {
     /* check before we divide to get scale_ */
     assert(val_in_(newMax - newMin) > 0);
@@ -47,16 +46,16 @@ StatHist::StatHist(const StatHist &src) :
     val_in(src.val_in),
     val_out(src.val_out)
 {
-    if (src.bins!=NULL) {
+    if (src.bins != NULL) {
         bins = static_cast<bins_type *>(xcalloc(src.capacity_, sizeof(bins_type)));
-        memcpy(bins,src.bins,capacity_*sizeof(*bins));
+        memcpy(bins, src.bins, capacity_ * sizeof(*bins));
     }
 }
 
 void
 StatHist::count(double v)
 {
-    if (bins==NULL) //do not count before initialization or after destruction
+    if (bins == NULL)  //do not count before initialization or after destruction
         return;
     const unsigned int bin = findBin(v);
     ++bins[bin];
@@ -65,19 +64,19 @@ StatHist::count(double v)
 unsigned int
 StatHist::findBin(double v)
 {
-    v -= min_;      /* offset */
+    v -= min_; /* offset */
 
-    if (v <= 0.0)       /* too small */
+    if (v <= 0.0) /* too small */
         return 0;
 
     unsigned int bin;
-    double tmp_bin=floor(scale_ * val_in(v) + 0.5);
+    double tmp_bin = floor(scale_ * val_in(v) + 0.5);
 
-    if (tmp_bin < 0.0) // should not happen
+    if (tmp_bin < 0.0)  // should not happen
         return 0;
-    bin = static_cast <unsigned int>(tmp_bin);
+    bin = static_cast<unsigned int>(tmp_bin);
 
-    if (bin >= capacity_)   /* too big */
+    if (bin >= capacity_) /* too big */
         bin = capacity_ - 1;
 
     return bin;
@@ -86,23 +85,23 @@ StatHist::findBin(double v)
 double
 StatHist::val(unsigned int bin) const
 {
-    return val_out((double) bin / scale_) + min_;
+    return val_out((double)bin / scale_) + min_;
 }
 
 double
-statHistDeltaMedian(const StatHist & A, const StatHist & B)
+statHistDeltaMedian(const StatHist &A, const StatHist &B)
 {
     return statHistDeltaPctile(A, B, 0.5);
 }
 
 double
-statHistDeltaPctile(const StatHist & A, const StatHist & B, double pctile)
+statHistDeltaPctile(const StatHist &A, const StatHist &B, double pctile)
 {
     return A.deltaPctile(B, pctile);
 }
 
 double
-StatHist::deltaPctile(const StatHist & B, double pctile) const
+StatHist::deltaPctile(const StatHist &B, double pctile) const
 {
     unsigned int i;
     bins_type s1 = 0;
@@ -156,13 +155,13 @@ StatHist::deltaPctile(const StatHist & B, double pctile) const
 
     f = (h - a) / (b - a);
 
-    K = (unsigned int) floor(f * (double) (J - I) + I);
+    K = (unsigned int)floor(f * (double)(J - I) + I);
 
     return val(K);
 }
 
 static void
-statHistBinDumper(StoreEntry * sentry, int idx, double val, double size, int count)
+statHistBinDumper(StoreEntry *sentry, int idx, double val, double size, int count)
 {
     if (count)
         storeAppendPrintf(sentry, "\t%3d/%f\t%d\t%f\n",
@@ -170,7 +169,7 @@ statHistBinDumper(StoreEntry * sentry, int idx, double val, double size, int cou
 }
 
 void
-StatHist::dump(StoreEntry * sentry, StatHistBinDumper * bd) const
+StatHist::dump(StoreEntry *sentry, StatHistBinDumper *bd) const
 {
     double left_border = min_;
 
@@ -186,16 +185,16 @@ StatHist::dump(StoreEntry * sentry, StatHistBinDumper * bd) const
 }
 
 StatHist &
-StatHist::operator += (const StatHist &B)
+StatHist::operator+=(const StatHist &B)
 {
     Must(capacity_ == B.capacity_);
     Must(min_ == B.min_);
     Must(max_ == B.max_);
 
-    if (B.bins == NULL) { // B was not yet initializted
+    if (B.bins == NULL) {  // B was not yet initializted
         return *this;
     }
-    if (bins == NULL) { // this histogram was not yet initialized
+    if (bins == NULL) {  // this histogram was not yet initialized
         *this = B;
         return *this;
     }
@@ -240,17 +239,16 @@ StatHist::enumInit(unsigned int last_enum)
 }
 
 void
-statHistEnumDumper(StoreEntry * sentry, int idx, double val, double, int count)
+statHistEnumDumper(StoreEntry *sentry, int idx, double val, double, int count)
 {
     if (count)
         storeAppendPrintf(sentry, "%2d\t %5d\t %5d\n",
-                          idx, (int) val, count);
+                          idx, (int)val, count);
 }
 
 void
-statHistIntDumper(StoreEntry * sentry, int, double val, double, int count)
+statHistIntDumper(StoreEntry *sentry, int, double val, double, int count)
 {
     if (count)
-        storeAppendPrintf(sentry, "%9d\t%9d\n", (int) val, count);
+        storeAppendPrintf(sentry, "%9d\t%9d\n", (int)val, count);
 }
-

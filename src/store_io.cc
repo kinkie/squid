@@ -22,9 +22,9 @@ StoreIoStats store_io_stats;
  * to select different polices depending on object size or type.
  */
 StoreIOState::Pointer
-storeCreate(StoreEntry * e, StoreIOState::STFNCB * file_callback, StoreIOState::STIOCB * close_callback, void *callback_data)
+storeCreate(StoreEntry *e, StoreIOState::STFNCB *file_callback, StoreIOState::STIOCB *close_callback, void *callback_data)
 {
-    assert (e);
+    assert(e);
 
     ++store_io_stats.create.calls;
 
@@ -58,7 +58,7 @@ storeCreate(StoreEntry * e, StoreIOState::STFNCB * file_callback, StoreIOState::
  * storeOpen() is purely for reading ..
  */
 StoreIOState::Pointer
-storeOpen(StoreEntry * e, StoreIOState::STFNCB * file_callback, StoreIOState::STIOCB * callback,
+storeOpen(StoreEntry *e, StoreIOState::STFNCB *file_callback, StoreIOState::STIOCB *callback,
           void *callback_data)
 {
     return e->disk().openStoreIO(*e, file_callback, callback, callback_data);
@@ -68,25 +68,24 @@ void
 storeClose(StoreIOState::Pointer sio, int how)
 {
     if (sio->flags.closing) {
-        debugs(20,3,HERE << "storeClose: flags.closing already set, bailing");
+        debugs(20, 3, HERE << "storeClose: flags.closing already set, bailing");
         return;
     }
 
     sio->flags.closing = true;
 
-    debugs(20,3,HERE << "storeClose: calling sio->close(" << how << ")");
+    debugs(20, 3, HERE << "storeClose: calling sio->close(" << how << ")");
     sio->close(how);
 }
 
 void
-storeRead(StoreIOState::Pointer sio, char *buf, size_t size, off_t offset, StoreIOState::STRCB * callback, void *callback_data)
+storeRead(StoreIOState::Pointer sio, char *buf, size_t size, off_t offset, StoreIOState::STRCB *callback, void *callback_data)
 {
     sio->read_(buf, size, offset, callback, callback_data);
 }
 
 void
-storeIOWrite(StoreIOState::Pointer sio, char const *buf, size_t size, off_t offset, FREE * free_func)
+storeIOWrite(StoreIOState::Pointer sio, char const *buf, size_t size, off_t offset, FREE *free_func)
 {
-    sio->write(buf,size,offset,free_func);
+    sio->write(buf, size, offset, free_func);
 }
-

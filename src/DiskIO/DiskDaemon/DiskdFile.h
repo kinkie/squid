@@ -11,8 +11,8 @@
 #ifndef __STORE_DISKDFILE_H__
 #define __STORE_DISKDFILE_H__
 
-#include "cbdata.h"
 #include "DiskIO/DiskFile.h"
+#include "cbdata.h"
 
 class DiskdIOStrategy;
 
@@ -38,7 +38,7 @@ public:
     virtual bool ioInProgress() const;
 
     /* Temporary */
-    int getID() const {return id;}
+    int getID() const { return id; }
 
     void completed(diomsg *);
 
@@ -49,10 +49,10 @@ private:
     DiskdIOStrategy *IO;
     RefCount<IORequestor> ioRequestor;
     void openDone(diomsg *);
-    void createDone (diomsg *);
-    void readDone (diomsg *);
-    void writeDone (diomsg *);
-    void closeDone (diomsg *);
+    void createDone(diomsg *);
+    void readDone(diomsg *);
+    void writeDone(diomsg *);
+    void closeDone(diomsg *);
     int mode;
     void notifyClient();
     bool canNotifyClient() const;
@@ -62,4 +62,3 @@ private:
 };
 
 #endif
-

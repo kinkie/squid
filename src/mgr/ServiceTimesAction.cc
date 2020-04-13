@@ -9,23 +9,23 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/ServiceTimesAction.h"
+#include "Store.h"
 #include "base/TextException.h"
 #include "ipc/Messages.h"
 #include "ipc/TypedMsgHdr.h"
-#include "mgr/ServiceTimesAction.h"
-#include "Store.h"
 #include "tools.h"
 
-void GetServiceTimesStats(Mgr::ServiceTimesActionData& stats);
-void DumpServiceTimesStats(Mgr::ServiceTimesActionData& stats, StoreEntry* sentry);
+void GetServiceTimesStats(Mgr::ServiceTimesActionData &stats);
+void DumpServiceTimesStats(Mgr::ServiceTimesActionData &stats, StoreEntry *sentry);
 
 Mgr::ServiceTimesActionData::ServiceTimesActionData()
 {
     memset(this, 0, sizeof(*this));
 }
 
-Mgr::ServiceTimesActionData&
-Mgr::ServiceTimesActionData::operator += (const ServiceTimesActionData& stats)
+Mgr::ServiceTimesActionData &
+Mgr::ServiceTimesActionData::operator+=(const ServiceTimesActionData &stats)
 {
     for (int i = 0; i < seriesSize; ++i) {
         http_requests5[i] += stats.http_requests5[i];
@@ -60,17 +60,17 @@ Mgr::ServiceTimesAction::Create(const CommandPointer &cmd)
     return new ServiceTimesAction(cmd);
 }
 
-Mgr::ServiceTimesAction::ServiceTimesAction(const CommandPointer &aCmd):
+Mgr::ServiceTimesAction::ServiceTimesAction(const CommandPointer &aCmd) :
     Action(aCmd), data()
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::ServiceTimesAction::add(const Action& action)
+Mgr::ServiceTimesAction::add(const Action &action)
 {
     debugs(16, 5, HERE);
-    data += dynamic_cast<const ServiceTimesAction&>(action).data;
+    data += dynamic_cast<const ServiceTimesAction &>(action).data;
 }
 
 void
@@ -81,7 +81,7 @@ Mgr::ServiceTimesAction::collect()
 }
 
 void
-Mgr::ServiceTimesAction::dump(StoreEntry* entry)
+Mgr::ServiceTimesAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
@@ -89,16 +89,15 @@ Mgr::ServiceTimesAction::dump(StoreEntry* entry)
 }
 
 void
-Mgr::ServiceTimesAction::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::ServiceTimesAction::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtCacheMgrResponse);
     msg.putPod(data);
 }
 
 void
-Mgr::ServiceTimesAction::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::ServiceTimesAction::unpack(const Ipc::TypedMsgHdr &msg)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
     msg.getPod(data);
 }
-

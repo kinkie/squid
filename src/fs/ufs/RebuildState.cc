@@ -9,17 +9,17 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
-#include "fs_io.h"
-#include "globals.h"
 #include "RebuildState.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
+#include "StoreSwapLogData.h"
+#include "UFSSwapLogParser.h"
+#include "fs_io.h"
+#include "globals.h"
 #include "store/Disks.h"
 #include "store_key_md5.h"
 #include "store_rebuild.h"
-#include "StoreSwapLogData.h"
 #include "tools.h"
-#include "UFSSwapLogParser.h"
 
 #include <cerrno>
 #include <cmath>
@@ -27,7 +27,7 @@
 #include <sys/stat.h>
 #endif
 
-CBDATA_NAMESPACED_CLASS_INIT(Fs::Ufs,RebuildState);
+CBDATA_NAMESPACED_CLASS_INIT(Fs::Ufs, RebuildState);
 
 Fs::Ufs::RebuildState::RebuildState(RefCount<UFSSwapDir> aSwapDir) :
     sd(aSwapDir),
@@ -53,14 +53,14 @@ Fs::Ufs::RebuildState::RebuildState(RefCount<UFSSwapDir> aSwapDir) :
      * use commonUfsDirRebuildFromDirectory() to open up each file
      * and suck in the meta data.
      */
-    int clean = 0; //TODO: change to bool
+    int clean = 0;  //TODO: change to bool
     int zeroLengthLog = 0;
     FILE *fp = sd->openTmpSwapLog(&clean, &zeroLengthLog);
 
     if (fp && !zeroLengthLog)
         LogParser = Fs::Ufs::UFSSwapLogParser::GetUFSSwapLogParser(fp);
 
-    if (LogParser == NULL ) {
+    if (LogParser == NULL) {
         fromLog = false;
 
         if (fp != NULL)
@@ -74,8 +74,7 @@ Fs::Ufs::RebuildState::RebuildState(RefCount<UFSSwapDir> aSwapDir) :
     if (!clean)
         flags.need_to_validate = true;
 
-    debugs(47, DBG_IMPORTANT, "Rebuilding storage in " << sd->path << " (" <<
-           (clean ? "clean log" : (LogParser ? "dirty log" : "no log")) << ")");
+    debugs(47, DBG_IMPORTANT, "Rebuilding storage in " << sd->path << " (" << (clean ? "clean log" : (LogParser ? "dirty log" : "no log")) << ")");
 }
 
 Fs::Ufs::RebuildState::~RebuildState()
@@ -97,7 +96,7 @@ Fs::Ufs::RebuildState::RebuildStep(void *data)
     if (!rb->isDone() || reconfiguring)
         eventAdd("storeRebuild", RebuildStep, rb, 0.01, 1);
     else {
-        -- StoreController::store_dirs_rebuilding;
+        --StoreController::store_dirs_rebuilding;
         storeRebuildComplete(&rb->counts);
         delete rb;
     }
@@ -110,7 +109,7 @@ Fs::Ufs::RebuildState::rebuildStep()
     // Balance our desire to maximize the number of entries processed at once
     // (and, hence, minimize overheads and total rebuild time) with a
     // requirement to also process Coordinator events, disk I/Os, etc.
-    const int maxSpentMsec = 50; // keep small: most RAM I/Os are under 1ms
+    const int maxSpentMsec = 50;  // keep small: most RAM I/Os are under 1ms
     const timeval loopStart = current_time;
 
     const int totalEntries = LogParser ? LogParser->SwapLogEntries() : -1;
@@ -126,13 +125,12 @@ Fs::Ufs::RebuildState::rebuildStep()
             storeRebuildProgress(sd->index, totalEntries, n_read);
 
         if (opt_foreground_rebuild)
-            continue; // skip "few entries at a time" check below
+            continue;  // skip "few entries at a time" check below
 
         getCurrentTime();
         const double elapsedMsec = tvSubMsec(loopStart, current_time);
         if (elapsedMsec > maxSpentMsec || elapsedMsec < 0) {
-            debugs(47, 5, HERE << "pausing after " << n_read << " entries in " <<
-                   elapsedMsec << "ms; " << (elapsedMsec/n_read) << "ms per entry");
+            debugs(47, 5, HERE << "pausing after " << n_read << " entries in " << elapsedMsec << "ms; " << (elapsedMsec / n_read) << "ms per entry");
             break;
         }
     }
@@ -154,8 +152,7 @@ Fs::Ufs::RebuildState::rebuildFromDirectory()
     fd = getNextFile(&filn, &size);
 
     if (fd == -2) {
-        debugs(47, DBG_IMPORTANT, "Done scanning " << sd->path << " dir (" <<
-               n_read << " entries)");
+        debugs(47, DBG_IMPORTANT, "Done scanning " << sd->path << " dir (" << n_read << " entries)");
         _done = true;
         return;
     } else if (fd < 0) {
@@ -181,12 +178,11 @@ Fs::Ufs::RebuildState::rebuildFromDirectory()
     if (!storeRebuildLoadEntry(fd, sd->index, buf, counts))
         return;
 
-    const uint64_t expectedSize = sb.st_size > 0 ?
-                                  static_cast<uint64_t>(sb.st_size) : 0;
+    const uint64_t expectedSize = sb.st_size > 0 ? static_cast<uint64_t>(sb.st_size) : 0;
 
     StoreEntry tmpe;
     const bool parsed = storeRebuildParseEntry(buf, tmpe, key, counts,
-                        expectedSize);
+                                               expectedSize);
 
     file_close(fd);
     --store_open_disk_fd;
@@ -194,14 +190,14 @@ Fs::Ufs::RebuildState::rebuildFromDirectory()
 
     bool accepted = parsed && tmpe.swap_file_sz > 0;
     if (parsed && !accepted) {
-        debugs(47, DBG_IMPORTANT, "WARNING: Ignoring ufs cache entry with " <<
-               "unknown size: " << tmpe);
+        debugs(47, DBG_IMPORTANT, "WARNING: Ignoring ufs cache entry with "
+                   << "unknown size: " << tmpe);
         accepted = false;
     }
 
     if (!accepted) {
         // XXX: shouldn't this be a call to commonUfsUnlink?
-        sd->unlinkFile(filn); // should we unlink in all failure cases?
+        sd->unlinkFile(filn);  // should we unlink in all failure cases?
         return;
     }
 
@@ -233,15 +229,15 @@ Fs::Ufs::RebuildState::addIfFresh(const cache_key *key,
 
     ++counts.objcount;
     const auto addedEntry = sd->addDiskRestore(key,
-                            file_number,
-                            swap_file_sz,
-                            expires,
-                            timestamp,
-                            lastref,
-                            lastmod,
-                            refcount,
-                            newFlags,
-                            0 /* XXX: unused */);
+                                               file_number,
+                                               swap_file_sz,
+                                               expires,
+                                               timestamp,
+                                               lastref,
+                                               lastmod,
+                                               refcount,
+                                               newFlags,
+                                               0 /* XXX: unused */);
     storeDirSwapLog(addedEntry, SWAP_LOG_ADD);
 }
 
@@ -260,7 +256,7 @@ Fs::Ufs::RebuildState::evictStaleAndContinue(const cache_key *candidateKey, cons
         }
 
         ++staleCount;
-        indexedEntry->release(true); // evict previously indexedEntry
+        indexedEntry->release(true);  // evict previously indexedEntry
     }
 
     return true;
@@ -298,22 +294,20 @@ Fs::Ufs::RebuildState::rebuildFromSwapLog()
      */
     swapData.swap_filen &= 0x00FFFFFF;
 
-    debugs(47, 3, HERE << swap_log_op_str[(int) swapData.op]  << " " <<
-           storeKeyText(swapData.key)  << " "<< std::setfill('0') <<
-           std::hex << std::uppercase << std::setw(8) <<
-           swapData.swap_filen);
+    debugs(47, 3, HERE << swap_log_op_str[(int)swapData.op] << " " << storeKeyText(swapData.key) << " " << std::setfill('0') << std::hex << std::uppercase << std::setw(8) << swapData.swap_filen);
 
     if (swapData.op == SWAP_LOG_ADD) {
-        (void) 0;
+        (void)0;
     } else if (swapData.op == SWAP_LOG_DEL) {
         // remove any older or same-age entry; +1 covers same-age entries
-        (void)evictStaleAndContinue(swapData.key, swapData.lastref+1, counts.cancelcount);
+        (void)evictStaleAndContinue(swapData.key, swapData.lastref + 1, counts.cancelcount);
         return;
     } else {
         const double
-        x = ::log(static_cast<double>(++counts.bad_log_op)) / ::log(10.0);
+            x
+            = ::log(static_cast<double>(++counts.bad_log_op)) / ::log(10.0);
 
-        if (0.0 == x - (double) (int) x)
+        if (0.0 == x - (double)(int)x)
             debugs(47, DBG_IMPORTANT, "WARNING: " << counts.bad_log_op << " invalid swap log entries found");
 
         ++counts.invalid;
@@ -321,7 +315,7 @@ Fs::Ufs::RebuildState::rebuildFromSwapLog()
         return;
     }
 
-    ++counts.scancount; // XXX: should not this be incremented earlier?
+    ++counts.scancount;  // XXX: should not this be incremented earlier?
 
     if (!sd->validFileno(swapData.swap_filen, 0)) {
         ++counts.invalid;
@@ -353,14 +347,11 @@ Fs::Ufs::RebuildState::rebuildFromSwapLog()
 }
 
 int
-Fs::Ufs::RebuildState::getNextFile(sfileno * filn_p, int *)
+Fs::Ufs::RebuildState::getNextFile(sfileno *filn_p, int *)
 {
     int fd = -1;
     int dirs_opened = 0;
-    debugs(47, 3, HERE << "flag=" << flags.init  << ", " <<
-           sd->index  << ": /"<< std::setfill('0') << std::hex <<
-           std::uppercase << std::setw(2) << curlvl1  << "/" << std::setw(2) <<
-           curlvl2);
+    debugs(47, 3, HERE << "flag=" << flags.init << ", " << sd->index << ": /" << std::setfill('0') << std::hex << std::uppercase << std::setw(2) << curlvl1 << "/" << std::setw(2) << curlvl2);
 
     if (done)
         return -2;
@@ -368,7 +359,7 @@ Fs::Ufs::RebuildState::getNextFile(sfileno * filn_p, int *)
     while (fd < 0 && done == 0) {
         fd = -1;
 
-        if (!flags.init) {  /* initialize, open first file */
+        if (!flags.init) { /* initialize, open first file */
             // XXX: 0's should not be needed, constructor inits now
             done = 0;
             curlvl1 = 0;
@@ -378,7 +369,7 @@ Fs::Ufs::RebuildState::getNextFile(sfileno * filn_p, int *)
             assert(Config.cacheSwap.n_configured > 0);
         }
 
-        if (0 == in_dir) {  /* we need to read in a new directory */
+        if (0 == in_dir) { /* we need to read in a new directory */
             snprintf(fullpath, sizeof(fullpath), "%s/%02X/%02X",
                      sd->path,
                      curlvl1, curlvl2);
@@ -394,7 +385,7 @@ Fs::Ufs::RebuildState::getNextFile(sfileno * filn_p, int *)
                 int xerrno = errno;
                 debugs(47, DBG_IMPORTANT, MYNAME << "error in opendir (" << fullpath << "): " << xstrerr(xerrno));
             } else {
-                entry = readdir(td);    /* skip . and .. */
+                entry = readdir(td); /* skip . and .. */
                 entry = readdir(td);
 
                 if (entry == NULL && errno == ENOENT)
@@ -412,10 +403,7 @@ Fs::Ufs::RebuildState::getNextFile(sfileno * filn_p, int *)
             }
 
             if (!UFSSwapDir::FilenoBelongsHere(fn, sd->index, curlvl1, curlvl2)) {
-                debugs(47, 3, HERE << std::setfill('0') <<
-                       std::hex << std::uppercase << std::setw(8) << fn  <<
-                       " does not belong in " << std::dec << sd->index  << "/" <<
-                       curlvl1  << "/" << curlvl2);
+                debugs(47, 3, HERE << std::setfill('0') << std::hex << std::uppercase << std::setw(8) << fn << " does not belong in " << std::dec << sd->index << "/" << curlvl1 << "/" << curlvl2);
 
                 continue;
             }
@@ -474,4 +462,3 @@ Fs::Ufs::RebuildState::isDone() const
 {
     return _done;
 }
-

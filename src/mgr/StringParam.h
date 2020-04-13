@@ -11,28 +11,26 @@
 #ifndef SQUID_MGR_STRING_PARAM_H
 #define SQUID_MGR_STRING_PARAM_H
 
-#include "ipc/forward.h"
-#include "mgr/forward.h"
-#include "mgr/QueryParam.h"
 #include "SquidString.h"
+#include "ipc/forward.h"
+#include "mgr/QueryParam.h"
+#include "mgr/forward.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
-class StringParam: public QueryParam
+class StringParam : public QueryParam
 {
 public:
     StringParam();
-    StringParam(const String& aString);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpackValue(const Ipc::TypedMsgHdr& msg);
-    const String& value() const;
+    StringParam(const String &aString);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpackValue(const Ipc::TypedMsgHdr &msg);
+    const String &value() const;
 
 private:
     String str;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_STRING_PARAM_H */
-

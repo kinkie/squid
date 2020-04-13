@@ -9,8 +9,8 @@
 /* DEBUG: section 05    Disk I/O pipe manager */
 
 #include "squid.h"
-#include "comm/Loops.h"
 #include "DiskIO/DiskThreads/CommIO.h"
+#include "comm/Loops.h"
 #include "fd.h"
 #include "globals.h"
 #include "win32.h"
@@ -73,4 +73,3 @@ CommIO::ResetNotifications()
         DoneSignalled = false;
     }
 }
-

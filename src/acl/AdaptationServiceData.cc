@@ -8,15 +8,15 @@
 
 #include "squid.h"
 #include "acl/AdaptationServiceData.h"
-#include "acl/Checklist.h"
-#include "adaptation/Config.h"
-#include "adaptation/ecap/Config.h"
-#include "adaptation/icap/Config.h"
-#include "adaptation/Service.h"
-#include "adaptation/ServiceGroups.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
+#include "adaptation/Config.h"
+#include "adaptation/Service.h"
+#include "adaptation/ServiceGroups.h"
+#include "adaptation/ecap/Config.h"
+#include "adaptation/icap/Config.h"
+#include "cache_cf.h"
 
 void
 ACLAdaptationServiceData::parse()
@@ -43,4 +43,3 @@ ACLAdaptationServiceData::clone() const
 {
     return new ACLAdaptationServiceData(*this);
 }
-

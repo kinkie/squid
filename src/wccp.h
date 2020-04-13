@@ -18,4 +18,3 @@ void wccpConnectionClose(void);
 #endif /* USE_WCCP */
 
 #endif /* SQUID_WCCP_H_ */
-

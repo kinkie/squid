@@ -16,11 +16,10 @@ class StoreMetaSTDLFS : public StoreMeta
     MEMPROXY_CLASS(StoreMetaSTDLFS);
 
 public:
-    char getType() const {return STORE_META_STD_LFS;}
+    char getType() const { return STORE_META_STD_LFS; }
 
     bool validLength(int) const;
     //    bool checkConsistency(StoreEntry *) const;
 };
 
 #endif /* SQUID_STOREMETASTDLFS_H */
-

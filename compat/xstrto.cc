@@ -100,4 +100,3 @@ xstrtoui(const char *s, char **end, unsigned int *value,
 }
 
 #endif /* SQUID_XSTRTO_C_ */
-

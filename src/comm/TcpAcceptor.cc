@@ -9,16 +9,20 @@
 /* DEBUG: section 05    Listener Socket Handler */
 
 #include "squid.h"
+#include "comm/TcpAcceptor.h"
+#include "CommCalls.h"
+#include "MasterXaction.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
 #include "acl/FilledChecklist.h"
 #include "anyp/PortCfg.h"
 #include "base/TextException.h"
 #include "client_db.h"
 #include "comm/AcceptLimiter.h"
-#include "comm/comm_internal.h"
 #include "comm/Connection.h"
 #include "comm/Loops.h"
-#include "comm/TcpAcceptor.h"
-#include "CommCalls.h"
+#include "comm/comm_internal.h"
 #include "eui/Config.h"
 #include "fd.h"
 #include "fde.h"
@@ -26,11 +30,7 @@
 #include "ip/Intercept.h"
 #include "ip/QosConfig.h"
 #include "log/access_log.h"
-#include "MasterXaction.h"
 #include "profiler/Profiler.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
 
 #include <cerrno>
 #ifdef HAVE_NETINET_TCP_H
@@ -46,7 +46,8 @@ Comm::TcpAcceptor::TcpAcceptor(const Comm::ConnectionPointer &newConn, const cha
     theCallSub(aSub),
     conn(newConn),
     listenPort_()
-{}
+{
+}
 
 Comm::TcpAcceptor::TcpAcceptor(const AnyP::PortCfgPointer &p, const char *, const Subscription::Pointer &aSub) :
     AsyncJob("Comm::TcpAcceptor"),
@@ -54,7 +55,8 @@ Comm::TcpAcceptor::TcpAcceptor(const AnyP::PortCfgPointer &p, const char *, cons
     theCallSub(aSub),
     conn(p->listenConn),
     listenPort_(p)
-{}
+{
+}
 
 void
 Comm::TcpAcceptor::subscribe(const Subscription::Pointer &aSub)
@@ -109,7 +111,7 @@ Comm::TcpAcceptor::doneAll() const
 void
 Comm::TcpAcceptor::swanSong()
 {
-    debugs(5,5, HERE);
+    debugs(5, 5, HERE);
     unsubscribe("swanSong");
     if (IsConnOpen(conn)) {
         if (closer_ != NULL)
@@ -134,7 +136,7 @@ Comm::TcpAcceptor::status() const
 
     static MemBuf buf;
     buf.reset();
-    buf.appendf(" FD %d, %s",conn->fd, ipbuf);
+    buf.appendf(" FD %d, %s", conn->fd, ipbuf);
 
     const char *jobStatus = AsyncJob::status();
     buf.append(jobStatus, strlen(jobStatus));
@@ -226,7 +228,7 @@ Comm::TcpAcceptor::doAccept(int fd, void *data)
         debugs(5, 2, HERE << "New connection on FD " << fd);
 
         Must(isOpen(fd));
-        TcpAcceptor *afd = static_cast<TcpAcceptor*>(data);
+        TcpAcceptor *afd = static_cast<TcpAcceptor *>(data);
 
         if (!okToAccept()) {
             AcceptLimiter::Instance().defer(afd);
@@ -303,9 +305,7 @@ Comm::TcpAcceptor::acceptOne()
     } else {
         // TODO: When ALE, MasterXaction merge, use them or ClientConn instead.
         CodeContext::Reset(newConnDetails);
-        debugs(5, 5, "Listener: " << conn <<
-               " accepted new connection " << newConnDetails <<
-               " handler Subscription: " << theCallSub);
+        debugs(5, 5, "Listener: " << conn << " accepted new connection " << newConnDetails << " handler Subscription: " << theCallSub);
         notify(flag, newConnDetails);
         CodeContext::Reset(listenPort_);
     }
@@ -361,9 +361,9 @@ Comm::TcpAcceptor::oldAccept(Comm::ConnectionPointer &details)
     struct addrinfo *gai = NULL;
     Ip::Address::InitAddr(gai);
 
-    errcode = 0; // reset local errno copy.
+    errcode = 0;  // reset local errno copy.
     if ((sock = accept(conn->fd, gai->ai_addr, &gai->ai_addrlen)) < 0) {
-        errcode = errno; // store last accept errno locally.
+        errcode = errno;  // store last accept errno locally.
 
         Ip::Address::FreeAddr(gai);
 
@@ -399,7 +399,7 @@ Comm::TcpAcceptor::oldAccept(Comm::ConnectionPointer &details)
     Ip::Address::FreeAddr(gai);
 
     // Perform NAT or TPROXY operations to retrieve the real client/dest IP addresses
-    if (conn->flags&(COMM_TRANSPARENT|COMM_INTERCEPTION) && !Ip::Interceptor.Lookup(details, conn)) {
+    if (conn->flags & (COMM_TRANSPARENT | COMM_INTERCEPTION) && !Ip::Interceptor.Lookup(details, conn)) {
         debugs(50, DBG_IMPORTANT, "ERROR: NAT/TPROXY lookup failed to locate original IPs on " << details);
         // Failed.
         PROF_stop(comm_accept);
@@ -432,19 +432,18 @@ Comm::TcpAcceptor::oldAccept(Comm::ConnectionPointer &details)
     fd_open(sock, FD_SOCKET, "HTTP Request");
 
     fde *F = &fd_table[sock];
-    details->remote.toStr(F->ipaddr,MAX_IPSTRLEN);
+    details->remote.toStr(F->ipaddr, MAX_IPSTRLEN);
     F->remote_port = details->remote.port();
     F->local_addr = details->local;
-    F->sock_family = details->local.isIPv6()?AF_INET6:AF_INET;
+    F->sock_family = details->local.isIPv6() ? AF_INET6 : AF_INET;
 
     // set socket flags
     commSetCloseOnExec(sock);
     commSetNonBlocking(sock);
 
     /* IFF the socket is (tproxy) transparent, pass the flag down to allow spoofing */
-    F->flags.transparent = fd_table[conn->fd].flags.transparent; // XXX: can we remove this line yet?
+    F->flags.transparent = fd_table[conn->fd].flags.transparent;  // XXX: can we remove this line yet?
 
     PROF_stop(comm_accept);
     return Comm::OK;
 }
-

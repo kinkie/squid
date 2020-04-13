@@ -12,12 +12,12 @@
 #if USE_DELAY_POOLS
 #include "BandwidthBucket.h"
 #endif
+#include "LogTags.h"
 #include "base/ByteCounter.h"
 #include "cbdata.h"
 #include "enums.h"
 #include "hash.h"
 #include "ip/Address.h"
-#include "LogTags.h"
 #include "mem/forward.h"
 #include "typedefs.h"
 
@@ -29,7 +29,8 @@ class CommQuotaQueue;
 
 class ClientInfo : public hash_link
 #if USE_DELAY_POOLS
-    , public BandwidthBucket
+    ,
+                   public BandwidthBucket
 #endif
 {
     MEMPROXY_CLASS(ClientInfo);
@@ -41,7 +42,9 @@ public:
     Ip::Address addr;
 
     struct Protocol {
-        Protocol() : n_requests(0) {
+        Protocol() :
+            n_requests(0)
+        {
             memset(result_hist, 0, sizeof(result_hist));
         }
 
@@ -53,40 +56,41 @@ public:
     } Http, Icp;
 
     struct Cutoff {
-        Cutoff() : time(0), n_req(0), n_denied(0) {}
+        Cutoff() :
+            time(0), n_req(0), n_denied(0) {}
 
         time_t time;
         int n_req;
         int n_denied;
     } cutoff;
-    int n_established;          /* number of current established connections */
+    int n_established; /* number of current established connections */
     time_t last_seen;
 #if USE_DELAY_POOLS
-    bool writeLimitingActive; ///< Is write limiter active
-    bool firstTimeConnection;///< is this first time connection for this client
+    bool writeLimitingActive;  ///< Is write limiter active
+    bool firstTimeConnection;  ///< is this first time connection for this client
 
-    CommQuotaQueue *quotaQueue; ///< clients waiting for more write quota
-    int rationedQuota; ///< precomputed quota preserving fairness among clients
-    int rationedCount; ///< number of clients that will receive rationedQuota
-    bool eventWaiting; ///< waiting for commHandleWriteHelper event to fire
+    CommQuotaQueue *quotaQueue;  ///< clients waiting for more write quota
+    int rationedQuota;           ///< precomputed quota preserving fairness among clients
+    int rationedCount;           ///< number of clients that will receive rationedQuota
+    bool eventWaiting;           ///< waiting for commHandleWriteHelper event to fire
 
     // all those functions access Comm fd_table and are defined in comm.cc
-    bool hasQueue() const;  ///< whether any clients are waiting for write quota
-    bool hasQueue(const CommQuotaQueue*) const;  ///< has a given queue
-    unsigned int quotaEnqueue(int fd); ///< client starts waiting in queue; create the queue if necessary
-    int quotaPeekFd() const; ///< returns the next fd reservation
-    unsigned int quotaPeekReserv() const; ///< returns the next reserv. to pop
-    void quotaDequeue(); ///< pops queue head from queue
-    void kickQuotaQueue(); ///< schedule commHandleWriteHelper call
+    bool hasQueue() const;                        ///< whether any clients are waiting for write quota
+    bool hasQueue(const CommQuotaQueue *) const;  ///< has a given queue
+    unsigned int quotaEnqueue(int fd);            ///< client starts waiting in queue; create the queue if necessary
+    int quotaPeekFd() const;                      ///< returns the next fd reservation
+    unsigned int quotaPeekReserv() const;         ///< returns the next reserv. to pop
+    void quotaDequeue();                          ///< pops queue head from queue
+    void kickQuotaQueue();                        ///< schedule commHandleWriteHelper call
 
     /* BandwidthBucket API */
-    virtual int quota() override; ///< allocate quota for a just dequeued client
+    virtual int quota() override;  ///< allocate quota for a just dequeued client
     virtual bool applyQuota(int &nleft, Comm::IoCallback *state) override;
     virtual void scheduleWrite(Comm::IoCallback *state) override;
     virtual void onFdClosed() override;
     virtual void reduceBucket(int len) override;
 
-    void quotaDumpQueue(); ///< dumps quota queue for debugging
+    void quotaDumpQueue();  ///< dumps quota queue for debugging
 
     /**
      * Configure client write limiting (note:"client" here means - IP). It is called
@@ -118,18 +122,17 @@ public:
     unsigned int enqueue(int fd);
     void dequeue();
 
-    ClientInfo *clientInfo; ///< bucket responsible for quota maintenance
+    ClientInfo *clientInfo;  ///< bucket responsible for quota maintenance
 
     // these counters might overflow; that is OK because they are for IDs only
-    int ins; ///< number of enqueue calls, used to generate a "reservation" ID
-    int outs; ///< number of dequeue calls, used to check the "reservation" ID
+    int ins;   ///< number of enqueue calls, used to generate a "reservation" ID
+    int outs;  ///< number of dequeue calls, used to check the "reservation" ID
 
 private:
     // TODO: optimize using a Ring- or List-based store?
     typedef std::deque<int> Store;
-    Store fds; ///< descriptor queue
+    Store fds;  ///< descriptor queue
 };
 #endif /* USE_DELAY_POOLS */
 
 #endif
-

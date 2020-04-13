@@ -9,8 +9,7 @@
 #ifndef _SQUID_SRC_COMM_FLAG_H
 #define _SQUID_SRC_COMM_FLAG_H
 
-namespace Comm
-{
+namespace Comm {
 
 typedef enum {
     OK = 0,
@@ -23,12 +22,11 @@ typedef enum {
     ERR_CONNECT = -8,
     ERR_DNS = -9,
     ERR_CLOSING = -10,
-    ERR_PROTOCOL = -11, /* IPv4 or IPv6 cannot be used on the fd socket */
-    ENDFILE = -12, /**< read(2) returned success, but with 0 bytes */
+    ERR_PROTOCOL = -11,  /* IPv4 or IPv6 cannot be used on the fd socket */
+    ENDFILE = -12,       /**< read(2) returned success, but with 0 bytes */
     ERR__END__ = -999999 /* Dummy entry to make syntax valid (comma on line above), do not use. New entries added above */
 } Flag;
 
-} // namespace Comm
+}  // namespace Comm
 
 #endif /* _SQUID_SRC_COMM_FLAG_H */
-

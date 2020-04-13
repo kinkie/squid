@@ -9,16 +9,15 @@
 #ifndef SQUID_ACLATSTEP_H
 #define SQUID_ACLATSTEP_H
 
-#include "acl/Strategy.h"
 #include "XactionStep.h"
+#include "acl/Strategy.h"
 
 /// \ingroup ACLAPI
-class ACLAtStepStrategy: public ACLStrategy<XactionStep>
+class ACLAtStepStrategy : public ACLStrategy<XactionStep>
 {
 
 public:
-    virtual int match (ACLData<MatchType> * &, ACLFilledChecklist *) override;
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *) override;
 };
 
 #endif /* SQUID_ACLATSTEP_H */
-

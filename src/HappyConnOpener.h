@@ -10,8 +10,8 @@
 #define SQUID_HAPPYCONNOPENER_H
 #include "base/RefCount.h"
 #include "comm.h"
-#include "comm/Connection.h"
 #include "comm/ConnOpener.h"
+#include "comm/Connection.h"
 #include "http/forward.h"
 #include "log/forward.h"
 
@@ -24,13 +24,14 @@ class ResolvedPeers;
 typedef RefCount<ResolvedPeers> ResolvedPeersPointer;
 
 /// A FIFO queue of HappyConnOpener jobs waiting to open a spare connection.
-typedef std::list< CbcPointer<HappyConnOpener> > HappySpareWaitList;
+typedef std::list<CbcPointer<HappyConnOpener>> HappySpareWaitList;
 
 /// absolute time in fractional seconds; compatible with current_timed
 typedef double HappyAbsoluteTime;
 
 /// keeps track of HappyConnOpener spare track waiting state
-class HappySpareWait {
+class HappySpareWait
+{
 public:
     explicit operator bool() const { return toGivePrimeItsChance || forSpareAllowance || forPrimesToFail || forNewPeer; }
 
@@ -38,7 +39,7 @@ public:
     /// nullifies but does not cancel the callback
     void clear() { *this = HappySpareWait(); }
 
-    CodeContext::Pointer codeContext; ///< requestor's context
+    CodeContext::Pointer codeContext;  ///< requestor's context
 
     /// a pending noteGavePrimeItsChance() or noteSpareAllowance() call
     AsyncCall::Pointer callback;
@@ -83,7 +84,7 @@ public:
 
     // answer recipients must clear the error member in order to keep its info
     // XXX: We should refcount ErrorState instead of cbdata-protecting it.
-    CbcPointer<ErrorState> error; ///< problem details (nil on success)
+    CbcPointer<ErrorState> error;  ///< problem details (nil on success)
 
     /// The total number of attempts to establish a connection. Includes any
     /// failed attempts and [always successful] persistent connection reuse.
@@ -94,41 +95,45 @@ public:
 };
 
 /// reports Answer details (for AsyncCall parameter debugging)
-std::ostream &operator <<(std::ostream &, const HappyConnOpenerAnswer &);
+std::ostream &operator<<(std::ostream &, const HappyConnOpenerAnswer &);
 
 /// A TCP connection opening algorithm based on Happy Eyeballs (RFC 8305).
 /// Maintains two concurrent connection opening tracks: prime and spare.
 /// Shares ResolvedPeers list with the job initiator.
-class HappyConnOpener: public AsyncJob
+class HappyConnOpener : public AsyncJob
 {
     CBDATA_CHILD(HappyConnOpener);
+
 public:
     typedef HappyConnOpenerAnswer Answer;
 
     /// AsyncCall dialer for our callback. Gives us access to callback Answer.
     template <class Initiator>
-    class CbDialer: public CallDialer, public Answer {
+    class CbDialer : public CallDialer, public Answer
+    {
     public:
         // initiator method to receive our answer
         typedef void (Initiator::*Method)(Answer &);
 
-        CbDialer(Method method, Initiator *initiator): initiator_(initiator), method_(method) {}
+        CbDialer(Method method, Initiator *initiator) :
+            initiator_(initiator), method_(method) {}
         virtual ~CbDialer() = default;
 
         /* CallDialer API */
         bool canDial(AsyncCall &) { return initiator_.valid(); }
-        void dial(AsyncCall &) {((*initiator_).*method_)(*this); }
-        virtual void print(std::ostream &os) const override {
-            os << '(' << static_cast<const Answer&>(*this) << ')';
+        void dial(AsyncCall &) { ((*initiator_).*method_)(*this); }
+        virtual void print(std::ostream &os) const override
+        {
+            os << '(' << static_cast<const Answer &>(*this) << ')';
         }
 
     private:
-        CbcPointer<Initiator> initiator_; ///< object to deliver the answer to
-        Method method_; ///< initiator_ method to call with the answer
+        CbcPointer<Initiator> initiator_;  ///< object to deliver the answer to
+        Method method_;                    ///< initiator_ method to call with the answer
     };
 
 public:
-    HappyConnOpener(const ResolvedPeersPointer &, const AsyncCall::Pointer &,  HttpRequestPointer &, const time_t aFwdStart, int tries, const AccessLogEntryPointer &al);
+    HappyConnOpener(const ResolvedPeersPointer &, const AsyncCall::Pointer &, HttpRequestPointer &, const time_t aFwdStart, int tries, const AccessLogEntryPointer &al);
     virtual ~HappyConnOpener() override;
 
     /// configures reuse of old connections
@@ -154,13 +159,18 @@ public:
 
 private:
     /// a connection opening attempt in progress (or falsy)
-    class Attempt {
+    class Attempt
+    {
     public:
         explicit operator bool() const { return static_cast<bool>(path); }
-        void clear() { path = nullptr; connector = nullptr; }
+        void clear()
+        {
+            path = nullptr;
+            connector = nullptr;
+        }
 
-        Comm::ConnectionPointer path; ///< the destination we are connecting to
-        AsyncCall::Pointer connector; ///< our Comm::ConnOpener callback
+        Comm::ConnectionPointer path;  ///< the destination we are connecting to
+        AsyncCall::Pointer connector;  ///< our Comm::ConnOpener callback
     };
 
     /* AsyncJob API */
@@ -195,9 +205,9 @@ private:
     void sendSuccess(const Comm::ConnectionPointer &conn, bool reused, const char *connKind);
     void sendFailure();
 
-    const time_t fwdStart; ///< requestor start time
+    const time_t fwdStart;  ///< requestor start time
 
-    AsyncCall::Pointer callback_; ///< handler to be called on connection completion.
+    AsyncCall::Pointer callback_;  ///< handler to be called on connection completion.
 
     /// Candidate paths. Shared with the initiator. May not be finalized yet.
     ResolvedPeersPointer destinations;
@@ -216,10 +226,10 @@ private:
     HappySpareWait spareWaiting;
     friend class HappyOrderEnforcer;
 
-    AccessLogEntryPointer ale; ///< transaction details
+    AccessLogEntryPointer ale;  ///< transaction details
 
-    ErrorState *lastError = nullptr; ///< last problem details (or nil)
-    Comm::ConnectionPointer lastFailedConnection; ///< nil if none has failed
+    ErrorState *lastError = nullptr;               ///< last problem details (or nil)
+    Comm::ConnectionPointer lastFailedConnection;  ///< nil if none has failed
 
     /// whether spare connection attempts disregard happy_eyeballs_* settings
     bool ignoreSpareRestrictions = false;
@@ -247,4 +257,3 @@ private:
 };
 
 #endif
-

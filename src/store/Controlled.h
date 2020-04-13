@@ -15,7 +15,7 @@ namespace Store {
 
 /// Storage controlled by a Controller.
 /// This API is shared among Disks, Disk, Memory caches and Transients.
-class Controlled: public Storage
+class Controlled : public Storage
 {
 public:
     /// \returns a possibly unlocked/unregistered stored entry with key (or nil)
@@ -37,7 +37,7 @@ public:
     /// If Transients entry cannot be attached to this storage, return false.
     /// If the entry is not found, return false. Otherwise, return true after
     /// tying the entry to this cache and setting inSync to updateAnchored().
-    virtual bool anchorToCache(StoreEntry &, bool &/*inSync*/) { return false; }
+    virtual bool anchorToCache(StoreEntry &, bool & /*inSync*/) { return false; }
 
     /// Update a local Transients entry with fresh info from this cache (if any).
     /// Return true iff the cache supports Transients entries and
@@ -45,7 +45,6 @@ public:
     virtual bool updateAnchored(StoreEntry &) { return false; }
 };
 
-} // namespace Store
+}  // namespace Store
 
 #endif /* SQUID_STORE_CONTROLLED_H */
-

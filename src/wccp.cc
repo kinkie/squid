@@ -11,12 +11,12 @@
 #include "squid.h"
 
 #if USE_WCCP
+#include "SquidConfig.h"
 #include "comm.h"
 #include "comm/Connection.h"
 #include "comm/Loops.h"
 #include "event.h"
 #include "fatal.h"
-#include "SquidConfig.h"
 
 #define WCCP_PORT 2048
 #define WCCP_REVISION 0
@@ -114,12 +114,12 @@ wccpConnectionOpen(void)
         return;
     }
 
-    if ( !Config.Wccp.router.setIPv4() ) {
+    if (!Config.Wccp.router.setIPv4()) {
         debugs(80, DBG_CRITICAL, "WCCPv1 Disabled. Router " << Config.Wccp.router << " is not an IPv4 address.");
         return;
     }
 
-    if ( !Config.Wccp.address.setIPv4() ) {
+    if (!Config.Wccp.address.setIPv4()) {
         debugs(80, DBG_CRITICAL, "WCCPv1 Disabled. Local address " << Config.Wccp.address << " is not an IPv4 address.");
         return;
     }
@@ -144,13 +144,13 @@ wccpConnectionOpen(void)
 
     struct sockaddr_in router;
     Config.Wccp.router.getSockAddr(router);
-    if (connect(theWccpConnection, (struct sockaddr*)&router, sizeof(router)))
+    if (connect(theWccpConnection, (struct sockaddr *)&router, sizeof(router)))
         fatal("Unable to connect WCCP out socket");
 
     struct sockaddr_in local;
     memset(&local, '\0', sizeof(local));
     socklen_t slen = sizeof(local);
-    if (getsockname(theWccpConnection, (struct sockaddr*)&local, &slen))
+    if (getsockname(theWccpConnection, (struct sockaddr *)&local, &slen))
         fatal("Unable to getsockname on WCCP out socket");
 
     local_ip = local;
@@ -186,17 +186,11 @@ wccpHandleUdp(int sock, void *)
     memset(&wccp_i_see_you, '\0', sizeof(wccp_i_see_you));
 
     len = comm_udp_recvfrom(sock,
-                            (void *) &wccp_i_see_you,
+                            (void *)&wccp_i_see_you,
                             sizeof(wccp_i_see_you),
                             0,
                             from);
-    debugs(80, 3, "wccpHandleUdp: " << len << " bytes WCCP pkt from " << from <<
-           ": type=" <<
-           (unsigned) ntohl(wccp_i_see_you.type) << ", version=" <<
-           (unsigned) ntohl(wccp_i_see_you.version) << ", change=" <<
-           (unsigned) ntohl(wccp_i_see_you.change) << ", id=" <<
-           (unsigned) ntohl(wccp_i_see_you.id) << ", number=" <<
-           (unsigned) ntohl(wccp_i_see_you.number));
+    debugs(80, 3, "wccpHandleUdp: " << len << " bytes WCCP pkt from " << from << ": type=" << (unsigned)ntohl(wccp_i_see_you.type) << ", version=" << (unsigned)ntohl(wccp_i_see_you.version) << ", change=" << (unsigned)ntohl(wccp_i_see_you.change) << ", id=" << (unsigned)ntohl(wccp_i_see_you.id) << ", number=" << (unsigned)ntohl(wccp_i_see_you.number));
 
     if (len < 0)
         return;
@@ -204,23 +198,21 @@ wccpHandleUdp(int sock, void *)
     if (from != Config.Wccp.router)
         return;
 
-    if ((unsigned) ntohl(wccp_i_see_you.version) != (unsigned) Config.Wccp.version)
+    if ((unsigned)ntohl(wccp_i_see_you.version) != (unsigned)Config.Wccp.version)
         return;
 
     if (ntohl(wccp_i_see_you.type) != WCCP_I_SEE_YOU)
         return;
 
     if (ntohl(wccp_i_see_you.number) > WCCP_ACTIVE_CACHES) {
-        debugs(80, DBG_IMPORTANT, "Ignoring WCCP_I_SEE_YOU from " <<
-               from << " with number of caches set to " <<
-               (int) ntohl(wccp_i_see_you.number));
+        debugs(80, DBG_IMPORTANT, "Ignoring WCCP_I_SEE_YOU from " << from << " with number of caches set to " << (int)ntohl(wccp_i_see_you.number));
 
         return;
     }
 
     last_id = wccp_i_see_you.id;
 
-    if ((0 == last_change) && (number_caches == (unsigned) ntohl(wccp_i_see_you.number))) {
+    if ((0 == last_change) && (number_caches == (unsigned)ntohl(wccp_i_see_you.number))) {
         if (last_assign_buckets_change == wccp_i_see_you.change) {
             /*
              * After a WCCP_ASSIGN_BUCKET message, the router should
@@ -230,7 +222,7 @@ wccpHandleUdp(int sock, void *)
              * Don't update change here.  Instead, fall through to
              * the next block to call wccpAssignBuckets() again.
              */
-            (void) 0;
+            (void)0;
         } else {
             last_change = wccp_i_see_you.change;
             return;
@@ -257,7 +249,7 @@ wccpLowestIP(void)
      * We sanity checked wccp_i_see_you.number back in wccpHandleUdp()
      */
 
-    for (loop = 0; loop < (unsigned) ntohl(wccp_i_see_you.number); ++loop) {
+    for (loop = 0; loop < (unsigned)ntohl(wccp_i_see_you.number); ++loop) {
         assert(loop < WCCP_ACTIVE_CACHES);
 
         if (local_ip > wccp_i_see_you.wccp_cache_entry[loop].ip_addr)
@@ -276,7 +268,7 @@ wccpHereIam(void *)
     debugs(80, 6, "wccpHereIam: Called");
 
     wccp_here_i_am.id = last_id;
-    double interval = 10.0; // TODO: make this configurable, possibly negotiate with the router.
+    double interval = 10.0;  // TODO: make this configurable, possibly negotiate with the router.
     ssize_t sent = comm_udp_send(theWccpConnection, &wccp_here_i_am, sizeof(wccp_here_i_am), 0);
 
     // if we failed to send the whole lot, try again at a shorter interval (20%)
@@ -314,13 +306,11 @@ wccpAssignBuckets(void)
 
     cache_len = WCCP_CACHE_LEN * number_caches;
 
-    buf = (char *)xmalloc(wab_len +
-                          WCCP_BUCKETS +
-                          cache_len);
+    buf = (char *)xmalloc(wab_len + WCCP_BUCKETS + cache_len);
 
-    wccp_assign_bucket = (struct wccp_assign_bucket_t *) buf;
+    wccp_assign_bucket = (struct wccp_assign_bucket_t *)buf;
 
-    caches = (int *) (buf + wab_len);
+    caches = (int *)(buf + wab_len);
 
     buckets = buf + wab_len + cache_len;
 
@@ -361,4 +351,3 @@ wccpAssignBuckets(void)
 }
 
 #endif /* USE_WCCP */
-

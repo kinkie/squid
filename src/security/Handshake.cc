@@ -38,9 +38,9 @@ class TLSPlaintext
 public:
     explicit TLSPlaintext(Parser::BinaryTokenizer &tk);
 
-    uint8_t type; ///< see ContentType
-    AnyP::ProtocolVersion version; ///< Record Layer, not necessarily the negotiated TLS version;
-    SBuf fragment; ///< possibly partial content
+    uint8_t type;                   ///< see ContentType
+    AnyP::ProtocolVersion version;  ///< Record Layer, not necessarily the negotiated TLS version;
+    SBuf fragment;                  ///< possibly partial content
 };
 
 /// draft-hickman-netscape-ssl-00. Section 4.1. SSL Record Header Format
@@ -66,8 +66,8 @@ class Handshake
 public:
     explicit Handshake(Parser::BinaryTokenizer &tk);
 
-    uint8_t msg_type; ///< see HandshakeType
-    SBuf msg_body; ///< Handshake Protocol message
+    uint8_t msg_type;  ///< see HandshakeType
+    SBuf msg_body;     ///< Handshake Protocol message
 };
 
 /// TLS Alert protocol frame from RFC 5246 Section 7.2.
@@ -78,8 +78,8 @@ public:
 
     bool fatal() const { return level == 2; }
 
-    uint8_t level; ///< warning or fatal
-    uint8_t description; ///< close_notify, unexpected_message, etc.
+    uint8_t level;        ///< warning or fatal
+    uint8_t description;  ///< close_notify, unexpected_message, etc.
 };
 
 /// The size of the TLS Random structure from RFC 5246 Section 7.4.1.2.
@@ -104,7 +104,7 @@ public:
 typedef std::unordered_set<Extension::Type> Extensions;
 static Extensions SupportedExtensions();
 
-} // namespace Security
+}  // namespace Security
 
 /// Convenience helper: We parse ProtocolVersion but store "int".
 static AnyP::ProtocolVersion
@@ -170,12 +170,12 @@ Security::Sslv2Record::Sslv2Record(Parser::BinaryTokenizer &tk)
     Parser::BinaryTokenizerContext context(tk, "Sslv2Record");
     const uint16_t head = tk.uint16(".head");
     const uint16_t length = head & 0x7FFF;
-    Must((head & 0x8000) && length); // SSLv2 message [without padding]
+    Must((head & 0x8000) && length);  // SSLv2 message [without padding]
     fragment = tk.area(length, ".fragment");
     context.success();
 }
 
-Security::TlsDetails::TlsDetails():
+Security::TlsDetails::TlsDetails() :
     compressionSupported(false),
     doHeartBeats(false),
     tlsTicketsExtension(false),
@@ -187,7 +187,7 @@ Security::TlsDetails::TlsDetails():
 
 /* Security::HandshakeParser */
 
-Security::HandshakeParser::HandshakeParser():
+Security::HandshakeParser::HandshakeParser() :
     details(new TlsDetails),
     state(atHelloNone),
     resumingSession(false),
@@ -245,7 +245,7 @@ Security::HandshakeParser::parseModernRecord()
 
     if (currentContentType != record.type) {
         parseMessages();
-        Must(tkMessages.atEnd()); // no currentContentType leftovers
+        Must(tkMessages.atEnd());  // no currentContentType leftovers
         fragments = record.fragment;
         currentContentType = record.type;
     } else {
@@ -298,9 +298,8 @@ Security::HandshakeParser::parseAlertMessage()
 {
     Must(currentContentType == ContentType::ctAlert);
     const Alert alert(tkMessages);
-    debugs(83, (alert.fatal() ? 2:3),
-           "level " << static_cast<int>(alert.level) <<
-           " description " << static_cast<int>(alert.description));
+    debugs(83, (alert.fatal() ? 2 : 3),
+           "level " << static_cast<int>(alert.level) << " description " << static_cast<int>(alert.description));
     if (alert.fatal())
         done = "fatal Alert";
     // else ignore the warning (at least for now)
@@ -337,8 +336,7 @@ Security::HandshakeParser::parseHandshakeMessage()
         done = "ServerHelloDone";
         return;
     }
-    debugs(83, 5, "ignoring " << message.msg_body.length() << "-byte type-" <<
-           static_cast<unsigned int>(message.msg_type) << " handshake message");
+    debugs(83, 5, "ignoring " << message.msg_body.length() << "-byte type-" << static_cast<unsigned int>(message.msg_type) << " handshake message");
 }
 
 void
@@ -353,7 +351,7 @@ Security::HandshakeParser::parseVersion2HandshakeMessage(const SBuf &raw)
 {
     Parser::BinaryTokenizer tk(raw);
     Parser::BinaryTokenizerContext hello(tk, "V2ClientHello");
-    Must(tk.uint8(".type") == hskClientHello); // Only client hello supported.
+    Must(tk.uint8(".type") == hskClientHello);  // Only client hello supported.
     details->tlsSupportedVersion = ParseProtocolVersion(tk);
     const uint16_t ciphersLen = tk.uint16(".cipher_specs.length");
     const uint16_t sessionIdLen = tk.uint16(".session_id.length");
@@ -374,7 +372,7 @@ Security::HandshakeParser::parseClientHelloHandshakeMessage(const SBuf &raw)
     details->sessionId = tk.pstring8(".session_id");
     parseCiphers(tk.pstring16(".cipher_suites"));
     details->compressionSupported = parseCompressionMethods(tk.pstring8(".compression_methods"));
-    if (!tk.atEnd()) // extension-free message ends here
+    if (!tk.atEnd())  // extension-free message ends here
         parseExtensions(tk.pstring16(".extensions"));
     hello.success();
 }
@@ -406,25 +404,25 @@ Security::HandshakeParser::parseExtensions(const SBuf &raw)
             details->unsupportedExtensions = true;
         }
 
-        switch(extension.type) {
-        case 0: // The SNI extension; RFC 6066, Section 3
+        switch (extension.type) {
+        case 0:  // The SNI extension; RFC 6066, Section 3
             details->serverName = parseSniExtension(extension.data);
             break;
-        case 5: // Certificate Status Request; RFC 6066, Section 8
+        case 5:  // Certificate Status Request; RFC 6066, Section 8
             details->tlsStatusRequest = true;
             break;
-        case 15: // The heartBeats, RFC 6520
+        case 15:  // The heartBeats, RFC 6520
             details->doHeartBeats = true;
             break;
-        case 16: { // Application-Layer Protocol Negotiation Extension, RFC 7301
+        case 16: {  // Application-Layer Protocol Negotiation Extension, RFC 7301
             Parser::BinaryTokenizer tkAPN(extension.data);
             details->tlsAppLayerProtoNeg = tkAPN.pstring16("APN");
             break;
         }
-        case 35: // SessionTicket TLS Extension; RFC 5077
+        case 35:  // SessionTicket TLS Extension; RFC 5077
             details->tlsTicketsExtension = true;
             details->hasTlsTicket = !extension.data.isEmpty();
-        case 13172: // Next Protocol Negotiation Extension (expired draft?)
+        case 13172:  // Next Protocol Negotiation Extension (expired draft?)
         default:
             break;
         }
@@ -470,8 +468,8 @@ Security::HandshakeParser::parseServerHelloHandshakeMessage(const SBuf &raw)
     tk.skip(HelloRandomSize, ".random");
     details->sessionId = tk.pstring8(".session_id");
     details->ciphers.insert(tk.uint16(".cipher_suite"));
-    details->compressionSupported = tk.uint8(".compression_method") != 0; // not null
-    if (!tk.atEnd()) // extensions present
+    details->compressionSupported = tk.uint8(".compression_method") != 0;  // not null
+    if (!tk.atEnd())                                                       // extensions present
         parseExtensions(tk.pstring16(".extensions"));
     hello.success();
 }
@@ -496,12 +494,12 @@ Security::HandshakeParser::parseSniExtension(const SBuf &extensionData) const
 
         if (nameType == 0) {
             debugs(83, 3, "host_name=" << name);
-            return name; // it may be empty
+            return name;  // it may be empty
         }
         // else we just parsed a new/unsupported NameType which,
         // according to RFC 6066, MUST begin with a 16-bit length field
     }
-    return SBuf(); // SNI extension lacks host_name
+    return SBuf();  // SNI extension lacks host_name
 }
 
 void
@@ -528,12 +526,11 @@ Security::HandshakeParser::parseHello(const SBuf &data)
         debugs(83, 7, "success; got: " << done);
         // we are done; tkRecords may have leftovers we are not interested in
         return true;
-    }
-    catch (const Parser::BinaryTokenizer::InsufficientInput &) {
+    } catch (const Parser::BinaryTokenizer::InsufficientInput &) {
         debugs(83, 5, "need more data");
         return false;
     }
-    return false; // unreached
+    return false;  // unreached
 }
 
 /// Creates and returns a certificate by parsing a DER-encoded X509 structure.
@@ -547,12 +544,12 @@ Security::HandshakeParser::ParseCertificate(const SBuf &raw)
     auto x509Pos = x509Start;
     X509 *x509 = d2i_X509(nullptr, &x509Pos, raw.length());
     pCert.resetWithoutLocking(x509);
-    Must(x509); // successfully parsed
-    Must(x509Pos == x509Start + raw.length()); // no leftovers
+    Must(x509);                                 // successfully parsed
+    Must(x509Pos == x509Start + raw.length());  // no leftovers
 #else
-    assert(false);  // this code should never be reached
-    pCert = Security::CertPointer(nullptr); // avoid warnings about uninitialized pCert; XXX: Fix CertPoint declaration.
-    (void)raw; // avoid warnings about unused method parameter; TODO: Add a SimulateUse() macro.
+    assert(false);                           // this code should never be reached
+    pCert = Security::CertPointer(nullptr);  // avoid warnings about uninitialized pCert; XXX: Fix CertPoint declaration.
+    (void)raw;                               // avoid warnings about unused method parameter; TODO: Add a SimulateUse() macro.
 #endif
     assert(pCert);
     return pCert;
@@ -564,7 +561,7 @@ Security::HandshakeParser::parseServerCertificates(const SBuf &raw)
 #if USE_OPENSSL
     Parser::BinaryTokenizer tkList(raw);
     const SBuf clist = tkList.pstring24("CertificateList");
-    Must(tkList.atEnd()); // no leftovers after all certificates
+    Must(tkList.atEnd());  // no leftovers after all certificates
 
     Parser::BinaryTokenizer tkItems(clist);
     while (!tkItems.atEnd()) {
@@ -578,8 +575,7 @@ Security::HandshakeParser::parseServerCertificates(const SBuf &raw)
 }
 
 /// A helper function to create a set of all supported TLS extensions
-static
-Security::Extensions
+static Security::Extensions
 Security::SupportedExtensions()
 {
 #if USE_OPENSSL
@@ -590,61 +586,61 @@ Security::SupportedExtensions()
     // Keep this list ordered and up to date by running something like
     // egrep '# *define TLSEXT_TYPE_' /usr/include/openssl/tls1.h
     // TODO: Teach OpenSSL to return the list of extensions it supports.
-#if defined(TLSEXT_TYPE_server_name) // 0
+#if defined(TLSEXT_TYPE_server_name)  // 0
     extensions.insert(TLSEXT_TYPE_server_name);
 #endif
-#if defined(TLSEXT_TYPE_max_fragment_length) // 1
+#if defined(TLSEXT_TYPE_max_fragment_length)  // 1
     extensions.insert(TLSEXT_TYPE_max_fragment_length);
 #endif
-#if defined(TLSEXT_TYPE_client_certificate_url) // 2
+#if defined(TLSEXT_TYPE_client_certificate_url)  // 2
     extensions.insert(TLSEXT_TYPE_client_certificate_url);
 #endif
-#if defined(TLSEXT_TYPE_trusted_ca_keys) // 3
+#if defined(TLSEXT_TYPE_trusted_ca_keys)  // 3
     extensions.insert(TLSEXT_TYPE_trusted_ca_keys);
 #endif
-#if defined(TLSEXT_TYPE_truncated_hmac) // 4
+#if defined(TLSEXT_TYPE_truncated_hmac)  // 4
     extensions.insert(TLSEXT_TYPE_truncated_hmac);
 #endif
-#if defined(TLSEXT_TYPE_status_request) // 5
+#if defined(TLSEXT_TYPE_status_request)  // 5
     extensions.insert(TLSEXT_TYPE_status_request);
 #endif
-#if defined(TLSEXT_TYPE_user_mapping) // 6
+#if defined(TLSEXT_TYPE_user_mapping)  // 6
     extensions.insert(TLSEXT_TYPE_user_mapping);
 #endif
-#if defined(TLSEXT_TYPE_client_authz) // 7
+#if defined(TLSEXT_TYPE_client_authz)  // 7
     extensions.insert(TLSEXT_TYPE_client_authz);
 #endif
-#if defined(TLSEXT_TYPE_server_authz) // 8
+#if defined(TLSEXT_TYPE_server_authz)  // 8
     extensions.insert(TLSEXT_TYPE_server_authz);
 #endif
-#if defined(TLSEXT_TYPE_cert_type) // 9
+#if defined(TLSEXT_TYPE_cert_type)  // 9
     extensions.insert(TLSEXT_TYPE_cert_type);
 #endif
-#if defined(TLSEXT_TYPE_elliptic_curves) // 10
+#if defined(TLSEXT_TYPE_elliptic_curves)  // 10
     extensions.insert(TLSEXT_TYPE_elliptic_curves);
 #endif
-#if defined(TLSEXT_TYPE_ec_point_formats) // 11
+#if defined(TLSEXT_TYPE_ec_point_formats)  // 11
     extensions.insert(TLSEXT_TYPE_ec_point_formats);
 #endif
-#if defined(TLSEXT_TYPE_srp) // 12
+#if defined(TLSEXT_TYPE_srp)  // 12
     extensions.insert(TLSEXT_TYPE_srp);
 #endif
-#if defined(TLSEXT_TYPE_signature_algorithms) // 13
+#if defined(TLSEXT_TYPE_signature_algorithms)  // 13
     extensions.insert(TLSEXT_TYPE_signature_algorithms);
 #endif
-#if defined(TLSEXT_TYPE_use_srtp) // 14
+#if defined(TLSEXT_TYPE_use_srtp)  // 14
     extensions.insert(TLSEXT_TYPE_use_srtp);
 #endif
-#if defined(TLSEXT_TYPE_heartbeat) // 15
+#if defined(TLSEXT_TYPE_heartbeat)  // 15
     extensions.insert(TLSEXT_TYPE_heartbeat);
 #endif
-#if defined(TLSEXT_TYPE_session_ticket) // 35
+#if defined(TLSEXT_TYPE_session_ticket)  // 35
     extensions.insert(TLSEXT_TYPE_session_ticket);
 #endif
-#if defined(TLSEXT_TYPE_renegotiate) // 0xff01
+#if defined(TLSEXT_TYPE_renegotiate)  // 0xff01
     extensions.insert(TLSEXT_TYPE_renegotiate);
 #endif
-#if defined(TLSEXT_TYPE_next_proto_neg) // 13172
+#if defined(TLSEXT_TYPE_next_proto_neg)  // 13172
     extensions.insert(TLSEXT_TYPE_next_proto_neg);
 #endif
 
@@ -666,10 +662,9 @@ Security::SupportedExtensions()
     extensions.insert(TLSEXT_TYPE_SUPPORTED_BY_MY_SQUID);
 #endif
 
-    return extensions; // might be empty
+    return extensions;  // might be empty
 #else
 
-    return Extensions(); // no extensions are supported without OpenSSL
+    return Extensions();  // no extensions are supported without OpenSSL
 #endif
 }
-

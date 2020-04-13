@@ -14,8 +14,7 @@
 template <class C>
 class RefCount;
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 class Service;
 class ServiceConfig;
@@ -35,7 +34,6 @@ typedef RefCount<Service> ServicePointer;
 typedef RefCount<ServiceConfig> ServiceConfigPointer;
 typedef RefCount<ServiceGroup> ServiceGroupPointer;
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif /* SQUID_ADAPTATION__FORWARD_H */
-

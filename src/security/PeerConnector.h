@@ -9,10 +9,10 @@
 #ifndef SQUID_SRC_SECURITY_PEERCONNECTOR_H
 #define SQUID_SRC_SECURITY_PEERCONNECTOR_H
 
+#include "CommCalls.h"
 #include "acl/Acl.h"
 #include "base/AsyncCbdataCalls.h"
 #include "base/AsyncJob.h"
-#include "CommCalls.h"
 #include "http/forward.h"
 #include "security/EncryptorAnswer.h"
 #include "security/forward.h"
@@ -27,8 +27,7 @@ class ErrorState;
 class AccessLogEntry;
 typedef RefCount<AccessLogEntry> AccessLogEntryPointer;
 
-namespace Security
-{
+namespace Security {
 
 /**
  * Initiates encryption on a connection to peers or servers.
@@ -60,7 +59,7 @@ namespace Security
  * This job never closes the connection, even on errors. If a 3rd-party
  * closes the connection, this job simply quits without informing the caller.
  */
-class PeerConnector: virtual public AsyncJob
+class PeerConnector : virtual public AsyncJob
 {
     CBDATA_CLASS(PeerConnector);
 
@@ -160,26 +159,26 @@ protected:
     /// mimics FwdState to minimize changes to FwdState::initiate/negotiateSsl
     Comm::ConnectionPointer const &serverConnection() const { return serverConn; }
 
-    void bail(ErrorState *error); ///< Return an error to the PeerConnector caller
+    void bail(ErrorState *error);  ///< Return an error to the PeerConnector caller
 
     /// Callback the caller class, and pass the ready to communicate secure
     /// connection or an error if PeerConnector failed.
     void callBack();
 
     /// If called the certificates validator will not used
-    void bypassCertValidator() {useCertValidator_ = false;}
+    void bypassCertValidator() { useCertValidator_ = false; }
 
     /// Called after negotiation finishes to record connection details for
     /// logging
     void recordNegotiationDetails();
 
-    HttpRequestPointer request; ///< peer connection trigger or cause
-    Comm::ConnectionPointer serverConn; ///< TCP connection to the peer
-    AccessLogEntryPointer al; ///< info for the future access.log entry
-    AsyncCall::Pointer callback; ///< we call this with the results
+    HttpRequestPointer request;          ///< peer connection trigger or cause
+    Comm::ConnectionPointer serverConn;  ///< TCP connection to the peer
+    AccessLogEntryPointer al;            ///< info for the future access.log entry
+    AsyncCall::Pointer callback;         ///< we call this with the results
 private:
-    PeerConnector(const PeerConnector &); // not implemented
-    PeerConnector &operator =(const PeerConnector &); // not implemented
+    PeerConnector(const PeerConnector &);             // not implemented
+    PeerConnector &operator=(const PeerConnector &);  // not implemented
 
 #if USE_OPENSSL
     /// Process response from cert validator helper
@@ -197,16 +196,15 @@ private:
     /// The maximum allowed nested certificates downloads.
     static const unsigned int MaxNestedDownloads = 3;
 
-    AsyncCall::Pointer closeHandler; ///< we call this when the connection closed
-    time_t negotiationTimeout; ///< the SSL connection timeout to use
-    time_t startTime; ///< when the peer connector negotiation started
-    bool useCertValidator_; ///< whether the certificate validator should bypassed
+    AsyncCall::Pointer closeHandler;  ///< we call this when the connection closed
+    time_t negotiationTimeout;        ///< the SSL connection timeout to use
+    time_t startTime;                 ///< when the peer connector negotiation started
+    bool useCertValidator_;           ///< whether the certificate validator should bypassed
     /// The list of URLs where missing certificates should be downloaded.
     std::queue<SBuf> urlsOfMissingCerts;
-    unsigned int certsDownloads; ///< the number of downloaded missing certificates
+    unsigned int certsDownloads;  ///< the number of downloaded missing certificates
 };
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_PEERCONNECTOR_H */
-

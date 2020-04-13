@@ -7,18 +7,18 @@
  */
 
 #include "squid.h"
+#include "comm/Write.h"
+#include "MemBuf.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
 #include "cbdata.h"
 #include "comm/Connection.h"
 #include "comm/IoCallback.h"
 #include "comm/Loops.h"
-#include "comm/Write.h"
 #include "fd.h"
 #include "fde.h"
 #include "globals.h"
-#include "MemBuf.h"
 #include "profiler/Profiler.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
 #if USE_DELAY_POOLS
 #include "ClientInfo.h"
 #endif
@@ -32,7 +32,7 @@ Comm::Write(const Comm::ConnectionPointer &conn, MemBuf *mb, AsyncCall::Pointer 
 }
 
 void
-Comm::Write(const Comm::ConnectionPointer &conn, const char *buf, int size, AsyncCall::Pointer &callback, FREE * free_func)
+Comm::Write(const Comm::ConnectionPointer &conn, const char *buf, int size, AsyncCall::Pointer &callback, FREE *free_func)
 {
     debugs(5, 5, HERE << conn << ": sz " << size << ": asynCall " << callback);
 
@@ -65,8 +65,7 @@ Comm::HandleWrite(int fd, void *data)
     assert(state->conn->fd == fd);
 
     PROF_start(commHandleWrite);
-    debugs(5, 5, HERE << state->conn << ": off " <<
-           (long int) state->offset << ", sz " << (long int) state->size << ".");
+    debugs(5, 5, HERE << state->conn << ": off " << (long int)state->offset << ", sz " << (long int)state->size << ".");
 
     nleft = state->size - state->offset;
 
@@ -134,4 +133,3 @@ Comm::HandleWrite(int fd, void *data)
 
     PROF_stop(commHandleWrite);
 }
-

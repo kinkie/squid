@@ -17,8 +17,7 @@
 class MemBlob;
 typedef RefCount<MemBlob> MemBlobPointer;
 
-namespace Log
-{
+namespace Log {
 
 /**
  * Sends log records to a remote TCP logger at the configured IP:port address.
@@ -82,32 +81,31 @@ private:
     void writeDone(const CommIoCbParams &io);
     void handleClosure(const CommCloseCbParams &io);
 
-    static const size_t IoBufSize; ///< fixed I/O buffer size
-    static const size_t BufferCapacityMin; ///< minimum bufferCapacity value
+    static const size_t IoBufSize;          ///< fixed I/O buffer size
+    static const size_t BufferCapacityMin;  ///< minimum bufferCapacity value
 
     /// Whether this job must kill Squid on the first unrecoverable error.
     /// Note that we may be able to recover from a failure to connect, but we
     /// cannot recover from forgetting (dropping) a record while connecting.
     bool dieOnError;
 
-    std::list<MemBlobPointer> buffers; ///< I/O buffers
-    size_t bufferCapacity; ///< bufferedSize limit
-    size_t bufferedSize; ///< number of log record bytes stored in RAM now
-    size_t flushDebt; ///< how many record bytes we still need to write ASAP
+    std::list<MemBlobPointer> buffers;  ///< I/O buffers
+    size_t bufferCapacity;              ///< bufferedSize limit
+    size_t bufferedSize;                ///< number of log record bytes stored in RAM now
+    size_t flushDebt;                   ///< how many record bytes we still need to write ASAP
 
-    bool quitOnEmpty; ///< whether this job should quit when buffers are empty
-    bool reconnectScheduled; ///< we are sleeping before the next connection attempt
-    bool writeScheduled; ///< we are waiting for the latest write() results
+    bool quitOnEmpty;         ///< whether this job should quit when buffers are empty
+    bool reconnectScheduled;  ///< we are sleeping before the next connection attempt
+    bool writeScheduled;      ///< we are waiting for the latest write() results
 
-    Comm::ConnectionPointer conn; ///< opened connection to the remote logger
-    Ip::Address remote; ///< where the remote logger expects our records
-    AsyncCall::Pointer closer; ///< handles unexpected/external conn closures
+    Comm::ConnectionPointer conn;  ///< opened connection to the remote logger
+    Ip::Address remote;            ///< where the remote logger expects our records
+    AsyncCall::Pointer closer;     ///< handles unexpected/external conn closures
 
-    uint64_t connectFailures; ///< number of sequential connection failures
-    uint64_t drops; ///< number of records dropped during the current outage
+    uint64_t connectFailures;  ///< number of sequential connection failures
+    uint64_t drops;            ///< number of records dropped during the current outage
 };
 
-} // namespace Log
+}  // namespace Log
 
 #endif /* _SQUID_SRC_LOG_TCPLOGGER_H */
-

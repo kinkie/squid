@@ -35,17 +35,17 @@
 #if _SQUID_WINDOWS_
 
 #include "util.h"
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <io.h>
 #include <dirent.h>
+#include <errno.h>
+#include <io.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>        /* for GetFileAttributes */
+#include <windows.h> /* for GetFileAttributes */
 
-#define SUFFIX  ("*")
-#define SLASH   ("\\")
+#define SUFFIX ("*")
+#define SLASH ("\\")
 
 /*
  * opendir
@@ -54,7 +54,7 @@
  * searching a directory.
  */
 DIR *
-opendir(const CHAR * szPath)
+opendir(const CHAR *szPath)
 {
     DIR *nd;
     unsigned int rc;
@@ -64,48 +64,43 @@ opendir(const CHAR * szPath)
 
     if (!szPath) {
         errno = EFAULT;
-        return (DIR *) 0;
+        return (DIR *)0;
     }
     if (szPath[0] == '\0') {
         errno = ENOTDIR;
-        return (DIR *) 0;
+        return (DIR *)0;
     }
     /* Attempt to determine if the given path really is a directory. */
     rc = GetFileAttributes(szPath);
-    if (rc == (unsigned int) -1) {
+    if (rc == (unsigned int)-1) {
         /* call GetLastError for more error info */
         errno = ENOENT;
-        return (DIR *) 0;
+        return (DIR *)0;
     }
     if (!(rc & FILE_ATTRIBUTE_DIRECTORY)) {
         /* Error, entry exists but not a directory. */
         errno = ENOTDIR;
-        return (DIR *) 0;
+        return (DIR *)0;
     }
     /* Make an absolute pathname.  */
     _fullpath(szFullPath, szPath, MAX_PATH);
 
     /* Allocate enough space to store DIR structure and the complete
      * directory path given. */
-    nd = (DIR *) malloc(sizeof(DIR) + (strlen(szFullPath)
-                                       + strlen(SLASH)
-                                       + strlen(SUFFIX) + 1)
-                        * sizeof(CHAR));
+    nd = (DIR *)malloc(sizeof(DIR) + (strlen(szFullPath) + strlen(SLASH) + strlen(SUFFIX) + 1) * sizeof(CHAR));
 
     if (!nd) {
         /* Error, out of memory. */
         errno = ENOMEM;
-        return (DIR *) 0;
+        return (DIR *)0;
     }
     /* Create the search expression. */
     strcpy(nd->dd_name, szFullPath);
 
     /* Add on a slash if the path does not end with one. */
     if (nd->dd_name[0] != '\0'
-            && strchr(nd->dd_name, '/') != nd->dd_name
-            + strlen(nd->dd_name) - 1
-            && strchr(nd->dd_name, '\\') != nd->dd_name
-            + strlen(nd->dd_name) - 1) {
+        && strchr(nd->dd_name, '/') != nd->dd_name + strlen(nd->dd_name) - 1
+        && strchr(nd->dd_name, '\\') != nd->dd_name + strlen(nd->dd_name) - 1) {
         strcat(nd->dd_name, SLASH);
     }
     /* Add on the search pattern */
@@ -136,18 +131,19 @@ opendir(const CHAR * szPath)
  * next entry in the directory.
  */
 struct dirent *
-readdir(DIR * dirp) {
+readdir(DIR *dirp)
+{
     errno = 0;
 
     /* Check for valid DIR struct. */
     if (!dirp) {
         errno = EFAULT;
-        return (struct dirent *) 0;
+        return (struct dirent *)0;
     }
     if (dirp->dd_stat < 0) {
         /* We have already returned all files in the directory
          * (or the structure has an invalid dd_stat). */
-        return (struct dirent *) 0;
+        return (struct dirent *)0;
     } else if (dirp->dd_stat == 0) {
         /* We haven't started the search yet. */
         /* Start the search */
@@ -187,7 +183,7 @@ readdir(DIR * dirp) {
         strcpy(dirp->dd_dir.d_name, dirp->dd_dta.name);
         return &dirp->dd_dir;
     }
-    return (struct dirent *) 0;
+    return (struct dirent *)0;
 }
 
 /*
@@ -196,7 +192,7 @@ readdir(DIR * dirp) {
  * Frees up resources allocated by opendir.
  */
 int
-closedir(DIR * dirp)
+closedir(DIR *dirp)
 {
     int rc;
 
@@ -223,7 +219,7 @@ closedir(DIR * dirp)
  * and then reset things like an opendir.
  */
 void
-rewinddir(DIR * dirp)
+rewinddir(DIR *dirp)
 {
     errno = 0;
 
@@ -245,7 +241,7 @@ rewinddir(DIR * dirp)
  * seekdir to go back to an old entry. We simply return the value in stat.
  */
 long
-telldir(DIR * dirp)
+telldir(DIR *dirp)
 {
     errno = 0;
 
@@ -266,7 +262,7 @@ telldir(DIR * dirp)
  * any such system.
  */
 void
-seekdir(DIR * dirp, long lPos)
+seekdir(DIR *dirp, long lPos)
 {
     errno = 0;
 
@@ -289,8 +285,8 @@ seekdir(DIR * dirp, long lPos)
         /* Rewind and read forward to the appropriate index. */
         rewinddir(dirp);
 
-        while ((dirp->dd_stat < lPos) && readdir(dirp));
+        while ((dirp->dd_stat < lPos) && readdir(dirp))
+            ;
     }
 }
 #endif /* _SQUID_WINDOWS_ */
-

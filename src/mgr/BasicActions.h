@@ -15,14 +15,13 @@
 
 /* a collection of simple, mostly stateless actions */
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// A dummy action placeholder for the no-action requests
 /// a templated Cache Manager index ('home') page.
 /// Display output is produced directly by the receiving worker
 /// without invoking the co-ordinator or action Job.
-class IndexAction: public Action
+class IndexAction : public Action
 {
 public:
     static Pointer Create(const CommandPointer &cmd);
@@ -34,7 +33,7 @@ protected:
 };
 
 /// returns available Cache Manager actions and their access requirements
-class MenuAction: public Action
+class MenuAction : public Action
 {
 public:
     static Pointer Create(const CommandPointer &cmd);
@@ -46,7 +45,7 @@ protected:
 };
 
 /// shuts Squid down
-class ShutdownAction: public Action
+class ShutdownAction : public Action
 {
 public:
     static Pointer Create(const CommandPointer &cmd);
@@ -58,7 +57,7 @@ protected:
 };
 
 /// reconfigures Squid
-class ReconfigureAction: public Action
+class ReconfigureAction : public Action
 {
 public:
     static Pointer Create(const CommandPointer &cmd);
@@ -70,7 +69,7 @@ protected:
 };
 
 /// starts log rotation
-class RotateAction: public Action
+class RotateAction : public Action
 {
 public:
     static Pointer Create(const CommandPointer &cmd);
@@ -82,7 +81,7 @@ protected:
 };
 
 /// changes offline mode
-class OfflineToggleAction: public Action
+class OfflineToggleAction : public Action
 {
 public:
     static Pointer Create(const CommandPointer &cmd);
@@ -96,7 +95,6 @@ protected:
 /// Registers profiles for the actions above; \todo move elsewhere?
 void RegisterBasics();
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_BASIC_ACTIONS_H */
-

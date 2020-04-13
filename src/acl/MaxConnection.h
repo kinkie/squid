@@ -20,15 +20,15 @@ public:
     ACLMaxConnection(char const *);
     ACLMaxConnection(ACLMaxConnection const &);
     ~ACLMaxConnection();
-    ACLMaxConnection&operator=(ACLMaxConnection const &);
+    ACLMaxConnection &operator=(ACLMaxConnection const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
-    virtual bool valid () const;
+    virtual bool empty() const;
+    virtual bool valid() const;
     virtual void prepareForUse();
 
 protected:
@@ -37,4 +37,3 @@ protected:
 };
 
 #endif /* SQUID_ACLMAXCONNECTION_H */
-

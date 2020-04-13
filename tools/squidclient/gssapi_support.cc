@@ -16,7 +16,7 @@
 #include <iostream>
 
 #if !defined(gss_mech_spnego)
-static gss_OID_desc _gss_mech_spnego = {6, (void *) "\x2b\x06\x01\x05\x05\x02"};
+static gss_OID_desc _gss_mech_spnego = {6, (void *)"\x2b\x06\x01\x05\x05\x02"};
 gss_OID gss_mech_spnego = &_gss_mech_spnego;
 #endif
 
@@ -48,14 +48,14 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status, const char *functi
                                           GSS_C_NULL_OID,
                                           &msg_ctx, &status_string);
             if (maj_stat == GSS_S_COMPLETE) {
-                snprintf(buf + len, BUFFER_SIZE-len, "%s", (char *) status_string.value);
+                snprintf(buf + len, BUFFER_SIZE - len, "%s", (char *)status_string.value);
                 len += status_string.length;
                 gss_release_buffer(&min_stat, &status_string);
                 break;
             }
             gss_release_buffer(&min_stat, &status_string);
         }
-        snprintf(buf + len, BUFFER_SIZE-len, "%s", ". ");
+        snprintf(buf + len, BUFFER_SIZE - len, "%s", ". ");
         len += 2;
         msg_ctx = 0;
         while (!msg_ctx) {
@@ -65,7 +65,7 @@ check_gss_err(OM_uint32 major_status, OM_uint32 minor_status, const char *functi
                                           GSS_C_NULL_OID,
                                           &msg_ctx, &status_string);
             if (maj_stat == GSS_S_COMPLETE) {
-                snprintf(buf + len, BUFFER_SIZE-len,"%s", (char *) status_string.value);
+                snprintf(buf + len, BUFFER_SIZE - len, "%s", (char *)status_string.value);
                 len += status_string.length;
                 gss_release_buffer(&min_stat, &status_string);
                 break;
@@ -108,8 +108,8 @@ GSSAPI_token(const char *server)
         return token;
     }
     service.value = xmalloc(strlen("HTTP") + strlen(server) + 2);
-    snprintf((char *) service.value, strlen("HTTP") + strlen(server) + 2, "%s@%s", "HTTP", server);
-    service.length = strlen((char *) service.value);
+    snprintf((char *)service.value, strlen("HTTP") + strlen(server) + 2, "%s@%s", "HTTP", server);
+    service.length = strlen((char *)service.value);
 
     major_status = gss_import_name(&minor_status, &service,
                                    gss_nt_service_name, &server_name);
@@ -134,8 +134,8 @@ GSSAPI_token(const char *server)
             token = new char[base64_encode_len(output_token.length)];
             struct base64_encode_ctx ctx;
             base64_encode_init(&ctx);
-            size_t blen = base64_encode_update(&ctx, token, output_token.length, reinterpret_cast<const uint8_t*>(output_token.value));
-            blen += base64_encode_final(&ctx, token+blen);
+            size_t blen = base64_encode_update(&ctx, token, output_token.length, reinterpret_cast<const uint8_t *>(output_token.value));
+            blen += base64_encode_final(&ctx, token + blen);
             token[blen] = '\0';
         }
     }
@@ -156,4 +156,3 @@ GSSAPI_token(const char *server)
 }
 
 #endif /* HAVE_GSSAPI */
-

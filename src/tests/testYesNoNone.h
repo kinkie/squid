@@ -18,16 +18,14 @@
 
 class testYesNoNone : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testYesNoNone );
+    CPPUNIT_TEST_SUITE(testYesNoNone);
     /* note the statement here and then the actual prototype below */
-    CPPUNIT_TEST( testBasics );
+    CPPUNIT_TEST(testBasics);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-
 protected:
     void testBasics();
 };
 
 #endif /* SQUID_SRC_TESTS_TESTYESNONONE_H */
-

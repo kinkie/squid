@@ -22,18 +22,17 @@ class ACLMethodData : public ACLData<HttpRequestMethod>
 public:
     ACLMethodData() {}
     ACLMethodData(ACLMethodData const &);
-    ACLMethodData &operator= (ACLMethodData const &);
+    ACLMethodData &operator=(ACLMethodData const &);
     virtual ~ACLMethodData();
     bool match(HttpRequestMethod);
     virtual SBufList dump() const;
     void parse();
-    bool empty() const {return values.empty();}
+    bool empty() const { return values.empty(); }
     virtual ACLData<HttpRequestMethod> *clone() const;
 
     std::list<HttpRequestMethod> values;
 
-    static int ThePurgeCount; ///< PURGE methods seen by parse()
+    static int ThePurgeCount;  ///< PURGE methods seen by parse()
 };
 
 #endif /* SQUID_ACLMETHODDATA_H */
-

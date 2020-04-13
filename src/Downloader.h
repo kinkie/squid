@@ -9,12 +9,12 @@
 #ifndef SQUID_DOWNLOADER_H
 #define SQUID_DOWNLOADER_H
 
+#include "XactionInitiator.h"
 #include "base/AsyncJob.h"
 #include "defines.h"
-#include "http/forward.h"
 #include "http/StatusCode.h"
+#include "http/forward.h"
 #include "sbuf/SBuf.h"
-#include "XactionInitiator.h"
 
 class ClientHttpRequest;
 class StoreIOBuffer;
@@ -26,15 +26,17 @@ typedef RefCount<DownloaderContext> DownloaderContextPointer;
 /// components/transactions using internal requests. For example, it is used
 /// to fetch missing intermediate certificates when validating origin server
 /// certificate chains.
-class Downloader: virtual public AsyncJob
+class Downloader : virtual public AsyncJob
 {
     CBDATA_CLASS(Downloader);
-public:
 
+public:
     /// Callback data to use with Downloader callbacks.
-    class CbDialer: public CallDialer {
+    class CbDialer : public CallDialer
+    {
     public:
-        CbDialer(): status(Http::scNone) {}
+        CbDialer() :
+            status(Http::scNone) {}
         virtual ~CbDialer() {}
 
         /* CallDialer API */
@@ -54,28 +56,26 @@ public:
     void downloadFinished();
 
     /// The nested level of Downloader object (downloads inside downloads).
-    unsigned int nestedLevel() const {return level_;}
+    unsigned int nestedLevel() const { return level_; }
 
     void handleReply(clientStreamNode *, ClientHttpRequest *, HttpReply *, StoreIOBuffer);
 
 protected:
-
     /* AsyncJob API */
     virtual bool doneAll() const;
     virtual void start();
 
 private:
-
     bool buildRequest();
     void callBack(Http::StatusCode const status);
 
     /// The maximum allowed object size.
-    static const size_t MaxObjectSize = 1*1024*1024;
+    static const size_t MaxObjectSize = 1 * 1024 * 1024;
 
-    SBuf url_; ///< the url to download
-    AsyncCall::Pointer callback_; ///< callback to call when download finishes
-    SBuf object_; ///< the object body data
-    const unsigned int level_; ///< holds the nested downloads level
+    SBuf url_;                     ///< the url to download
+    AsyncCall::Pointer callback_;  ///< callback to call when download finishes
+    SBuf object_;                  ///< the object body data
+    const unsigned int level_;     ///< holds the nested downloads level
     /// The initiator of the download request.
     XactionInitiator initiator_;
 
@@ -84,4 +84,3 @@ private:
 };
 
 #endif
-

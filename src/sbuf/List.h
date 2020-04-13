@@ -23,4 +23,3 @@ typedef std::list<SBuf> SBufList;
 bool IsMember(const SBufList &, const SBuf &, const SBufCaseSensitive isCaseSensitive = caseSensitive);
 
 #endif /* SQUID_SBUFLIST_H */
-

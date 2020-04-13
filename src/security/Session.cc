@@ -9,19 +9,19 @@
 /* DEBUG: section 83    TLS session management */
 
 #include "squid.h"
-#include "anyp/PortCfg.h"
-#include "base/RunnersRegistry.h"
+#include "security/Session.h"
 #include "CachePeer.h"
 #include "Debug.h"
+#include "SquidConfig.h"
+#include "anyp/PortCfg.h"
+#include "base/RunnersRegistry.h"
 #include "fd.h"
 #include "fde.h"
 #include "ipc/MemMap.h"
-#include "security/Session.h"
-#include "SquidConfig.h"
 #include "ssl/bio.h"
 
 #define SSL_SESSION_ID_SIZE 32
-#define SSL_SESSION_MAX_SIZE 10*1024
+#define SSL_SESSION_MAX_SIZE 10 * 1024
 
 #if USE_OPENSSL
 static Ipc::MemMap *SessionCache = nullptr;
@@ -33,7 +33,7 @@ static int
 tls_read_method(int fd, char *buf, int len)
 {
     auto session = fd_table[fd].ssl.get();
-    debugs(83, 3, "started for session=" << (void*)session);
+    debugs(83, 3, "started for session=" << (void *)session);
 
 #if DONT_DO_THIS && USE_OPENSSL
     if (!SSL_is_init_finished(session)) {
@@ -49,7 +49,7 @@ tls_read_method(int fd, char *buf, int len)
 #endif
 
     if (i > 0) {
-        debugs(83, 8, "TLS FD " << fd << " session=" << (void*)session << " " << i << " bytes");
+        debugs(83, 8, "TLS FD " << fd << " session=" << (void *)session << " " << i << " bytes");
         (void)VALGRIND_MAKE_MEM_DEFINED(buf, i);
     }
 
@@ -70,7 +70,7 @@ static int
 tls_write_method(int fd, const char *buf, int len)
 {
     auto session = fd_table[fd].ssl.get();
-    debugs(83, 3, "started for session=" << (void*)session);
+    debugs(83, 3, "started for session=" << (void *)session);
 
 #if USE_OPENSSL
     if (!SSL_is_init_finished(session)) {
@@ -86,7 +86,7 @@ tls_write_method(int fd, const char *buf, int len)
 #endif
 
     if (i > 0) {
-        debugs(83, 8, "TLS FD " << fd << " session=" << (void*)session << " " << i << " bytes");
+        debugs(83, 8, "TLS FD " << fd << " session=" << (void *)session << " " << i << " bytes");
     }
     return i;
 }
@@ -97,10 +97,10 @@ Security::SessionPointer
 Security::NewSessionObject(const Security::ContextPointer &ctx)
 {
     Security::SessionPointer session(SSL_new(ctx.get()), [](SSL *p) {
-        debugs(83, 5, "SSL_free session=" << (void*)p);
+        debugs(83, 5, "SSL_free session=" << (void *)p);
         SSL_free(p);
     });
-    debugs(83, 5, "SSL_new session=" << (void*)session.get());
+    debugs(83, 5, "SSL_new session=" << (void *)session.get());
     return session;
 }
 #endif
@@ -128,10 +128,10 @@ CreateSession(const Security::ContextPointer &ctx, const Comm::ConnectionPointer
     gnutls_session_t tmp;
     errCode = gnutls_init(&tmp, static_cast<unsigned int>(type) | GNUTLS_NONBLOCK);
     Security::SessionPointer session(tmp, [](gnutls_session_t p) {
-        debugs(83, 5, "gnutls_deinit session=" << (void*)p);
+        debugs(83, 5, "gnutls_deinit session=" << (void *)p);
         gnutls_deinit(p);
     });
-    debugs(83, 5, "gnutls_init " << (type == Security::Io::BIO_TO_SERVER ? "client" : "server" )<< " session=" << (void*)session.get());
+    debugs(83, 5, "gnutls_init " << (type == Security::Io::BIO_TO_SERVER ? "client" : "server") << " session=" << (void *)session.get());
     if (errCode != GNUTLS_E_SUCCESS) {
         session.reset();
         errAction = "failed to initialize session";
@@ -145,7 +145,7 @@ CreateSession(const Security::ContextPointer &ctx, const Comm::ConnectionPointer
 #if USE_OPENSSL
         // without BIO, we would call SSL_set_fd(ssl.get(), fd) instead
         if (BIO *bio = Ssl::Bio::Create(fd, type)) {
-            Ssl::Bio::Link(session.get(), bio); // cannot fail
+            Ssl::Bio::Link(session.get(), bio);  // cannot fail
 #elif USE_GNUTLS
         errCode = gnutls_credentials_set(session.get(), GNUTLS_CRD_CERTIFICATE, ctx.get());
         if (errCode == GNUTLS_E_SUCCESS) {
@@ -158,7 +158,7 @@ CreateSession(const Security::ContextPointer &ctx, const Comm::ConnectionPointer
             gnutls_handshake_set_timeout(session.get(), GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
 #endif
 
-            debugs(83, 5, "link FD " << fd << " to TLS session=" << (void*)session.get());
+            debugs(83, 5, "link FD " << fd << " to TLS session=" << (void *)session.get());
 
             fd_table[fd].ssl = session;
             fd_table[fd].useBufferedIo(&tls_read_method, &tls_write_method);
@@ -174,8 +174,7 @@ CreateSession(const Security::ContextPointer &ctx, const Comm::ConnectionPointer
 #endif
     }
 
-    debugs(83, DBG_IMPORTANT, "ERROR: " << squidCtx << ' ' << errAction <<
-           ": " << (errCode != 0 ? Security::ErrorString(errCode) : ""));
+    debugs(83, DBG_IMPORTANT, "ERROR: " << squidCtx << ' ' << errAction << ": " << (errCode != 0 ? Security::ErrorString(errCode) : ""));
 #endif
     return false;
 }
@@ -199,7 +198,7 @@ Security::CreateServerSession(const Security::ContextPointer &ctx, const Comm::C
 void
 Security::SessionSendGoodbye(const Security::SessionPointer &s)
 {
-    debugs(83, 5, "session=" << (void*)s.get());
+    debugs(83, 5, "session=" << (void *)s.get());
     if (s) {
 #if USE_OPENSSL
         SSL_shutdown(s.get());
@@ -218,7 +217,7 @@ Security::SessionIsResumed(const Security::SessionPointer &s)
 #elif USE_GNUTLS
     result = gnutls_session_is_resumed(s.get()) != 0;
 #endif
-    debugs(83, 7, "session=" << (void*)s.get() << ", query? answer: " << (result ? 'T' : 'F') );
+    debugs(83, 7, "session=" << (void *)s.get() << ", query? answer: " << (result ? 'T' : 'F'));
     return result;
 }
 
@@ -233,13 +232,13 @@ Security::MaybeGetSessionResumeData(const Security::SessionPointer &s, Security:
         gnutls_datum_t *tmp = nullptr;
         const auto x = gnutls_session_get_data2(s.get(), tmp);
         if (x != GNUTLS_E_SUCCESS) {
-            debugs(83, 3, "session=" << (void*)s.get() << " error: " << Security::ErrorString(x));
+            debugs(83, 3, "session=" << (void *)s.get() << " error: " << Security::ErrorString(x));
         }
         data.reset(tmp);
 #endif
-        debugs(83, 5, "session=" << (void*)s.get() << " data=" << (void*)data.get());
+        debugs(83, 5, "session=" << (void *)s.get() << " data=" << (void *)data.get());
     } else {
-        debugs(83, 5, "session=" << (void*)s.get() << " data=" << (void*)data.get() << ", do nothing.");
+        debugs(83, 5, "session=" << (void *)s.get() << " data=" << (void *)data.get() << ", do nothing.");
     }
 }
 
@@ -250,22 +249,20 @@ Security::SetSessionResumeData(const Security::SessionPointer &s, const Security
 #if USE_OPENSSL
         if (!SSL_set_session(s.get(), data.get())) {
             const auto ssl_error = ERR_get_error();
-            debugs(83, 3, "session=" << (void*)s.get() << " data=" << (void*)data.get() <<
-                   " resume error: " << Security::ErrorString(ssl_error));
+            debugs(83, 3, "session=" << (void *)s.get() << " data=" << (void *)data.get() << " resume error: " << Security::ErrorString(ssl_error));
         }
 #elif USE_GNUTLS
         const auto x = gnutls_session_set_data(s.get(), data->data, data->size);
         if (x != GNUTLS_E_SUCCESS) {
-            debugs(83, 3, "session=" << (void*)s.get() << " data=" << (void*)data.get() <<
-                   " resume error: " << Security::ErrorString(x));
+            debugs(83, 3, "session=" << (void *)s.get() << " data=" << (void *)data.get() << " resume error: " << Security::ErrorString(x));
         }
 #else
         // critical because, how did it get here?
-        debugs(83, DBG_CRITICAL, "no TLS library. session=" << (void*)s.get() << " data=" << (void*)data.get());
+        debugs(83, DBG_CRITICAL, "no TLS library. session=" << (void *)s.get() << " data=" << (void *)data.get());
 #endif
-        debugs(83, 5, "session=" << (void*)s.get() << " data=" << (void*)data.get());
+        debugs(83, 5, "session=" << (void *)s.get() << " data=" << (void *)data.get());
     } else {
-        debugs(83, 5, "session=" << (void*)s.get() << " no resume data");
+        debugs(83, 5, "session=" << (void *)s.get() << " no resume data");
     }
 }
 
@@ -303,9 +300,9 @@ store_session_cb(SSL *ssl, SSL_SESSION *session)
     memset(key, 0, sizeof(key));
     memcpy(key, id, idlen);
     int pos;
-    if (auto slotW = SessionCache->openForWriting(static_cast<const cache_key*>(key), pos)) {
+    if (auto slotW = SessionCache->openForWriting(static_cast<const cache_key *>(key), pos)) {
         int lenRequired = i2d_SSL_SESSION(session, nullptr);
-        if (lenRequired <  MEMMAP_SLOT_DATA_SIZE) {
+        if (lenRequired < MEMMAP_SLOT_DATA_SIZE) {
             unsigned char *p = static_cast<unsigned char *>(slotW->p);
             lenRequired = i2d_SSL_SESSION(session, &p);
             slotW->set(key, nullptr, lenRequired, squid_curtime + Config.SSL.session_ttl);
@@ -324,7 +321,7 @@ remove_session_cb(SSL_CTX *, SSL_SESSION *sessionID)
 
     debugs(83, 5, "Request to remove corrupted or not valid SSL_SESSION");
     int pos;
-    if (SessionCache->openForReading(reinterpret_cast<const cache_key*>(sessionID), pos)) {
+    if (SessionCache->openForReading(reinterpret_cast<const cache_key *>(sessionID), pos)) {
         SessionCache->closeForReading(pos);
         // TODO:
         // What if we are not able to remove the session?
@@ -346,12 +343,11 @@ get_session_cb(SSL *, unsigned char *sessionID, int len, int *copy)
         return nullptr;
 
     const unsigned int *p = reinterpret_cast<const unsigned int *>(sessionID);
-    debugs(83, 5, "Request to search for SSL_SESSION of len: " <<
-           len << p[0] << ":" << p[1]);
+    debugs(83, 5, "Request to search for SSL_SESSION of len: " << len << p[0] << ":" << p[1]);
 
     SSL_SESSION *session = nullptr;
     int pos;
-    if (const auto slot = SessionCache->openForReading(static_cast<const cache_key*>(sessionID), pos)) {
+    if (const auto slot = SessionCache->openForReading(static_cast<const cache_key *>(sessionID), pos)) {
         if (slot->expire > squid_curtime) {
             const unsigned char *ptr = slot->p;
             session = d2i_SSL_SESSION(nullptr, &ptr, slot->pSize);
@@ -376,7 +372,7 @@ void
 Security::SetSessionCacheCallbacks(Security::ContextPointer &ctx)
 {
     if (SessionCache) {
-        SSL_CTX_set_session_cache_mode(ctx.get(), SSL_SESS_CACHE_SERVER|SSL_SESS_CACHE_NO_INTERNAL);
+        SSL_CTX_set_session_cache_mode(ctx.get(), SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_INTERNAL);
         SSL_CTX_sess_set_new_cb(ctx.get(), store_session_cb);
         SSL_CTX_sess_set_remove_cb(ctx.get(), remove_session_cb);
         SSL_CTX_sess_set_get_cb(ctx.get(), get_session_cb);
@@ -409,11 +405,12 @@ initializeSessionCache()
 }
 
 /// initializes shared memory segments used by MemStore
-class SharedSessionCacheRr: public Ipc::Mem::RegisteredRunner
+class SharedSessionCacheRr : public Ipc::Mem::RegisteredRunner
 {
 public:
     /* RegisteredRunner API */
-    SharedSessionCacheRr(): owner(nullptr) {}
+    SharedSessionCacheRr() :
+        owner(nullptr) {}
     virtual void useConfig();
     virtual ~SharedSessionCacheRr();
 
@@ -430,7 +427,7 @@ void
 SharedSessionCacheRr::useConfig()
 {
 #if USE_OPENSSL
-    if (SessionCache || !isTlsServer()) // no need to configure SSL_SESSION* cache.
+    if (SessionCache || !isTlsServer())  // no need to configure SSL_SESSION* cache.
         return;
 
     Ipc::Mem::RegisteredRunner::useConfig();
@@ -441,7 +438,7 @@ SharedSessionCacheRr::useConfig()
 void
 SharedSessionCacheRr::create()
 {
-    if (!isTlsServer()) // no need to configure SSL_SESSION* cache.
+    if (!isTlsServer())  // no need to configure SSL_SESSION* cache.
         return;
 
 #if USE_OPENSSL
@@ -457,4 +454,3 @@ SharedSessionCacheRr::~SharedSessionCacheRr()
 
     delete owner;
 }
-

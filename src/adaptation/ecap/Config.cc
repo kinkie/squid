@@ -53,4 +53,3 @@ Adaptation::Ecap::ServiceConfig::grokExtension(const char *name, const char *val
     extensions.push_back(std::make_pair(name, value));
     return true;
 }
-

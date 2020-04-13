@@ -10,14 +10,14 @@
 
 #include "squid.h"
 #include "CollapsedForwarding.h"
-#include "globals.h"
-#include "ipc/mem/Segment.h"
-#include "ipc/Messages.h"
-#include "ipc/Port.h"
-#include "ipc/TypedMsgHdr.h"
 #include "MemObject.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "globals.h"
+#include "ipc/Messages.h"
+#include "ipc/Port.h"
+#include "ipc/TypedMsgHdr.h"
+#include "ipc/mem/Segment.h"
 #include "store_key_md5.h"
 #include "tools.h"
 
@@ -33,10 +33,11 @@ std::unique_ptr<CollapsedForwarding::Queue> CollapsedForwarding::queue;
 class CollapsedForwardingMsg
 {
 public:
-    CollapsedForwardingMsg(): sender(-1), xitIndex(-1) {}
+    CollapsedForwardingMsg() :
+        sender(-1), xitIndex(-1) {}
 
 public:
-    int sender; ///< kid ID of sending process
+    int sender;  ///< kid ID of sending process
 
     /// transients index, so that workers can find [private] entries to sync
     sfileno xitIndex;
@@ -55,8 +56,7 @@ CollapsedForwarding::Init()
 void
 CollapsedForwarding::Broadcast(const StoreEntry &e, const bool includingThisWorker)
 {
-    if (!e.hasTransients() ||
-            !Store::Root().transientReaders(e)) {
+    if (!e.hasTransients() || !Store::Root().transientReaders(e)) {
         debugs(17, 7, "nobody reads " << e);
         return;
     }
@@ -83,9 +83,8 @@ CollapsedForwarding::Broadcast(const sfileno index, const bool includingThisWork
             if ((workerId != KidIdentifier || includingThisWorker) && queue->push(workerId, msg))
                 Notify(workerId);
         } catch (const Queue::Full &) {
-            debugs(17, DBG_IMPORTANT, "ERROR: Collapsed forwarding " <<
-                   "queue overflow for kid" << workerId <<
-                   " at " << queue->outSize(workerId) << " items");
+            debugs(17, DBG_IMPORTANT, "ERROR: Collapsed forwarding "
+                       << "queue overflow for kid" << workerId << " at " << queue->outSize(workerId) << " items");
             // TODO: grow queue size
         }
     }
@@ -113,8 +112,7 @@ CollapsedForwarding::HandleNewData(const char *const when)
     while (queue->pop(workerId, msg)) {
         debugs(17, 3, "message from kid" << workerId);
         if (workerId != msg.sender) {
-            debugs(17, DBG_IMPORTANT, "mismatching kid IDs: " << workerId <<
-                   " != " << msg.sender);
+            debugs(17, DBG_IMPORTANT, "mismatching kid IDs: " << workerId << " != " << msg.sender);
         }
 
         debugs(17, 7, "handling entry " << msg.xitIndex << " in transients_map");
@@ -138,11 +136,12 @@ CollapsedForwarding::HandleNotification(const Ipc::TypedMsgHdr &msg)
 }
 
 /// initializes shared queue used by CollapsedForwarding
-class CollapsedForwardingRr: public Ipc::Mem::RegisteredRunner
+class CollapsedForwardingRr : public Ipc::Mem::RegisteredRunner
 {
 public:
     /* RegisteredRunner API */
-    CollapsedForwardingRr(): owner(NULL) {}
+    CollapsedForwardingRr() :
+        owner(NULL) {}
     virtual ~CollapsedForwardingRr();
 
 protected:
@@ -155,7 +154,8 @@ private:
 
 RunnerRegistrationEntry(CollapsedForwardingRr);
 
-void CollapsedForwardingRr::create()
+void
+CollapsedForwardingRr::create()
 {
     Must(!owner);
     owner = Ipc::MultiQueue::Init(ShmLabel, Config.workers, 1,
@@ -163,7 +163,8 @@ void CollapsedForwardingRr::create()
                                   QueueCapacity);
 }
 
-void CollapsedForwardingRr::open()
+void
+CollapsedForwardingRr::open()
 {
     CollapsedForwarding::Init();
 }
@@ -172,4 +173,3 @@ CollapsedForwardingRr::~CollapsedForwardingRr()
 {
     delete owner;
 }
-

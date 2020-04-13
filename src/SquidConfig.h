@@ -16,15 +16,15 @@
 #include "ClientDelayConfig.h"
 #include "DelayConfig.h"
 #endif
-#include "helper/ChildConfig.h"
 #include "HttpHeaderTools.h"
+#include "helper/ChildConfig.h"
 #include "ip/Address.h"
 #if USE_DELAY_POOLS
 #include "MessageDelayPools.h"
 #endif
 #include "Notes.h"
-#include "security/forward.h"
 #include "SquidTime.h"
+#include "security/forward.h"
 #if USE_OPENSSL
 #include "ssl/support.h"
 #endif
@@ -38,10 +38,9 @@ class sslproxy_cert_sign;
 class sslproxy_cert_adapt;
 #endif
 
-namespace Mgr
-{
+namespace Mgr {
 class ActionPasswordList;
-} // namespace Mgr
+}  // namespace Mgr
 class CachePeer;
 class CustomLog;
 class CpuAffinityMap;
@@ -50,13 +49,13 @@ class HeaderManglers;
 class RefreshPattern;
 class RemovalPolicySettings;
 
-namespace AnyP
-{
+namespace AnyP {
 class PortCfg;
 }
 
 namespace Store {
-class DiskConfig {
+class DiskConfig
+{
 public:
     DiskConfig() { assert(swapDirs == nullptr); }
     ~DiskConfig() { delete[] swapDirs; }
@@ -82,8 +81,8 @@ public:
         int lowWaterMark;
     } Swap;
 
-    YesNoNone memShared; ///< whether the memory cache is shared among workers
-    YesNoNone shmLocking; ///< shared_memory_locking
+    YesNoNone memShared;   ///< whether the memory cache is shared among workers
+    YesNoNone shmLocking;  ///< shared_memory_locking
     size_t memMaxSize;
 
     struct {
@@ -102,7 +101,7 @@ public:
     time_t positiveDnsTtl;
     time_t shutdownLifetime;
     time_t backgroundPingRate;
-    time_t hopelessKidRevivalDelay; ///< hopeless_kid_revival_delay
+    time_t hopelessKidRevivalDelay;  ///< hopeless_kid_revival_delay
 
     struct {
         time_t read;
@@ -115,14 +114,14 @@ public:
         time_t clientIdlePconn;
         time_t serverIdlePconn;
         time_t ftpClientIdle;
-        time_t pconnLifetime; ///< pconn_lifetime in squid.conf
+        time_t pconnLifetime;  ///< pconn_lifetime in squid.conf
         time_t siteSelect;
         time_t deadPeer;
         time_t request_start_timeout;
-        int icp_query;      /* msec */
-        int icp_query_max;  /* msec */
-        int icp_query_min;  /* msec */
-        int mcast_icp_query;    /* msec */
+        int icp_query;       /* msec */
+        int icp_query_max;   /* msec */
+        int icp_query_min;   /* msec */
+        int mcast_icp_query; /* msec */
         time_msec_t idns_retransmit;
         time_msec_t idns_query;
         time_t urlRewrite;
@@ -399,7 +398,7 @@ public:
 
         /// spoof_client_ip squid.conf acl.
         /// nil unless configured
-        acl_access* spoof_client_ip;
+        acl_access *spoof_client_ip;
         acl_access *on_unsupported_protocol;
 
         acl_access *ftp_epsv;
@@ -509,7 +508,7 @@ public:
         size_t high_memory;
     } warnings;
     char *store_dir_select_algorithm;
-    int sleep_after_fork;   /* microseconds */
+    int sleep_after_fork;       /* microseconds */
     time_t minimum_expiry_time; /* seconds */
     external_acl *externalAclHelperList;
 
@@ -546,8 +545,8 @@ public:
 
     struct {
         SBufList nameservers;
-        int v4_first;       ///< Place IPv4 first in the order of DNS results.
-        ssize_t packet_max; ///< maximum size EDNS advertised for DNS replies.
+        int v4_first;        ///< Place IPv4 first in the order of DNS results.
+        ssize_t packet_max;  ///< maximum size EDNS advertised for DNS replies.
     } dns;
 
     struct {
@@ -562,7 +561,8 @@ extern SquidConfig Config;
 class SquidConfig2
 {
 public:
-    void clear() {
+    void clear()
+    {
         *this = SquidConfig2();
     }
 
@@ -576,4 +576,3 @@ public:
 extern SquidConfig2 Config2;
 
 #endif /* SQUID_SQUIDCONFIG_H_ */
-

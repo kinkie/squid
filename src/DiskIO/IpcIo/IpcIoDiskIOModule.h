@@ -19,12 +19,11 @@ public:
     IpcIoDiskIOModule();
     virtual void init();
     virtual void gracefulShutdown();
-    virtual char const *type () const;
-    virtual DiskIOStrategy* createStrategy();
+    virtual char const *type() const;
+    virtual DiskIOStrategy *createStrategy();
 
 private:
     static IpcIoDiskIOModule Instance;
 };
 
 #endif /* SQUID_IPC_IODISKIOMODULE_H */
-

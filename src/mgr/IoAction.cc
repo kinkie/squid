@@ -9,25 +9,25 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "IoStats.h"
-#include "ipc/Messages.h"
-#include "ipc/TypedMsgHdr.h"
 #include "mgr/IoAction.h"
+#include "IoStats.h"
 #include "SquidMath.h"
 #include "Store.h"
+#include "base/TextException.h"
+#include "ipc/Messages.h"
+#include "ipc/TypedMsgHdr.h"
 #include "tools.h"
 
-void GetIoStats(Mgr::IoActionData& stats);
-void DumpIoStats(Mgr::IoActionData& stats, StoreEntry* sentry);
+void GetIoStats(Mgr::IoActionData &stats);
+void DumpIoStats(Mgr::IoActionData &stats, StoreEntry *sentry);
 
 Mgr::IoActionData::IoActionData()
 {
     memset(this, 0, sizeof(*this));
 }
 
-Mgr::IoActionData&
-Mgr::IoActionData::operator += (const IoActionData& stats)
+Mgr::IoActionData &
+Mgr::IoActionData::operator+=(const IoActionData &stats)
 {
     http_reads += stats.http_reads;
     for (int i = 0; i < IoStats::histSize; ++i)
@@ -48,17 +48,17 @@ Mgr::IoAction::Create(const CommandPointer &cmd)
     return new IoAction(cmd);
 }
 
-Mgr::IoAction::IoAction(const CommandPointer &aCmd):
+Mgr::IoAction::IoAction(const CommandPointer &aCmd) :
     Action(aCmd), data()
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::IoAction::add(const Action& action)
+Mgr::IoAction::add(const Action &action)
 {
     debugs(16, 5, HERE);
-    data += dynamic_cast<const IoAction&>(action).data;
+    data += dynamic_cast<const IoAction &>(action).data;
 }
 
 void
@@ -68,7 +68,7 @@ Mgr::IoAction::collect()
 }
 
 void
-Mgr::IoAction::dump(StoreEntry* entry)
+Mgr::IoAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
@@ -76,16 +76,15 @@ Mgr::IoAction::dump(StoreEntry* entry)
 }
 
 void
-Mgr::IoAction::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::IoAction::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtCacheMgrResponse);
     msg.putPod(data);
 }
 
 void
-Mgr::IoAction::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::IoAction::unpack(const Ipc::TypedMsgHdr &msg)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
     msg.getPod(data);
 }
-

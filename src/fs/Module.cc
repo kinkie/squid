@@ -30,7 +30,8 @@ static Fs::Ufs::StoreFSufs<Fs::Ufs::UFSSwapDir> *DiskdInstance;
 static Rock::StoreFileSystem *RockInstance = NULL;
 #endif
 
-void Fs::Init()
+void
+Fs::Init()
 {
 
 #if HAVE_FS_UFS
@@ -38,20 +39,22 @@ void Fs::Init()
 #endif
 
 #if HAVE_FS_AUFS
-    AufsInstance = new Fs::Ufs::StoreFSufs<Fs::Ufs::UFSSwapDir>("DiskThreads", "aufs");;
+    AufsInstance = new Fs::Ufs::StoreFSufs<Fs::Ufs::UFSSwapDir>("DiskThreads", "aufs");
+    ;
 #endif
 
 #if HAVE_FS_DISKD
-    DiskdInstance = new Fs::Ufs::StoreFSufs<Fs::Ufs::UFSSwapDir>("DiskDaemon", "diskd");;
+    DiskdInstance = new Fs::Ufs::StoreFSufs<Fs::Ufs::UFSSwapDir>("DiskDaemon", "diskd");
+    ;
 #endif
 
 #if HAVE_FS_ROCK
     RockInstance = new Rock::StoreFileSystem();
 #endif
-
 }
 
-void Fs::Clean()
+void
+Fs::Clean()
 {
 #if HAVE_FS_UFS
     delete UfsInstance;
@@ -68,6 +71,4 @@ void Fs::Clean()
 #if HAVE_FS_ROCK
     delete RockInstance;
 #endif
-
 }
-

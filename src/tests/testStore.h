@@ -20,15 +20,14 @@
 
 class testStore : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testStore );
-    CPPUNIT_TEST( testSetRoot );
-    CPPUNIT_TEST( testUnsetRoot );
-    CPPUNIT_TEST( testStats );
-    CPPUNIT_TEST( testMaxSize );
+    CPPUNIT_TEST_SUITE(testStore);
+    CPPUNIT_TEST(testSetRoot);
+    CPPUNIT_TEST(testUnsetRoot);
+    CPPUNIT_TEST(testStats);
+    CPPUNIT_TEST(testMaxSize);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-
 protected:
     void testSetRoot();
     void testUnsetRoot();
@@ -41,15 +40,16 @@ class TestStore : public Store::Controller
 {
 
 public:
-    TestStore() : statsCalled (false) {}
+    TestStore() :
+        statsCalled(false) {}
 
     bool statsCalled;
 
     virtual int callback();
 
-    virtual StoreEntry* get(const cache_key*);
+    virtual StoreEntry *get(const cache_key *);
 
-    virtual void get(String, void (*)(StoreEntry*, void*), void*);
+    virtual void get(String, void (*)(StoreEntry *, void *), void *);
 
     virtual void init();
 
@@ -79,4 +79,3 @@ public:
 typedef RefCount<TestStore> TestStorePointer;
 
 #endif
-

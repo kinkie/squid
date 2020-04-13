@@ -15,30 +15,25 @@
  */
 #if (USE_SQUID_ESI == 1)
 
+#include "Store.h"
 #include "client_side_request.h"
 #include "esi/Context.h"
 #include "http/Stream.h"
-#include "Store.h"
 
 void
 ESIContext::updateCachedAST()
 {
-    assert (http);
-    assert (http->storeEntry());
+    assert(http);
+    assert(http->storeEntry());
 
     if (hasCachedAST()) {
-        debugs(86, 5, "ESIContext::updateCachedAST: not updating AST cache for entry " <<
-               http->storeEntry() << " from ESI Context " << this <<
-               " as there is already a cached AST.");
+        debugs(86, 5, "ESIContext::updateCachedAST: not updating AST cache for entry " << http->storeEntry() << " from ESI Context " << this << " as there is already a cached AST.");
 
         return;
     }
 
     ESIElement::Pointer treeToCache = tree->makeCacheable();
-    debugs(86, 5, "ESIContext::updateCachedAST: Updating AST cache for entry " <<
-           http->storeEntry() << " with current value " <<
-           http->storeEntry()->cachedESITree.getRaw() << " to new value " <<
-           treeToCache.getRaw());
+    debugs(86, 5, "ESIContext::updateCachedAST: Updating AST cache for entry " << http->storeEntry() << " with current value " << http->storeEntry()->cachedESITree.getRaw() << " to new value " << treeToCache.getRaw());
 
     if (http->storeEntry()->cachedESITree.getRaw())
         http->storeEntry()->cachedESITree->finish();
@@ -51,16 +46,14 @@ ESIContext::updateCachedAST()
 bool
 ESIContext::hasCachedAST() const
 {
-    assert (http);
-    assert (http->storeEntry());
+    assert(http);
+    assert(http->storeEntry());
 
     if (http->storeEntry()->cachedESITree.getRaw()) {
-        debugs(86, 5, "ESIContext::hasCachedAST: " << this <<
-               " - Cached AST present in store entry " << http->storeEntry() << ".");
+        debugs(86, 5, "ESIContext::hasCachedAST: " << this << " - Cached AST present in store entry " << http->storeEntry() << ".");
         return true;
     } else {
-        debugs(86, 5, "ESIContext::hasCachedAST: " << this <<
-               " - Cached AST not present in store entry " << http->storeEntry() << ".");
+        debugs(86, 5, "ESIContext::hasCachedAST: " << this << " - Cached AST not present in store entry " << http->storeEntry() << ".");
         return false;
     }
 }
@@ -71,13 +64,13 @@ ESIContext::getCachedAST()
     if (cachedASTInUse)
         return;
 
-    assert (hasCachedAST());
+    assert(hasCachedAST());
 
-    assert (varState);
+    assert(varState);
 
     parserState.popAll();
 
-    tree = http->storeEntry()->cachedESITree->makeUsable (this, *varState);
+    tree = http->storeEntry()->cachedESITree->makeUsable(this, *varState);
 
     cachedASTInUse = true;
 }
@@ -90,4 +83,3 @@ ESIContext::setErrorMessage(char const *anError)
 }
 
 #endif /* USE_SQUID_ESI == 1 */
-

@@ -9,34 +9,34 @@
 /* DEBUG: section 09    File Transfer Protocol (FTP) */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
-#include "base/PackableStream.h"
-#include "clients/forward.h"
-#include "clients/FtpClient.h"
-#include "comm.h"
-#include "comm/ConnOpener.h"
-#include "comm/Read.h"
-#include "comm/TcpAcceptor.h"
 #include "CommCalls.h"
-#include "compat/strtoll.h"
-#include "errorpage.h"
-#include "fd.h"
-#include "fde.h"
 #include "FwdState.h"
-#include "html_quote.h"
 #include "HttpHdrContRange.h"
 #include "HttpHeader.h"
 #include "HttpHeaderRange.h"
 #include "HttpReply.h"
-#include "ip/tools.h"
 #include "MemBuf.h"
-#include "mime.h"
-#include "rfc1738.h"
 #include "SquidConfig.h"
 #include "SquidString.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "acl/FilledChecklist.h"
+#include "base/PackableStream.h"
+#include "clients/FtpClient.h"
+#include "clients/forward.h"
+#include "comm.h"
+#include "comm/ConnOpener.h"
+#include "comm/Read.h"
+#include "comm/TcpAcceptor.h"
+#include "compat/strtoll.h"
+#include "errorpage.h"
+#include "fd.h"
+#include "fde.h"
+#include "html_quote.h"
+#include "ip/tools.h"
+#include "mime.h"
+#include "rfc1738.h"
 #include "tools.h"
 #include "util.h"
 #include "wordlist.h"
@@ -48,8 +48,7 @@
 
 #include <cerrno>
 
-namespace Ftp
-{
+namespace Ftp {
 
 struct GatewayFlags {
 
@@ -84,7 +83,7 @@ struct GatewayFlags {
 };
 
 class Gateway;
-typedef void (StateMethod)(Ftp::Gateway *);
+typedef void(StateMethod)(Ftp::Gateway *);
 
 /// FTP Gateway: An FTP client that takes an HTTP request with an ftp:// URI,
 /// converts it into one or more FTP commands, and then
@@ -117,7 +116,7 @@ public:
     String cwd_message;
     char *old_filepath;
     char typecode;
-    MemBuf listing;     ///< FTP directory listing in HTML format.
+    MemBuf listing;  ///< FTP directory listing in HTML format.
 
     GatewayFlags flags;
 
@@ -137,7 +136,7 @@ public:
     /// create a data channel acceptor and start listening.
     void listenForDataChannel(const Comm::ConnectionPointer &conn);
 
-    int checkAuth(const HttpHeader * req_hdr);
+    int checkAuth(const HttpHeader *req_hdr);
     void checkUrlpath();
     void buildTitleUrl();
     void writeReplyBody(const char *, size_t len);
@@ -153,7 +152,7 @@ public:
     virtual void timeout(const CommTimeoutCbParams &io);
     void ftpAcceptDataConnection(const CommAcceptCbParams &io);
 
-    static HttpReply *ftpAuthRequired(HttpRequest * request, SBuf &realm, AccessLogEntry::Pointer &);
+    static HttpReply *ftpAuthRequired(HttpRequest *request, SBuf &realm, AccessLogEntry::Pointer &);
     SBuf ftpRealm();
     void loginFailed(void);
 
@@ -173,9 +172,9 @@ private:
     void loginParser(const SBuf &login, bool escaped);
 };
 
-} // namespace Ftp
+}  // namespace Ftp
 
-typedef Ftp::StateMethod FTPSM; // to avoid lots of non-changes
+typedef Ftp::StateMethod FTPSM;  // to avoid lots of non-changes
 
 CBDATA_NAMESPACED_CLASS_INIT(Ftp, Gateway);
 
@@ -188,7 +187,7 @@ typedef struct {
     char *link;
 } ftpListParts;
 
-#define CTRL_BUFLEN 16*1024
+#define CTRL_BUFLEN 16 * 1024
 static char cbuf[CTRL_BUFLEN];
 
 /*
@@ -284,33 +283,33 @@ Quit            -
 ************************************************/
 
 FTPSM *FTP_SM_FUNCS[] = {
-    ftpReadWelcome,     /* BEGIN */
-    ftpReadUser,        /* SENT_USER */
-    ftpReadPass,        /* SENT_PASS */
-    ftpReadType,        /* SENT_TYPE */
-    ftpReadMdtm,        /* SENT_MDTM */
-    ftpReadSize,        /* SENT_SIZE */
-    ftpReadEPRT,        /* SENT_EPRT */
-    ftpReadPORT,        /* SENT_PORT */
-    ftpReadEPSV,        /* SENT_EPSV_ALL */
-    ftpReadEPSV,        /* SENT_EPSV_1 */
-    ftpReadEPSV,        /* SENT_EPSV_2 */
-    ftpReadPasv,        /* SENT_PASV */
-    ftpReadCwd,     /* SENT_CWD */
-    ftpReadList,        /* SENT_LIST */
-    ftpReadList,        /* SENT_NLST */
-    ftpReadRest,        /* SENT_REST */
-    ftpReadRetr,        /* SENT_RETR */
-    ftpReadStor,        /* SENT_STOR */
-    ftpReadQuit,        /* SENT_QUIT */
-    ftpReadTransferDone,    /* READING_DATA (RETR,LIST,NLST) */
-    ftpWriteTransferDone,   /* WRITING_DATA (STOR) */
-    ftpReadMkdir,       /* SENT_MKDIR */
-    NULL,           /* SENT_FEAT */
-    NULL,           /* SENT_PWD */
-    NULL,           /* SENT_CDUP*/
-    NULL,           /* SENT_DATA_REQUEST */
-    NULL            /* SENT_COMMAND */
+    ftpReadWelcome,       /* BEGIN */
+    ftpReadUser,          /* SENT_USER */
+    ftpReadPass,          /* SENT_PASS */
+    ftpReadType,          /* SENT_TYPE */
+    ftpReadMdtm,          /* SENT_MDTM */
+    ftpReadSize,          /* SENT_SIZE */
+    ftpReadEPRT,          /* SENT_EPRT */
+    ftpReadPORT,          /* SENT_PORT */
+    ftpReadEPSV,          /* SENT_EPSV_ALL */
+    ftpReadEPSV,          /* SENT_EPSV_1 */
+    ftpReadEPSV,          /* SENT_EPSV_2 */
+    ftpReadPasv,          /* SENT_PASV */
+    ftpReadCwd,           /* SENT_CWD */
+    ftpReadList,          /* SENT_LIST */
+    ftpReadList,          /* SENT_NLST */
+    ftpReadRest,          /* SENT_REST */
+    ftpReadRetr,          /* SENT_RETR */
+    ftpReadStor,          /* SENT_STOR */
+    ftpReadQuit,          /* SENT_QUIT */
+    ftpReadTransferDone,  /* READING_DATA (RETR,LIST,NLST) */
+    ftpWriteTransferDone, /* WRITING_DATA (STOR) */
+    ftpReadMkdir,         /* SENT_MKDIR */
+    NULL,                 /* SENT_FEAT */
+    NULL,                 /* SENT_PWD */
+    NULL,                 /* SENT_CDUP*/
+    NULL,                 /* SENT_DATA_REQUEST */
+    NULL                  /* SENT_COMMAND */
 };
 
 /// handler called by Comm when FTP data channel is closed unexpectedly
@@ -327,7 +326,7 @@ Ftp::Gateway::dataClosed(const CommCloseCbParams &io)
      */
 }
 
-Ftp::Gateway::Gateway(FwdState *fwdState):
+Ftp::Gateway::Gateway(FwdState *fwdState) :
     AsyncJob("FtpStateData"),
     Ftp::Client(fwdState),
     password_url(0),
@@ -368,8 +367,8 @@ Ftp::Gateway::~Gateway()
     debugs(9, 3, entry->url());
 
     if (Comm::IsConnOpen(ctrl.conn)) {
-        debugs(9, DBG_IMPORTANT, "Internal bug: FTP Gateway left open " <<
-               "control channel " << ctrl.conn);
+        debugs(9, DBG_IMPORTANT, "Internal bug: FTP Gateway left open "
+                   << "control channel " << ctrl.conn);
     }
 
     if (reply_hdr) {
@@ -411,11 +410,9 @@ Ftp::Gateway::loginParser(const SBuf &login, bool escaped)
      */
     if (colonPos == SBuf::npos || colonPos > 0) {
         const SBuf userName = login.substr(0, colonPos);
-        SBuf::size_type upto = userName.copy(user, sizeof(user)-1);
-        user[upto]='\0';
-        debugs(9, 9, "found user=" << userName << ' ' <<
-               (upto != userName.length() ? ", truncated-to=" : ", length=") << upto <<
-               ", escaped=" << escaped);
+        SBuf::size_type upto = userName.copy(user, sizeof(user) - 1);
+        user[upto] = '\0';
+        debugs(9, 9, "found user=" << userName << ' ' << (upto != userName.length() ? ", truncated-to=" : ", length=") << upto << ", escaped=" << escaped);
         if (escaped)
             rfc1738_unescape(user);
         debugs(9, 9, "found user=" << user << " (" << strlen(user) << ") unescaped.");
@@ -425,12 +422,10 @@ Ftp::Gateway::loginParser(const SBuf &login, bool escaped)
      * For 0-length password clobber what we have already, this means explicitly none
      */
     if (colonPos != SBuf::npos) {
-        const SBuf pass = login.substr(colonPos+1, SBuf::npos);
-        SBuf::size_type upto = pass.copy(password, sizeof(password)-1);
-        password[upto]='\0';
-        debugs(9, 9, "found password=" << pass << " " <<
-               (upto != pass.length() ? ", truncated-to=" : ", length=") << upto <<
-               ", escaped=" << escaped);
+        const SBuf pass = login.substr(colonPos + 1, SBuf::npos);
+        SBuf::size_type upto = pass.copy(password, sizeof(password) - 1);
+        password[upto] = '\0';
+        debugs(9, 9, "found password=" << pass << " " << (upto != pass.length() ? ", truncated-to=" : ", length=") << upto << ", escaped=" << escaped);
         if (escaped) {
             rfc1738_unescape(password);
             password_url = 1;
@@ -453,7 +448,7 @@ Ftp::Gateway::listenForDataChannel(const Comm::ConnectionPointer &conn)
 
     typedef CommCbMemFunT<Gateway, CommAcceptCbParams> AcceptDialer;
     typedef AsyncCallT<AcceptDialer> AcceptCall;
-    RefCount<AcceptCall> call = static_cast<AcceptCall*>(JobCallback(11, 5, AcceptDialer, this, Ftp::Gateway::ftpAcceptDataConnection));
+    RefCount<AcceptCall> call = static_cast<AcceptCall *>(JobCallback(11, 5, AcceptDialer, this, Ftp::Gateway::ftpAcceptDataConnection));
     Subscription::Pointer sub = new CallSubscription<AcceptCall>(call);
     const char *note = entry->url();
 
@@ -499,8 +494,7 @@ Ftp::Gateway::timeout(const CommTimeoutCbParams &io)
 
 static const char *Month[] = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 static int
 is_month(const char *buf)
@@ -515,7 +509,7 @@ is_month(const char *buf)
 }
 
 static void
-ftpListPartsFree(ftpListParts ** parts)
+ftpListPartsFree(ftpListParts **parts)
 {
     safe_free((*parts)->date);
     safe_free((*parts)->name);
@@ -532,8 +526,8 @@ ftpListParseParts(const char *buf, struct Ftp::GatewayFlags flags)
     ftpListParts *p = NULL;
     char *t = NULL;
     struct FtpLineToken {
-        char *token = nullptr; ///< token image copied from the received line
-        size_t pos = 0;  ///< token offset on the received line
+        char *token = nullptr;  ///< token image copied from the received line
+        size_t pos = 0;         ///< token offset on the received line
     } tokens[MAX_TOKENS];
     int i;
     int n_tokens;
@@ -649,9 +643,7 @@ ftpListParseParts(const char *buf, struct Ftp::GatewayFlags flags)
     }
 
     /* try it as a DOS listing, 04-05-70 09:33PM ... */
-    if (n_tokens > 3 &&
-            regexec(&scan_ftp_dosdate, tokens[0].token, 0, NULL, 0) == 0 &&
-            regexec(&scan_ftp_dostime, tokens[1].token, 0, NULL, 0) == 0) {
+    if (n_tokens > 3 && regexec(&scan_ftp_dosdate, tokens[0].token, 0, NULL, 0) == 0 && regexec(&scan_ftp_dostime, tokens[1].token, 0, NULL, 0) == 0) {
         if (!strcasecmp(tokens[2].token, "<dir>")) {
             p->type = 'd';
         } else {
@@ -701,10 +693,10 @@ ftpListParseParts(const char *buf, struct Ftp::GatewayFlags flags)
                 break;
 
             case 'm':
-                tm = (time_t) strtol(ct + 1, &tmp, 0);
+                tm = (time_t)strtol(ct + 1, &tmp, 0);
 
                 if (tmp != ct + 1)
-                    break;  /* not a valid integer */
+                    break; /* not a valid integer */
 
                 p->date = xstrdup(ctime(&tm));
 
@@ -729,7 +721,7 @@ ftpListParseParts(const char *buf, struct Ftp::GatewayFlags flags)
                 break;
             }
 
-blank:
+        blank:
             ct = strstr(ct, ",");
 
             if (ct) {
@@ -753,7 +745,7 @@ found:
         xfree(tokens[i].token);
 
     if (!p->name)
-        ftpListPartsFree(&p);   /* cleanup */
+        ftpListPartsFree(&p); /* cleanup */
 
     return p;
 }
@@ -779,7 +771,8 @@ Ftp::Gateway::htmlifyListEntry(const char *line, PackableStream &html)
         html << "<tr class=\"entry\"><td colspan=\"5\">" << line << "</td></tr>\n";
 
         const char *p;
-        for (p = line; *p && xisspace(*p); ++p);
+        for (p = line; *p && xisspace(*p); ++p)
+            ;
         if (*p && !xisspace(*p))
             flags.listformat_unknown = 1;
 
@@ -808,7 +801,7 @@ Ftp::Gateway::htmlifyListEntry(const char *line, PackableStream &html)
         icon.appendf("<img border=\"0\" src=\"%s\" alt=\"%-6s\">",
                      mimeGetIconURL("internal-dir"),
                      "[DIR]");
-        href.append("/", 1);  /* margin is allocated above */
+        href.append("/", 1); /* margin is allocated above */
         break;
 
     case 'l':
@@ -863,12 +856,17 @@ Ftp::Gateway::htmlifyListEntry(const char *line, PackableStream &html)
 
     /* construct the table row from parts. */
     html << "<tr class=\"entry\">"
-         "<td class=\"icon\"><a href=\"" << href << "\">" << icon << "</a></td>"
-         "<td class=\"filename\"><a href=\"" << href << "\">" << html_quote(text.c_str()) << "</a></td>"
-         "<td class=\"date\">" << parts->date << "</td>"
-         "<td class=\"size\">" << size << "</td>"
-         "<td class=\"actions\">" << chdir << view << download << link << "</td>"
-         "</tr>\n";
+            "<td class=\"icon\"><a href=\""
+         << href << "\">" << icon << "</a></td>"
+                                     "<td class=\"filename\"><a href=\""
+         << href << "\">" << html_quote(text.c_str()) << "</a></td>"
+                                                         "<td class=\"date\">"
+         << parts->date << "</td>"
+                           "<td class=\"size\">"
+         << size << "</td>"
+                    "<td class=\"actions\">"
+         << chdir << view << download << link << "</td>"
+                                                 "</tr>\n";
 
     ftpListPartsFree(&parts);
     return true;
@@ -878,7 +876,7 @@ void
 Ftp::Gateway::parseListing()
 {
     char *buf = data.readBuf->content();
-    char *sbuf;         /* NULL-terminated copy of termedBuf */
+    char *sbuf; /* NULL-terminated copy of termedBuf */
     char *end;
     char *line;
     char *s;
@@ -887,7 +885,7 @@ Ftp::Gateway::parseListing()
     size_t len = data.readBuf->contentSize();
 
     if (!len) {
-        debugs(9, 3, HERE << "no content to parse for " << entry->url()  );
+        debugs(9, 3, HERE << "no content to parse for " << entry->url());
         return;
     }
 
@@ -911,7 +909,7 @@ Ftp::Gateway::parseListing()
             data.readBuf->consume(len);
         } else {
             debugs(9, 3, HERE << "didn't find end for " << entry->url());
-            debugs(9, 3, HERE << "buffer remains (" << len << " bytes) '" << rfc1738_do_escape(buf,0) << "'");
+            debugs(9, 3, HERE << "buffer remains (" << len << " bytes) '" << rfc1738_do_escape(buf, 0) << "'");
         }
         xfree(sbuf);
         return;
@@ -1026,7 +1024,7 @@ Ftp::Gateway::processReplyBody()
  \retval 0  if something is missing.
  */
 int
-Ftp::Gateway::checkAuth(const HttpHeader * req_hdr)
+Ftp::Gateway::checkAuth(const HttpHeader *req_hdr)
 {
     /* default username */
     xstrncpy(user, "anonymous", MAX_URL);
@@ -1057,16 +1055,16 @@ Ftp::Gateway::checkAuth(const HttpHeader * req_hdr)
     if (!password[0]) {
         if (strcmp(user, "anonymous") == 0 && !flags.tried_auth_anonymous) {
             xstrncpy(password, Config.Ftp.anon_user, MAX_URL);
-            flags.tried_auth_anonymous=1;
+            flags.tried_auth_anonymous = 1;
             return 1;
         } else if (!flags.tried_auth_nopass) {
             xstrncpy(password, null_string, MAX_URL);
-            flags.tried_auth_nopass=1;
+            flags.tried_auth_nopass = 1;
             return 1;
         }
     }
 
-    return 0;           /* different username */
+    return 0; /* different username */
 }
 
 void
@@ -1076,11 +1074,11 @@ Ftp::Gateway::checkUrlpath()
     auto t = request->url.path().rfind(';');
 
     if (t != SBuf::npos) {
-        auto filenameEnd = t-1;
+        auto filenameEnd = t - 1;
         if (request->url.path().substr(++t).cmp(str_type_eq, str_type_eq.length()) == 0) {
             t += str_type_eq.length();
             typecode = (char)xtoupper(request->url.path()[t]);
-            request->url.path(request->url.path().substr(0,filenameEnd));
+            request->url.path(request->url.path().substr(0, filenameEnd));
         }
     }
 
@@ -1090,12 +1088,12 @@ Ftp::Gateway::checkUrlpath()
     if (!l) {
         flags.isdir = 1;
         flags.root_dir = 1;
-        flags.need_base_href = 1;   /* Work around broken browsers */
+        flags.need_base_href = 1; /* Work around broken browsers */
     } else if (!request->url.path().cmp("/%2f/")) {
         /* UNIX root directory */
         flags.isdir = 1;
         flags.root_dir = 1;
-    } else if ((l >= 1) && (request->url.path()[l-1] == '/')) {
+    } else if ((l >= 1) && (request->url.path()[l - 1] == '/')) {
         /* Directory URL, ending in / */
         flags.isdir = 1;
 
@@ -1144,7 +1142,7 @@ Ftp::Gateway::start()
 {
     if (!checkAuth(&request->header)) {
         /* create appropriate reply */
-        SBuf realm(ftpRealm()); // local copy so SBuf will not disappear too early
+        SBuf realm(ftpRealm());  // local copy so SBuf will not disappear too early
         const auto reply = ftpAuthRequired(request.getRaw(), realm, fwd->al);
         entry->replaceHttpReply(reply);
         serverComplete();
@@ -1153,8 +1151,7 @@ Ftp::Gateway::start()
 
     checkUrlpath();
     buildTitleUrl();
-    debugs(9, 5, "FD " << (ctrl.conn ? ctrl.conn->fd : -1) << " : host=" << request->url.host() <<
-           ", path=" << request->url.path() << ", user=" << user << ", passwd=" << password);
+    debugs(9, 5, "FD " << (ctrl.conn ? ctrl.conn->fd : -1) << " : host=" << request->url.host() << ", path=" << request->url.path() << ", user=" << user << ", passwd=" << password);
     state = BEGIN;
     Ftp::Client::start();
 }
@@ -1166,7 +1163,7 @@ Ftp::Gateway::handleControlReply()
 {
     Ftp::Client::handleControlReply();
     if (ctrl.message == NULL)
-        return; // didn't get complete reply yet
+        return;  // didn't get complete reply yet
 
     /* Copy the message except for the last line to cwd_message to be
      * printed in error messages.
@@ -1176,19 +1173,19 @@ Ftp::Gateway::handleControlReply()
         cwd_message.append(w->key);
     }
 
-    FTP_SM_FUNCS[state] (this);
+    FTP_SM_FUNCS[state](this);
 }
 
 /* ====================================================================== */
 
 static void
-ftpReadWelcome(Ftp::Gateway * ftpState)
+ftpReadWelcome(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
 
     if (ftpState->flags.pasv_only)
-        ++ ftpState->login_att;
+        ++ftpState->login_att;
 
     if (code == 220) {
         if (ftpState->ctrl.message) {
@@ -1226,7 +1223,7 @@ Ftp::Gateway::loginFailed()
             err = new ErrorState(ERR_FTP_FORBIDDEN, Http::scUnauthorized, fwd->request, fwd->al);
         } else if (ctrl.replycode >= 530 && ctrl.replycode <= 539) {
             // 53x - Credentials Missing - retry challenge required
-            if (password_url) // but they were in the URI! major fail.
+            if (password_url)  // but they were in the URI! major fail.
                 err = new ErrorState(ERR_FTP_FORBIDDEN, Http::scForbidden, fwd->request, fwd->al);
             else
                 err = new ErrorState(ERR_FTP_FORBIDDEN, Http::scUnauthorized, fwd->request, fwd->al);
@@ -1247,7 +1244,7 @@ Ftp::Gateway::loginFailed()
 #if HAVE_AUTH_MODULE_BASIC
     /* add Authenticate header */
     // XXX: performance regression. c_str() may reallocate
-    SBuf realm(ftpRealm()); // local copy so SBuf will not disappear too early
+    SBuf realm(ftpRealm());  // local copy so SBuf will not disappear too early
     newrep->header.putAuth("Basic", realm.c_str());
 #endif
 
@@ -1274,7 +1271,7 @@ Ftp::Gateway::ftpRealm()
 }
 
 static void
-ftpSendUser(Ftp::Gateway * ftpState)
+ftpSendUser(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendUser"))
@@ -1291,7 +1288,7 @@ ftpSendUser(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadUser(Ftp::Gateway * ftpState)
+ftpReadUser(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -1306,7 +1303,7 @@ ftpReadUser(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendPass(Ftp::Gateway * ftpState)
+ftpSendPass(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendPass"))
@@ -1318,7 +1315,7 @@ ftpSendPass(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadPass(Ftp::Gateway * ftpState)
+ftpReadPass(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE << "code=" << code);
@@ -1331,7 +1328,7 @@ ftpReadPass(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendType(Ftp::Gateway * ftpState)
+ftpSendType(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendType"))
@@ -1380,7 +1377,7 @@ ftpSendType(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadType(Ftp::Gateway * ftpState)
+ftpReadType(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     char *path;
@@ -1420,7 +1417,7 @@ ftpReadType(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpTraverseDirectory(Ftp::Gateway * ftpState)
+ftpTraverseDirectory(Ftp::Gateway *ftpState)
 {
     debugs(9, 4, HERE << (ftpState->filepath ? ftpState->filepath : "<NULL>"));
 
@@ -1437,7 +1434,7 @@ ftpTraverseDirectory(Ftp::Gateway * ftpState)
     }
 
     /* Go to next path component */
-    ftpState->filepath = wordlistChopHead(& ftpState->pathcomps);
+    ftpState->filepath = wordlistChopHead(&ftpState->pathcomps);
 
     /* Check if we are to CWD or RETR */
     if (ftpState->pathcomps != NULL || ftpState->flags.isdir) {
@@ -1450,7 +1447,7 @@ ftpTraverseDirectory(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendCwd(Ftp::Gateway * ftpState)
+ftpSendCwd(Ftp::Gateway *ftpState)
 {
     char *path = NULL;
 
@@ -1476,7 +1473,7 @@ ftpSendCwd(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadCwd(Ftp::Gateway * ftpState)
+ftpReadCwd(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -1506,7 +1503,7 @@ ftpReadCwd(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendMkdir(Ftp::Gateway * ftpState)
+ftpSendMkdir(Ftp::Gateway *ftpState)
 {
     char *path = NULL;
 
@@ -1522,16 +1519,16 @@ ftpSendMkdir(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadMkdir(Ftp::Gateway * ftpState)
+ftpReadMkdir(Ftp::Gateway *ftpState)
 {
     char *path = ftpState->filepath;
     int code = ftpState->ctrl.replycode;
 
     debugs(9, 3, HERE << "path " << path << ", code " << code);
 
-    if (code == 257) {      /* success */
+    if (code == 257) { /* success */
         ftpSendCwd(ftpState);
-    } else if (code == 550) {   /* dir exists */
+    } else if (code == 550) { /* dir exists */
 
         if (ftpState->flags.put_mkdir) {
             ftpState->flags.put_mkdir = 1;
@@ -1543,7 +1540,7 @@ ftpReadMkdir(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpGetFile(Ftp::Gateway * ftpState)
+ftpGetFile(Ftp::Gateway *ftpState)
 {
     assert(*ftpState->filepath != '\0');
     ftpState->flags.isdir = 0;
@@ -1551,7 +1548,7 @@ ftpGetFile(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpListDir(Ftp::Gateway * ftpState)
+ftpListDir(Ftp::Gateway *ftpState)
 {
     if (ftpState->flags.dir_slash) {
         debugs(9, 3, HERE << "Directory path did not end in /");
@@ -1563,7 +1560,7 @@ ftpListDir(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendMdtm(Ftp::Gateway * ftpState)
+ftpSendMdtm(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendMdtm"))
@@ -1576,7 +1573,7 @@ ftpSendMdtm(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadMdtm(Ftp::Gateway * ftpState)
+ftpReadMdtm(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -1593,7 +1590,7 @@ ftpReadMdtm(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendSize(Ftp::Gateway * ftpState)
+ftpSendSize(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendSize"))
@@ -1614,7 +1611,7 @@ ftpSendSize(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadSize(Ftp::Gateway * ftpState)
+ftpReadSize(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -1624,9 +1621,7 @@ ftpReadSize(Ftp::Gateway * ftpState)
         ftpState->theSize = strtoll(ftpState->ctrl.last_reply, NULL, 10);
 
         if (ftpState->theSize == 0) {
-            debugs(9, 2, "SIZE reported " <<
-                   ftpState->ctrl.last_reply << " on " <<
-                   ftpState->title_url);
+            debugs(9, 2, "SIZE reported " << ftpState->ctrl.last_reply << " on " << ftpState->title_url);
             ftpState->theSize = -1;
         }
     } else if (code < 0) {
@@ -1638,12 +1633,12 @@ ftpReadSize(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadEPSV(Ftp::Gateway* ftpState)
+ftpReadEPSV(Ftp::Gateway *ftpState)
 {
-    Ip::Address srvAddr; // unused
+    Ip::Address srvAddr;  // unused
     if (ftpState->handleEpsvReply(srvAddr)) {
         if (ftpState->ctrl.message == NULL)
-            return; // didn't get complete reply yet
+            return;  // didn't get complete reply yet
 
         ftpState->connectDataChannel();
     }
@@ -1654,7 +1649,7 @@ ftpReadEPSV(Ftp::Gateway* ftpState)
  * The failover mechanism should check for previous state and re-call with alternates on failure.
  */
 static void
-ftpSendPassive(Ftp::Gateway * ftpState)
+ftpSendPassive(Ftp::Gateway *ftpState)
 {
     /** Checks the server control channel is still available before running. */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendPassive"))
@@ -1665,7 +1660,7 @@ ftpSendPassive(Ftp::Gateway * ftpState)
     /** \par
       * Checks for 'HEAD' method request and passes off for special handling by Ftp::Gateway::processHeadResponse(). */
     if (ftpState->request->method == Http::METHOD_HEAD && (ftpState->flags.isdir || ftpState->theSize != -1)) {
-        ftpState->processHeadResponse(); // may call serverComplete
+        ftpState->processHeadResponse();  // may call serverComplete
         return;
     }
 
@@ -1695,7 +1690,7 @@ Ftp::Gateway::processHeadResponse()
 
 #if USE_ADAPTATION
     if (adaptationAccessCheckPending) {
-        debugs(9,3, HERE << "returning due to adaptationAccessCheckPending");
+        debugs(9, 3, HERE << "returning due to adaptationAccessCheckPending");
         return;
     }
 #endif
@@ -1705,9 +1700,9 @@ Ftp::Gateway::processHeadResponse()
 }
 
 static void
-ftpReadPasv(Ftp::Gateway * ftpState)
+ftpReadPasv(Ftp::Gateway *ftpState)
 {
-    Ip::Address srvAddr; // unused
+    Ip::Address srvAddr;  // unused
     if (ftpState->handlePasvReply(srvAddr))
         ftpState->connectDataChannel();
     else {
@@ -1741,7 +1736,7 @@ Ftp::Gateway::dataChannelConnected(const CommConnectCbParams &io)
 }
 
 static void
-ftpOpenListenSocket(Ftp::Gateway * ftpState, int fallback)
+ftpOpenListenSocket(Ftp::Gateway *ftpState, int fallback)
 {
     /// Close old data channels, if any. We may open a new one below.
     if (ftpState->data.conn != NULL) {
@@ -1773,7 +1768,8 @@ ftpOpenListenSocket(Ftp::Gateway * ftpState, int fallback)
         int on = 1;
         errno = 0;
         if (setsockopt(ftpState->ctrl.conn->fd, SOL_SOCKET, SO_REUSEADDR,
-                       (char *) &on, sizeof(on)) == -1) {
+                       (char *)&on, sizeof(on))
+            == -1) {
             int xerrno = errno;
             // SO_REUSEADDR is only an optimization, no need to be verbose about error
             debugs(9, 4, "setsockopt failed: " << xstrerr(xerrno));
@@ -1789,7 +1785,7 @@ ftpOpenListenSocket(Ftp::Gateway * ftpState, int fallback)
 }
 
 static void
-ftpSendPORT(Ftp::Gateway * ftpState)
+ftpSendPORT(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendPort"))
@@ -1805,7 +1801,7 @@ ftpSendPORT(Ftp::Gateway * ftpState)
     ftpOpenListenSocket(ftpState, 0);
 
     if (!Comm::IsConnOpen(ftpState->data.listenConn)) {
-        if ( ftpState->data.listenConn != NULL && !ftpState->data.listenConn->local.isIPv4() ) {
+        if (ftpState->data.listenConn != NULL && !ftpState->data.listenConn->local.isIPv4()) {
             /* non-IPv4 CANNOT send PORT command.                       */
             /* we got here by attempting and failing an EPRT            */
             /* using the same reply code should simulate a PORT failure */
@@ -1823,8 +1819,8 @@ ftpSendPORT(Ftp::Gateway * ftpState)
 
     struct addrinfo *AI = NULL;
     ftpState->data.listenConn->local.getAddrInfo(AI, AF_INET);
-    unsigned char *addrptr = (unsigned char *) &((struct sockaddr_in*)AI->ai_addr)->sin_addr;
-    unsigned char *portptr = (unsigned char *) &((struct sockaddr_in*)AI->ai_addr)->sin_port;
+    unsigned char *addrptr = (unsigned char *)&((struct sockaddr_in *)AI->ai_addr)->sin_addr;
+    unsigned char *portptr = (unsigned char *)&((struct sockaddr_in *)AI->ai_addr)->sin_port;
     snprintf(cbuf, CTRL_BUFLEN, "PORT %d,%d,%d,%d,%d,%d\r\n",
              addrptr[0], addrptr[1], addrptr[2], addrptr[3],
              portptr[0], portptr[1]);
@@ -1835,7 +1831,7 @@ ftpSendPORT(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadPORT(Ftp::Gateway * ftpState)
+ftpReadPORT(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -1895,7 +1891,7 @@ ftpSendEPRT(Ftp::Gateway * ftpState)
 #endif
 
 static void
-ftpReadEPRT(Ftp::Gateway * ftpState)
+ftpReadEPRT(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -1943,13 +1939,13 @@ Ftp::Gateway::ftpAcceptDataConnection(const CommAcceptCbParams &io)
 
     /* data listening conn is no longer even open. abort. */
     if (!Comm::IsConnOpen(data.listenConn)) {
-        data.listenConn = NULL; // ensure that it's cleared and not just closed.
+        data.listenConn = NULL;  // ensure that it's cleared and not just closed.
         return;
     }
 
     /* data listening conn is no longer even open. abort. */
     if (!Comm::IsConnOpen(data.conn)) {
-        data.clear(); // ensure that it's cleared and not just closed.
+        data.clear();  // ensure that it's cleared and not just closed.
         return;
     }
 
@@ -1963,9 +1959,7 @@ Ftp::Gateway::ftpAcceptDataConnection(const CommAcceptCbParams &io)
         // accept if either our data or ctrl connection is talking to this remote peer.
         if (data.conn->remote != io.conn->remote && ctrl.conn->remote != io.conn->remote) {
             debugs(9, DBG_IMPORTANT,
-                   "FTP data connection from unexpected server (" <<
-                   io.conn->remote << "), expecting " <<
-                   data.conn->remote << " or " << ctrl.conn->remote);
+                   "FTP data connection from unexpected server (" << io.conn->remote << "), expecting " << data.conn->remote << " or " << ctrl.conn->remote);
 
             /* close the bad sources connection down ASAP. */
             io.conn->close();
@@ -1980,10 +1974,9 @@ Ftp::Gateway::ftpAcceptDataConnection(const CommAcceptCbParams &io)
     data.opened(io.conn, dataCloser());
     data.addr(io.conn->remote);
 
-    debugs(9, 3, HERE << "Connected data socket on " <<
-           io.conn << ". FD table says: " <<
-           "ctrl-peer= " << fd_table[ctrl.conn->fd].ipaddr << ", " <<
-           "data-peer= " << fd_table[data.conn->fd].ipaddr);
+    debugs(9, 3, HERE << "Connected data socket on " << io.conn << ". FD table says: "
+                      << "ctrl-peer= " << fd_table[ctrl.conn->fd].ipaddr << ", "
+                      << "data-peer= " << fd_table[data.conn->fd].ipaddr);
 
     assert(haveControlChannel("ftpAcceptDataConnection"));
     assert(ctrl.message == NULL);
@@ -1992,7 +1985,7 @@ Ftp::Gateway::ftpAcceptDataConnection(const CommAcceptCbParams &io)
 }
 
 static void
-ftpRestOrList(Ftp::Gateway * ftpState)
+ftpRestOrList(Ftp::Gateway *ftpState)
 {
     debugs(9, 3, HERE);
 
@@ -2002,7 +1995,7 @@ ftpRestOrList(Ftp::Gateway * ftpState)
         if (ftpState->flags.put) {
             ftpSendMkdir(ftpState); /* PUT name;type=d */
         } else {
-            ftpSendNlst(ftpState);  /* GET name;type=d  sec 3.2.2 of RFC 1738 */
+            ftpSendNlst(ftpState); /* GET name;type=d  sec 3.2.2 of RFC 1738 */
         }
     } else if (ftpState->flags.put) {
         ftpSendStor(ftpState);
@@ -2015,7 +2008,7 @@ ftpRestOrList(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendStor(Ftp::Gateway * ftpState)
+ftpSendStor(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendStor"))
@@ -2041,12 +2034,13 @@ ftpSendStor(Ftp::Gateway * ftpState)
 
 /// \deprecated use ftpState->readStor() instead.
 static void
-ftpReadStor(Ftp::Gateway * ftpState)
+ftpReadStor(Ftp::Gateway *ftpState)
 {
     ftpState->readStor();
 }
 
-void Ftp::Gateway::readStor()
+void
+Ftp::Gateway::readStor()
 {
     int code = ctrl.replycode;
     debugs(9, 3, HERE);
@@ -2054,12 +2048,12 @@ void Ftp::Gateway::readStor()
     if (code == 125 || (code == 150 && Comm::IsConnOpen(data.conn))) {
         if (!originalRequest()->body_pipe) {
             debugs(9, 3, "zero-size STOR?");
-            state = WRITING_DATA; // make ftpWriteTransferDone() responsible
-            dataComplete(); // XXX: keep in sync with doneSendingRequestBody()
+            state = WRITING_DATA;  // make ftpWriteTransferDone() responsible
+            dataComplete();        // XXX: keep in sync with doneSendingRequestBody()
             return;
         }
 
-        if (!startRequestBodyFlow()) { // register to receive body data
+        if (!startRequestBodyFlow()) {  // register to receive body data
             ftpFail(this);
             return;
         }
@@ -2068,7 +2062,7 @@ void Ftp::Gateway::readStor()
         debugs(9, 3, HERE << "starting data transfer");
         switchTimeoutToDataChannel();
         sendMoreRequestBody();
-        fwd->dontRetry(true); // do not permit re-trying if the body was sent.
+        fwd->dontRetry(true);  // do not permit re-trying if the body was sent.
         state = WRITING_DATA;
         debugs(9, 3, HERE << "writing data channel");
     } else if (code == 150) {
@@ -2076,13 +2070,13 @@ void Ftp::Gateway::readStor()
         debugs(9, 3, "ftpReadStor: accepting data channel");
         listenForDataChannel(data.conn);
     } else {
-        debugs(9, DBG_IMPORTANT, HERE << "Unexpected reply code "<< std::setfill('0') << std::setw(3) << code);
+        debugs(9, DBG_IMPORTANT, HERE << "Unexpected reply code " << std::setfill('0') << std::setw(3) << code);
         ftpFail(this);
     }
 }
 
 static void
-ftpSendRest(Ftp::Gateway * ftpState)
+ftpSendRest(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendRest"))
@@ -2123,7 +2117,7 @@ Ftp::Gateway::restartable()
 }
 
 static void
-ftpReadRest(Ftp::Gateway * ftpState)
+ftpReadRest(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -2142,7 +2136,7 @@ ftpReadRest(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendList(Ftp::Gateway * ftpState)
+ftpSendList(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendList"))
@@ -2161,7 +2155,7 @@ ftpSendList(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendNlst(Ftp::Gateway * ftpState)
+ftpSendNlst(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendNlst"))
@@ -2182,7 +2176,7 @@ ftpSendNlst(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadList(Ftp::Gateway * ftpState)
+ftpReadList(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -2208,7 +2202,7 @@ ftpReadList(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpSendRetr(Ftp::Gateway * ftpState)
+ftpSendRetr(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendRetr"))
@@ -2223,7 +2217,7 @@ ftpSendRetr(Ftp::Gateway * ftpState)
 }
 
 static void
-ftpReadRetr(Ftp::Gateway * ftpState)
+ftpReadRetr(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -2260,7 +2254,7 @@ Ftp::Gateway::completedListing()
     entry->lock("Ftp::Gateway");
     ErrorState ferr(ERR_DIR_LISTING, Http::scOkay, request.getRaw(), fwd->al);
     ferr.ftp.listing = &listing;
-    ferr.ftp.cwd_msg = xstrdup(cwd_message.size()? cwd_message.termedBuf() : "");
+    ferr.ftp.cwd_msg = xstrdup(cwd_message.size() ? cwd_message.termedBuf() : "");
     ferr.ftp.server_msg = ctrl.message;
     ctrl.message = NULL;
     entry->replaceHttpReply(ferr.BuildHttpReply());
@@ -2269,7 +2263,7 @@ Ftp::Gateway::completedListing()
 }
 
 static void
-ftpReadTransferDone(Ftp::Gateway * ftpState)
+ftpReadTransferDone(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -2281,7 +2275,7 @@ ftpReadTransferDone(Ftp::Gateway * ftpState)
             /* QUIT operation handles sending the reply to client */
         }
         ftpSendQuit(ftpState);
-    } else {            /* != 226 */
+    } else { /* != 226 */
         debugs(9, DBG_IMPORTANT, HERE << "Got code " << code << " after reading data");
         ftpState->failed(ERR_FTP_FAILURE, 0);
         /* failed closes ctrl.conn and frees ftpState */
@@ -2299,7 +2293,7 @@ Ftp::Gateway::handleRequestBodyProducerAborted()
 }
 
 static void
-ftpWriteTransferDone(Ftp::Gateway * ftpState)
+ftpWriteTransferDone(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debugs(9, 3, HERE);
@@ -2310,12 +2304,12 @@ ftpWriteTransferDone(Ftp::Gateway * ftpState)
         return;
     }
 
-    ftpState->entry->timestampsSet();   /* XXX Is this needed? */
+    ftpState->entry->timestampsSet(); /* XXX Is this needed? */
     ftpSendReply(ftpState);
 }
 
 static void
-ftpSendQuit(Ftp::Gateway * ftpState)
+ftpSendQuit(Ftp::Gateway *ftpState)
 {
     /* check the server control channel is still available */
     if (!ftpState || !ftpState->haveControlChannel("ftpSendQuit"))
@@ -2330,13 +2324,13 @@ ftpSendQuit(Ftp::Gateway * ftpState)
  *  generated and stored in the entry field by the code issuing QUIT.
  */
 static void
-ftpReadQuit(Ftp::Gateway * ftpState)
+ftpReadQuit(Ftp::Gateway *ftpState)
 {
     ftpState->serverComplete();
 }
 
 static void
-ftpTrySlashHack(Ftp::Gateway * ftpState)
+ftpTrySlashHack(Ftp::Gateway *ftpState)
 {
     char *path;
     ftpState->flags.try_slash_hack = 1;
@@ -2375,7 +2369,7 @@ Ftp::Gateway::unhack()
 }
 
 void
-Ftp::Gateway::hackShortcut(FTPSM * nextState)
+Ftp::Gateway::hackShortcut(FTPSM *nextState)
 {
     /* Clear some unwanted state */
     setCurrentOffset(0);
@@ -2401,21 +2395,17 @@ Ftp::Gateway::hackShortcut(FTPSM * nextState)
 static void
 ftpFail(Ftp::Gateway *ftpState)
 {
-    const bool slashHack = ftpState->request->url.path().caseCmp("/%2f", 4)==0;
+    const bool slashHack = ftpState->request->url.path().caseCmp("/%2f", 4) == 0;
     int code = ftpState->ctrl.replycode;
     err_type error_code = ERR_NONE;
 
-    debugs(9, 6, "state " << ftpState->state <<
-           " reply code " << code << "flags(" <<
-           (ftpState->flags.isdir?"IS_DIR,":"") <<
-           (ftpState->flags.try_slash_hack?"TRY_SLASH_HACK":"") << "), " <<
-           "mdtm=" << ftpState->mdtm << ", size=" << ftpState->theSize <<
-           "slashhack=" << (slashHack? "T":"F"));
+    debugs(9, 6, "state " << ftpState->state << " reply code " << code << "flags(" << (ftpState->flags.isdir ? "IS_DIR," : "") << (ftpState->flags.try_slash_hack ? "TRY_SLASH_HACK" : "") << "), "
+                          << "mdtm=" << ftpState->mdtm << ", size=" << ftpState->theSize << "slashhack=" << (slashHack ? "T" : "F"));
 
     /* Try the / hack to support "Netscape" FTP URL's for retrieving files */
-    if (!ftpState->flags.isdir &&   /* Not a directory */
-            !ftpState->flags.try_slash_hack && !slashHack && /* Not doing slash hack */
-            ftpState->mdtm <= 0 && ftpState->theSize < 0) { /* Not known as a file */
+    if (!ftpState->flags.isdir &&                        /* Not a directory */
+        !ftpState->flags.try_slash_hack && !slashHack && /* Not doing slash hack */
+        ftpState->mdtm <= 0 && ftpState->theSize < 0) {  /* Not known as a file */
 
         switch (ftpState->state) {
 
@@ -2478,7 +2468,7 @@ Ftp::Gateway::failedHttpStatus(err_type &error)
 }
 
 static void
-ftpSendReply(Ftp::Gateway * ftpState)
+ftpSendReply(Ftp::Gateway *ftpState)
 {
     int code = ftpState->ctrl.replycode;
     Http::StatusCode http_code;
@@ -2536,7 +2526,7 @@ Ftp::Gateway::appendSuccessHeader()
 
     assert(entry->isEmpty());
 
-    entry->buffer();    /* released when done processing current data payload */
+    entry->buffer(); /* released when done processing current data payload */
 
     SBuf urlPath = request->url.path();
     auto t = urlPath.rfind('/');
@@ -2580,10 +2570,8 @@ Ftp::Gateway::appendSuccessHeader()
          * not be seeing this condition any more because we'll only
          * send REST if we know the theSize and if it is less than theSize.
          */
-        debugs(0,DBG_CRITICAL,HERE << "Whoops! " <<
-               " current offset=" << getCurrentOffset() <<
-               ", but theSize=" << theSize <<
-               ".  assuming full content response");
+        debugs(0, DBG_CRITICAL, HERE << "Whoops! "
+                                     << " current offset=" << getCurrentOffset() << ", but theSize=" << theSize << ".  assuming full content response");
         reply->setHeaders(Http::scOkay, "Gatewaying", mime_type, theSize, mdtm, -2);
     } else {
         /* Partial reply */
@@ -2613,15 +2601,14 @@ Ftp::Gateway::haveParsedReplyHeaders()
     e->timestampsSet();
 
     // makePublic() if allowed/possible or release() otherwise
-    if (flags.authenticated || // authenticated requests can't be cached
-            getCurrentOffset() ||
-            !e->makePublic()) {
+    if (flags.authenticated ||  // authenticated requests can't be cached
+        getCurrentOffset() || !e->makePublic()) {
         e->release();
     }
 }
 
 HttpReply *
-Ftp::Gateway::ftpAuthRequired(HttpRequest * request, SBuf &realm, AccessLogEntry::Pointer &ale)
+Ftp::Gateway::ftpAuthRequired(HttpRequest *request, SBuf &realm, AccessLogEntry::Pointer &ale)
 {
     ErrorState err(ERR_CACHE_ACCESS_DENIED, Http::scUnauthorized, request, ale);
     HttpReply *newrep = err.BuildHttpReply();
@@ -2634,7 +2621,7 @@ Ftp::Gateway::ftpAuthRequired(HttpRequest * request, SBuf &realm, AccessLogEntry
 }
 
 const SBuf &
-Ftp::UrlWith2f(HttpRequest * request)
+Ftp::UrlWith2f(HttpRequest *request)
 {
     SBuf newbuf("%2f");
 
@@ -2658,7 +2645,7 @@ void
 Ftp::Gateway::printfReplyBody(const char *fmt, ...)
 {
     va_list args;
-    va_start (args, fmt);
+    va_start(args, fmt);
     static char buf[4096];
     buf[0] = '\0';
     vsnprintf(buf, 4096, fmt, args);
@@ -2687,9 +2674,7 @@ void
 Ftp::Gateway::completeForwarding()
 {
     if (fwd == NULL || flags.completed_forwarding) {
-        debugs(9, 3, "avoid double-complete on FD " <<
-               (ctrl.conn ? ctrl.conn->fd : -1) << ", Data FD " << data.conn->fd <<
-               ", this " << this << ", fwd " << fwd);
+        debugs(9, 3, "avoid double-complete on FD " << (ctrl.conn ? ctrl.conn->fd : -1) << ", Data FD " << data.conn->fd << ", this " << this << ", fwd " << fwd);
         return;
     }
 
@@ -2731,4 +2716,3 @@ Ftp::StartGateway(FwdState *const fwdState)
 {
     return AsyncJob::Start(new Ftp::Gateway(fwdState));
 }
-

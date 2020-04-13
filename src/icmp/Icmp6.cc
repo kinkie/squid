@@ -17,8 +17,8 @@
 #include "Debug.h"
 #include "Icmp6.h"
 #include "IcmpPinger.h"
-#include "leakcheck.h"
 #include "SquidTime.h"
+#include "leakcheck.h"
 
 // Some system headers are only neeed internally here.
 // They should not be included via the header.
@@ -34,50 +34,50 @@ IcmpPacketType(uint8_t v)
 {
     // NP: LowPktStr is for codes 0-127
     static const char *icmp6LowPktStr[] = {
-        "ICMPv6 0",         // 0
+        "ICMPv6 0",                 // 0
         "Destination Unreachable",  // 1 - RFC2463
-        "Packet Too Big",       // 2 - RFC2463
-        "Time Exceeded",        // 3 - RFC2463
+        "Packet Too Big",           // 2 - RFC2463
+        "Time Exceeded",            // 3 - RFC2463
         "Parameter Problem",        // 4 - RFC2463
     };
 
     // low codes 1-4 registered
     if (0 < v && v < 5)
-        return icmp6LowPktStr[(int)(v&0x7f)];
+        return icmp6LowPktStr[(int)(v & 0x7f)];
 
     // NP: HighPktStr is for codes 128-255
     static const char *icmp6HighPktStr[] = {
-        "Echo Request",                 // 128 - RFC2463
-        "Echo Reply",                   // 129 - RFC2463
-        "Multicast Listener Query",         // 130 - RFC2710
-        "Multicast Listener Report",            // 131 - RFC2710
-        "Multicast Listener Done",          // 132 - RFC2710
-        "Router Solicitation",              // 133 - RFC4861
-        "Router Advertisement",             // 134 - RFC4861
-        "Neighbor Solicitation",            // 135 - RFC4861
-        "Neighbor Advertisement",           // 136 - RFC4861
-        "Redirect Message",             // 137 - RFC4861
-        "Router Renumbering",               // 138 - Crawford
-        "ICMP Node Information Query",          // 139 - RFC4620
-        "ICMP Node Information Response",       // 140 - RFC4620
-        "Inverse Neighbor Discovery Solicitation",  // 141 - RFC3122
-        "Inverse Neighbor Discovery Advertisement", // 142 - RFC3122
-        "Version 2 Multicast Listener Report",      // 143 - RFC3810
-        "Home Agent Address Discovery Request",     // 144 - RFC3775
-        "Home Agent Address Discovery Reply",       // 145 - RFC3775
-        "Mobile Prefix Solicitation",           // 146 - RFC3775
-        "Mobile Prefix Advertisement",          // 147 - RFC3775
-        "Certification Path Solicitation",      // 148 - RFC3971
-        "Certification Path Advertisement",     // 149 - RFC3971
-        "ICMP Experimental (150)",          // 150 - RFC4065
-        "Multicast Router Advertisement",       // 151 - RFC4286
-        "Multicast Router Solicitation",        // 152 - RFC4286
-        "Multicast Router Termination",         // 153 - [RFC4286]
+        "Echo Request",                              // 128 - RFC2463
+        "Echo Reply",                                // 129 - RFC2463
+        "Multicast Listener Query",                  // 130 - RFC2710
+        "Multicast Listener Report",                 // 131 - RFC2710
+        "Multicast Listener Done",                   // 132 - RFC2710
+        "Router Solicitation",                       // 133 - RFC4861
+        "Router Advertisement",                      // 134 - RFC4861
+        "Neighbor Solicitation",                     // 135 - RFC4861
+        "Neighbor Advertisement",                    // 136 - RFC4861
+        "Redirect Message",                          // 137 - RFC4861
+        "Router Renumbering",                        // 138 - Crawford
+        "ICMP Node Information Query",               // 139 - RFC4620
+        "ICMP Node Information Response",            // 140 - RFC4620
+        "Inverse Neighbor Discovery Solicitation",   // 141 - RFC3122
+        "Inverse Neighbor Discovery Advertisement",  // 142 - RFC3122
+        "Version 2 Multicast Listener Report",       // 143 - RFC3810
+        "Home Agent Address Discovery Request",      // 144 - RFC3775
+        "Home Agent Address Discovery Reply",        // 145 - RFC3775
+        "Mobile Prefix Solicitation",                // 146 - RFC3775
+        "Mobile Prefix Advertisement",               // 147 - RFC3775
+        "Certification Path Solicitation",           // 148 - RFC3971
+        "Certification Path Advertisement",          // 149 - RFC3971
+        "ICMP Experimental (150)",                   // 150 - RFC4065
+        "Multicast Router Advertisement",            // 151 - RFC4286
+        "Multicast Router Solicitation",             // 152 - RFC4286
+        "Multicast Router Termination",              // 153 - [RFC4286]
     };
 
     // high codes 127-153 registered
     if (127 < v && v < 154)
-        return icmp6HighPktStr[(int)(v&0x7f)];
+        return icmp6HighPktStr[(int)(v & 0x7f)];
 
     // give all others a generic display
     static char buf[50];
@@ -85,9 +85,10 @@ IcmpPacketType(uint8_t v)
     return buf;
 }
 
-Icmp6::Icmp6() : Icmp()
+Icmp6::Icmp6() :
+    Icmp()
 {
-    ; // nothing new.
+    ;  // nothing new.
 }
 
 Icmp6::~Icmp6()
@@ -141,14 +142,14 @@ Icmp6::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
     icmp->icmp6_code = 0;
     icmp->icmp6_cksum = 0;
     icmp->icmp6_id = icmp_ident;
-    icmp->icmp6_seq = (unsigned short) icmp_pkts_sent;
+    icmp->icmp6_seq = (unsigned short)icmp_pkts_sent;
     ++icmp_pkts_sent;
 
     icmp6_pktsize = sizeof(struct icmp6_hdr);
 
     // Fill Icmp6 ECHO data content
-    echo = (icmpEchoData *) (pkt + sizeof(icmp6_hdr));
-    echo->opcode = (unsigned char) opcode;
+    echo = (icmpEchoData *)(pkt + sizeof(icmp6_hdr));
+    echo->opcode = (unsigned char)opcode;
     memcpy(&echo->tv, &current_time, sizeof(struct timeval));
 
     icmp6_pktsize += sizeof(struct timeval) + sizeof(char);
@@ -162,17 +163,17 @@ Icmp6::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
         icmp6_pktsize += len;
     }
 
-    icmp->icmp6_cksum = CheckSum((unsigned short *) icmp, icmp6_pktsize);
+    icmp->icmp6_cksum = CheckSum((unsigned short *)icmp, icmp6_pktsize);
 
     to.getAddrInfo(S);
-    ((sockaddr_in6*)S->ai_addr)->sin6_port = 0;
+    ((sockaddr_in6 *)S->ai_addr)->sin6_port = 0;
 
     assert(icmp6_pktsize <= MAX_PKT6_SZ);
 
     debugs(42, 5, HERE << "Send Icmp6 packet to " << to << ".");
 
     x = sendto(icmp_sock,
-               (const void *) pkt,
+               (const void *)pkt,
                icmp6_pktsize,
                0,
                S->ai_addr,
@@ -182,7 +183,7 @@ Icmp6::SendEcho(Ip::Address &to, int opcode, const char *payload, int len)
         int xerrno = errno;
         debugs(42, DBG_IMPORTANT, MYNAME << "ERROR: sending to ICMPv6 packet to " << to << ": " << xstrerr(xerrno));
     }
-    debugs(42,9, HERE << "x=" << x);
+    debugs(42, 9, HERE << "x=" << x);
 
     Log(to, 0, NULL, 0, 0);
     Ip::Address::FreeAddr(S);
@@ -196,7 +197,7 @@ Icmp6::Recv(void)
 {
     int n;
     struct addrinfo *from = NULL;
-//    struct ip6_hdr *ip = NULL;
+    //    struct ip6_hdr *ip = NULL;
     static char *pkt = NULL;
     struct icmp6_hdr *icmp6header = NULL;
     icmpEchoData *echo = NULL;
@@ -241,11 +242,11 @@ Icmp6::Recv(void)
 
     debugs(42, 8, HERE << n << " bytes from " << preply.from);
 
-// FIXME INET6 : The IPv6 Header (ip6_hdr) is not available directly >:-(
-//
-// TTL still has to come from the IP header somewhere.
-//  still need to strip and process it properly.
-//  probably have to rely on RTT as given by timestamp in data sent and current.
+    // FIXME INET6 : The IPv6 Header (ip6_hdr) is not available directly >:-(
+    //
+    // TTL still has to come from the IP header somewhere.
+    //  still need to strip and process it properly.
+    //  probably have to rely on RTT as given by timestamp in data sent and current.
     /* IPv6 Header Structures (linux)
     struct ip6_hdr
 
@@ -268,7 +269,7 @@ Icmp6::Recv(void)
     );
     */
 
-    icmp6header = (struct icmp6_hdr *) pkt;
+    icmp6header = (struct icmp6_hdr *)pkt;
 
     if (icmp6header->icmp6_type != ICMP6_ECHO_REPLY) {
 
@@ -280,8 +281,7 @@ Icmp6::Recv(void)
             break;
 
         default:
-            debugs(42, 8, HERE << preply.from << " said: " << icmp6header->icmp6_type << "/" << (int)icmp6header->icmp6_code << " " <<
-                   IcmpPacketType(icmp6header->icmp6_type));
+            debugs(42, 8, HERE << preply.from << " said: " << icmp6header->icmp6_type << "/" << (int)icmp6header->icmp6_code << " " << IcmpPacketType(icmp6header->icmp6_type));
         }
         Ip::Address::FreeAddr(from);
         return;
@@ -293,7 +293,7 @@ Icmp6::Recv(void)
         return;
     }
 
-    echo = (icmpEchoData *) (pkt + sizeof(icmp6_hdr));
+    echo = (icmpEchoData *)(pkt + sizeof(icmp6_hdr));
 
     preply.opcode = echo->opcode;
 
@@ -312,9 +312,9 @@ Icmp6::Recv(void)
     preply.psize = n - /* sizeof(ip6_hdr) - */ sizeof(icmp6_hdr) - (sizeof(icmpEchoData) - MAX_PKT6_SZ);
 
     /* Ensure the response packet has safe payload size */
-    if ( preply.psize > (unsigned short) MAX_PKT6_SZ) {
+    if (preply.psize > (unsigned short)MAX_PKT6_SZ) {
         preply.psize = MAX_PKT6_SZ;
-    } else if ( preply.psize < (unsigned short)0) {
+    } else if (preply.psize < (unsigned short)0) {
         preply.psize = 0;
     }
 
@@ -325,9 +325,8 @@ Icmp6::Recv(void)
         preply.hops);
 
     /* send results of the lookup back to squid.*/
-    control.SendResult(preply, (sizeof(pingerReplyData) - PINGER_PAYLOAD_SZ + preply.psize) );
+    control.SendResult(preply, (sizeof(pingerReplyData) - PINGER_PAYLOAD_SZ + preply.psize));
     Ip::Address::FreeAddr(from);
 }
 
 #endif /* USE_ICMP */
-

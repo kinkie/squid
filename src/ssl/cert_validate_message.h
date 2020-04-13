@@ -16,8 +16,7 @@
 
 #include <vector>
 
-namespace Ssl
-{
+namespace Ssl {
 
 /**
  * This class is used to hold the required information to build
@@ -27,15 +26,15 @@ class CertValidationRequest
 {
 public:
     Security::SessionPointer ssl;
-    Security::CertErrors *errors = nullptr; ///< The list of errors detected
-    std::string domainName; ///< The server name
+    Security::CertErrors *errors = nullptr;  ///< The list of errors detected
+    std::string domainName;                  ///< The server name
 };
 
 /**
  * This class is used to store information found in certificate validation
  * response messages read from certificate validator helper
  */
-class CertValidationResponse: public RefCountable
+class CertValidationResponse : public RefCountable
 {
 public:
     typedef RefCount<CertValidationResponse> Pointer;
@@ -44,27 +43,29 @@ public:
      * This class used to hold error information returned from
      * cert validator helper.
      */
-    class  RecvdError
+    class RecvdError
     {
     public:
-        RecvdError(): id(0), error_no(SSL_ERROR_NONE), cert(NULL), error_depth(-1) {}
+        RecvdError() :
+            id(0), error_no(SSL_ERROR_NONE), cert(NULL), error_depth(-1) {}
         RecvdError(const RecvdError &);
-        RecvdError & operator =(const RecvdError &);
-        void setCert(X509 *);  ///< Sets cert to the given certificate
-        int id; ///<  The id of the error
-        Security::ErrorCode error_no; ///< The OpenSSL error code
-        std::string error_reason; ///< A string describing the error
-        Security::CertPointer cert; ///< The broken certificate
-        int error_depth; ///< The error depth
+        RecvdError &operator=(const RecvdError &);
+        void setCert(X509 *);          ///< Sets cert to the given certificate
+        int id;                        ///<  The id of the error
+        Security::ErrorCode error_no;  ///< The OpenSSL error code
+        std::string error_reason;      ///< A string describing the error
+        Security::CertPointer cert;    ///< The broken certificate
+        int error_depth;               ///< The error depth
     };
 
     typedef std::vector<RecvdError> RecvdErrors;
-    explicit CertValidationResponse(const Security::SessionPointer &aSession) : ssl(aSession) {}
+    explicit CertValidationResponse(const Security::SessionPointer &aSession) :
+        ssl(aSession) {}
     /// Search in errors list for the error item with id=errorId.
     /// If none found a new RecvdError item added with the given id;
     RecvdError &getError(int errorId);
-    RecvdErrors errors; ///< The list of parsed errors
-    Helper::ResultCode resultCode = Helper::Unknown; ///< The helper result code
+    RecvdErrors errors;                               ///< The list of parsed errors
+    Helper::ResultCode resultCode = Helper::Unknown;  ///< The helper result code
     Security::SessionPointer ssl;
 };
 
@@ -87,16 +88,18 @@ private:
     class CertItem
     {
     public:
-        std::string name; ///< The certificate Id to use
-        Security::CertPointer cert;       ///< A pointer to certificate
-        CertItem(): cert(NULL) {}
+        std::string name;            ///< The certificate Id to use
+        Security::CertPointer cert;  ///< A pointer to certificate
+        CertItem() :
+            cert(NULL) {}
         CertItem(const CertItem &);
-        CertItem & operator =(const CertItem &);
-        void setCert(X509 *); ///< Sets cert to the given certificate
+        CertItem &operator=(const CertItem &);
+        void setCert(X509 *);  ///< Sets cert to the given certificate
     };
 
 public:
-    CertValidationMsg(MessageKind kind): CrtdMessage(kind) {}
+    CertValidationMsg(MessageKind kind) :
+        CrtdMessage(kind) {}
 
     /// Build a request message for the cert validation helper
     /// using information provided by vcert object
@@ -106,7 +109,7 @@ public:
     bool parseResponse(CertValidationResponse &resp, std::string &error);
 
     /// Search a CertItems list for the certificate with ID "name"
-    X509 *getCertByName(std::vector<CertItem> const &, std::string const & name);
+    X509 *getCertByName(std::vector<CertItem> const &, std::string const &name);
 
     /// String code for "cert_validate" messages
     static const std::string code_cert_validate;
@@ -128,7 +131,6 @@ public:
     static const std::string param_cipher;
 };
 
-}//namespace Ssl
+}  //namespace Ssl
 
-#endif // SQUID_SSL_CERT_VALIDATE_MESSAGE_H
-
+#endif  // SQUID_SSL_CERT_VALIDATE_MESSAGE_H

@@ -14,9 +14,9 @@
 
 typedef struct md5_ctx SquidMD5_CTX;
 
-#define SquidMD5Init(c)       md5_init((c))
-#define SquidMD5Update(c,b,l) md5_update((c), (l), (const uint8_t *)(b))
-#define SquidMD5Final(d,c)    md5_digest((c), MD5_DIGEST_SIZE, (uint8_t *)(d))
+#define SquidMD5Init(c) md5_init((c))
+#define SquidMD5Update(c, b, l) md5_update((c), (l), (const uint8_t *)(b))
+#define SquidMD5Final(d, c) md5_digest((c), MD5_DIGEST_SIZE, (uint8_t *)(d))
 
 #define SQUID_MD5_DIGEST_LENGTH MD5_DIGEST_SIZE
 
@@ -63,9 +63,8 @@ SQUIDCEXTERN void SquidMD5Update(struct SquidMD5Context *context, const void *bu
 SQUIDCEXTERN void SquidMD5Final(uint8_t digest[16], struct SquidMD5Context *context);
 SQUIDCEXTERN void SquidMD5Transform(uint32_t buf[4], uint32_t const in[16]);
 
-#define SQUID_MD5_DIGEST_LENGTH         16
+#define SQUID_MD5_DIGEST_LENGTH 16
 
 #endif /* HAVE_NETTLE_MD5_H */
 
 #endif /* SQUID_MD5_H */
-

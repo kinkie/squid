@@ -9,11 +9,11 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
-#include "cbdata.h"
 #include "StoreSearchUFS.h"
 #include "UFSSwapDir.h"
+#include "cbdata.h"
 
-CBDATA_NAMESPACED_CLASS_INIT(Fs::Ufs,StoreSearchUFS);
+CBDATA_NAMESPACED_CLASS_INIT(Fs::Ufs, StoreSearchUFS);
 
 Fs::Ufs::StoreSearchUFS::StoreSearchUFS(RefCount<UFSSwapDir> aSwapDir) :
     sd(aSwapDir),
@@ -21,7 +21,8 @@ Fs::Ufs::StoreSearchUFS::StoreSearchUFS(RefCount<UFSSwapDir> aSwapDir) :
     cbdata(NULL),
     current(NULL),
     _done(false)
-{}
+{
+}
 
 Fs::Ufs::StoreSearchUFS::~StoreSearchUFS()
 {
@@ -30,7 +31,7 @@ Fs::Ufs::StoreSearchUFS::~StoreSearchUFS()
 }
 
 void
-Fs::Ufs::StoreSearchUFS::next(void (aCallback)(void *cbdata), void *aCallbackArgs)
+Fs::Ufs::StoreSearchUFS::next(void(aCallback)(void *cbdata), void *aCallbackArgs)
 {
     next();
     aCallback(aCallbackArgs);
@@ -69,4 +70,3 @@ Fs::Ufs::StoreSearchUFS::currentItem()
 {
     return current;
 }
-

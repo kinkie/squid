@@ -53,8 +53,8 @@
 void nsError(int nserror, char *server);
 static int compare_hosts(struct hstruct *h1, struct hstruct *h2);
 static void swap(struct hstruct *a, struct hstruct *b);
-static void sort(struct hstruct *array, int nitems, int (*cmp) (struct hstruct *, struct hstruct *), int begin, int end);
-static void msort(struct hstruct *array, size_t nitems, int (*cmp) (struct hstruct *, struct hstruct *));
+static void sort(struct hstruct *array, int nitems, int (*cmp)(struct hstruct *, struct hstruct *), int begin, int end);
+static void msort(struct hstruct *array, size_t nitems, int (*cmp)(struct hstruct *, struct hstruct *));
 
 /*
  * See http://www.ietf.org/rfc/rfc1035.txt
@@ -68,16 +68,16 @@ nsError(int nserror, char *service)
 {
     switch (nserror) {
     case HOST_NOT_FOUND:
-        error((char *) "%s| %s: ERROR: res_search: Unknown service record: %s\n", LogTime(), PROGRAM, service);
+        error((char *)"%s| %s: ERROR: res_search: Unknown service record: %s\n", LogTime(), PROGRAM, service);
         break;
     case NO_DATA:
-        error((char *) "%s| %s: ERROR: res_search: No SRV record for %s\n", LogTime(), PROGRAM, service);
+        error((char *)"%s| %s: ERROR: res_search: No SRV record for %s\n", LogTime(), PROGRAM, service);
         break;
     case TRY_AGAIN:
-        error((char *) "%s| %s: ERROR: res_search: No response for SRV query\n", LogTime(), PROGRAM);
+        error((char *)"%s| %s: ERROR: res_search: No response for SRV query\n", LogTime(), PROGRAM);
         break;
     default:
-        error((char *) "%s| %s: ERROR: res_search: Unexpected error: %s\n", LogTime(), PROGRAM, strerror(nserror));
+        error((char *)"%s| %s: ERROR: res_search: Unexpected error: %s\n", LogTime(), PROGRAM, strerror(nserror));
     }
 }
 
@@ -98,7 +98,7 @@ swap(struct hstruct *a, struct hstruct *b)
 }
 
 static void
-sort(struct hstruct *array, int nitems, int (*cmp) (struct hstruct *, struct hstruct *), int begin, int end)
+sort(struct hstruct *array, int nitems, int (*cmp)(struct hstruct *, struct hstruct *), int begin, int end)
 {
     if (end > begin) {
         int l = begin + 1;
@@ -120,7 +120,7 @@ sort(struct hstruct *array, int nitems, int (*cmp) (struct hstruct *, struct hst
 }
 
 static void
-msort(struct hstruct *array, size_t nitems, int (*cmp) (struct hstruct *, struct hstruct *))
+msort(struct hstruct *array, size_t nitems, int (*cmp)(struct hstruct *, struct hstruct *))
 {
     sort(array, (int)nitems, cmp, 0, (int)(nitems - 1));
 }
@@ -178,9 +178,9 @@ get_hostname_list(struct hstruct **hlist, size_t nhosts, char *name)
         return (nhosts);
 
     hp = *hlist;
-    rc = getaddrinfo((const char *) name, NULL, NULL, &hres);
+    rc = getaddrinfo((const char *)name, NULL, NULL, &hres);
     if (rc != 0) {
-        error((char *) "%s| %s: ERROR: Error while resolving hostname with getaddrinfo: %s\n", LogTime(), PROGRAM, gai_strerror(rc));
+        error((char *)"%s| %s: ERROR: Error while resolving hostname with getaddrinfo: %s\n", LogTime(), PROGRAM, gai_strerror(rc));
         return (nhosts);
     }
     hres_list = hres;
@@ -198,15 +198,15 @@ get_hostname_list(struct hstruct **hlist, size_t nhosts, char *name)
         char host[1024];
         rc = getnameinfo(hres_list->ai_addr, hres_list->ai_addrlen, host, sizeof(host), NULL, 0, 0);
         if (rc != 0) {
-            error((char *) "%s| %s: ERROR: Error while resolving ip address with getnameinfo: %s\n", LogTime(), PROGRAM, gai_strerror(rc));
+            error((char *)"%s| %s: ERROR: Error while resolving ip address with getnameinfo: %s\n", LogTime(), PROGRAM, gai_strerror(rc));
             freeaddrinfo(hres);
             *hlist = hp;
             return (nhosts);
         }
         ++count;
-        debug((char *) "%s| %s: DEBUG: Resolved address %d of %s to %s\n", LogTime(), PROGRAM, count, name, host);
+        debug((char *)"%s| %s: DEBUG: Resolved address %d of %s to %s\n", LogTime(), PROGRAM, count, name, host);
 
-        hp = (struct hstruct *) xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
+        hp = (struct hstruct *)xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
         hp[nhosts].host = xstrdup(host);
         hp[nhosts].port = -1;
         hp[nhosts].priority = -1;
@@ -241,24 +241,23 @@ get_ldap_hostname_list(struct main_args *margs, struct hstruct **hlist, size_t n
 
     ls = margs->lservs;
     while (ls) {
-        debug((char *) "%s| %s: DEBUG: Ldap server loop: lserver@domain %s@%s\n", LogTime(), PROGRAM, ls->lserver, ls->domain?ls->domain:"NULL");
+        debug((char *)"%s| %s: DEBUG: Ldap server loop: lserver@domain %s@%s\n", LogTime(), PROGRAM, ls->lserver, ls->domain ? ls->domain : "NULL");
         if (ls->domain && !strcasecmp(ls->domain, domain)) {
-            debug((char *) "%s| %s: DEBUG: Found lserver@domain %s@%s\n", LogTime(), PROGRAM, ls->lserver, ls->domain);
-            hp = (struct hstruct *) xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
+            debug((char *)"%s| %s: DEBUG: Found lserver@domain %s@%s\n", LogTime(), PROGRAM, ls->lserver, ls->domain);
+            hp = (struct hstruct *)xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
             hp[nhosts].host = xstrdup(ls->lserver);
             hp[nhosts].port = -1;
             hp[nhosts].priority = -2;
             hp[nhosts].weight = -2;
             ++nhosts;
-        } else if ( !ls->domain || !strcasecmp(ls->domain, "") ) {
-            debug((char *) "%s| %s: DEBUG: Found lserver@domain %s@%s\n", LogTime(), PROGRAM, ls->lserver, ls->domain?ls->domain:"NULL");
-            hp = (struct hstruct *) xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
+        } else if (!ls->domain || !strcasecmp(ls->domain, "")) {
+            debug((char *)"%s| %s: DEBUG: Found lserver@domain %s@%s\n", LogTime(), PROGRAM, ls->lserver, ls->domain ? ls->domain : "NULL");
+            hp = (struct hstruct *)xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
             hp[nhosts].host = xstrdup(ls->lserver);
             hp[nhosts].port = -1;
             hp[nhosts].priority = -2;
             hp[nhosts].weight = -2;
             ++nhosts;
-
         }
         ls = ls->next;
     }
@@ -267,10 +266,10 @@ get_ldap_hostname_list(struct main_args *margs, struct hstruct **hlist, size_t n
         goto cleanup;
 
     if (margs->ssl) {
-        service = (char *) xmalloc(strlen("_ldaps._tcp.") + strlen(domain) + 1);
+        service = (char *)xmalloc(strlen("_ldaps._tcp.") + strlen(domain) + 1);
         strcpy(service, "_ldaps._tcp.");
     } else {
-        service = (char *) xmalloc(strlen("_ldap._tcp.") + strlen(domain) + 1);
+        service = (char *)xmalloc(strlen("_ldap._tcp.") + strlen(domain) + 1);
         strcpy(service, "_ldap._tcp.");
     }
     strcat(service, domain);
@@ -284,17 +283,17 @@ get_ldap_hostname_list(struct main_args *margs, struct hstruct **hlist, size_t n
 #endif
 
     hp = *hlist;
-    buffer = (u_char *) xmalloc(PACKETSZ_MULT * NS_PACKETSZ);
-    if ((len = res_search(service, ns_c_in, ns_t_srv, (u_char *) buffer, PACKETSZ_MULT * NS_PACKETSZ)) < 0) {
-        error((char *) "%s| %s: ERROR: Error while resolving service record %s with res_search\n", LogTime(), PROGRAM, service);
+    buffer = (u_char *)xmalloc(PACKETSZ_MULT * NS_PACKETSZ);
+    if ((len = res_search(service, ns_c_in, ns_t_srv, (u_char *)buffer, PACKETSZ_MULT * NS_PACKETSZ)) < 0) {
+        error((char *)"%s| %s: ERROR: Error while resolving service record %s with res_search\n", LogTime(), PROGRAM, service);
         nsError(h_errno, service);
         if (margs->ssl) {
             xfree(service);
-            service = (char *) xmalloc(strlen("_ldap._tcp.") + strlen(domain) + 1);
+            service = (char *)xmalloc(strlen("_ldap._tcp.") + strlen(domain) + 1);
             strcpy(service, "_ldap._tcp.");
             strcat(service, domain);
-            if ((len = res_search(service, ns_c_in, ns_t_srv, (u_char *) buffer, PACKETSZ_MULT * NS_PACKETSZ)) < 0) {
-                error((char *) "%s| %s: ERROR: Error while resolving service record %s with res_search\n", LogTime(), PROGRAM, service);
+            if ((len = res_search(service, ns_c_in, ns_t_srv, (u_char *)buffer, PACKETSZ_MULT * NS_PACKETSZ)) < 0) {
+                error((char *)"%s| %s: ERROR: Error while resolving service record %s with res_search\n", LogTime(), PROGRAM, service);
                 nsError(h_errno, service);
                 goto finalise;
             }
@@ -304,80 +303,80 @@ get_ldap_hostname_list(struct main_args *margs, struct hstruct **hlist, size_t n
     }
     if (len > PACKETSZ_MULT * NS_PACKETSZ) {
         olen = len;
-        buffer = (u_char *) xrealloc(buffer, (size_t)len);
-        if ((len = res_search(service, ns_c_in, ns_t_srv, (u_char *) buffer, len)) < 0) {
-            error((char *) "%s| %s: ERROR: Error while resolving service record %s with res_search\n", LogTime(), PROGRAM, service);
+        buffer = (u_char *)xrealloc(buffer, (size_t)len);
+        if ((len = res_search(service, ns_c_in, ns_t_srv, (u_char *)buffer, len)) < 0) {
+            error((char *)"%s| %s: ERROR: Error while resolving service record %s with res_search\n", LogTime(), PROGRAM, service);
             nsError(h_errno, service);
             goto finalise;
         }
         if (len > olen) {
-            error((char *) "%s| %s: ERROR: Reply to big: buffer: %d reply length: %d\n", LogTime(), PROGRAM, olen, len);
+            error((char *)"%s| %s: ERROR: Reply to big: buffer: %d reply length: %d\n", LogTime(), PROGRAM, olen, len);
             goto finalise;
         }
     }
     p = buffer;
-    p += 6 * NS_INT16SZ;    /* Header(6*16bit) = id + flags + 4*section count */
+    p += 6 * NS_INT16SZ; /* Header(6*16bit) = id + flags + 4*section count */
     if (p > buffer + len) {
-        error((char *) "%s| %s: ERROR: Message to small: %d < header size\n", LogTime(), PROGRAM, len);
+        error((char *)"%s| %s: ERROR: Message to small: %d < header size\n", LogTime(), PROGRAM, len);
         goto finalise;
     }
     if ((size = dn_expand(buffer, buffer + len, p, name, sizeof(name))) < 0) {
-        error((char *) "%s| %s: ERROR: Error while expanding query name with dn_expand:  %s\n", LogTime(), PROGRAM, strerror(errno));
+        error((char *)"%s| %s: ERROR: Error while expanding query name with dn_expand:  %s\n", LogTime(), PROGRAM, strerror(errno));
         goto finalise;
     }
-    p += size;          /* Query name */
-    p += 2 * NS_INT16SZ;    /* Query type + class (2*16bit) */
+    p += size;           /* Query name */
+    p += 2 * NS_INT16SZ; /* Query type + class (2*16bit) */
     if (p > buffer + len) {
-        error((char *) "%s| %s: ERROR: Message to small: %d < header + query name,type,class \n", LogTime(), PROGRAM, len);
+        error((char *)"%s| %s: ERROR: Message to small: %d < header + query name,type,class \n", LogTime(), PROGRAM, len);
         goto finalise;
     }
     while (p < buffer + len) {
         int type, rdlength;
         if ((size = dn_expand(buffer, buffer + len, p, name, sizeof(name))) < 0) {
-            error((char *) "%s| %s: ERROR: Error while expanding answer name with dn_expand:  %s\n", LogTime(), PROGRAM, strerror(errno));
+            error((char *)"%s| %s: ERROR: Error while expanding answer name with dn_expand:  %s\n", LogTime(), PROGRAM, strerror(errno));
             goto finalise;
         }
-        p += size;      /* Resource Record name */
+        p += size; /* Resource Record name */
         if (p > buffer + len) {
-            error((char *) "%s| %s: ERROR: Message to small: %d < header + query name,type,class + answer name\n", LogTime(), PROGRAM, len);
+            error((char *)"%s| %s: ERROR: Message to small: %d < header + query name,type,class + answer name\n", LogTime(), PROGRAM, len);
             goto finalise;
         }
-        NS_GET16(type, p);  /* RR type (16bit) */
-        p += NS_INT16SZ + NS_INT32SZ;   /* RR class + ttl (16bit+32bit) */
+        NS_GET16(type, p);            /* RR type (16bit) */
+        p += NS_INT16SZ + NS_INT32SZ; /* RR class + ttl (16bit+32bit) */
         if (p > buffer + len) {
-            error((char *) "%s| %s: ERROR: Message to small: %d < header + query name,type,class + answer name + RR type,class,ttl\n", LogTime(), PROGRAM, len);
+            error((char *)"%s| %s: ERROR: Message to small: %d < header + query name,type,class + answer name + RR type,class,ttl\n", LogTime(), PROGRAM, len);
             goto finalise;
         }
-        NS_GET16(rdlength, p);  /* RR data length (16bit) */
+        NS_GET16(rdlength, p); /* RR data length (16bit) */
 
         if (type == ns_t_srv) { /* SRV record */
             int priority, weight, port;
             char host[NS_MAXDNAME];
             if (p > buffer + len) {
-                error((char *) "%s| %s: ERROR: Message to small: %d < header + query name,type,class + answer name + RR type,class,ttl + RR data length\n", LogTime(), PROGRAM, len);
+                error((char *)"%s| %s: ERROR: Message to small: %d < header + query name,type,class + answer name + RR type,class,ttl + RR data length\n", LogTime(), PROGRAM, len);
                 goto finalise;
             }
-            NS_GET16(priority, p);  /* Priority (16bit) */
+            NS_GET16(priority, p); /* Priority (16bit) */
             if (p > buffer + len) {
-                error((char *) "%s| %s: ERROR: Message to small: %d <  SRV RR + priority\n", LogTime(), PROGRAM, len);
+                error((char *)"%s| %s: ERROR: Message to small: %d <  SRV RR + priority\n", LogTime(), PROGRAM, len);
                 goto finalise;
             }
-            NS_GET16(weight, p);    /* Weight (16bit) */
+            NS_GET16(weight, p); /* Weight (16bit) */
             if (p > buffer + len) {
-                error((char *) "%s| %s: ERROR: Message to small: %d <  SRV RR + priority + weight\n", LogTime(), PROGRAM, len);
+                error((char *)"%s| %s: ERROR: Message to small: %d <  SRV RR + priority + weight\n", LogTime(), PROGRAM, len);
                 goto finalise;
             }
-            NS_GET16(port, p);  /* Port (16bit) */
+            NS_GET16(port, p); /* Port (16bit) */
             if (p > buffer + len) {
-                error((char *) "%s| %s: ERROR: Message to small: %d <  SRV RR + priority + weight + port\n", LogTime(), PROGRAM, len);
+                error((char *)"%s| %s: ERROR: Message to small: %d <  SRV RR + priority + weight + port\n", LogTime(), PROGRAM, len);
                 goto finalise;
             }
             if ((size = dn_expand(buffer, buffer + len, p, host, NS_MAXDNAME)) < 0) {
-                error((char *) "%s| %s: ERROR: Error while expanding SRV RR name with dn_expand:  %s\n", LogTime(), PROGRAM, strerror(errno));
+                error((char *)"%s| %s: ERROR: Error while expanding SRV RR name with dn_expand:  %s\n", LogTime(), PROGRAM, strerror(errno));
                 goto finalise;
             }
-            debug((char *) "%s| %s: DEBUG: Resolved SRV %s record to %s\n", LogTime(), PROGRAM, service, host);
-            hp = (struct hstruct *) xrealloc(hp, sizeof(struct hstruct) * (nh + 1));
+            debug((char *)"%s| %s: DEBUG: Resolved SRV %s record to %s\n", LogTime(), PROGRAM, service, host);
+            hp = (struct hstruct *)xrealloc(hp, sizeof(struct hstruct) * (nh + 1));
             hp[nh].host = xstrdup(host);
             hp[nh].port = port;
             hp[nh].priority = priority;
@@ -388,7 +387,7 @@ get_ldap_hostname_list(struct main_args *margs, struct hstruct **hlist, size_t n
             p += rdlength;
         }
         if (p > buffer + len) {
-            error((char *) "%s| %s: ERROR: Message to small: %d <  SRV RR + priority + weight + port + name\n", LogTime(), PROGRAM, len);
+            error((char *)"%s| %s: ERROR: Message to small: %d <  SRV RR + priority + weight + port + name\n", LogTime(), PROGRAM, len);
             goto finalise;
         }
     }
@@ -396,7 +395,7 @@ get_ldap_hostname_list(struct main_args *margs, struct hstruct **hlist, size_t n
 #if (SIZEOF_LONG == 8)
         error("%s| %s: ERROR: Inconsistence message length: %ld!=0\n", LogTime(), PROGRAM, buffer + len - p);
 #else
-        error((char *) "%s| %s: ERROR: Inconsistence message length: %d!=0\n", LogTime(), PROGRAM, buffer + len - p);
+        error((char *)"%s| %s: ERROR: Inconsistence message length: %d!=0\n", LogTime(), PROGRAM, buffer + len - p);
 #endif
         goto finalise;
     }
@@ -406,7 +405,7 @@ finalise:
 
     debug("%s| %s: DEBUG: Adding %s to list\n", LogTime(), PROGRAM, domain);
 
-    hp = (struct hstruct *) xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
+    hp = (struct hstruct *)xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
     hp[nhosts].host = xstrdup(domain);
     hp[nhosts].port = -1;
     hp[nhosts].priority = -2;
@@ -418,9 +417,7 @@ cleanup:
     for (i = 0; i < nhosts; ++i) {
         for (j = i + 1; j < nhosts; ++j) {
             if (!strcasecmp(hp[i].host, hp[j].host)) {
-                if (hp[i].port == hp[j].port ||
-                        (hp[i].port == -1 && hp[j].port == 389) ||
-                        (hp[i].port == 389 && hp[j].port == -1)) {
+                if (hp[i].port == hp[j].port || (hp[i].port == -1 && hp[j].port == 389) || (hp[i].port == 389 && hp[j].port == -1)) {
                     xfree(hp[j].host);
                     for (k = j + 1; k < nhosts; ++k) {
                         hp[k - 1].host = hp[k].host;
@@ -430,7 +427,7 @@ cleanup:
                     }
                     --j;
                     --nhosts;
-                    hp = (struct hstruct *) xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
+                    hp = (struct hstruct *)xrealloc(hp, sizeof(struct hstruct) * (nhosts + 1));
                 }
             }
         }
@@ -440,9 +437,9 @@ cleanup:
     msort(hp, (size_t)nhosts, compare_hosts);
 
     if (debug_enabled) {
-        debug((char *) "%s| %s: DEBUG: Sorted ldap server names for domain %s:\n", LogTime(), PROGRAM, domain);
+        debug((char *)"%s| %s: DEBUG: Sorted ldap server names for domain %s:\n", LogTime(), PROGRAM, domain);
         for (i = 0; i < nhosts; ++i) {
-            debug((char *) "%s| %s: DEBUG: Host: %s Port: %d Priority: %d Weight: %d\n", LogTime(), PROGRAM, hp[i].host, hp[i].port, hp[i].priority, hp[i].weight);
+            debug((char *)"%s| %s: DEBUG: Host: %s Port: %d Priority: %d Weight: %d\n", LogTime(), PROGRAM, hp[i].host, hp[i].port, hp[i].priority, hp[i].weight);
         }
     }
     xfree(buffer);
@@ -451,4 +448,3 @@ cleanup:
     return (nhosts);
 }
 #endif
-

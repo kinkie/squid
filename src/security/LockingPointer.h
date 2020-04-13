@@ -20,24 +20,29 @@
 // Macro to be used to define the C++ wrapper function of a sk_*_pop_free
 // openssl family functions. The C++ function suffixed with the _free_wrapper
 // extension
-#define sk_free_wrapper(sk_object, argument, freefunction) \
-        extern "C++" inline void sk_object ## _free_wrapper(argument a) { \
-            sk_object ## _pop_free(a, freefunction); \
-        }
+#define sk_free_wrapper(sk_object, argument, freefunction)        \
+    extern "C++" inline void sk_object##_free_wrapper(argument a) \
+    {                                                             \
+        sk_object##_pop_free(a, freefunction);                    \
+    }
 
 #endif /* USE_OPENSSL */
 
 // Macro to be used to define the C++ equivalent function of an extern "C"
 // function. The C++ function suffixed with the _cpp extension
-#define CtoCpp1(function, argument) \
-        extern "C++" inline void function ## _cpp(argument a) { \
-            function(a); \
-        }
+#define CtoCpp1(function, argument)                     \
+    extern "C++" inline void function##_cpp(argument a) \
+    {                                                   \
+        function(a);                                    \
+    }
 
-namespace Security
+namespace Security {
+
+inline bool
+nilFunction(const void *)
 {
-
-inline bool nilFunction(const void *) { return false; }
+    return false;
+}
 typedef HardFun<bool, const void *, nilFunction> NilFunctor;
 
 /**
@@ -63,7 +68,9 @@ public:
      * created one reference lock for the object pointed to.
      * Our destructor will do the matching unlock.
      */
-    explicit LockingPointer(T *t = nullptr): raw(nullptr) {
+    explicit LockingPointer(T *t = nullptr) :
+        raw(nullptr)
+    {
         // de-optimized for clarity about non-locking
         resetWithoutLocking(t);
     }
@@ -72,40 +79,48 @@ public:
     ~LockingPointer() { unlock(); }
 
     // copy semantics are okay only when adding a lock reference
-    LockingPointer(const SelfType &o) : raw(nullptr) {
+    LockingPointer(const SelfType &o) :
+        raw(nullptr)
+    {
         resetAndLock(o.get());
     }
-    const SelfType &operator =(const SelfType &o) {
+    const SelfType &operator=(const SelfType &o)
+    {
         resetAndLock(o.get());
         return *this;
     }
 
-    LockingPointer(SelfType &&o) : raw(nullptr) {
+    LockingPointer(SelfType &&o) :
+        raw(nullptr)
+    {
         resetWithoutLocking(o.release());
     }
-    SelfType &operator =(SelfType &&o) {
+    SelfType &operator=(SelfType &&o)
+    {
         if (o.get() != raw)
             resetWithoutLocking(o.release());
         return *this;
     }
 
-    bool operator !() const { return !raw; }
+    bool operator!() const { return !raw; }
     explicit operator bool() const { return raw; }
-    bool operator ==(const SelfType &o) const { return (o.get() == raw); }
-    bool operator !=(const SelfType &o) const { return (o.get() != raw); }
+    bool operator==(const SelfType &o) const { return (o.get() == raw); }
+    bool operator!=(const SelfType &o) const { return (o.get() != raw); }
 
-    T *operator ->() const { return raw; }
+    T *operator->() const { return raw; }
 
     /// Returns raw and possibly nullptr pointer
     T *get() const { return raw; }
 
     /// Reset raw pointer - unlock any previous one and save new one without locking.
-    void resetWithoutLocking(T *t) {
+    void resetWithoutLocking(T *t)
+    {
         unlock();
         raw = t;
     }
 
-    void resetAndLock(T *t) {
+    void resetAndLock(T *t)
+    {
         if (t != get()) {
             resetWithoutLocking(t);
             lock(t);
@@ -116,7 +131,8 @@ public:
     void reset() { unlock(); }
 
     /// Forget the raw pointer without unlocking it. Become a nil pointer.
-    T *release() {
+    T *release()
+    {
         T *ret = raw;
         raw = nullptr;
         return ret;
@@ -124,7 +140,8 @@ public:
 
 private:
     /// The lock() method increments Object's reference counter.
-    void lock(T *t) {
+    void lock(T *t)
+    {
         if (t) {
             Locker doLock;
             doLock(t);
@@ -133,7 +150,8 @@ private:
 
     /// Become a nil pointer. Decrements any pointed-to Object's reference counter
     /// using UnLocker which ideally destroys the object when the counter reaches zero.
-    void unlock() {
+    void unlock()
+    {
         if (raw) {
             UnLocker(raw);
             raw = nullptr;
@@ -155,7 +173,6 @@ private:
     T *raw;
 };
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_LOCKINGPOINTER_H */
-

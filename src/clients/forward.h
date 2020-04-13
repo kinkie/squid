@@ -15,17 +15,16 @@ class FwdState;
 class HttpRequest;
 
 class AsyncJob;
-template <class Cbc> class CbcPointer;
+template <class Cbc>
+class CbcPointer;
 typedef CbcPointer<AsyncJob> AsyncJobPointer;
 
-namespace Http
-{
+namespace Http {
 class Tunneler;
 class TunnelerAnswer;
 }
 
-namespace Ftp
-{
+namespace Ftp {
 
 /// A new FTP Gateway job
 AsyncJobPointer StartGateway(FwdState *const fwdState);
@@ -45,7 +44,6 @@ AsyncJobPointer StartRelay(FwdState *const fwdState);
  */
 const SBuf &UrlWith2f(HttpRequest *);
 
-} // namespace Ftp
+}  // namespace Ftp
 
 #endif /* SQUID_CLIENTS_FORWARD_H */
-

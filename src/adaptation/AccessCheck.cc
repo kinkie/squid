@@ -7,9 +7,12 @@
  */
 
 #include "squid.h"
-#include "AccessLogEntry.h"
-#include "acl/FilledChecklist.h"
 #include "adaptation/AccessCheck.h"
+#include "AccessLogEntry.h"
+#include "ConfigParser.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "acl/FilledChecklist.h"
 #include "adaptation/AccessRule.h"
 #include "adaptation/Config.h"
 #include "adaptation/Initiator.h"
@@ -17,10 +20,7 @@
 #include "adaptation/ServiceGroups.h"
 #include "base/AsyncJobCalls.h"
 #include "base/TextException.h"
-#include "ConfigParser.h"
 #include "globals.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 
 /** \cond AUTODOCS_IGNORE */
 cbdata_type Adaptation::AccessCheck::CBDATA_AccessCheck = CBDATA_UNKNOWN;
@@ -34,8 +34,8 @@ Adaptation::AccessCheck::Start(Method method, VectPoint vp,
 
     if (Config::Enabled) {
         // the new check will call the callback and delete self, eventually
-        AsyncJob::Start(new AccessCheck( // we do not store so not a CbcPointer
-                            ServiceFilter(method, vp, req, rep, al), initiator));
+        AsyncJob::Start(new AccessCheck(  // we do not store so not a CbcPointer
+            ServiceFilter(method, vp, req, rep, al), initiator));
         return true;
     }
 
@@ -44,8 +44,9 @@ Adaptation::AccessCheck::Start(Method method, VectPoint vp,
 }
 
 Adaptation::AccessCheck::AccessCheck(const ServiceFilter &aFilter,
-                                     Adaptation::Initiator *initiator):
-    AsyncJob("AccessCheck"), filter(aFilter),
+                                     Adaptation::Initiator *initiator) :
+    AsyncJob("AccessCheck"),
+    filter(aFilter),
     theInitiator(initiator),
     acl_checklist(NULL)
 {
@@ -55,8 +56,7 @@ Adaptation::AccessCheck::AccessCheck(const ServiceFilter &aFilter,
         h->start("ACL");
 #endif
 
-    debugs(93, 5, HERE << "AccessCheck constructed for " <<
-           methodStr(filter.method) << " " << vectPointStr(filter.point));
+    debugs(93, 5, HERE << "AccessCheck constructed for " << methodStr(filter.method) << " " << vectPointStr(filter.point));
 }
 
 Adaptation::AccessCheck::~AccessCheck()
@@ -83,15 +83,15 @@ Adaptation::AccessCheck::usedDynamicRules()
 {
     Adaptation::History::Pointer ah = filter.request->adaptHistory();
     if (!ah)
-        return false; // dynamic rules not enabled or not triggered
+        return false;  // dynamic rules not enabled or not triggered
 
     DynamicGroupCfg services;
-    if (!ah->extractFutureServices(services)) { // clears history
-        debugs(85,9, HERE << "no service-proposed rules stored");
-        return false; // earlier service did not plan for the future
+    if (!ah->extractFutureServices(services)) {  // clears history
+        debugs(85, 9, HERE << "no service-proposed rules stored");
+        return false;  // earlier service did not plan for the future
     }
 
-    debugs(85,3, HERE << "using stored service-proposed rules: " << services);
+    debugs(85, 3, HERE << "using stored service-proposed rules: " << services);
 
     ServiceGroupPointer g = new DynamicServiceChain(services, filter);
     callBack(g);
@@ -140,7 +140,7 @@ Adaptation::AccessCheck::checkCandidates()
             return;
         }
 
-        candidates.erase(candidates.begin()); // the rule apparently went away (reconfigure)
+        candidates.erase(candidates.begin());  // the rule apparently went away (reconfigure)
     }
 
     debugs(93, 4, HERE << "NO candidates left");
@@ -152,7 +152,7 @@ void
 Adaptation::AccessCheck::AccessCheckCallbackWrapper(Acl::Answer answer, void *data)
 {
     debugs(93, 8, HERE << "callback answer=" << answer);
-    AccessCheck *ac = (AccessCheck*)data;
+    AccessCheck *ac = (AccessCheck *)data;
 
     /** \todo AYJ 2008-06-12: If answer == ACCESS_AUTH_REQUIRED
      * we should be kicking off an authentication before continuing
@@ -161,23 +161,21 @@ Adaptation::AccessCheck::AccessCheckCallbackWrapper(Acl::Answer answer, void *da
 
     // convert to async call to get async call protections and features
     typedef UnaryMemFunT<AccessCheck, Acl::Answer> MyDialer;
-    AsyncCall::Pointer call =
-        asyncCall(93,7, "Adaptation::AccessCheck::noteAnswer",
-                  MyDialer(ac, &Adaptation::AccessCheck::noteAnswer, answer));
+    AsyncCall::Pointer call = asyncCall(93, 7, "Adaptation::AccessCheck::noteAnswer",
+                                        MyDialer(ac, &Adaptation::AccessCheck::noteAnswer, answer));
     ScheduleCallHere(call);
-
 }
 
 /// process the results of the ACL check
 void
 Adaptation::AccessCheck::noteAnswer(Acl::Answer answer)
 {
-    Must(!candidates.empty()); // the candidate we were checking must be there
-    debugs(93,5, HERE << topCandidate() << " answer=" << answer);
+    Must(!candidates.empty());  // the candidate we were checking must be there
+    debugs(93, 5, HERE << topCandidate() << " answer=" << answer);
 
-    if (answer.allowed()) { // the rule matched
+    if (answer.allowed()) {  // the rule matched
         ServiceGroupPointer g = topGroup();
-        if (g != NULL) { // the corresponding group found
+        if (g != NULL) {  // the corresponding group found
             callBack(g);
             Must(done());
             return;
@@ -194,10 +192,10 @@ Adaptation::AccessCheck::noteAnswer(Acl::Answer answer)
 void
 Adaptation::AccessCheck::callBack(const ServiceGroupPointer &g)
 {
-    debugs(93,3, HERE << g);
+    debugs(93, 3, HERE << g);
     CallJobHere1(93, 5, theInitiator, Adaptation::Initiator,
                  noteAdaptationAclCheckDone, g);
-    mustStop("done"); // called back or will never be able to call back
+    mustStop("done");  // called back or will never be able to call back
 }
 
 Adaptation::ServiceGroupPointer
@@ -207,12 +205,12 @@ Adaptation::AccessCheck::topGroup() const
     if (candidates.size()) {
         if (AccessRule *r = FindRule(topCandidate())) {
             g = FindGroup(r->groupId);
-            debugs(93,5, HERE << "top group for " << r->id << " is " << g);
+            debugs(93, 5, HERE << "top group for " << r->id << " is " << g);
         } else {
-            debugs(93,5, HERE << "no rule for " << topCandidate());
+            debugs(93, 5, HERE << "no rule for " << topCandidate());
         }
     } else {
-        debugs(93,5, HERE << "no candidates"); // should not happen
+        debugs(93, 5, HERE << "no candidates");  // should not happen
     }
 
     return g;
@@ -223,18 +221,16 @@ Adaptation::AccessCheck::topGroup() const
 bool
 Adaptation::AccessCheck::isCandidate(AccessRule &r)
 {
-    debugs(93,7,HERE << "checking candidacy of " << r.id << ", group " <<
-           r.groupId);
+    debugs(93, 7, HERE << "checking candidacy of " << r.id << ", group " << r.groupId);
 
     ServiceGroupPointer g = FindGroup(r.groupId);
 
     if (!g) {
-        debugs(93,7,HERE << "lost " << r.groupId << " group in rule" << r.id);
+        debugs(93, 7, HERE << "lost " << r.groupId << " group in rule" << r.id);
         return false;
     }
 
     const bool wants = g->wants(filter);
-    debugs(93,7,HERE << r.groupId << (wants ? " wants" : " ignores"));
+    debugs(93, 7, HERE << r.groupId << (wants ? " wants" : " ignores"));
     return wants;
 }
-

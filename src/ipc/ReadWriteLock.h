@@ -14,8 +14,7 @@
 
 class StoreEntry;
 
-namespace Ipc
-{
+namespace Ipc {
 
 class ReadWriteLockStats;
 
@@ -26,38 +25,40 @@ class ReadWriteLockStats;
 class ReadWriteLock
 {
 public:
-    ReadWriteLock() : readers(0), writing(false), appending(false), readLevel(0), writeLevel(0)
-    {}
+    ReadWriteLock() :
+        readers(0), writing(false), appending(false), readLevel(0), writeLevel(0)
+    {
+    }
 
-    bool lockShared(); ///< lock for reading or return false
-    bool lockExclusive(); ///< lock for modification or return false
-    bool lockHeaders(); ///< lock for [readable] metadata update or return false
-    void unlockShared(); ///< undo successful sharedLock()
-    void unlockExclusive(); ///< undo successful exclusiveLock()
-    void unlockHeaders(); ///< undo successful lockHeaders()
-    void switchExclusiveToShared(); ///< stop writing, start reading
+    bool lockShared();               ///< lock for reading or return false
+    bool lockExclusive();            ///< lock for modification or return false
+    bool lockHeaders();              ///< lock for [readable] metadata update or return false
+    void unlockShared();             ///< undo successful sharedLock()
+    void unlockExclusive();          ///< undo successful exclusiveLock()
+    void unlockHeaders();            ///< undo successful lockHeaders()
+    void switchExclusiveToShared();  ///< stop writing, start reading
     /// same as unlockShared() but also attempts to get a writer lock beforehand
     /// \returns whether the writer lock was acquired
     bool unlockSharedAndSwitchToExclusive();
 
-    void startAppending(); ///< writer keeps its lock but also allows reading
+    void startAppending();  ///< writer keeps its lock but also allows reading
 
     /// adds approximate current stats to the supplied ones
     void updateStats(ReadWriteLockStats &stats) const;
 
 public:
-    mutable std::atomic<uint32_t> readers; ///< number of reading users
-    std::atomic<bool> writing; ///< there is a writing user (there can be at most 1)
-    std::atomic<bool> appending; ///< the writer has promised to only append
-    std::atomic_flag updating; ///< a reader is updating metadata/headers
+    mutable std::atomic<uint32_t> readers;  ///< number of reading users
+    std::atomic<bool> writing;              ///< there is a writing user (there can be at most 1)
+    std::atomic<bool> appending;            ///< the writer has promised to only append
+    std::atomic_flag updating;              ///< a reader is updating metadata/headers
 
 private:
-    mutable std::atomic<uint32_t> readLevel; ///< number of users reading (or trying to)
-    std::atomic<uint32_t> writeLevel; ///< number of users writing (or trying to write)
+    mutable std::atomic<uint32_t> readLevel;  ///< number of users reading (or trying to)
+    std::atomic<uint32_t> writeLevel;         ///< number of users writing (or trying to write)
 };
 
 /// dumps approximate lock state (for debugging)
-std::ostream &operator <<(std::ostream &os, const Ipc::ReadWriteLock &);
+std::ostream &operator<<(std::ostream &os, const Ipc::ReadWriteLock &);
 
 /// approximate stats of a set of ReadWriteLocks
 class ReadWriteLockStats
@@ -67,13 +68,13 @@ public:
 
     void dump(StoreEntry &e) const;
 
-    int count; ///< the total number of locks
-    int readable; ///< number of locks locked for reading
-    int writeable; ///< number of locks locked for writing
-    int idle; ///< number of unlocked locks
-    int readers; ///< sum of lock.readers
-    int writers; ///< sum of lock.writers
-    int appenders; ///< number of appending writers
+    int count;      ///< the total number of locks
+    int readable;   ///< number of locks locked for reading
+    int writeable;  ///< number of locks locked for writing
+    int idle;       ///< number of unlocked locks
+    int readers;    ///< sum of lock.readers
+    int writers;    ///< sum of lock.writers
+    int appenders;  ///< number of appending writers
 };
 
 /// Same as assert(flag is set): The process assert()s if flag is not set.
@@ -81,7 +82,6 @@ public:
 /// Needed because atomic_flag cannot be compared with a boolean.
 void AssertFlagIsSet(std::atomic_flag &flag);
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_READ_WRITE_LOCK_H */
-

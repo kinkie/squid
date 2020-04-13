@@ -11,8 +11,8 @@
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "MemBuf.h"
-#include "proxyp/Header.h"
 #include "SquidConfig.h"
+#include "proxyp/Header.h"
 #include "ssl/support.h"
 
 void
@@ -26,9 +26,9 @@ AccessLogEntry::getLogClientIp(char *buf, size_t bufsz) const
     else
 #endif
         if (tcpClient)
-            log_ip = tcpClient->remote;
-        else
-            log_ip = cache.caddr;
+        log_ip = tcpClient->remote;
+    else
+        log_ip = cache.caddr;
 
     // internally generated requests (and some ICAP) lack client IP
     if (log_ip.isNoAddr()) {
@@ -148,7 +148,7 @@ AccessLogEntry::detailCodeContext(std::ostream &os) const
     else if (!cache.caddr.isNoAddr())
         return os << Debug::Extra << "current client: " << cache.caddr;
 
-    const auto optionalMethod = [this,&os]() {
+    const auto optionalMethod = [this, &os]() {
         if (hasLogMethod())
             os << getLogMethod() << ' ';
         return "";
@@ -181,4 +181,3 @@ AccessLogEntry::packReplyHeaders(MemBuf &mb) const
     if (reply)
         reply->packHeadersUsingFastPacker(mb);
 }
-

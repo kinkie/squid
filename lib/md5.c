@@ -43,26 +43,24 @@
 #if !HAVE_NETTLE_MD5_H
 
 #if HAVE_STRING_H
-#include <string.h>     /* for memcpy() */
+#include <string.h> /* for memcpy() */
 #endif
 #if HAVE_SYS_TYPES_H
-#include <sys/types.h>      /* for stupid systems */
+#include <sys/types.h> /* for stupid systems */
 #endif
 
 #ifdef WORDS_BIGENDIAN
-void
-static byteSwap(uint32_t * buf, unsigned words)
+void static byteSwap(uint32_t *buf, unsigned words)
 {
-    uint8_t *p = (uint8_t *) buf;
+    uint8_t *p = (uint8_t *)buf;
 
     do {
-        *buf++ = (uint32_t) ((unsigned) p[3] << 8 | p[2]) << 16 |
-                 ((unsigned) p[1] << 8 | p[0]);
+        *buf++ = (uint32_t)((unsigned)p[3] << 8 | p[2]) << 16 | ((unsigned)p[1] << 8 | p[0]);
         p += 4;
     } while (--words);
 }
 #else
-#define byteSwap(buf,words)
+#define byteSwap(buf, words)
 #endif
 
 /*
@@ -95,15 +93,15 @@ SquidMD5Update(struct SquidMD5Context *ctx, const void *_buf, unsigned len)
 
     t = ctx->bytes[0];
     if ((ctx->bytes[0] = t + len) < t)
-        ctx->bytes[1]++;    /* Carry from low to high */
+        ctx->bytes[1]++; /* Carry from low to high */
 
-    t = 64 - (t & 0x3f);    /* Space available in ctx->in (at least 1) */
+    t = 64 - (t & 0x3f); /* Space available in ctx->in (at least 1) */
     if (t > len) {
-        memcpy((uint8_t *) ctx->in + 64 - t, buf, len);
+        memcpy((uint8_t *)ctx->in + 64 - t, buf, len);
         return;
     }
     /* First chunk is an odd size */
-    memcpy((uint8_t *) ctx->in + 64 - t, buf, t);
+    memcpy((uint8_t *)ctx->in + 64 - t, buf, t);
     byteSwap(ctx->in, 16);
     SquidMD5Transform(ctx->buf, ctx->in);
     buf += t;
@@ -129,8 +127,8 @@ SquidMD5Update(struct SquidMD5Context *ctx, const void *_buf, unsigned len)
 void
 SquidMD5Final(unsigned char digest[16], struct SquidMD5Context *ctx)
 {
-    int count = ctx->bytes[0] & 0x3f;   /* Number of bytes in ctx->in */
-    uint8_t *p = (uint8_t *) ctx->in + count;
+    int count = ctx->bytes[0] & 0x3f; /* Number of bytes in ctx->in */
+    uint8_t *p = (uint8_t *)ctx->in + count;
 
     /* Set the first char of padding to 0x80.  There is always room. */
     *p++ = 0x80;
@@ -138,11 +136,11 @@ SquidMD5Final(unsigned char digest[16], struct SquidMD5Context *ctx)
     /* Bytes of padding needed to make 56 bytes (-8..55) */
     count = 56 - 1 - count;
 
-    if (count < 0) {        /* Padding forces an extra block */
+    if (count < 0) { /* Padding forces an extra block */
         memset(p, 0, count + 8);
         byteSwap(ctx->in, 16);
         SquidMD5Transform(ctx->buf, ctx->in);
-        p = (uint8_t *) ctx->in;
+        p = (uint8_t *)ctx->in;
         count = 56;
     }
     memset(p, 0, count);
@@ -155,7 +153,7 @@ SquidMD5Final(unsigned char digest[16], struct SquidMD5Context *ctx)
 
     byteSwap(ctx->buf, 4);
     memcpy(digest, ctx->buf, 16);
-    memset(ctx, 0, sizeof(*ctx));   /* In case it's sensitive */
+    memset(ctx, 0, sizeof(*ctx)); /* In case it's sensitive */
 }
 
 #ifndef ASM_MD5
@@ -169,8 +167,8 @@ SquidMD5Final(unsigned char digest[16], struct SquidMD5Context *ctx)
 #define F4(x, y, z) (y ^ (x | ~z))
 
 /* This is the central step in the MD5 algorithm. */
-#define MD5STEP(f,w,x,y,z,in,s) \
-     (w += f(x,y,z) + in, w = (w<<s | w>>(32-s)) + x)
+#define MD5STEP(f, w, x, y, z, in, s) \
+    (w += f(x, y, z) + in, w = (w << s | w >> (32 - s)) + x)
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to
@@ -263,4 +261,3 @@ SquidMD5Transform(uint32_t buf[4], uint32_t const in[16])
 
 #endif /* !ASM_MD5 */
 #endif /* HAVE_ETTLE_MD5_H */
-

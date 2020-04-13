@@ -19,6 +19,5 @@
 #define APP_SHORTNAME "squid"
 #endif
 #ifndef APP_FULLNAME
-#define APP_FULLNAME  PACKAGE "/" VERSION
+#define APP_FULLNAME PACKAGE "/" VERSION
 #endif
-

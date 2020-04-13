@@ -9,8 +9,8 @@
 /* DEBUG: section 47    Store Directory Routines */
 
 #include "squid.h"
-#include "MmappedFile.h"
 #include "MmappedIOStrategy.h"
+#include "MmappedFile.h"
 #include "unlinkd.h"
 
 bool
@@ -27,9 +27,9 @@ MmappedIOStrategy::load()
 }
 
 DiskFile::Pointer
-MmappedIOStrategy::newFile (char const *path)
+MmappedIOStrategy::newFile(char const *path)
 {
-    return new MmappedFile (path);
+    return new MmappedFile(path);
 }
 
 bool
@@ -43,4 +43,3 @@ MmappedIOStrategy::unlinkFile(char const *path)
 {
     unlinkdUnlink(path);
 }
-

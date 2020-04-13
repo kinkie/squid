@@ -13,14 +13,14 @@
 
 class testCharacterSet : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testCharacterSet );
-    CPPUNIT_TEST( CharacterSetConstruction );
-    CPPUNIT_TEST( CharacterSetAdd );
-    CPPUNIT_TEST( CharacterSetAddRange );
-    CPPUNIT_TEST( CharacterSetEqualityOp );
-    CPPUNIT_TEST( CharacterSetConstants );
-    CPPUNIT_TEST( CharacterSetUnion );
-    CPPUNIT_TEST( CharacterSetSubtract );
+    CPPUNIT_TEST_SUITE(testCharacterSet);
+    CPPUNIT_TEST(CharacterSetConstruction);
+    CPPUNIT_TEST(CharacterSetAdd);
+    CPPUNIT_TEST(CharacterSetAddRange);
+    CPPUNIT_TEST(CharacterSetEqualityOp);
+    CPPUNIT_TEST(CharacterSetConstants);
+    CPPUNIT_TEST(CharacterSetUnion);
+    CPPUNIT_TEST(CharacterSetSubtract);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -34,4 +34,3 @@ protected:
 };
 
 #endif /* SQUID_BASE_TESTCHARACTERSET_H */
-

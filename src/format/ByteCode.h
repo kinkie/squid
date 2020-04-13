@@ -21,14 +21,13 @@
  * functionality to produce formatted buffers.
  */
 
-namespace Format
-{
+namespace Format {
 
 /*
  * Bytecodes for the configurable format stuff
  */
 typedef enum {
-    LFT_NONE,           /* dummy */
+    LFT_NONE, /* dummy */
 
     /* arbitrary string between tokens */
     LFT_STRING,
@@ -146,7 +145,7 @@ typedef enum {
     LFT_CLIENT_IO_SIZE_TOTAL,
 
     /* client credentials */
-    LFT_USER_NAME,   /* any source will do */
+    LFT_USER_NAME, /* any source will do */
     LFT_USER_LOGIN,
     LFT_USER_IDENT,
     /*LFT_USER_REALM, */
@@ -159,7 +158,7 @@ typedef enum {
     LFT_TIME_SUBSECOND,
     LFT_TIME_LOCALTIME,
     LFT_TIME_GMT,
-    LFT_TIME_START, // the time the master transaction started
+    LFT_TIME_START,  // the time the master transaction started
 
     /* processing time details */
     LFT_TIME_TO_HANDLE_REQUEST,
@@ -234,10 +233,10 @@ typedef enum {
 #endif
 
     LFT_NOTE,
-    LFT_PERCENT,            /* special string cases for escaped chars */
+    LFT_PERCENT, /* special string cases for escaped chars */
     LFT_MASTER_XACTION,
 
-    // TODO assign better bytecode names and Token strings for these
+// TODO assign better bytecode names and Token strings for these
 #if USE_OPENSSL
     LFT_EXT_ACL_USER_CERT_RAW,
     LFT_EXT_ACL_USER_CERTCHAIN_RAW,
@@ -265,7 +264,6 @@ enum Quoting {
     LOG_QUOTE_RAW
 };
 
-} // namespace Format
+}  // namespace Format
 
 #endif /* _SQUID_FMT_BYTECODE_H */
-

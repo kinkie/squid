@@ -11,14 +11,14 @@
 #include "squid.h"
 
 #if USE_UNLINKD
-#include "fd.h"
-#include "fde.h"
-#include "fs_io.h"
-#include "globals.h"
 #include "SquidConfig.h"
 #include "SquidIpc.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
+#include "fd.h"
+#include "fde.h"
+#include "fs_io.h"
+#include "globals.h"
 #include "store/Disk.h"
 #include "tools.h"
 #include "xusleep.h"
@@ -28,7 +28,7 @@
 static int unlinkd_wfd = -1;
 static int unlinkd_rfd = -1;
 
-static void * hIpc;
+static void *hIpc;
 static pid_t pid;
 
 #define UNLINKD_QUEUE_LIMIT 20
@@ -191,7 +191,7 @@ void
 unlinkdInit(void)
 {
     if (unlinkd_wfd >= 0)
-        return; // unlinkd already started
+        return;  // unlinkd already started
 
     const char *args[2];
     Ip::Address localhost;
@@ -202,22 +202,22 @@ unlinkdInit(void)
 
     pid = ipcCreate(
 #if USE_POLL && _SQUID_OSF_
-              /* pipes and poll() don't get along on DUNIX -DW */
-              IPC_STREAM,
+        /* pipes and poll() don't get along on DUNIX -DW */
+        IPC_STREAM,
 #elif _SQUID_WINDOWS_
-              /* select() will fail on a pipe */
-              IPC_TCP_SOCKET,
+        /* select() will fail on a pipe */
+        IPC_TCP_SOCKET,
 #else
-              /* We currently need to use FIFO.. see below */
-              IPC_FIFO,
+        /* We currently need to use FIFO.. see below */
+        IPC_FIFO,
 #endif
-              Config.Program.unlinkd,
-              args,
-              "unlinkd",
-              localhost,
-              &unlinkd_rfd,
-              &unlinkd_wfd,
-              &hIpc);
+        Config.Program.unlinkd,
+        args,
+        "unlinkd",
+        localhost,
+        &unlinkd_rfd,
+        &unlinkd_wfd,
+        &hIpc);
 
     if (pid < 0)
         fatal("Failed to create unlinkd subprocess");
@@ -250,7 +250,5 @@ unlinkdInit(void)
     debugs(2, 4, "Unlinkd handle: 0x" << std::hex << hIpc << std::dec << ", PID: " << pid);
 
 #endif
-
 }
 #endif /* USE_UNLINKD */
-

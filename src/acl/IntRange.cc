@@ -10,11 +10,11 @@
 
 #include "squid.h"
 #include "acl/IntRange.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
-#include "fatal.h"
 #include "Parsing.h"
+#include "cache_cf.h"
+#include "fatal.h"
 
 void
 ACLIntRange::parse()
@@ -36,7 +36,7 @@ ACLIntRange::parse()
             port2 = port1;
 
         if (port2 >= port1) {
-            RangeType temp(port1, port2+1);
+            RangeType temp(port1, port2 + 1);
             ranges.push_back(temp);
         } else {
             debugs(28, DBG_CRITICAL, "ACLIntRange::parse: Invalid port value");
@@ -54,7 +54,7 @@ ACLIntRange::empty() const
 bool
 ACLIntRange::match(int i)
 {
-    RangeType const toFind(i, i+1);
+    RangeType const toFind(i, i + 1);
     for (const auto &element : ranges) {
         RangeType result = element.intersection(toFind);
         if (result.size())
@@ -74,7 +74,8 @@ ACLIntRange::clone() const
 }
 
 ACLIntRange::~ACLIntRange()
-{}
+{
+}
 
 SBufList
 ACLIntRange::dump() const
@@ -86,11 +87,10 @@ ACLIntRange::dump() const
         if (element.size() == 1)
             sb.Printf("%d", element.start);
         else
-            sb.Printf("%d-%d", element.start, element.end-1);
+            sb.Printf("%d-%d", element.start, element.end - 1);
 
         sl.push_back(sb);
     }
 
     return sl;
 }
-

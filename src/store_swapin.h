@@ -15,4 +15,3 @@ class store_client;
 void storeSwapInStart(store_client *);
 
 #endif /* SQUID_STORE_SWAPIN_H_ */
-

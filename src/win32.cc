@@ -28,7 +28,7 @@ void WIN32_ExceptionHandlerCleanup(void);
 static LPTOP_LEVEL_EXCEPTION_FILTER Win32_Old_ExceptionHandler = NULL;
 
 int
-Win32__WSAFDIsSet(int fd, fd_set FAR * set)
+Win32__WSAFDIsSet(int fd, fd_set FAR *set)
 {
     fde *F = &fd_table[fd];
     SOCKET s = F->win32.handle;
@@ -36,9 +36,10 @@ Win32__WSAFDIsSet(int fd, fd_set FAR * set)
     return __WSAFDIsSet(s, set);
 }
 
-LONG CALLBACK WIN32_ExceptionHandler(EXCEPTION_POINTERS* ep)
+LONG CALLBACK
+WIN32_ExceptionHandler(EXCEPTION_POINTERS *ep)
 {
-    EXCEPTION_RECORD* er;
+    EXCEPTION_RECORD *er;
 
     er = ep->ExceptionRecord;
 
@@ -63,7 +64,8 @@ LONG CALLBACK WIN32_ExceptionHandler(EXCEPTION_POINTERS* ep)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-void WIN32_ExceptionHandlerInit()
+void
+WIN32_ExceptionHandlerInit()
 {
 #if !defined(_DEBUG)
 
@@ -73,11 +75,11 @@ void WIN32_ExceptionHandlerInit()
 #endif
 }
 
-void WIN32_ExceptionHandlerCleanup()
+void
+WIN32_ExceptionHandlerCleanup()
 {
     if (Win32_Old_ExceptionHandler != NULL)
         SetUnhandledExceptionFilter(Win32_Old_ExceptionHandler);
 }
 
 #endif /* SQUID_WINDOWS_ */
-

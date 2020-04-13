@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "Debug.h"
 #include "fatal.h"
+#include "Debug.h"
 #include "globals.h"
 #include "store/Disks.h"
 #include "tools.h"
@@ -65,7 +65,7 @@ fatalvf(const char *fmt, va_list args)
 
 /* printf-style interface for fatal */
 void
-fatalf(const char *fmt,...)
+fatalf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -97,4 +97,3 @@ fatal_dump(const char *message)
 
     abort();
 }
-

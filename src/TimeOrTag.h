@@ -17,10 +17,9 @@
 class TimeOrTag
 {
 public:
-    ETag tag;                   /* entity tag */
+    ETag tag; /* entity tag */
     time_t time;
-    int valid;                  /* true if struct is usable */
+    int valid; /* true if struct is usable */
 };
 
 #endif /* _SQUID_TIMEORTAG_H */
-

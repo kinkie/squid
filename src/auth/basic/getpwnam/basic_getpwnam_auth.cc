@@ -57,13 +57,13 @@ passwd_auth(char *user, char *passwd)
     struct passwd *pwd;
     pwd = getpwnam(user);
     if (pwd == NULL) {
-        return 0;       /* User does not exist */
+        return 0; /* User does not exist */
     } else {
         char *crypted = crypt(passwd, pwd->pw_passwd);
         if (!crypted || strcmp(pwd->pw_passwd, crypted)) {
-            return 2;       /* Wrong password */
+            return 2; /* Wrong password */
         } else {
-            return 1;       /* Authentication Successful */
+            return 1; /* Authentication Successful */
         }
     }
 }
@@ -75,13 +75,13 @@ shadow_auth(char *user, char *passwd)
     struct spwd *pwd;
     pwd = getspnam(user);
     if (pwd == NULL) {
-        return passwd_auth(user, passwd);   /* Fall back to passwd_auth */
+        return passwd_auth(user, passwd); /* Fall back to passwd_auth */
     } else {
         char *crypted = crypt(passwd, pwd->sp_pwdp);
         if (!crypted || strcmp(pwd->sp_pwdp, crypted)) {
-            return 2;       /* Wrong password */
+            return 2; /* Wrong password */
         } else {
-            return 1;       /* Authentication Successful */
+            return 1; /* Authentication Successful */
         }
     }
 }
@@ -98,7 +98,7 @@ main(int, char **)
     while (fgets(buf, HELPER_INPUT_BUFFER, stdin) != NULL) {
 
         if ((p = strchr(buf, '\n')) != NULL)
-            *p = '\0';      /* strip \n */
+            *p = '\0'; /* strip \n */
 
         if ((user = strtok(buf, " ")) == NULL) {
             SEND_ERR("No Username");
@@ -127,4 +127,3 @@ main(int, char **)
     }
     return EXIT_SUCCESS;
 }
-

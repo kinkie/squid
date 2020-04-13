@@ -9,16 +9,16 @@
 /* DEBUG: section 79    Disk IO Routines */
 
 #include "squid.h"
+#include "fs/rock/RockRebuild.h"
+#include "SquidTime.h"
+#include "Store.h"
 #include "base/AsyncJobCalls.h"
 #include "fs/rock/RockDbCell.h"
-#include "fs/rock/RockRebuild.h"
 #include "fs/rock/RockSwapDir.h"
 #include "fs_io.h"
 #include "globals.h"
 #include "ipc/StoreMap.h"
 #include "md5.h"
-#include "SquidTime.h"
-#include "Store.h"
 #include "store_rebuild.h"
 #include "tools.h"
 
@@ -71,23 +71,23 @@ CBDATA_NAMESPACED_CLASS_INIT(Rock, Rebuild);
  *  negligible performance impact but saves us from high-damage bugs.
  */
 
-namespace Rock
-{
+namespace Rock {
 
 /// low-level anti-padding storage class for LoadingEntry and LoadingSlot flags
 class LoadingFlags
 {
 public:
-    LoadingFlags(): state(0), anchored(0), mapped(0), finalized(0), freed(0) {}
+    LoadingFlags() :
+        state(0), anchored(0), mapped(0), finalized(0), freed(0) {}
 
     /* for LoadingEntry */
-    uint8_t state:3;  ///< current entry state (one of the LoadingEntry::State values)
-    uint8_t anchored:1;  ///< whether we loaded the inode slot for this entry
+    uint8_t state : 3;     ///< current entry state (one of the LoadingEntry::State values)
+    uint8_t anchored : 1;  ///< whether we loaded the inode slot for this entry
 
     /* for LoadingSlot */
-    uint8_t mapped:1;  ///< whether the slot was added to a mapped entry
-    uint8_t finalized:1;  ///< whether finalizeOrThrow() has scanned the slot
-    uint8_t freed:1;  ///< whether the slot was given to the map as free space
+    uint8_t mapped : 1;     ///< whether the slot was added to a mapped entry
+    uint8_t finalized : 1;  ///< whether finalizeOrThrow() has scanned the slot
+    uint8_t freed : 1;      ///< whether the slot was given to the map as free space
 };
 
 /// smart StoreEntry-level info pointer (hides anti-padding LoadingParts arrays)
@@ -96,11 +96,15 @@ class LoadingEntry
 public:
     LoadingEntry(const sfileno fileNo, LoadingParts &source);
 
-    uint64_t &size; ///< payload seen so far
-    uint32_t &version; ///< DbCellHeader::version to distinguish same-URL chains
+    uint64_t &size;     ///< payload seen so far
+    uint32_t &version;  ///< DbCellHeader::version to distinguish same-URL chains
 
     /// possible store entry states during index rebuild
-    typedef enum { leEmpty = 0, leLoading, leLoaded, leCorrupted, leIgnored } State;
+    typedef enum { leEmpty = 0,
+                   leLoading,
+                   leLoaded,
+                   leCorrupted,
+                   leIgnored } State;
 
     /* LoadingFlags::state */
     State state() const { return static_cast<State>(flags.state); }
@@ -111,7 +115,7 @@ public:
     void anchored(const bool beAnchored) { flags.anchored = beAnchored; }
 
 private:
-    LoadingFlags &flags; ///< entry flags (see the above accessors) are ours
+    LoadingFlags &flags;  ///< entry flags (see the above accessors) are ours
 };
 
 /// smart db slot-level info pointer (hides anti-padding LoadingParts arrays)
@@ -138,7 +142,7 @@ public:
     bool used() const { return freed() || mapped() || more != -1; }
 
 private:
-    LoadingFlags &flags; ///< slot flags (see the above accessors) are ours
+    LoadingFlags &flags;  ///< slot flags (see the above accessors) are ours
 };
 
 /// information about store entries being loaded from disk (and their slots)
@@ -147,7 +151,7 @@ class LoadingParts
 {
 public:
     LoadingParts(int dbSlotLimit, int dbEntryLimit);
-    LoadingParts(LoadingParts&&) = delete; // paranoid (often too huge to copy)
+    LoadingParts(LoadingParts &&) = delete;  // paranoid (often too huge to copy)
 
 private:
     friend class LoadingEntry;
@@ -156,21 +160,21 @@ private:
     /* Anti-padding storage. With millions of entries, padding matters! */
 
     /* indexed by sfileno */
-    std::vector<uint64_t> sizes; ///< LoadingEntry::size for all entries
-    std::vector<uint32_t> versions; ///< LoadingEntry::version for all entries
+    std::vector<uint64_t> sizes;     ///< LoadingEntry::size for all entries
+    std::vector<uint32_t> versions;  ///< LoadingEntry::version for all entries
 
     /* indexed by SlotId */
-    std::vector<Ipc::StoreMapSliceId> mores; ///< LoadingSlot::more for all slots
+    std::vector<Ipc::StoreMapSliceId> mores;  ///< LoadingSlot::more for all slots
 
     /* entry flags are indexed by sfileno; slot flags -- by SlotId */
-    std::vector<LoadingFlags> flags; ///< all LoadingEntry and LoadingSlot flags
+    std::vector<LoadingFlags> flags;  ///< all LoadingEntry and LoadingSlot flags
 };
 
 } /* namespace Rock */
 
 /* LoadingEntry */
 
-Rock::LoadingEntry::LoadingEntry(const sfileno fileNo, LoadingParts &source):
+Rock::LoadingEntry::LoadingEntry(const sfileno fileNo, LoadingParts &source) :
     size(source.sizes.at(fileNo)),
     version(source.versions.at(fileNo)),
     flags(source.flags.at(fileNo))
@@ -179,7 +183,7 @@ Rock::LoadingEntry::LoadingEntry(const sfileno fileNo, LoadingParts &source):
 
 /* LoadingSlot */
 
-Rock::LoadingSlot::LoadingSlot(const SlotId slotId, LoadingParts &source):
+Rock::LoadingSlot::LoadingSlot(const SlotId slotId, LoadingParts &source) :
     more(source.mores.at(slotId)),
     flags(source.flags.at(slotId))
 {
@@ -187,20 +191,21 @@ Rock::LoadingSlot::LoadingSlot(const SlotId slotId, LoadingParts &source):
 
 /* LoadingParts */
 
-Rock::LoadingParts::LoadingParts(const int dbEntryLimit, const int dbSlotLimit):
+Rock::LoadingParts::LoadingParts(const int dbEntryLimit, const int dbSlotLimit) :
     sizes(dbEntryLimit, 0),
     versions(dbEntryLimit, 0),
     mores(dbSlotLimit, -1),
     flags(dbSlotLimit)
 {
-    assert(sizes.size() == versions.size()); // every entry has both fields
-    assert(sizes.size() <= mores.size()); // every entry needs slot(s)
-    assert(mores.size() == flags.size()); // every slot needs a set of flags
+    assert(sizes.size() == versions.size());  // every entry has both fields
+    assert(sizes.size() <= mores.size());     // every entry needs slot(s)
+    assert(mores.size() == flags.size());     // every slot needs a set of flags
 }
 
 /* Rebuild */
 
-Rock::Rebuild::Rebuild(SwapDir *dir): AsyncJob("Rock::Rebuild"),
+Rock::Rebuild::Rebuild(SwapDir *dir) :
+    AsyncJob("Rock::Rebuild"),
     sd(dir),
     parts(nullptr),
     dbSize(0),
@@ -213,7 +218,7 @@ Rock::Rebuild::Rebuild(SwapDir *dir): AsyncJob("Rock::Rebuild"),
     validationPos(0)
 {
     assert(sd);
-    dbSize = sd->diskOffsetLimit(); // we do not care about the trailer waste
+    dbSize = sd->diskOffsetLimit();  // we do not care about the trailer waste
     dbSlotSize = sd->slotSize;
     dbEntryLimit = sd->entryLimitActual();
     dbSlotLimit = sd->slotLimitActual();
@@ -233,14 +238,12 @@ Rock::Rebuild::start()
 {
     // in SMP mode, only the disker is responsible for populating the map
     if (UsingSmp() && !IamDiskProcess()) {
-        debugs(47, 2, "Non-disker skips rebuilding of cache_dir #" <<
-               sd->index << " from " << sd->filePath);
+        debugs(47, 2, "Non-disker skips rebuilding of cache_dir #" << sd->index << " from " << sd->filePath);
         mustStop("non-disker");
         return;
     }
 
-    debugs(47, DBG_IMPORTANT, "Loading cache_dir #" << sd->index <<
-           " from " << sd->filePath);
+    debugs(47, DBG_IMPORTANT, "Loading cache_dir #" << sd->index << " from " << sd->filePath);
 
     fd = file_open(sd->filePath, O_RDONLY | O_BINARY);
     if (fd < 0)
@@ -279,8 +282,7 @@ bool
 Rock::Rebuild::doneValidating() const
 {
     // paranoid slot checking is only enabled with squid -S
-    return validationPos >= dbEntryLimit +
-           (opt_store_doublecheck ? dbSlotLimit : 0);
+    return validationPos >= dbEntryLimit + (opt_store_doublecheck ? dbSlotLimit : 0);
 }
 
 bool
@@ -293,7 +295,7 @@ void
 Rock::Rebuild::Steps(void *data)
 {
     // use async call to enable job call protection that time events lack
-    CallJobHere(47, 5, static_cast<Rebuild*>(data), Rock::Rebuild, steps);
+    CallJobHere(47, 5, static_cast<Rebuild *>(data), Rock::Rebuild, steps);
 }
 
 void
@@ -310,13 +312,12 @@ Rock::Rebuild::steps()
 void
 Rock::Rebuild::loadingSteps()
 {
-    debugs(47,5, sd->index << " slot " << loadingPos << " at " <<
-           dbOffset << " <= " << dbSize);
+    debugs(47, 5, sd->index << " slot " << loadingPos << " at " << dbOffset << " <= " << dbSize);
 
     // Balance our desire to maximize the number of entries processed at once
     // (and, hence, minimize overheads and total rebuild time) with a
     // requirement to also process Coordinator events, disk I/Os, etc.
-    const int maxSpentMsec = 50; // keep small: most RAM I/Os are under 1ms
+    const int maxSpentMsec = 50;  // keep small: most RAM I/Os are under 1ms
     const timeval loopStart = current_time;
 
     int loaded = 0;
@@ -330,13 +331,12 @@ Rock::Rebuild::loadingSteps()
             storeRebuildProgress(sd->index, dbSlotLimit, counts.scancount);
 
         if (opt_foreground_rebuild)
-            continue; // skip "few entries at a time" check below
+            continue;  // skip "few entries at a time" check below
 
         getCurrentTime();
         const double elapsedMsec = tvSubMsec(loopStart, current_time);
         if (elapsedMsec > maxSpentMsec || elapsedMsec < 0) {
-            debugs(47, 5, HERE << "pausing after " << loaded << " entries in " <<
-                   elapsedMsec << "ms; " << (elapsedMsec/loaded) << "ms per entry");
+            debugs(47, 5, HERE << "pausing after " << loaded << " entries in " << elapsedMsec << "ms; " << (elapsedMsec / loaded) << "ms per entry");
             break;
         }
     }
@@ -353,15 +353,14 @@ Rock::LoadingSlot
 Rock::Rebuild::loadingSlot(const SlotId slotId)
 {
     Must(0 <= slotId && slotId < dbSlotLimit);
-    Must(slotId <= loadingPos); // cannot look ahead
+    Must(slotId <= loadingPos);  // cannot look ahead
     return LoadingSlot(slotId, *parts);
 }
 
 void
 Rock::Rebuild::loadOneSlot()
 {
-    debugs(47,5, sd->index << " slot " << loadingPos << " at " <<
-           dbOffset << " <= " << dbSize);
+    debugs(47, 5, sd->index << " slot " << loadingPos << " at " << dbOffset << " <= " << dbSize);
 
     ++counts.scancount;
 
@@ -378,9 +377,9 @@ Rock::Rebuild::loadOneSlot()
     // get our header
     DbCellHeader header;
     if (buf.contentSize() < static_cast<mb_size_t>(sizeof(header))) {
-        debugs(47, DBG_IMPORTANT, "WARNING: cache_dir[" << sd->index << "]: " <<
-               "Ignoring truncated " << buf.contentSize() << "-byte " <<
-               "cache entry meta data at " << dbOffset);
+        debugs(47, DBG_IMPORTANT, "WARNING: cache_dir[" << sd->index << "]: "
+                                                        << "Ignoring truncated " << buf.contentSize() << "-byte "
+                                                        << "cache entry meta data at " << dbOffset);
         freeUnusedSlot(slotId, true);
         return;
     }
@@ -390,12 +389,12 @@ Rock::Rebuild::loadOneSlot()
         return;
     }
     if (!header.sane(dbSlotSize, dbSlotLimit)) {
-        debugs(47, DBG_IMPORTANT, "WARNING: cache_dir[" << sd->index << "]: " <<
-               "Ignoring malformed cache entry meta data at " << dbOffset);
+        debugs(47, DBG_IMPORTANT, "WARNING: cache_dir[" << sd->index << "]: "
+                                                        << "Ignoring malformed cache entry meta data at " << dbOffset);
         freeUnusedSlot(slotId, true);
         return;
     }
-    buf.consume(sizeof(header)); // optimize to avoid memmove()
+    buf.consume(sizeof(header));  // optimize to avoid memmove()
 
     useNewSlot(slotId, header);
 }
@@ -406,16 +405,13 @@ Rock::Rebuild::importEntry(Ipc::StoreMapAnchor &anchor, const sfileno fileno, co
 {
     cache_key key[SQUID_MD5_DIGEST_LENGTH];
     StoreEntry loadedE;
-    const uint64_t knownSize = header.entrySize > 0 ?
-                               header.entrySize : anchor.basics.swap_file_sz.load();
+    const uint64_t knownSize = header.entrySize > 0 ? header.entrySize : anchor.basics.swap_file_sz.load();
     if (!storeRebuildParseEntry(buf, loadedE, key, counts, knownSize))
         return false;
 
     // the entry size may be unknown, but if it is known, it is authoritative
 
-    debugs(47, 8, "importing basics for entry " << fileno <<
-           " inode.entrySize: " << header.entrySize <<
-           " swap_file_sz: " << loadedE.swap_file_sz);
+    debugs(47, 8, "importing basics for entry " << fileno << " inode.entrySize: " << header.entrySize << " swap_file_sz: " << loadedE.swap_file_sz);
     anchor.set(loadedE);
 
     // we have not validated whether all db cells for this entry were loaded
@@ -432,7 +428,7 @@ Rock::Rebuild::validationSteps()
     debugs(47, 5, sd->index << " validating from " << validationPos);
 
     // see loadingSteps() for the rationale; TODO: avoid duplication
-    const int maxSpentMsec = 50; // keep small: validation does not do I/O
+    const int maxSpentMsec = 50;  // keep small: validation does not do I/O
     const timeval loopStart = current_time;
 
     int validated = 0;
@@ -448,13 +444,12 @@ Rock::Rebuild::validationSteps()
             debugs(20, 2, "validated: " << validationPos);
 
         if (opt_foreground_rebuild)
-            continue; // skip "few entries at a time" check below
+            continue;  // skip "few entries at a time" check below
 
         getCurrentTime();
         const double elapsedMsec = tvSubMsec(loopStart, current_time);
         if (elapsedMsec > maxSpentMsec || elapsedMsec < 0) {
-            debugs(47, 5, "pausing after " << validated << " entries in " <<
-                   elapsedMsec << "ms; " << (elapsedMsec/validated) << "ms per entry");
+            debugs(47, 5, "pausing after " << validated << " entries in " << elapsedMsec << "ms; " << (elapsedMsec / validated) << "ms per entry");
             break;
         }
     }
@@ -467,18 +462,18 @@ Rock::Rebuild::finalizeOrThrow(const sfileno fileNo, LoadingEntry &le)
 {
     // walk all map-linked slots, starting from inode, and mark each
     Ipc::StoreMapAnchor &anchor = sd->map->writeableEntry(fileNo);
-    Must(le.size > 0); // paranoid
+    Must(le.size > 0);  // paranoid
     uint64_t mappedSize = 0;
     SlotId slotId = anchor.start;
     while (slotId >= 0 && mappedSize < le.size) {
-        LoadingSlot slot = loadingSlot(slotId); // throws if we have not loaded that slot
-        Must(!slot.finalized()); // no loops or stealing from other entries
-        Must(slot.mapped()); // all our slots should be in the sd->map
-        Must(!slot.freed()); // all our slots should still be present
+        LoadingSlot slot = loadingSlot(slotId);  // throws if we have not loaded that slot
+        Must(!slot.finalized());                 // no loops or stealing from other entries
+        Must(slot.mapped());                     // all our slots should be in the sd->map
+        Must(!slot.freed());                     // all our slots should still be present
         slot.finalized(true);
 
         Ipc::StoreMapSlice &mapSlice = sd->map->writeableSlice(fileNo, slotId);
-        Must(mapSlice.size > 0); // paranoid
+        Must(mapSlice.size > 0);  // paranoid
         mappedSize += mapSlice.size;
         slotId = mapSlice.next;
     }
@@ -516,10 +511,10 @@ Rock::Rebuild::validateOneEntry(const sfileno fileNo)
         finalizeOrFree(fileNo, entry);
         break;
 
-    case LoadingEntry::leEmpty: // no entry hashed to this position
-    case LoadingEntry::leLoaded: // we have already unlocked this entry
-    case LoadingEntry::leCorrupted: // we have already removed this entry
-    case LoadingEntry::leIgnored: // we have already discarded this entry
+    case LoadingEntry::leEmpty:      // no entry hashed to this position
+    case LoadingEntry::leLoaded:     // we have already unlocked this entry
+    case LoadingEntry::leCorrupted:  // we have already removed this entry
+    case LoadingEntry::leIgnored:    // we have already discarded this entry
         break;
     }
 }
@@ -537,8 +532,7 @@ Rock::Rebuild::validateOneSlot(const SlotId slotId)
 void
 Rock::Rebuild::freeBadEntry(const sfileno fileno, const char *eDescription)
 {
-    debugs(47, 2, "cache_dir #" << sd->index << ' ' << eDescription <<
-           " entry " << fileno << " is ignored during rebuild");
+    debugs(47, 2, "cache_dir #" << sd->index << ' ' << eDescription << " entry " << fileno << " is ignored during rebuild");
 
     LoadingEntry le = loadingEntry(fileno);
     le.state(LoadingEntry::leCorrupted);
@@ -557,8 +551,7 @@ Rock::Rebuild::freeBadEntry(const sfileno fileno, const char *eDescription)
 void
 Rock::Rebuild::swanSong()
 {
-    debugs(47,3, HERE << "cache_dir #" << sd->index << " rebuild level: " <<
-           StoreController::store_dirs_rebuilding);
+    debugs(47, 3, HERE << "cache_dir #" << sd->index << " rebuild level: " << StoreController::store_dirs_rebuilding);
     --StoreController::store_dirs_rebuilding;
     storeRebuildComplete(&counts);
 }
@@ -566,8 +559,7 @@ Rock::Rebuild::swanSong()
 void
 Rock::Rebuild::failure(const char *msg, int errNo)
 {
-    debugs(47,5, sd->index << " slot " << loadingPos << " at " <<
-           dbOffset << " <= " << dbSize);
+    debugs(47, 5, sd->index << " slot " << loadingPos << " at " << dbOffset << " <= " << dbSize);
 
     if (errNo)
         debugs(47, DBG_CRITICAL, "ERROR: Rock cache_dir rebuild failure: " << xstrerr(errNo));
@@ -582,7 +574,7 @@ Rock::Rebuild::failure(const char *msg, int errNo)
 void
 Rock::Rebuild::freeSlot(const SlotId slotId, const bool invalid)
 {
-    debugs(47,5, sd->index << " frees slot " << slotId);
+    debugs(47, 5, sd->index << " frees slot " << slotId);
     LoadingSlot slot = loadingSlot(slotId);
     assert(!slot.freed());
     slot.freed(true);
@@ -594,7 +586,7 @@ Rock::Rebuild::freeSlot(const SlotId slotId, const bool invalid)
 
     Ipc::Mem::PageId pageId;
     pageId.pool = Ipc::Mem::PageStack::IdForSwapDirSpace(sd->index);
-    pageId.number = slotId+1;
+    pageId.number = slotId + 1;
     sd->freeSlots->push(pageId);
 }
 
@@ -623,13 +615,13 @@ Rock::Rebuild::mapSlot(const SlotId slotId, const DbCellHeader &header)
     sd->map->importSlice(slotId, slice);
 }
 
-template <class SlotIdType> // accommodates atomic and simple SlotIds.
+template <class SlotIdType>  // accommodates atomic and simple SlotIds.
 void
 Rock::Rebuild::chainSlots(SlotIdType &from, const SlotId to)
 {
     LoadingSlot slot = loadingSlot(to);
     assert(slot.more < 0);
-    slot.more = from; // may still be unset
+    slot.more = from;  // may still be unset
     from = to;
 }
 
@@ -641,7 +633,7 @@ Rock::Rebuild::addSlotToEntry(const sfileno fileno, const SlotId slotId, const D
     LoadingEntry le = loadingEntry(fileno);
     Ipc::StoreMapAnchor &anchor = sd->map->writeableEntry(fileno);
 
-    debugs(47,9, "adding " << slotId << " to entry " << fileno);
+    debugs(47, 9, "adding " << slotId << " to entry " << fileno);
     // we do not need to preserve the order
     if (le.anchored()) {
         LoadingSlot inode = loadingSlot(anchor.start);
@@ -650,12 +642,12 @@ Rock::Rebuild::addSlotToEntry(const sfileno fileno, const SlotId slotId, const D
         chainSlots(anchor.start, slotId);
     }
 
-    le.size += header.payloadSize; // must precede freeBadEntry() calls
+    le.size += header.payloadSize;  // must precede freeBadEntry() calls
 
     if (header.firstSlot == slotId) {
-        debugs(47,5, "added inode");
+        debugs(47, 5, "added inode");
 
-        if (le.anchored()) { // we have already added another inode slot
+        if (le.anchored()) {  // we have already added another inode slot
             freeBadEntry(fileno, "inode conflict");
             ++counts.clashcount;
             return;
@@ -681,9 +673,9 @@ Rock::Rebuild::addSlotToEntry(const sfileno fileno, const SlotId slotId, const D
         }
     }
 
-    const uint64_t totalSize = anchor.basics.swap_file_sz; // may be 0/unknown
+    const uint64_t totalSize = anchor.basics.swap_file_sz;  // may be 0/unknown
 
-    if (totalSize > 0 && le.size > totalSize) { // overflow
+    if (totalSize > 0 && le.size > totalSize) {  // overflow
         debugs(47, 8, "overflow: " << le.size << " > " << totalSize);
         freeBadEntry(fileno, "overflowing");
         return;
@@ -691,16 +683,16 @@ Rock::Rebuild::addSlotToEntry(const sfileno fileno, const SlotId slotId, const D
 
     mapSlot(slotId, header);
     if (totalSize > 0 && le.size == totalSize)
-        finalizeOrFree(fileno, le); // entry is probably fully loaded now
+        finalizeOrFree(fileno, le);  // entry is probably fully loaded now
 }
 
 /// initialize housekeeping information for a newly accepted entry
 void
 Rock::Rebuild::primeNewEntry(Ipc::StoreMap::Anchor &anchor, const sfileno fileno, const DbCellHeader &header)
 {
-    anchor.setKey(reinterpret_cast<const cache_key*>(header.key));
+    anchor.setKey(reinterpret_cast<const cache_key *>(header.key));
     assert(header.firstSlot >= 0);
-    anchor.start = -1; // addSlotToEntry() will set it
+    anchor.start = -1;  // addSlotToEntry() will set it
 
     assert(anchor.basics.swap_file_sz != static_cast<uint64_t>(-1));
 
@@ -719,7 +711,7 @@ Rock::Rebuild::startNewEntry(const sfileno fileno, const SlotId slotId, const Db
     const bool overwriteExisting = false;
     if (Ipc::StoreMap::Anchor *anchor = sd->map->openForWritingAt(fileno, overwriteExisting)) {
         primeNewEntry(*anchor, fileno, header);
-        addSlotToEntry(fileno, slotId, header); // may fail
+        addSlotToEntry(fileno, slotId, header);  // may fail
         assert(anchor->basics.swap_file_sz != static_cast<uint64_t>(-1));
     } else {
         // A new from-network entry is occupying our map slot; let it be, but
@@ -737,21 +729,19 @@ Rock::Rebuild::sameEntry(const sfileno fileno, const DbCellHeader &header) const
     // Header updates always result in multi-start chains and often
     // result in multi-version chains so we can only compare the keys.
     const Ipc::StoreMap::Anchor &anchor = sd->map->writeableEntry(fileno);
-    return anchor.sameKey(reinterpret_cast<const cache_key*>(header.key));
+    return anchor.sameKey(reinterpret_cast<const cache_key *>(header.key));
 }
 
 /// handle freshly loaded (and validated) db slot header
 void
 Rock::Rebuild::useNewSlot(const SlotId slotId, const DbCellHeader &header)
 {
-    const cache_key *const key =
-        reinterpret_cast<const cache_key*>(header.key);
+    const cache_key *const key = reinterpret_cast<const cache_key *>(header.key);
     const sfileno fileno = sd->map->fileNoByKey(key);
     assert(0 <= fileno && fileno < dbEntryLimit);
 
     LoadingEntry le = loadingEntry(fileno);
-    debugs(47,9, "entry " << fileno << " state: " << le.state() << ", inode: " <<
-           header.firstSlot << ", size: " << header.payloadSize);
+    debugs(47, 9, "entry " << fileno << " state: " << le.state() << ", inode: " << header.firstSlot << ", size: " << header.payloadSize);
 
     switch (le.state()) {
 
@@ -762,7 +752,7 @@ Rock::Rebuild::useNewSlot(const SlotId slotId, const DbCellHeader &header)
 
     case LoadingEntry::leLoading: {
         if (sameEntry(fileno, header)) {
-            addSlotToEntry(fileno, slotId, header); // may fail
+            addSlotToEntry(fileno, slotId, header);  // may fail
         } else {
             // either the loading chain or this slot is stale;
             // be conservative and ignore both (and any future ones)
@@ -777,7 +767,7 @@ Rock::Rebuild::useNewSlot(const SlotId slotId, const DbCellHeader &header)
         // either the previously loaded chain or this slot is stale;
         // be conservative and ignore both (and any future ones)
         le.state(LoadingEntry::leCorrupted);
-        sd->map->freeEntry(fileno); // may not be immediately successful
+        sd->map->freeEntry(fileno);  // may not be immediately successful
         freeUnusedSlot(slotId, true);
         ++counts.dupcount;
         break;
@@ -796,4 +786,3 @@ Rock::Rebuild::useNewSlot(const SlotId slotId, const DbCellHeader &header)
     }
     }
 }
-

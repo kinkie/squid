@@ -41,25 +41,25 @@ typedef unsigned long fsblkcnt_t;
 typedef unsigned long fsfilcnt_t;
 
 struct statvfs {
-    unsigned long  f_bsize;    /* file system block size */
-    unsigned long  f_frsize;   /* fragment size */
-    fsblkcnt_t     f_blocks;   /* size of fs in f_frsize units */
-    fsblkcnt_t     f_bfree;    /* # free blocks */
-    fsblkcnt_t     f_bavail;   /* # free blocks for unprivileged users */
-    fsfilcnt_t     f_files;    /* # inodes */
-    fsfilcnt_t     f_ffree;    /* # free inodes */
-    fsfilcnt_t     f_favail;   /* # free inodes for unprivileged users */
-    unsigned long  f_fsid;     /* file system ID */
-    unsigned long  f_flag;     /* mount flags */
-    unsigned long  f_namemax;  /* maximum filename length */
+    unsigned long f_bsize;   /* file system block size */
+    unsigned long f_frsize;  /* fragment size */
+    fsblkcnt_t f_blocks;     /* size of fs in f_frsize units */
+    fsblkcnt_t f_bfree;      /* # free blocks */
+    fsblkcnt_t f_bavail;     /* # free blocks for unprivileged users */
+    fsfilcnt_t f_files;      /* # inodes */
+    fsfilcnt_t f_ffree;      /* # free inodes */
+    fsfilcnt_t f_favail;     /* # free inodes for unprivileged users */
+    unsigned long f_fsid;    /* file system ID */
+    unsigned long f_flag;    /* mount flags */
+    unsigned long f_namemax; /* maximum filename length */
 };
 
 #if defined(__cplusplus)
 extern "C"
 #endif
-int xstatvfs(const char *path, struct statvfs *buf);
+    int
+    xstatvfs(const char *path, struct statvfs *buf);
 
 #endif
 
 #endif /* _SQUID_COMPAT_XSTATVFS_H */
-

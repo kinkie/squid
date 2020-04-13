@@ -7,12 +7,12 @@
  */
 
 #include "squid.h"
-#include "acl/Gadgets.h"
 #include "CachePeer.h"
-#include "defines.h"
 #include "NeighborTypeDomainList.h"
-#include "pconn.h"
 #include "PeerPoolMgr.h"
+#include "acl/Gadgets.h"
+#include "defines.h"
+#include "pconn.h"
 
 CBDATA_CLASS_INIT(CachePeer);
 
@@ -45,4 +45,3 @@ CachePeer::~CachePeer()
 
     xfree(domain);
 }
-

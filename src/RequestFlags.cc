@@ -22,4 +22,3 @@ RequestFlags::cloneAdaptationImmune() const
     // are flags that are different, they should be cleared in the clone.
     return *this;
 }
-

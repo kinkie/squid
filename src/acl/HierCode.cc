@@ -7,19 +7,18 @@
  */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/HierCode.h"
+#include "HttpRequest.h"
+#include "acl/Checklist.h"
 #include "acl/HierCodeData.h"
 #include "acl/Strategised.h"
-#include "HttpRequest.h"
 
 /* explicit template instantiation required for some systems */
 
 template class ACLStrategised<hier_code>;
 
 int
-ACLHierCodeStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLHierCodeStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
-    return data->match (checklist->request->hier.code);
+    return data->match(checklist->request->hier.code);
 }
-

@@ -18,7 +18,8 @@ class AclSizeLimit
     CBDATA_CLASS(AclSizeLimit);
 
 public:
-    AclSizeLimit() : next(NULL), aclList(NULL), size(0) {}
+    AclSizeLimit() :
+        next(NULL), aclList(NULL), size(0) {}
     ~AclSizeLimit();
 
     AclSizeLimit *next;
@@ -27,4 +28,3 @@ public:
 };
 
 #endif /* SQUID_ACLSIZELIMIT_H_ */
-

@@ -23,8 +23,16 @@ typedef struct {
     int bits;
 } cpu_set_t;
 #endif
-inline int sched_setaffinity(int, size_t, cpu_set_t *) { return ENOTSUP; }
-inline int sched_getaffinity(int, size_t, cpu_set_t *) { return ENOTSUP; }
+inline int
+sched_setaffinity(int, size_t, cpu_set_t *)
+{
+    return ENOTSUP;
+}
+inline int
+sched_getaffinity(int, size_t, cpu_set_t *)
+{
+    return ENOTSUP;
+}
 #endif /* HAVE_CPU_AFFINITY */
 
 #if !defined(CPU_SETSIZE)
@@ -80,4 +88,3 @@ CpuAnd(cpu_set_t *destset, const cpu_set_t *srcset1, const cpu_set_t *srcset2)
 #endif /* CPU_AND */
 
 #endif /* SQUID_COMPAT_CPU_H */
-

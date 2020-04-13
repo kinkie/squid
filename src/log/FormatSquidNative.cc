@@ -10,17 +10,17 @@
 
 #include "squid.h"
 #include "AccessLogEntry.h"
+#include "HttpRequest.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
 #include "format/Quoting.h"
 #include "format/Token.h"
 #include "globals.h"
-#include "HttpRequest.h"
 #include "log/File.h"
 #include "log/Formats.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
 
 void
-Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
+Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile *logfile)
 {
     char hierHost[MAX_IPSTRLEN];
 
@@ -51,8 +51,8 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
     const SBuf method(al->getLogMethod());
 
     logfilePrintf(logfile, "%9ld.%03d %6ld %s %s/%03d %" PRId64 " " SQUIDSBUFPH " " SQUIDSBUFPH " %s %s%s/%s %s%s",
-                  (long int) current_time.tv_sec,
-                  (int) current_time.tv_usec / 1000,
+                  (long int)current_time.tv_sec,
+                  (int)current_time.tv_usec / 1000,
                   tvToMsec(al->cache.trTime),
                   clientip,
                   al->cache.code.c_str(),
@@ -65,7 +65,7 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
                   hier_code_str[al->hier.code],
                   al->hier.tcpServer != NULL ? al->hier.tcpServer->remote.toStr(hierHost, sizeof(hierHost)) : "-",
                   al->http.content_type,
-                  (Config.onoff.log_mime_hdrs?"":"\n"));
+                  (Config.onoff.log_mime_hdrs ? "" : "\n"));
 
     safe_free(user);
 
@@ -80,4 +80,3 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
         safe_free(erep);
     }
 }
-

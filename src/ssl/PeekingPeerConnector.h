@@ -13,12 +13,13 @@
 
 #if USE_OPENSSL
 
-namespace Ssl
-{
+namespace Ssl {
 
 /// A PeerConnector for HTTP origin servers. Capable of SslBumping.
-class PeekingPeerConnector: public Security::PeerConnector {
+class PeekingPeerConnector : public Security::PeerConnector
+{
     CBDATA_CLASS(PeekingPeerConnector);
+
 public:
     PeekingPeerConnector(HttpRequestPointer &aRequest,
                          const Comm::ConnectionPointer &aServerConn,
@@ -68,19 +69,17 @@ public:
     static void cbCheckForPeekAndSpliceDone(Acl::Answer answer, void *data);
 
 private:
-
     /// Inform caller class that the SSL negotiation aborted
     void tunnelInsteadOfNegotiating();
 
-    Comm::ConnectionPointer clientConn; ///< TCP connection to the client
-    AsyncCall::Pointer closeHandler; ///< we call this when the connection closed
-    bool splice; ///< whether we are going to splice or not
-    bool resumingSession; ///< whether it is an SSL resuming session connection
-    bool serverCertificateHandled; ///< whether handleServerCertificate() succeeded
+    Comm::ConnectionPointer clientConn;  ///< TCP connection to the client
+    AsyncCall::Pointer closeHandler;     ///< we call this when the connection closed
+    bool splice;                         ///< whether we are going to splice or not
+    bool resumingSession;                ///< whether it is an SSL resuming session connection
+    bool serverCertificateHandled;       ///< whether handleServerCertificate() succeeded
 };
 
-} // namespace Ssl
+}  // namespace Ssl
 
 #endif /* USE_OPENSSL */
 #endif /* SQUID_SRC_SSL_PEEKINGPEERCONNECTOR_H */
-

@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
+#include "sbuf/SBuf.h"
+#include "Debug.h"
 #include "base/CharacterSet.h"
 #include "base/RefCount.h"
-#include "Debug.h"
 #include "sbuf/DetailedStats.h"
-#include "sbuf/SBuf.h"
 #include "util.h"
 
 #include <cstring>
@@ -25,15 +25,16 @@ SBufStats SBuf::stats;
 const SBuf::size_type SBuf::npos;
 const SBuf::size_type SBuf::maxSize;
 
-SBuf::SBuf() : store_(GetStorePrototype())
+SBuf::SBuf() :
+    store_(GetStorePrototype())
 {
     debugs(24, 8, id << " created");
     ++stats.alloc;
     ++stats.live;
 }
 
-SBuf::SBuf(const SBuf &S)
-    : store_(S.store_), off_(S.off_), len_(S.len_)
+SBuf::SBuf(const SBuf &S) :
+    store_(S.store_), off_(S.off_), len_(S.len_)
 {
     debugs(24, 8, id << " created from id " << S.id);
     ++stats.alloc;
@@ -41,25 +42,28 @@ SBuf::SBuf(const SBuf &S)
     ++stats.live;
 }
 
-SBuf::SBuf(const std::string &s) : store_(GetStorePrototype())
+SBuf::SBuf(const std::string &s) :
+    store_(GetStorePrototype())
 {
     debugs(24, 8, id << " created from std::string");
-    lowAppend(s.data(),s.length());
+    lowAppend(s.data(), s.length());
     ++stats.alloc;
     ++stats.live;
 }
 
-SBuf::SBuf(const char *S, size_type n) : store_(GetStorePrototype())
+SBuf::SBuf(const char *S, size_type n) :
+    store_(GetStorePrototype())
 {
-    append(S,n);
+    append(S, n);
     ++stats.alloc;
     ++stats.allocFromCString;
     ++stats.live;
 }
 
-SBuf::SBuf(const char *S) : store_(GetStorePrototype())
+SBuf::SBuf(const char *S) :
+    store_(GetStorePrototype())
 {
-    append(S,npos);
+    append(S, npos);
     ++stats.alloc;
     ++stats.allocFromCString;
     ++stats.live;
@@ -79,11 +83,11 @@ SBuf::GetStorePrototype()
     return InitialStore;
 }
 
-SBuf&
+SBuf &
 SBuf::assign(const SBuf &S)
 {
-    debugs(24, 7, "assigning " << id << " from " <<  S.id);
-    if (&S == this) //assignment to self. Noop.
+    debugs(24, 7, "assigning " << id << " from " << S.id);
+    if (&S == this)  //assignment to self. Noop.
         return *this;
     ++stats.assignFast;
     store_ = S.store_;
@@ -92,13 +96,13 @@ SBuf::assign(const SBuf &S)
     return *this;
 }
 
-SBuf&
+SBuf &
 SBuf::assign(const char *S, size_type n)
 {
     const Locker blobKeeper(this, S);
     debugs(24, 6, id << " from c-string, n=" << n << ")");
     clear();
-    return append(S, n); //bounds checked in append()
+    return append(S, n);  //bounds checked in append()
 }
 
 void
@@ -111,25 +115,23 @@ SBuf::reserveCapacity(size_type minCapacity)
 SBuf::size_type
 SBuf::reserve(const SBufReservationRequirements &req)
 {
-    debugs(24, 8, id << " was: " << off_ << '+' << len_ << '+' << spaceSize() <<
-           '=' << store_->capacity);
+    debugs(24, 8, id << " was: " << off_ << '+' << len_ << '+' << spaceSize() << '=' << store_->capacity);
 
     const bool mustRealloc = !req.allowShared && store_->LockCount() > 1;
 
     if (!mustRealloc && spaceSize() >= req.minSpace)
-        return spaceSize(); // the caller is content with what we have
+        return spaceSize();  // the caller is content with what we have
 
     /* only reallocation can make the caller happy */
 
     if (!mustRealloc && len_ >= req.maxCapacity)
-        return spaceSize(); // but we cannot reallocate
+        return spaceSize();  // but we cannot reallocate
 
     const size_type desiredSpace = std::max(req.minSpace, req.idealSpace);
     const size_type newSpace = std::min(desiredSpace, maxSize - len_);
     reserveCapacity(std::min(len_ + newSpace, req.maxCapacity));
-    debugs(24, 7, id << " now: " << off_ << '+' << len_ << '+' << spaceSize() <<
-           '=' << store_->capacity);
-    return spaceSize(); // reallocated and probably reserved enough space
+    debugs(24, 7, id << " now: " << off_ << '+' << len_ << '+' << spaceSize() << '=' << store_->capacity);
+    return spaceSize();  // reallocated and probably reserved enough space
 }
 
 char *
@@ -148,7 +150,7 @@ SBuf::rawAppendFinish(const char *start, size_type actualSize)
     debugs(24, 8, id << " finish appending " << actualSize << " bytes");
 
     size_type newSize = length() + actualSize;
-    Must2(newSize <= min(maxSize,store_->capacity-off_), "raw append overflow");
+    Must2(newSize <= min(maxSize, store_->capacity - off_), "raw append overflow");
     len_ = newSize;
     store_->size = off_ + newSize;
 }
@@ -163,14 +165,14 @@ SBuf::rawSpace(size_type minSpace)
     // the store knows the last-used portion. If
     // it's available, we're effectively claiming ownership
     // of it. If it's not, we need to go away (realloc)
-    if (store_->canAppend(off_+len_, minSpace)) {
+    if (store_->canAppend(off_ + len_, minSpace)) {
         debugs(24, 7, id << " not growing");
         return bufEnd();
     }
     // TODO: we may try to memmove before realloc'ing in order to avoid
     //   one allocation operation, if we're the sole owners of a MemBlob.
     //   Maybe some heuristic on off_ and length()?
-    cow(minSpace+length());
+    cow(minSpace + length());
     return bufEnd();
 }
 
@@ -191,18 +193,18 @@ SBuf::clear()
     ++stats.clear;
 }
 
-SBuf&
+SBuf &
 SBuf::append(const SBuf &S)
 {
     if (isEmpty() && store_ == GetStorePrototype())
-        return (*this = S); // optimization: avoid needless copying
+        return (*this = S);  // optimization: avoid needless copying
 
     const Locker blobKeeper(this, S.buf());
     return lowAppend(S.buf(), S.length());
 }
 
 SBuf &
-SBuf::append(const char * S, size_type Ssize)
+SBuf::append(const char *S, size_type Ssize)
 {
     const Locker blobKeeper(this, S);
     if (S == NULL)
@@ -220,7 +222,7 @@ SBuf::append(const char c)
     return lowAppend(&c, 1);
 }
 
-SBuf&
+SBuf &
 SBuf::Printf(const char *fmt, ...)
 {
     // with printf() the fmt or an arg might be a dangerous char*
@@ -235,7 +237,7 @@ SBuf::Printf(const char *fmt, ...)
     return *this;
 }
 
-SBuf&
+SBuf &
 SBuf::appendf(const char *fmt, ...)
 {
     va_list args;
@@ -245,7 +247,7 @@ SBuf::appendf(const char *fmt, ...)
     return *this;
 }
 
-SBuf&
+SBuf &
 SBuf::vappendf(const char *fmt, va_list vargs)
 {
     // with (v)appendf() the fmt or an arg might be a dangerous char*
@@ -254,7 +256,7 @@ SBuf::vappendf(const char *fmt, va_list vargs)
     Must(fmt != NULL);
     int sz = 0;
     //reserve twice the format-string size, it's a likely heuristic
-    size_type requiredSpaceEstimate = strlen(fmt)*2;
+    size_type requiredSpaceEstimate = strlen(fmt) * 2;
 
     char *space = rawSpace(requiredSpaceEstimate);
     va_list ap;
@@ -270,7 +272,7 @@ SBuf::vappendf(const char *fmt, va_list vargs)
 
     if (sz >= static_cast<int>(spaceSize())) {
         // not enough space on the first go, we now know how much we need
-        requiredSpaceEstimate = sz*2; // TODO: tune heuristics
+        requiredSpaceEstimate = sz * 2;  // TODO: tune heuristics
         space = rawSpace(requiredSpaceEstimate);
         sz = vsnprintf(space, spaceSize(), fmt, vargs);
         Must2(sz >= 0, "vsnprintf() output error despite increased buffer space");
@@ -287,7 +289,8 @@ SBuf::vappendf(const char *fmt, va_list vargs)
     if (!snPrintfTerminatorChecked) {
         char testbuf[16];
         snPrintfTerminatorCounted = snprintf(testbuf, sizeof(testbuf),
-                                             "%s", "1") == 2;
+                                             "%s", "1")
+            == 2;
         snPrintfTerminatorChecked = true;
     }
     if (snPrintfTerminatorCounted) {
@@ -301,7 +304,7 @@ SBuf::vappendf(const char *fmt, va_list vargs)
     return *this;
 }
 
-std::ostream&
+std::ostream &
 SBuf::print(std::ostream &os) const
 {
     os.write(buf(), length());
@@ -309,7 +312,7 @@ SBuf::print(std::ostream &os) const
     return os;
 }
 
-std::ostream&
+std::ostream &
 SBuf::dump(std::ostream &os) const
 {
     os << id
@@ -321,7 +324,7 @@ SBuf::dump(std::ostream &os) const
     print(os);
     os << '\'' << std::endl;
     return os;
-# if 0
+#if 0
     // alternate implementation, based on Raw() API.
     os << Raw("SBuf", buf(), length()) <<
        ". id: " << id <<
@@ -339,16 +342,16 @@ SBuf::setAt(size_type pos, char toset)
 {
     checkAccessBounds(pos);
     cow();
-    store_->mem[off_+pos] = toset;
+    store_->mem[off_ + pos] = toset;
     ++stats.setChar;
 }
 
 static int
 memcasecmp(const char *b1, const char *b2, SBuf::size_type len)
 {
-    int rv=0;
+    int rv = 0;
     while (len > 0) {
-        rv = tolower(*b1)-tolower(*b2);
+        rv = tolower(*b1) - tolower(*b2);
         if (rv != 0)
             return rv;
         ++b1;
@@ -363,7 +366,7 @@ SBuf::compare(const SBuf &S, const SBufCaseSensitive isCaseSensitive, const size
 {
     if (n != npos) {
         debugs(24, 8, "length specified. substr and recurse");
-        return substr(0,n).compare(S.substr(0,n),isCaseSensitive);
+        return substr(0, n).compare(S.substr(0, n), isCaseSensitive);
     }
 
     const size_type byteCompareLen = min(S.length(), length());
@@ -451,8 +454,7 @@ SBuf::compare(const char *s, const SBufCaseSensitive isCaseSensitive, const size
 bool
 SBuf::startsWith(const SBuf &S, const SBufCaseSensitive isCaseSensitive) const
 {
-    debugs(24, 8, id << " startsWith " << S.id << ", caseSensitive: " <<
-           isCaseSensitive);
+    debugs(24, 8, id << " startsWith " << S.id << ", caseSensitive: " << isCaseSensitive);
     if (length() < S.length()) {
         debugs(24, 8, "no, too short");
         ++stats.compareFast;
@@ -462,13 +464,13 @@ SBuf::startsWith(const SBuf &S, const SBufCaseSensitive isCaseSensitive) const
 }
 
 bool
-SBuf::operator ==(const SBuf & S) const
+SBuf::operator==(const SBuf &S) const
 {
     debugs(24, 8, id << " == " << S.id);
     if (length() != S.length()) {
         debugs(24, 8, "no, different lengths");
         ++stats.compareFast;
-        return false; //shortcut: must be equal length
+        return false;  //shortcut: must be equal length
     }
     if (store_ == S.store_ && off_ == S.off_) {
         debugs(24, 8, "yes, same length and backing store");
@@ -482,7 +484,7 @@ SBuf::operator ==(const SBuf & S) const
 }
 
 bool
-SBuf::operator !=(const SBuf & S) const
+SBuf::operator!=(const SBuf &S) const
 {
     return !(*this == S);
 }
@@ -500,8 +502,8 @@ SBuf::consume(size_type n)
     return rv;
 }
 
-const
-SBufStats& SBuf::GetStats()
+const SBufStats &
+SBuf::GetStats()
 {
     return stats;
 }
@@ -509,20 +511,20 @@ SBufStats& SBuf::GetStats()
 SBuf::size_type
 SBuf::copy(char *dest, size_type n) const
 {
-    size_type toexport = min(n,length());
+    size_type toexport = min(n, length());
     memcpy(dest, buf(), toexport);
     ++stats.copyOut;
     return toexport;
 }
 
-const char*
+const char *
 SBuf::rawContent() const
 {
     ++stats.rawAccess;
     return buf();
 }
 
-const char*
+const char *
 SBuf::c_str()
 {
     ++stats.rawAccess;
@@ -536,13 +538,13 @@ SBuf::c_str()
     return buf();
 }
 
-SBuf&
+SBuf &
 SBuf::chop(size_type pos, size_type n)
 {
     if (pos == npos || pos > length())
         pos = length();
 
-    if (n == npos || (pos+n) > length())
+    if (n == npos || (pos + n) > length())
         n = length() - pos;
 
     // if there will be nothing left, reset the buffer while we can
@@ -557,12 +559,12 @@ SBuf::chop(size_type pos, size_type n)
     return *this;
 }
 
-SBuf&
+SBuf &
 SBuf::trim(const SBuf &toRemove, bool atBeginning, bool atEnd)
 {
     ++stats.trim;
     if (atEnd) {
-        const char *p = bufEnd()-1;
+        const char *p = bufEnd() - 1;
         while (!isEmpty() && memchr(toRemove.buf(), *p, toRemove.length()) != NULL) {
             //current end-of-buf is in the searched set
             --len_;
@@ -586,7 +588,7 @@ SBuf
 SBuf::substr(size_type pos, size_type n) const
 {
     SBuf rv(*this);
-    rv.chop(pos, n); //stats handled by callee
+    rv.chop(pos, n);  //stats handled by callee
     return rv;
 }
 
@@ -595,25 +597,25 @@ SBuf::find(char c, size_type startPos) const
 {
     ++stats.find;
 
-    if (startPos == npos) // can't find anything if we look past end of SBuf
+    if (startPos == npos)  // can't find anything if we look past end of SBuf
         return npos;
 
     // std::string returns npos if needle is outside hay
     if (startPos > length())
         return npos;
 
-    const void *i = memchr(buf()+startPos, (int)c, (size_type)length()-startPos);
+    const void *i = memchr(buf() + startPos, (int)c, (size_type)length() - startPos);
 
     if (i == NULL)
         return npos;
 
-    return (static_cast<const char *>(i)-buf());
+    return (static_cast<const char *>(i) - buf());
 }
 
 SBuf::size_type
 SBuf::find(const SBuf &needle, size_type startPos) const
 {
-    if (startPos == npos) { // can't find anything if we look past end of SBuf
+    if (startPos == npos) {  // can't find anything if we look past end of SBuf
         ++stats.find;
         return npos;
     }
@@ -636,27 +638,25 @@ SBuf::find(const SBuf &needle, size_type startPos) const
 
     ++stats.find;
 
-    char *start = buf()+startPos;
-    char *lastPossible = buf()+length()-needle.length()+1;
+    char *start = buf() + startPos;
+    char *lastPossible = buf() + length() - needle.length() + 1;
     char needleBegin = needle[0];
 
-    debugs(24, 7, "looking for " << needle << "starting at " << startPos <<
-           " in id " << id);
+    debugs(24, 7, "looking for " << needle << "starting at " << startPos << " in id " << id);
     while (start < lastPossible) {
         char *tmp;
-        debugs(24, 8, " begin=" << (void *) start <<
-               ", lastPossible=" << (void*) lastPossible );
-        tmp = static_cast<char *>(memchr(start, needleBegin, lastPossible-start));
+        debugs(24, 8, " begin=" << (void *)start << ", lastPossible=" << (void *)lastPossible);
+        tmp = static_cast<char *>(memchr(start, needleBegin, lastPossible - start));
         if (tmp == NULL) {
             debugs(24, 8, "First byte not found");
             return npos;
         }
         // lastPossible guarantees no out-of-bounds with memcmp()
         if (0 == memcmp(needle.buf(), tmp, needle.length())) {
-            debugs(24, 8, "Found at " << (tmp-buf()));
-            return (tmp-buf());
+            debugs(24, 8, "Found at " << (tmp - buf()));
+            return (tmp - buf());
         }
-        start = tmp+1;
+        start = tmp + 1;
     }
     debugs(24, 8, "not found");
     return npos;
@@ -676,21 +676,21 @@ SBuf::rfind(const SBuf &needle, SBuf::size_type endPos) const
         return npos;
 
     // if startPos is npos, std::string scans from the end of hay
-    if (endPos == npos || endPos > length()-needle.length())
-        endPos = length()-needle.length();
+    if (endPos == npos || endPos > length() - needle.length())
+        endPos = length() - needle.length();
 
     // an empty needle found at the end of the haystack
     if (needle.length() == 0)
         return endPos;
 
     char *bufBegin = buf();
-    char *cur = bufBegin+endPos;
+    char *cur = bufBegin + endPos;
     const char needleBegin = needle[0];
     while (cur >= bufBegin) {
         if (*cur == needleBegin) {
             if (0 == memcmp(needle.buf(), cur, needle.length())) {
                 // found
-                return (cur-buf());
+                return (cur - buf());
             }
         }
         --cur;
@@ -726,7 +726,7 @@ SBuf::rfind(char c, SBuf::size_type endPos) const
     if (i == NULL)
         return npos;
 
-    return (static_cast<const char *>(i)-buf());
+    return (static_cast<const char *>(i) - buf());
 }
 
 SBuf::size_type
@@ -741,11 +741,11 @@ SBuf::findFirstOf(const CharacterSet &set, size_type startPos) const
         return npos;
 
     debugs(24, 7, "first of characterset " << set.name << " in id " << id);
-    char *cur = buf()+startPos;
+    char *cur = buf() + startPos;
     const char *bufend = bufEnd();
     while (cur < bufend) {
         if (set[*cur])
-            return cur-buf();
+            return cur - buf();
         ++cur;
     }
     debugs(24, 7, "not found");
@@ -764,11 +764,11 @@ SBuf::findFirstNotOf(const CharacterSet &set, size_type startPos) const
         return npos;
 
     debugs(24, 7, "first not of characterset " << set.name << " in id " << id);
-    char *cur = buf()+startPos;
+    char *cur = buf() + startPos;
     const char *bufend = bufEnd();
     while (cur < bufend) {
         if (!set[*cur])
-            return cur-buf();
+            return cur - buf();
         ++cur;
     }
     debugs(24, 7, "not found");
@@ -865,10 +865,10 @@ SBuf::reAlloc(size_type newsize)
     debugs(24, 7, id << " new store capacity: " << store_->capacity);
 }
 
-SBuf&
-SBuf::lowAppend(const char * memArea, size_type areaSize)
+SBuf &
+SBuf::lowAppend(const char *memArea, size_type areaSize)
 {
-    rawSpace(areaSize); //called method also checks n <= maxSize()
+    rawSpace(areaSize);  //called method also checks n <= maxSize()
     store_->append(memArea, areaSize);
     len_ += areaSize;
     ++stats.append;
@@ -894,4 +894,3 @@ SBuf::cow(SBuf::size_type newsize)
     }
     reAlloc(newsize);
 }
-

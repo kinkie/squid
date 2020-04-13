@@ -32,16 +32,16 @@
 
 #if USE_EPOLL
 
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "StatHist.h"
+#include "Store.h"
 #include "base/CodeContext.h"
 #include "comm/Loops.h"
 #include "fde.h"
 #include "globals.h"
 #include "mgr/Registration.h"
 #include "profiler/Profiler.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
-#include "StatHist.h"
-#include "Store.h"
 
 #define DEBUG_EPOLL 0
 
@@ -67,7 +67,7 @@ static void commEPollRegisterWithCacheManager(void);
 void
 Comm::SelectLoopInit(void)
 {
-    pevents = (struct epoll_event *) xmalloc(SQUID_MAXFD * sizeof(struct epoll_event));
+    pevents = (struct epoll_event *)xmalloc(SQUID_MAXFD * sizeof(struct epoll_event));
 
     if (!pevents) {
         int xerrno = errno;
@@ -84,7 +84,8 @@ Comm::SelectLoopInit(void)
     commEPollRegisterWithCacheManager();
 }
 
-static const char* epolltype_atoi(int x)
+static const char *
+epolltype_atoi(int x)
 {
     switch (x) {
 
@@ -107,15 +108,13 @@ static const char* epolltype_atoi(int x)
  * and deregister interest in a pending IO state for a given FD.
  */
 void
-Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+Comm::SetSelect(int fd, unsigned int type, PF *handler, void *client_data, time_t timeout)
 {
     fde *F = &fd_table[fd];
     int epoll_ctl_type = 0;
 
     assert(fd >= 0);
-    debugs(5, 5, HERE << "FD " << fd << ", type=" << type <<
-           ", handler=" << handler << ", client_data=" << client_data <<
-           ", timeout=" << timeout);
+    debugs(5, 5, HERE << "FD " << fd << ", type=" << type << ", handler=" << handler << ", client_data=" << client_data << ", timeout=" << timeout);
 
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
@@ -163,7 +162,7 @@ Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time
         ev.events |= EPOLLHUP | EPOLLERR;
 
     if (ev.events != F->epoll_state) {
-        if (F->epoll_state) // already monitoring something.
+        if (F->epoll_state)  // already monitoring something.
             epoll_ctl_type = ev.events ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
         else
             epoll_ctl_type = EPOLL_CTL_ADD;
@@ -172,22 +171,21 @@ Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time
 
         if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
             int xerrno = errno;
-            debugs(5, DEBUG_EPOLL ? 0 : 8, "epoll_ctl(," << epolltype_atoi(epoll_ctl_type) <<
-                   ",,): failed on FD " << fd << ": " << xstrerr(xerrno));
+            debugs(5, DEBUG_EPOLL ? 0 : 8, "epoll_ctl(," << epolltype_atoi(epoll_ctl_type) << ",,): failed on FD " << fd << ": " << xstrerr(xerrno));
         }
     }
 
     if (timeout)
         F->timeout = squid_curtime + timeout;
 
-    if (timeout || handler) // all non-cleanup requests
-        F->codeContext = CodeContext::Current(); // TODO: Avoid clearing if set?
-    else if (!ev.events) // full cleanup: no more FD-associated work expected
+    if (timeout || handler)                       // all non-cleanup requests
+        F->codeContext = CodeContext::Current();  // TODO: Avoid clearing if set?
+    else if (!ev.events)                          // full cleanup: no more FD-associated work expected
         F->codeContext = nullptr;
     // else: direction-specific/timeout cleanup requests preserve F->codeContext
 }
 
-static void commIncomingStats(StoreEntry * sentry);
+static void commIncomingStats(StoreEntry *sentry);
 
 static void
 commEPollRegisterWithCacheManager(void)
@@ -198,7 +196,7 @@ commEPollRegisterWithCacheManager(void)
 }
 
 static void
-commIncomingStats(StoreEntry * sentry)
+commIncomingStats(StoreEntry *sentry)
 {
     StatCounters *f = &statCounter;
     storeAppendPrintf(sentry, "Total number of epoll(2) loops: %ld\n", statCounter.select_loops);
@@ -219,7 +217,7 @@ commIncomingStats(StoreEntry * sentry)
 Comm::Flag
 Comm::DoSelect(int msec)
 {
-    int num, i,fd;
+    int num, i, fd;
     fde *F;
     PF *hdl;
 
@@ -232,7 +230,7 @@ Comm::DoSelect(int msec)
 
     for (;;) {
         num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
-        ++ statCounter.select_loops;
+        ++statCounter.select_loops;
 
         if (num >= 0)
             break;
@@ -253,7 +251,7 @@ Comm::DoSelect(int msec)
     statCounter.select_fds_hist.count(num);
 
     if (num == 0)
-        return Comm::TIMEOUT;       /* No error.. */
+        return Comm::TIMEOUT; /* No error.. */
 
     PROF_start(comm_handle_ready_fd);
 
@@ -261,20 +259,18 @@ Comm::DoSelect(int msec)
         fd = cevents->data.fd;
         F = &fd_table[fd];
         CodeContext::Reset(F->codeContext);
-        debugs(5, DEBUG_EPOLL ? 0 : 8, HERE << "got FD " << fd << " events=" <<
-               std::hex << cevents->events << " monitoring=" << F->epoll_state <<
-               " F->read_handler=" << F->read_handler << " F->write_handler=" << F->write_handler);
+        debugs(5, DEBUG_EPOLL ? 0 : 8, HERE << "got FD " << fd << " events=" << std::hex << cevents->events << " monitoring=" << F->epoll_state << " F->read_handler=" << F->read_handler << " F->write_handler=" << F->write_handler);
 
         // TODO: add EPOLLPRI??
 
-        if (cevents->events & (EPOLLIN|EPOLLHUP|EPOLLERR) || F->flags.read_pending) {
+        if (cevents->events & (EPOLLIN | EPOLLHUP | EPOLLERR) || F->flags.read_pending) {
             if ((hdl = F->read_handler) != NULL) {
                 debugs(5, DEBUG_EPOLL ? 0 : 8, HERE << "Calling read handler on FD " << fd);
                 PROF_start(comm_write_handler);
                 F->read_handler = NULL;
                 hdl(fd, F->read_data);
                 PROF_stop(comm_write_handler);
-                ++ statCounter.select_fds;
+                ++statCounter.select_fds;
             } else {
                 debugs(5, DEBUG_EPOLL ? 0 : 8, HERE << "no read handler for FD " << fd);
                 // remove interest since no handler exist for this event.
@@ -282,14 +278,14 @@ Comm::DoSelect(int msec)
             }
         }
 
-        if (cevents->events & (EPOLLOUT|EPOLLHUP|EPOLLERR)) {
+        if (cevents->events & (EPOLLOUT | EPOLLHUP | EPOLLERR)) {
             if ((hdl = F->write_handler) != NULL) {
                 debugs(5, DEBUG_EPOLL ? 0 : 8, HERE << "Calling write handler on FD " << fd);
                 PROF_start(comm_read_handler);
                 F->write_handler = NULL;
                 hdl(fd, F->write_data);
                 PROF_stop(comm_read_handler);
-                ++ statCounter.select_fds;
+                ++statCounter.select_fds;
             } else {
                 debugs(5, DEBUG_EPOLL ? 0 : 8, HERE << "no write handler for FD " << fd);
                 // remove interest since no handler exist for this event.
@@ -312,4 +308,3 @@ Comm::QuickPollRequired(void)
 }
 
 #endif /* USE_EPOLL */
-

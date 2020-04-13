@@ -11,8 +11,7 @@
 #ifndef SQUID_SNMPX_FORWARD_H
 #define SQUID_SNMPX_FORWARD_H
 
-namespace Snmp
-{
+namespace Snmp {
 
 class Pdu;
 class Request;
@@ -20,7 +19,6 @@ class Response;
 class Session;
 class Var;
 
-} // namespace Snmp
+}  // namespace Snmp
 
 #endif /* SQUID_SNMPX_FORWARD_H */
-

@@ -9,7 +9,11 @@
 /* DEBUG: section 48    Persistent Connections */
 
 #include "squid.h"
+#include "pconn.h"
 #include "CachePeer.h"
+#include "PeerPoolMgr.h"
+#include "SquidConfig.h"
+#include "Store.h"
 #include "comm.h"
 #include "comm/Connection.h"
 #include "comm/Read.h"
@@ -18,15 +22,11 @@
 #include "globals.h"
 #include "mgr/Registration.h"
 #include "neighbors.h"
-#include "pconn.h"
-#include "PeerPoolMgr.h"
-#include "SquidConfig.h"
-#include "Store.h"
 
-#define PCONN_FDS_SZ    8   /* pconn set size, increase for better memcache hit rate */
+#define PCONN_FDS_SZ 8 /* pconn set size, increase for better memcache hit rate */
 
 //TODO: re-attach to MemPools. WAS: static MemAllocator *pconn_fds_pool = NULL;
-PconnModule * PconnModule::instance = NULL;
+PconnModule *PconnModule::instance = NULL;
 CBDATA_CLASS_INIT(IdleConnList);
 
 /* ========== IdleConnList ============================================ */
@@ -44,7 +44,7 @@ IdleConnList::IdleConnList(const char *aKey, PconnPool *thePool) :
 
     registerRunner();
 
-// TODO: re-attach to MemPools. WAS: theList = (?? *)pconn_fds_pool->alloc();
+    // TODO: re-attach to MemPools. WAS: theList = (?? *)pconn_fds_pool->alloc();
 }
 
 IdleConnList::~IdleConnList()
@@ -53,7 +53,7 @@ IdleConnList::~IdleConnList()
         parent_->unlinkList(this);
 
     if (size_) {
-        parent_ = NULL; // prevent reentrant notifications and deletions
+        parent_ = NULL;  // prevent reentrant notifications and deletions
         closeN(size_);
     }
 
@@ -125,7 +125,7 @@ IdleConnList::closeN(size_t n)
             if (parent_)
                 parent_->noteConnectionRemoved();
         }
-    } else { //if (n < size_)
+    } else {  //if (n < size_)
         debugs(48, 2, HERE << "Closing " << n << " of " << size_ << " entries.");
 
         size_t index;
@@ -183,11 +183,11 @@ IdleConnList::push(const Comm::ConnectionPointer &conn)
 
     theList_[size_] = conn;
     ++size_;
-    AsyncCall::Pointer readCall = commCbCall(5,4, "IdleConnList::Read",
-                                  CommIoCbPtrFun(IdleConnList::Read, this));
+    AsyncCall::Pointer readCall = commCbCall(5, 4, "IdleConnList::Read",
+                                             CommIoCbPtrFun(IdleConnList::Read, this));
     comm_read(conn, fakeReadBuf_, sizeof(fakeReadBuf_), readCall);
-    AsyncCall::Pointer timeoutCall = commCbCall(5,4, "IdleConnList::Timeout",
-                                     CommTimeoutCbPtrFun(IdleConnList::Timeout, this));
+    AsyncCall::Pointer timeoutCall = commCbCall(5, 4, "IdleConnList::Timeout",
+                                                CommTimeoutCbPtrFun(IdleConnList::Timeout, this));
     commSetConnTimeout(conn, conn->timeLeft(Config.Timeout.serverIdlePconn), timeoutCall);
 }
 
@@ -212,7 +212,7 @@ IdleConnList::isAvailable(int i) const
 Comm::ConnectionPointer
 IdleConnList::pop()
 {
-    for (int i=size_-1; i>=0; --i) {
+    for (int i = size_ - 1; i >= 0; --i) {
 
         if (!isAvailable(i))
             continue;
@@ -250,7 +250,7 @@ IdleConnList::findUseable(const Comm::ConnectionPointer &aKey)
     const bool keyCheckAddr = !aKey->local.isAnyAddr();
     const bool keyCheckPort = aKey->local.port() > 0;
 
-    for (int i=size_-1; i>=0; --i) {
+    for (int i = size_ - 1; i >= 0; --i) {
 
         if (!isAvailable(i))
             continue;
@@ -305,7 +305,7 @@ IdleConnList::Read(const Comm::ConnectionPointer &conn, char *, size_t len, Comm
         return;
     }
 
-    IdleConnList *list = (IdleConnList *) data;
+    IdleConnList *list = (IdleConnList *)data;
     /* may delete list/data */
     list->findAndClose(conn);
 }
@@ -340,15 +340,15 @@ PconnPool::key(const Comm::ConnectionPointer &destLink, const char *domain)
 
     if (domain) {
         const int used = strlen(buf);
-        snprintf(buf+used, SQUIDHOSTNAMELEN * 3 + 10-used, "/%s", domain);
+        snprintf(buf + used, SQUIDHOSTNAMELEN * 3 + 10 - used, "/%s", domain);
     }
 
-    debugs(48,6,"PconnPool::key(" << destLink << ", " << (domain?domain:"[no domain]") << ") is {" << buf << "}" );
+    debugs(48, 6, "PconnPool::key(" << destLink << ", " << (domain ? domain : "[no domain]") << ") is {" << buf << "}");
     return buf;
 }
 
 void
-PconnPool::dumpHist(StoreEntry * e) const
+PconnPool::dumpHist(StoreEntry *e) const
 {
     storeAppendPrintf(e,
                       "%s persistent connection counts:\n"
@@ -380,13 +380,13 @@ PconnPool::dumpHash(StoreEntry *e) const
 
 /* ========== PconnPool PUBLIC FUNCTIONS ============================================ */
 
-PconnPool::PconnPool(const char *aDescr, const CbcPointer<PeerPoolMgr> &aMgr):
+PconnPool::PconnPool(const char *aDescr, const CbcPointer<PeerPoolMgr> &aMgr) :
     table(NULL), descr(aDescr),
     mgr(aMgr),
     theCount(0)
 {
     int i;
-    table = hash_create((HASHCMP *) strcmp, 229, hash_string);
+    table = hash_create((HASHCMP *)strcmp, 229, hash_string);
 
     for (i = 0; i < PCONN_HIST_SZ; ++i)
         hist[i] = 0;
@@ -397,7 +397,7 @@ PconnPool::PconnPool(const char *aDescr, const CbcPointer<PeerPoolMgr> &aMgr):
 static void
 DeleteIdleConnList(void *hashItem)
 {
-    delete static_cast<IdleConnList*>(hashItem);
+    delete static_cast<IdleConnList *>(hashItem);
 }
 
 PconnPool::~PconnPool()
@@ -423,14 +423,14 @@ PconnPool::push(const Comm::ConnectionPointer &conn, const char *domain)
     // TODO: also close used pconns if we exceed peer max-conn limit
 
     const char *aKey = key(conn, domain);
-    IdleConnList *list = (IdleConnList *) hash_lookup(table, aKey);
+    IdleConnList *list = (IdleConnList *)hash_lookup(table, aKey);
 
     if (list == NULL) {
         list = new IdleConnList(aKey, this);
-        debugs(48, 3, "new IdleConnList for {" << hashKeyStr(list) << "}" );
+        debugs(48, 3, "new IdleConnList for {" << hashKeyStr(list) << "}");
         hash_join(table, list);
     } else {
-        debugs(48, 3, "found IdleConnList for {" << hashKeyStr(list) << "}" );
+        debugs(48, 3, "found IdleConnList for {" << hashKeyStr(list) << "}");
     }
 
     list->push(conn);
@@ -467,7 +467,7 @@ PconnPool::pop(const Comm::ConnectionPointer &dest, const char *domain, bool kee
 Comm::ConnectionPointer
 PconnPool::popStored(const Comm::ConnectionPointer &dest, const char *domain, const bool keepOpen)
 {
-    const char * aKey = key(dest, domain);
+    const char *aKey = key(dest, domain);
 
     IdleConnList *list = (IdleConnList *)hash_lookup(table, aKey);
     if (list == NULL) {
@@ -476,11 +476,10 @@ PconnPool::popStored(const Comm::ConnectionPointer &dest, const char *domain, co
         notifyManager("pop lookup failure");
         return Comm::ConnectionPointer();
     } else {
-        debugs(48, 3, "found " << hashKeyStr(list) <<
-               (keepOpen ? " to use" : " to kill"));
+        debugs(48, 3, "found " << hashKeyStr(list) << (keepOpen ? " to use" : " to kill"));
     }
 
-    if (const auto popped = list->findUseable(dest)) { // may delete list
+    if (const auto popped = list->findUseable(dest)) {  // may delete list
         // successful pop notifications replenish standby connections pool
         notifyManager("pop");
 
@@ -516,11 +515,11 @@ PconnPool::closeN(int n)
         if (!current) {
             hash_first(hid);
             current = hash_next(hid);
-            Must(current); // must have one because the count() was positive
+            Must(current);  // must have one because the count() was positive
         }
 
         // may delete current
-        static_cast<IdleConnList*>(current)->closeN(1);
+        static_cast<IdleConnList *>(current)->closeN(1);
     }
 }
 
@@ -547,7 +546,8 @@ PconnPool::noteUses(int uses)
  * This simple class exists only for the cache manager
  */
 
-PconnModule::PconnModule(): pools()
+PconnModule::PconnModule() :
+    pools()
 {
     registerWithCacheManager();
 }
@@ -585,12 +585,12 @@ void
 PconnModule::dump(StoreEntry *e)
 {
     typedef Pools::const_iterator PCI;
-    int i = 0; // TODO: Why number pools if they all have names?
+    int i = 0;  // TODO: Why number pools if they all have names?
     for (PCI p = pools.begin(); p != pools.end(); ++p, ++i) {
         // TODO: Let each pool dump itself the way it wants to.
         storeAppendPrintf(e, "\n Pool %d Stats\n", i);
         (*p)->dumpHist(e);
-        storeAppendPrintf(e, "\n Pool %d Hash Table\n",i);
+        storeAppendPrintf(e, "\n Pool %d Hash Table\n", i);
         (*p)->dumpHash(e);
     }
 }
@@ -600,4 +600,3 @@ PconnModule::DumpWrapper(StoreEntry *e)
 {
     PconnModule::GetInstance()->dump(e);
 }
-

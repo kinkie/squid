@@ -32,9 +32,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -54,14 +54,14 @@ const char *program_name;
 
 TDB_CONTEXT *db = nullptr;
 
-#define KEY_LAST_ACTIVITY            "last-activity"
-#define KEY_PERIOD_START             "period-start"
+#define KEY_LAST_ACTIVITY "last-activity"
+#define KEY_PERIOD_START "period-start"
 #define KEY_PERIOD_LENGTH_CONFIGURED "period-length-configured"
-#define KEY_TIME_BUDGET_LEFT         "time-budget-left"
-#define KEY_TIME_BUDGET_CONFIGURED   "time-budget-configured"
+#define KEY_TIME_BUDGET_LEFT "time-budget-left"
+#define KEY_TIME_BUDGET_CONFIGURED "time-budget-configured"
 
 /** Maximum size of buffers used to read or display lines. */
-#define TQ_BUFFERSIZE                     1024
+#define TQ_BUFFERSIZE 1024
 
 /** If there is more than this given number of seconds between two
  * successive requests, than the second request will be treated as a
@@ -76,64 +76,71 @@ static int pauseLength = 300;
 static FILE *logfile = stderr;
 static int tq_debug_enabled = false;
 
-static void open_log(const char *logfilename)
+static void
+open_log(const char *logfilename)
 {
     logfile = fopen(logfilename, "a");
-    if ( logfile == NULL ) {
+    if (logfile == NULL) {
         perror(logfilename);
         logfile = stderr;
     }
 }
 
-static void vlog(const char *level, const char *format, va_list args)
+static void
+vlog(const char *level, const char *format, va_list args)
 {
     time_t now = time(NULL);
 
     fprintf(logfile, "%ld %s| %s: ", static_cast<long int>(now),
             program_name, level);
-    vfprintf (logfile, format, args);
+    vfprintf(logfile, format, args);
     fflush(logfile);
 }
 
-static void log_debug(const char *format, ...)
+static void
+log_debug(const char *format, ...)
 {
     va_list args;
 
-    if ( tq_debug_enabled ) {
-        va_start (args, format);
+    if (tq_debug_enabled) {
+        va_start(args, format);
         vlog("DEBUG", format, args);
-        va_end (args);
+        va_end(args);
     }
 }
 
-static void log_info(const char *format, ...)
+static void
+log_info(const char *format, ...)
 {
     va_list args;
 
-    va_start (args, format);
+    va_start(args, format);
     vlog("INFO", format, args);
-    va_end (args);
+    va_end(args);
 }
 
-static void log_error(const char *format, ...)
+static void
+log_error(const char *format, ...)
 {
     va_list args;
 
-    va_start (args, format);
+    va_start(args, format);
     vlog("ERROR", format, args);
-    va_end (args);
+    va_end(args);
 }
 
-static void log_fatal(const char *format, ...)
+static void
+log_fatal(const char *format, ...)
 {
     va_list args;
 
-    va_start (args, format);
+    va_start(args, format);
     vlog("FATAL", format, args);
-    va_end (args);
+    va_end(args);
 }
 
-static void init_db(void)
+static void
+init_db(void)
 {
     log_info("opening time quota database \"%s\".\n", db_path);
     db = tdb_open(db_path, 0, TDB_CLEAR_IF_FIRST, O_CREAT | O_RDWR, 0666);
@@ -143,12 +150,14 @@ static void init_db(void)
     }
 }
 
-static void shutdown_db(void)
+static void
+shutdown_db(void)
 {
     tdb_close(db);
 }
 
-static char *KeyString(int &len, const char *user_key, const char *sub_key)
+static char *
+KeyString(int &len, const char *user_key, const char *sub_key)
 {
     static char keybuffer[TQ_BUFFERSIZE];
     *keybuffer = 0;
@@ -166,7 +175,8 @@ static char *KeyString(int &len, const char *user_key, const char *sub_key)
     return keybuffer;
 }
 
-static void writeTime(const char *user_key, const char *sub_key, time_t t)
+static void
+writeTime(const char *user_key, const char *sub_key, time_t t)
 {
     int len = 0;
     if (/* const */ char *keybuffer = KeyString(len, user_key, sub_key)) {
@@ -184,7 +194,8 @@ static void writeTime(const char *user_key, const char *sub_key, time_t t)
     }
 }
 
-static time_t readTime(const char *user_key, const char *sub_key)
+static time_t
+readTime(const char *user_key, const char *sub_key)
 {
     int len = 0;
     if (/* const */ char *keybuffer = KeyString(len, user_key, sub_key)) {
@@ -209,7 +220,8 @@ static time_t readTime(const char *user_key, const char *sub_key)
     return 0;
 }
 
-static void parseTime(const char *s, time_t *secs, time_t *start)
+static void
+parseTime(const char *s, time_t *secs, time_t *start)
 {
     double value;
     char unit;
@@ -241,7 +253,7 @@ static void parseTime(const char *s, time_t *secs, time_t *start)
         periodLength = 7 * 24 * 3600;
         *start -= ltime->tm_hour * 3600 + ltime->tm_min * 60 + ltime->tm_sec;
         *start -= ltime->tm_wday * 24 * 3600;
-        *start += 24 * 3600;         // in europe, the week starts monday
+        *start += 24 * 3600;  // in europe, the week starts monday
         break;
     default:
         log_error("Wrong time unit \"%c\". Only \"m\", \"h\", \"d\", or \"w\" allowed.\n", unit);
@@ -254,13 +266,14 @@ static void parseTime(const char *s, time_t *secs, time_t *start)
 /** This function parses the time quota file and stores it
  * in memory.
  */
-static void readConfig(const char *filename)
+static void
+readConfig(const char *filename)
 {
-    char line[TQ_BUFFERSIZE];        /* the buffer for the lines read
+    char line[TQ_BUFFERSIZE]; /* the buffer for the lines read
                    from the dict file */
-    char *cp;           /* a char pointer used to parse
+    char *cp;                 /* a char pointer used to parse
                    each line */
-    char *username;     /* for the username */
+    char *username;           /* for the username */
     char *budget;
     char *period;
     FILE *FH;
@@ -271,7 +284,7 @@ static void readConfig(const char *filename)
     log_info("reading config file \"%s\".\n", filename);
 
     FH = fopen(filename, "r");
-    if ( FH ) {
+    if (FH) {
         /* the pointer to the first entry in the linked list */
         unsigned int lineCount = 0;
         while (fgets(line, sizeof(line), FH)) {
@@ -279,7 +292,7 @@ static void readConfig(const char *filename)
             if (line[0] == '#') {
                 continue;
             }
-            if ((cp = strchr (line, '\n')) != NULL) {
+            if ((cp = strchr(line, '\n')) != NULL) {
                 /* chop \n characters */
                 *cp = '\0';
             }
@@ -315,7 +328,8 @@ static void readConfig(const char *filename)
     }
 }
 
-static void processActivity(const char *user_key)
+static void
+processActivity(const char *user_key)
 {
     time_t now = time(NULL);
     time_t lastActivity;
@@ -331,7 +345,7 @@ static void processActivity(const char *user_key)
 
     // [1] Reset period if over
     periodStart = readTime(user_key, KEY_PERIOD_START);
-    if ( periodStart == 0 ) {
+    if (periodStart == 0) {
         // This is the first period ever.
         periodStart = now;
         writeTime(user_key, KEY_PERIOD_START, periodStart);
@@ -339,20 +353,20 @@ static void processActivity(const char *user_key)
 
     periodLength = now - periodStart;
     userPeriodLength = readTime(user_key, KEY_PERIOD_LENGTH_CONFIGURED);
-    if ( userPeriodLength == 0 ) {
+    if (userPeriodLength == 0) {
         // This user is not configured. Allow anything.
         log_debug("No period length found for user \"%s\". Quota for this user disabled.\n", user_key);
         writeTime(user_key, KEY_TIME_BUDGET_LEFT, pauseLength);
     } else {
-        if ( periodLength >= userPeriodLength ) {
+        if (periodLength >= userPeriodLength) {
             // a new period has started.
             log_debug("New time period started for user \"%s\".\n", user_key);
-            while ( periodStart < now ) {
+            while (periodStart < now) {
                 periodStart += periodLength;
             }
             writeTime(user_key, KEY_PERIOD_START, periodStart);
             timeBudgetConfigured = readTime(user_key, KEY_TIME_BUDGET_CONFIGURED);
-            if ( timeBudgetConfigured == 0 ) {
+            if (timeBudgetConfigured == 0) {
                 log_debug("No time budget configured for user \"%s\". Quota for this user disabled.\n", user_key);
                 writeTime(user_key, KEY_TIME_BUDGET_LEFT, pauseLength);
             } else {
@@ -363,12 +377,12 @@ static void processActivity(const char *user_key)
 
     // [2] Decrease time budget iff activity
     lastActivity = readTime(user_key, KEY_LAST_ACTIVITY);
-    if ( lastActivity == 0 ) {
+    if (lastActivity == 0) {
         // This is the first request ever
         writeTime(user_key, KEY_LAST_ACTIVITY, now);
     } else {
         activityLength = now - lastActivity;
-        if ( activityLength >= pauseLength ) {
+        if (activityLength >= pauseLength) {
             // This is an activity pause.
             log_debug("Activity pause detected for user \"%s\".\n", user_key);
             writeTime(user_key, KEY_LAST_ACTIVITY, now);
@@ -386,7 +400,7 @@ static void processActivity(const char *user_key)
 
     timeBudgetCurrent = readTime(user_key, KEY_TIME_BUDGET_LEFT);
     snprintf(message, TQ_BUFFERSIZE, "message=\"Remaining quota for '%s' is %d seconds.\"", user_key, (int)timeBudgetCurrent);
-    if ( timeBudgetCurrent > 0 ) {
+    if (timeBudgetCurrent > 0) {
         log_debug("OK %s.\n", message);
         SEND_OK(message);
     } else {
@@ -395,7 +409,8 @@ static void processActivity(const char *user_key)
     }
 }
 
-static void usage(void)
+static void
+usage(void)
 {
     log_error("Wrong usage. Please reconfigure in squid.conf.\n");
 
@@ -409,7 +424,8 @@ static void usage(void)
     fprintf(stderr, "configfile is a file containing time quota definitions.\n");
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     char request[HELPER_INPUT_BUFFER];
     int opt;
@@ -442,7 +458,7 @@ int main(int argc, char **argv)
 
     init_db();
 
-    if ( optind + 1 != argc ) {
+    if (optind + 1 != argc) {
         usage();
         exit(EXIT_FAILURE);
     } else {
@@ -463,4 +479,3 @@ int main(int argc, char **argv)
     shutdown_db();
     return EXIT_SUCCESS;
 }
-

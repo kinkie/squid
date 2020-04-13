@@ -26,9 +26,9 @@ public:
     bool extractOne();
 
     /* extracted option details (after successful extraction */
-    SBuf name; ///< extracted option name, including dash(es)
-    bool hasValue = false; ///< whether the option has a value (-x=value)
-    const SBuf &value() const; ///< extracted option value (requires hasValue)
+    SBuf name;                  ///< extracted option name, including dash(es)
+    bool hasValue = false;      ///< whether the option has a value (-x=value)
+    const SBuf &value() const;  ///< extracted option value (requires hasValue)
 
 protected:
     bool advance();
@@ -36,10 +36,10 @@ protected:
     void extractShort();
 
 private:
-    SBuf prefix_; ///< option name(s), including leading dash(es)
-    SBuf value_; ///< the last seen value of some option
-    SBuf::size_type letterPos_ = 0; ///< letter position inside an -xyz sequence
-    bool sawValue_ = false; ///< the current option sequence had a value
+    SBuf prefix_;                    ///< option name(s), including leading dash(es)
+    SBuf value_;                     ///< the last seen value of some option
+    SBuf::size_type letterPos_ = 0;  ///< letter position inside an -xyz sequence
+    bool sawValue_ = false;          ///< the current option sequence had a value
 };
 
 /// parses/validates/stores ACL options; skips/preserves parameter flags
@@ -59,11 +59,11 @@ private:
     /// parsed ACL parameter flags that must be preserved for ACLData::parse()
     static Names flagsToSkip;
 
-    const Options &options_; ///< caller-supported, linked options
-    const ParameterFlags &parameterFlags_; ///< caller-supported parameter flags
+    const Options &options_;                ///< caller-supported, linked options
+    const ParameterFlags &parameterFlags_;  ///< caller-supported parameter flags
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 /* Acl::OptionNameCmp */
 
@@ -86,24 +86,24 @@ bool
 Acl::OptionExtractor::extractOne()
 {
     if (!prefix_.isEmpty()) {
-        extractShort(); // continue with the previously extracted flags
+        extractShort();  // continue with the previously extracted flags
         return true;
     }
 
     if (!advance())
-        return false; // end of options (and, possibly, the whole "acl" directive)
+        return false;  // end of options (and, possibly, the whole "acl" directive)
 
     if (prefix_.length() < 2)
-        throw TexcHere(ToSBuf("truncated(?) ACL flag: ", prefix_)); // single - or +
+        throw TexcHere(ToSBuf("truncated(?) ACL flag: ", prefix_));  // single - or +
 
     if (prefix_[0] == '-' && prefix_[1] == '-') {
         if (prefix_.length() == 2)
-            return false; // skipped "--", an explicit end-of-options marker
+            return false;  // skipped "--", an explicit end-of-options marker
         extractWhole();
         return true;
     }
 
-    if (prefix_.length() == 2) { // common trivial case: -x or +y
+    if (prefix_.length() == 2) {  // common trivial case: -x or +y
         extractWhole();
         return true;
     }
@@ -120,13 +120,13 @@ Acl::OptionExtractor::advance()
 {
     const char *next = ConfigParser::PeekAtToken();
     if (!next)
-        return false; // end of the "acl" line
+        return false;  // end of the "acl" line
 
     const char nextChar = *next;
     if (!(nextChar == '-' || nextChar == '+'))
-        return false; // start of ACL parameters
+        return false;  // start of ACL parameters
 
-    sawValue_ = strchr(next, '='); // TODO: Make ConfigParser reject '^=.*' tokens
+    sawValue_ = strchr(next, '=');  // TODO: Make ConfigParser reject '^=.*' tokens
     if (sawValue_) {
         char *rawPrefix = nullptr;
         char *rawValue = nullptr;
@@ -136,7 +136,7 @@ Acl::OptionExtractor::advance()
         value_.assign(rawValue);
     } else {
         prefix_.assign(next);
-        ConfigParser::NextToken(); // consume what we have peeked at
+        ConfigParser::NextToken();  // consume what we have peeked at
     }
     return true;
 }
@@ -156,9 +156,9 @@ void
 Acl::OptionExtractor::extractShort()
 {
     debugs(28, 8, "from " << prefix_ << " at " << letterPos_ << " value: " << sawValue_);
-    name.assign(prefix_.rawContent(), 1); // leading - or +
+    name.assign(prefix_.rawContent(), 1);  // leading - or +
     name.append(prefix_.at(letterPos_++));
-    if (letterPos_ >= prefix_.length()) { // got last flag in the sequence
+    if (letterPos_ >= prefix_.length()) {  // got last flag in the sequence
         hasValue = sawValue_;
         prefix_.clear();
     } else {
@@ -171,7 +171,7 @@ Acl::OptionExtractor::extractShort()
 // being "static" is an optimization to avoid paying for vector creation/growth
 Acl::OptionsParser::Names Acl::OptionsParser::flagsToSkip;
 
-Acl::OptionsParser::OptionsParser(const Options &options, const ParameterFlags &flags):
+Acl::OptionsParser::OptionsParser(const Options &options, const ParameterFlags &flags) :
     options_(options),
     parameterFlags_(flags)
 {
@@ -189,7 +189,7 @@ Acl::OptionsParser::findOption(/* const */ SBuf &rawNameBuf)
 
     const auto flagPos = parameterFlags_.find(rawName);
     if (flagPos != parameterFlags_.end()) {
-        flagsToSkip.push_back(*flagPos); // *flagPos is permanent unlike rawName
+        flagsToSkip.push_back(*flagPos);  // *flagPos is permanent unlike rawName
         return nullptr;
     }
 
@@ -208,8 +208,7 @@ Acl::OptionsParser::parse()
             const Option &option = *optionPtr;
             if (option.configured())
                 debugs(28, 7, "acl uses multiple " << rawName << " options");
-            switch (option.valueExpectation)
-            {
+            switch (option.valueExpectation) {
             case Option::valueNone:
                 if (oex.hasValue)
                     throw TexcHere(ToSBuf("unexpected value for an ACL option: ", rawName, '=', oex.value()));
@@ -232,7 +231,7 @@ Acl::OptionsParser::parse()
     }
 
     /* hack: regex code wants to parse all -i and +i flags itself */
-    for (const auto name: flagsToSkip)
+    for (const auto name : flagsToSkip)
         ConfigParser::TokenPutBack(name);
 }
 
@@ -258,7 +257,7 @@ Acl::NoFlags()
 }
 
 std::ostream &
-operator <<(std::ostream &os, const Acl::Option &option)
+operator<<(std::ostream &os, const Acl::Option &option)
 {
     if (option.valued()) {
         os << '=';
@@ -268,9 +267,9 @@ operator <<(std::ostream &os, const Acl::Option &option)
 }
 
 std::ostream &
-operator <<(std::ostream &os, const Acl::Options &options)
+operator<<(std::ostream &os, const Acl::Options &options)
 {
-    for (const auto pos: options) {
+    for (const auto pos : options) {
         assert(pos.second);
         const auto &option = *pos.second;
         if (option.configured())
@@ -280,4 +279,3 @@ operator <<(std::ostream &os, const Acl::Options &options)
     // Detecting its need is difficult because parameter flags start with "-".
     return os;
 }
-

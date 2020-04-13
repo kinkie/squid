@@ -11,8 +11,7 @@
 
 #include "security/forward.h"
 
-namespace Security
-{
+namespace Security {
 
 /// An X.509 certificate-related error.
 /// Pairs an error code with the certificate experiencing the error.
@@ -21,21 +20,24 @@ class CertError
 public:
     CertError(int anErr, const Security::CertPointer &aCert, int aDepth = -1) :
         code(anErr), cert(aCert), depth(aDepth)
-    {}
+    {
+    }
 
-    bool operator == (const CertError &ce) const {
+    bool operator==(const CertError &ce) const
+    {
         // We expect to be used in contexts where identical certificates have
         // identical pointers.
         return code == ce.code && depth == ce.depth && cert == ce.cert;
     }
 
-    bool operator != (const CertError &ce) const {
+    bool operator!=(const CertError &ce) const
+    {
         return !(*this == ce);
     }
 
 public:
-    Security::ErrorCode code; ///< certificate error code
-    Security::CertPointer cert; ///< certificate with the above error code
+    Security::ErrorCode code;    ///< certificate error code
+    Security::CertPointer cert;  ///< certificate with the above error code
 
     /**
      * Absolute cert position in the final certificate chain that may include
@@ -45,7 +47,6 @@ public:
     int depth;
 };
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_CERTERROR_H */
-

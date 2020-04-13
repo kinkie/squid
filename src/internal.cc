@@ -11,15 +11,15 @@
 #include "squid.h"
 #include "AccessLogEntry.h"
 #include "CacheManager.h"
-#include "comm/Connection.h"
-#include "errorpage.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
-#include "icmp/net_db.h"
 #include "MemBuf.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "Store.h"
+#include "comm/Connection.h"
+#include "errorpage.h"
+#include "icmp/net_db.h"
 #include "tools.h"
 #include "util.h"
 #include "wordlist.h"
@@ -29,7 +29,7 @@
  * return Http::scNotFound for others
  */
 void
-internalStart(const Comm::ConnectionPointer &clientConn, HttpRequest * request, StoreEntry * entry, const AccessLogEntry::Pointer &ale)
+internalStart(const Comm::ConnectionPointer &clientConn, HttpRequest *request, StoreEntry *entry, const AccessLogEntry::Pointer &ale)
 {
     ErrorState *err;
     const SBuf upath = request->url.path();
@@ -59,7 +59,7 @@ internalStart(const Comm::ConnectionPointer &clientConn, HttpRequest * request, 
         CacheManager::GetInstance()->start(clientConn, request, entry, ale);
     } else {
         debugObj(76, 1, "internalStart: unknown request:\n",
-                 request, (ObjPackMethod) & httpRequestPack);
+                 request, (ObjPackMethod)&httpRequestPack);
         err = new ErrorState(ERR_INVALID_REQ, Http::scNotFound, request, ale);
         errorAppendEntry(entry, err);
     }
@@ -93,8 +93,8 @@ internalRemoteUri(bool encrypt, const char *host, unsigned short port, const cha
 
     /* check for an IP address and format appropriately if found */
     Ip::Address test = lc_host;
-    if ( !test.isAnyAddr() ) {
-        test.toHostStr(lc_host,SQUIDHOSTNAMELEN);
+    if (!test.isAnyAddr()) {
+        test.toHostStr(lc_host, SQUIDHOSTNAMELEN);
     }
 
     /*
@@ -144,8 +144,7 @@ internalHostname(void)
 
     /* For IPv6 addresses also check for a colon */
     if (Config.appendDomain && !strchr(host, '.') && !strchr(host, ':'))
-        strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN -
-                strlen(host) - 1);
+        strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN - strlen(host) - 1);
 
     Tolower(host);
 
@@ -166,4 +165,3 @@ internalHostnameIs(const char *arg)
 
     return 0;
 }
-

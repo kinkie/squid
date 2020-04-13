@@ -13,4 +13,3 @@ extern int QueryServers(char *, char *);
 extern void Check_forallowchange(void);
 
 #endif /* _SQUID_HELPERS_BASIC_AUTH_MSNT_MSNTAUTH_H */
-

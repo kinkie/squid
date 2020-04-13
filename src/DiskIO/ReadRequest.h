@@ -27,4 +27,3 @@ public:
 };
 
 #endif /* SQUID_READREQUEST_H */
-

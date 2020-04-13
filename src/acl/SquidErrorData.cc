@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
-#include "acl/Data.h"
 #include "acl/SquidErrorData.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Data.h"
+#include "cache_cf.h"
 #include "err_type.h"
 #include "fatal.h"
 #include "wordlist.h"
@@ -22,7 +22,7 @@ ACLSquidErrorData::match(err_type err)
     CbDataListIterator<err_type> iter(errors);
     while (!iter.end()) {
         err_type localErr = iter.next();
-        debugs(28, 4, "check (" << err << "):"  << errorTypeName(err) << " against " <<  errorTypeName(localErr));
+        debugs(28, 4, "check (" << err << "):" << errorTypeName(err) << " against " << errorTypeName(localErr));
         if (err == localErr)
             return true;
     }
@@ -72,6 +72,5 @@ ACLSquidErrorData::clone() const
     if (!errors.empty())
         fatal("ACLSquidError::clone: attempt to clone used ACL");
 
-    return new ACLSquidErrorData (*this);
+    return new ACLSquidErrorData(*this);
 }
-

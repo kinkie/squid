@@ -10,12 +10,12 @@
 
 #include "squid.h"
 #include "acl/DestinationIp.h"
+#include "HttpRequest.h"
+#include "SquidConfig.h"
 #include "acl/FilledChecklist.h"
 #include "client_side.h"
 #include "comm/Connection.h"
 #include "http/Stream.h"
-#include "HttpRequest.h"
-#include "SquidConfig.h"
 
 char const *
 ACLDestinationIP::typeString() const
@@ -27,7 +27,7 @@ const Acl::Options &
 ACLDestinationIP::options()
 {
     static const Acl::BooleanOption LookupBan;
-    static const Acl::Options MyOptions = { { "-n", &LookupBan } };
+    static const Acl::Options MyOptions = {{"-n", &LookupBan}};
     LookupBan.linkWith(&lookupBanned);
     return MyOptions;
 }
@@ -47,8 +47,7 @@ ACLDestinationIP::match(ACLChecklist *cl)
     // In which case, we also need this ACL to accurately match the destination
     if (Config.onoff.client_dst_passthru && (checklist->request->flags.intercepted || checklist->request->flags.interceptTproxy)) {
         const auto conn = checklist->conn();
-        return (conn && conn->clientConnection) ?
-               ACLIP::match(conn->clientConnection->local) : -1;
+        return (conn && conn->clientConnection) ? ACLIP::match(conn->clientConnection->local) : -1;
     }
 
     if (lookupBanned) {
@@ -67,7 +66,7 @@ ACLDestinationIP::match(ACLChecklist *cl)
     if (ia) {
         /* Entry in cache found */
 
-        for (const auto ip: ia->goodAndBad()) {
+        for (const auto ip : ia->goodAndBad()) {
             if (ACLIP::match(ip))
                 return 1;
         }
@@ -93,7 +92,7 @@ DestinationIPLookup::Instance()
 }
 
 void
-DestinationIPLookup::checkForAsync(ACLChecklist *cl)const
+DestinationIPLookup::checkForAsync(ACLChecklist *cl) const
 {
     ACLFilledChecklist *checklist = Filled(cl);
     ipcache_nbgethostbyname(checklist->request->url.host(), LookupDone, checklist);
@@ -102,7 +101,7 @@ DestinationIPLookup::checkForAsync(ACLChecklist *cl)const
 void
 DestinationIPLookup::LookupDone(const ipcache_addrs *, const Dns::LookupDetails &details, void *data)
 {
-    ACLFilledChecklist *checklist = Filled((ACLChecklist*)data);
+    ACLFilledChecklist *checklist = Filled((ACLChecklist *)data);
     checklist->request->flags.destinationIpLookedUp = true;
     checklist->request->recordLookup(details);
     checklist->resumeNonBlockingCheck(DestinationIPLookup::Instance());
@@ -113,4 +112,3 @@ ACLDestinationIP::clone() const
 {
     return new ACLDestinationIP(*this);
 }
-

@@ -9,18 +9,18 @@
 /* DEBUG: section 93    ICAP (RFC 3507) Client */
 
 #include "squid.h"
+#include "adaptation/icap/Launcher.h"
+#include "HttpReply.h"
 #include "acl/FilledChecklist.h"
 #include "adaptation/Answer.h"
 #include "adaptation/icap/Config.h"
-#include "adaptation/icap/Launcher.h"
 #include "adaptation/icap/ServiceRep.h"
 #include "adaptation/icap/Xaction.h"
 #include "base/TextException.h"
 #include "globals.h"
-#include "HttpReply.h"
 
 Adaptation::Icap::Launcher::Launcher(const char *aTypeName,
-                                     Adaptation::ServicePointer &aService):
+                                     Adaptation::ServicePointer &aService) :
     AsyncJob(aTypeName),
     Adaptation::Initiate(aTypeName),
     theService(aService), theXaction(0), theLaunches(0)
@@ -32,7 +32,8 @@ Adaptation::Icap::Launcher::~Launcher()
     assert(!theXaction);
 }
 
-void Adaptation::Icap::Launcher::start()
+void
+Adaptation::Icap::Launcher::start()
 {
     Adaptation::Initiate::start();
 
@@ -40,11 +41,12 @@ void Adaptation::Icap::Launcher::start()
     launchXaction("first");
 }
 
-void Adaptation::Icap::Launcher::launchXaction(const char *xkind)
+void
+Adaptation::Icap::Launcher::launchXaction(const char *xkind)
 {
     Must(!theXaction);
     ++theLaunches;
-    debugs(93,4, HERE << "launching " << xkind << " xaction #" << theLaunches);
+    debugs(93, 4, HERE << "launching " << xkind << " xaction #" << theLaunches);
     Adaptation::Icap::Xaction *x = createXaction();
     x->attempts = theLaunches;
     if (theLaunches > 1) {
@@ -57,9 +59,10 @@ void Adaptation::Icap::Launcher::launchXaction(const char *xkind)
     Must(initiated(theXaction));
 }
 
-void Adaptation::Icap::Launcher::noteAdaptationAnswer(const Answer &answer)
+void
+Adaptation::Icap::Launcher::noteAdaptationAnswer(const Answer &answer)
 {
-    debugs(93,5, HERE << "launches: " << theLaunches << " answer: " << answer);
+    debugs(93, 5, HERE << "launches: " << theLaunches << " answer: " << answer);
 
     // XXX: akError is unused by ICAPXaction in favor of noteXactAbort()
     Must(answer.kind != Answer::akError);
@@ -69,18 +72,19 @@ void Adaptation::Icap::Launcher::noteAdaptationAnswer(const Answer &answer)
     Must(done());
 }
 
-void Adaptation::Icap::Launcher::noteInitiatorAborted()
+void
+Adaptation::Icap::Launcher::noteInitiatorAborted()
 {
 
-    announceInitiatorAbort(theXaction); // propagate to the transaction
+    announceInitiatorAbort(theXaction);  // propagate to the transaction
     clearInitiator();
-    Must(done()); // should be nothing else to do
-
+    Must(done());  // should be nothing else to do
 }
 
-void Adaptation::Icap::Launcher::noteXactAbort(XactAbortInfo info)
+void
+Adaptation::Icap::Launcher::noteXactAbort(XactAbortInfo info)
 {
-    debugs(93,5, HERE << "theXaction:" << theXaction << " launches: " << theLaunches);
+    debugs(93, 5, HERE << "theXaction:" << theXaction << " launches: " << theLaunches);
 
     // TODO: add more checks from FwdState::checkRetry()?
     if (canRetry(info)) {
@@ -90,22 +94,24 @@ void Adaptation::Icap::Launcher::noteXactAbort(XactAbortInfo info)
         clearAdaptation(theXaction);
         launchXaction("repeat");
     } else {
-        debugs(93,3, HERE << "cannot retry or repeat a failed transaction");
+        debugs(93, 3, HERE << "cannot retry or repeat a failed transaction");
         clearAdaptation(theXaction);
-        tellQueryAborted(false); // caller decides based on bypass, consumption
+        tellQueryAborted(false);  // caller decides based on bypass, consumption
         Must(done());
     }
 }
 
-bool Adaptation::Icap::Launcher::doneAll() const
+bool
+Adaptation::Icap::Launcher::doneAll() const
 {
     return (!theInitiator || !theXaction) && Adaptation::Initiate::doneAll();
 }
 
-void Adaptation::Icap::Launcher::swanSong()
+void
+Adaptation::Icap::Launcher::swanSong()
 {
     if (theInitiator.set())
-        tellQueryAborted(true); // always final here because abnormal
+        tellQueryAborted(true);  // always final here because abnormal
 
     if (theXaction.set())
         clearAdaptation(theXaction);
@@ -113,35 +119,36 @@ void Adaptation::Icap::Launcher::swanSong()
     Adaptation::Initiate::swanSong();
 }
 
-bool Adaptation::Icap::Launcher::canRetry(Adaptation::Icap::XactAbortInfo &info) const
+bool
+Adaptation::Icap::Launcher::canRetry(Adaptation::Icap::XactAbortInfo &info) const
 {
     // We do not check and can exceed zero repeat limit when retrying.
     // This is by design as the limit does not apply to pconn retrying.
     return !shutting_down && info.isRetriable;
 }
 
-bool Adaptation::Icap::Launcher::canRepeat(Adaptation::Icap::XactAbortInfo &info) const
+bool
+Adaptation::Icap::Launcher::canRepeat(Adaptation::Icap::XactAbortInfo &info) const
 {
-    debugs(93,9, HERE << shutting_down);
+    debugs(93, 9, HERE << shutting_down);
     if (theLaunches >= TheConfig.repeat_limit || shutting_down)
         return false;
 
-    debugs(93,9, HERE << info.isRepeatable); // TODO: update and use status()
+    debugs(93, 9, HERE << info.isRepeatable);  // TODO: update and use status()
     if (!info.isRepeatable)
         return false;
 
-    debugs(93,9, HERE << info.icapReply);
-    if (!info.icapReply) // did not get to read an ICAP reply; a timeout?
+    debugs(93, 9, HERE << info.icapReply);
+    if (!info.icapReply)  // did not get to read an ICAP reply; a timeout?
         return true;
 
-    debugs(93,9, info.icapReply->sline.status());
+    debugs(93, 9, info.icapReply->sline.status());
     // XXX: Http::scNone is not the only sign of parse error
     // XXX: if there is a specific HTTP error code describing the problem, that may be set
-    if (info.icapReply->sline.status() == Http::scNone) // failed to parse the reply; I/O err
+    if (info.icapReply->sline.status() == Http::scNone)  // failed to parse the reply; I/O err
         return true;
 
-    ACLFilledChecklist *cl =
-        new ACLFilledChecklist(TheConfig.repeat, info.icapRequest, dash_str);
+    ACLFilledChecklist *cl = new ACLFilledChecklist(TheConfig.repeat, info.icapRequest, dash_str);
     cl->reply = info.icapReply;
     HTTPMSGLOCK(cl->reply);
 
@@ -153,7 +160,7 @@ bool Adaptation::Icap::Launcher::canRepeat(Adaptation::Icap::XactAbortInfo &info
 /* ICAPXactAbortInfo */
 
 Adaptation::Icap::XactAbortInfo::XactAbortInfo(HttpRequest *anIcapRequest,
-        HttpReply *anIcapReply, bool beRetriable, bool beRepeatable):
+                                               HttpReply *anIcapReply, bool beRetriable, bool beRepeatable) :
     icapRequest(anIcapRequest),
     icapReply(anIcapReply),
     isRetriable(beRetriable),
@@ -165,7 +172,7 @@ Adaptation::Icap::XactAbortInfo::XactAbortInfo(HttpRequest *anIcapRequest,
         HTTPMSGLOCK(icapReply);
 }
 
-Adaptation::Icap::XactAbortInfo::XactAbortInfo(const Adaptation::Icap::XactAbortInfo &i):
+Adaptation::Icap::XactAbortInfo::XactAbortInfo(const Adaptation::Icap::XactAbortInfo &i) :
     icapRequest(i.icapRequest),
     icapReply(i.icapReply),
     isRetriable(i.isRetriable),
@@ -182,4 +189,3 @@ Adaptation::Icap::XactAbortInfo::~XactAbortInfo()
     HTTPMSGUNLOCK(icapRequest);
     HTTPMSGUNLOCK(icapReply);
 }
-

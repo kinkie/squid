@@ -31,12 +31,12 @@ class PeerPoolMgr;
 #include "comm.h"
 
 /// \ingroup PConnAPI
-#define PCONN_HIST_SZ (1<<16)
+#define PCONN_HIST_SZ (1 << 16)
 
 /** \ingroup PConnAPI
  * A list of connections currently open to a particular destination end-point.
  */
-class IdleConnList: public hash_link, private IndependentRunner
+class IdleConnList : public hash_link, private IndependentRunner
 {
     CBDATA_CLASS(IdleConnList);
 
@@ -65,6 +65,7 @@ public:
 
     // IndependentRunner API
     virtual void endingShutdown();
+
 private:
     bool isAvailable(int i) const;
     bool removeAt(int index);
@@ -93,7 +94,7 @@ private:
      */
     PconnPool *parent_;
 
-    char fakeReadBuf_[4096]; // TODO: kill magic number.
+    char fakeReadBuf_[4096];  // TODO: kill magic number.
 };
 
 #include "ip/forward.h"
@@ -143,13 +144,16 @@ public:
     void closeN(int n);
     int count() const { return theCount; }
     void noteConnectionAdded() { ++theCount; }
-    void noteConnectionRemoved() { assert(theCount > 0); --theCount; }
+    void noteConnectionRemoved()
+    {
+        assert(theCount > 0);
+        --theCount;
+    }
 
     // sends an async message to the pool manager, if any
     void notifyManager(const char *reason);
 
 private:
-
     static const char *key(const Comm::ConnectionPointer &destLink, const char *domain);
 
     Comm::ConnectionPointer popStored(const Comm::ConnectionPointer &dest, const char *domain, const bool keepOpen);
@@ -157,8 +161,8 @@ private:
     int hist[PCONN_HIST_SZ];
     hash_table *table;
     const char *descr;
-    CbcPointer<PeerPoolMgr> mgr; ///< optional pool manager (for notifications)
-    int theCount; ///< the number of pooled connections
+    CbcPointer<PeerPoolMgr> mgr;  ///< optional pool manager (for notifications)
+    int theCount;                 ///< the number of pooled connections
 };
 
 class StoreEntry;
@@ -174,7 +178,7 @@ public:
     /** the module is a singleton until we have instance based cachemanager
      * management
      */
-    static PconnModule * GetInstance();
+    static PconnModule *GetInstance();
     /** A thunk to the still C like CacheManager callback api. */
     static void DumpWrapper(StoreEntry *e);
 
@@ -182,16 +186,15 @@ public:
     void registerWithCacheManager(void);
 
     void add(PconnPool *);
-    void remove(PconnPool *); ///< unregister and forget about this pool object
+    void remove(PconnPool *);  ///< unregister and forget about this pool object
 
     OBJH dump;
 
 private:
-    typedef std::set<PconnPool*> Pools; ///< unordered PconnPool collection
-    Pools pools; ///< all live pools
+    typedef std::set<PconnPool *> Pools;  ///< unordered PconnPool collection
+    Pools pools;                          ///< all live pools
 
-    static PconnModule * instance;
+    static PconnModule *instance;
 };
 
 #endif /* SQUID_PCONN_H */
-

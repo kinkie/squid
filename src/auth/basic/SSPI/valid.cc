@@ -48,8 +48,8 @@
 #endif
 #include "auth/basic/SSPI/valid.h"
 
-char Default_NTDomain[DNLEN+1] = NTV_DEFAULT_DOMAIN;
-const char * errormsg;
+char Default_NTDomain[DNLEN + 1] = NTV_DEFAULT_DOMAIN;
+const char *errormsg;
 
 const char NTV_SERVER_ERROR_MSG[] = "Internal server error";
 const char NTV_GROUP_ERROR_MSG[] = "User not allowed to use this cache";
@@ -61,8 +61,8 @@ int
 Valid_Group(char *UserName, char *Group)
 {
     int result = FALSE;
-    WCHAR wszUserName[256]; // Unicode user name
-    WCHAR wszGroup[256];    // Unicode Group
+    WCHAR wszUserName[256];  // Unicode user name
+    WCHAR wszGroup[256];     // Unicode Group
 
     LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
@@ -95,7 +95,7 @@ Valid_Group(char *UserName, char *Group)
                                     wszUserName,
                                     dwLevel,
                                     dwFlags,
-                                    (LPBYTE *) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
+                                    (LPBYTE *)&pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
     /*
      * If the call succeeds,
      */
@@ -137,7 +137,7 @@ Valid_User(char *UserName, char *Password, char *Group)
     errormsg = NTV_SERVER_ERROR_MSG;
     strncpy(NTDomain, UserName, sizeof(NTDomain));
 
-    for (i=0; i < strlen(NTV_VALID_DOMAIN_SEPARATOR); ++i) {
+    for (i = 0; i < strlen(NTV_VALID_DOMAIN_SEPARATOR); ++i) {
         if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[i])) != NULL)
             break;
     }
@@ -179,4 +179,3 @@ Valid_User(char *UserName, char *Password, char *Group)
     }
     return result;
 }
-

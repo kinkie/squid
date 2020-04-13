@@ -31,15 +31,15 @@
 
 #if USE_DEVPOLL
 
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "StatHist.h"
+#include "Store.h"
 #include "comm/Loops.h"
 #include "fd.h"
 #include "fde.h"
 #include "mgr/Registration.h"
 #include "profiler/Profiler.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
-#include "StatHist.h"
-#include "Store.h"
 
 #include <cerrno>
 #include <climits>
@@ -51,8 +51,8 @@
 #define DEBUG_DEVPOLL 0
 
 // OPEN_MAX is defined in <climits>
-#define DEVPOLL_UPDATESIZE  OPEN_MAX
-#define DEVPOLL_QUERYSIZE   OPEN_MAX
+#define DEVPOLL_UPDATESIZE OPEN_MAX
+#define DEVPOLL_QUERYSIZE OPEN_MAX
 
 /* TYPEDEFS */
 typedef short pollfd_events_t; /* type of pollfd.events from sys/poll.h */
@@ -73,17 +73,17 @@ struct _devpoll_state {
  */
 static struct {
     struct pollfd *pfds; /**< ptr to array of struct pollfd config elements */
-    int cur; /**< index of last written element of array, or -1 if none */
-    int size; /**< maximum number of elements in array */
+    int cur;             /**< index of last written element of array, or -1 if none */
+    int size;            /**< maximum number of elements in array */
 } devpoll_update;
 
 /* STATIC VARIABLES */
-static int devpoll_fd; /**< handle to /dev/poll device */
+static int devpoll_fd;           /**< handle to /dev/poll device */
 static int max_poll_time = 1000; /**< maximum milliseconds to spend in poll */
 
 static struct _devpoll_state *devpoll_state; /**< array of socket states */
-static struct dvpoll do_poll; /**< data struct for storing poll results */
-static int dpoll_nfds; /**< maximum number of poll results */
+static struct dvpoll do_poll;                /**< data struct for storing poll results */
+static int dpoll_nfds;                       /**< maximum number of poll results */
 
 /* PROTOTYPES */
 static void commDevPollRegisterWithCacheManager(void);
@@ -107,14 +107,13 @@ comm_flush_updates(void)
     debugs(
         5,
         DEBUG_DEVPOLL ? 0 : 8,
-        HERE << (devpoll_update.cur + 1) << " fds queued"
-    );
+        HERE << (devpoll_update.cur + 1) << " fds queued");
 
     i = write(
-            devpoll_fd, /* open handle to /dev/poll */
-            devpoll_update.pfds, /* pointer to array of struct pollfd */
-            (devpoll_update.cur + 1) * sizeof(struct pollfd) /* bytes to process */
-        );
+        devpoll_fd,                                      /* open handle to /dev/poll */
+        devpoll_update.pfds,                             /* pointer to array of struct pollfd */
+        (devpoll_update.cur + 1) * sizeof(struct pollfd) /* bytes to process */
+    );
     assert(i > 0);
     assert(static_cast<size_t>(i) == (sizeof(struct pollfd) * (devpoll_update.cur + 1)));
     devpoll_update.cur = -1; /* reset size of array, no elements remain */
@@ -135,21 +134,21 @@ comm_update_fd(int fd, int events)
     debugs(
         5,
         DEBUG_DEVPOLL ? 0 : 8,
-        HERE << "FD " << fd << ", events=" << events
-    );
+        HERE << "FD " << fd << ", events=" << events);
 
     /* Is the array already full and in need of flushing? */
     if (devpoll_update.cur != -1 && (devpoll_update.cur == devpoll_update.size))
         comm_flush_updates();
 
     /* Push new event onto array */
-    ++ devpoll_update.cur;
+    ++devpoll_update.cur;
     devpoll_update.pfds[devpoll_update.cur].fd = fd;
     devpoll_update.pfds[devpoll_update.cur].events = events;
     devpoll_update.pfds[devpoll_update.cur].revents = 0;
 }
 
-static void commIncomingStats(StoreEntry *sentry)
+static void
+commIncomingStats(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Total number of devpoll loops: %ld\n", statCounter.select_loops);
     storeAppendPrintf(sentry, "Histogram of returned filedescriptors\n");
@@ -164,8 +163,7 @@ commDevPollRegisterWithCacheManager(void)
         "comm_incoming() stats",
         commIncomingStats,
         0,
-        1
-    );
+        1);
 }
 
 /* PUBLIC FUNCTIONS */
@@ -180,18 +178,15 @@ Comm::SelectLoopInit(void)
     /* allocate memory first before attempting to open poll device */
     /* This tracks the FD devpoll offset+state */
     devpoll_state = (struct _devpoll_state *)xcalloc(
-                        SQUID_MAXFD, sizeof(struct _devpoll_state)
-                    );
+        SQUID_MAXFD, sizeof(struct _devpoll_state));
 
     /* And this is the stuff we use to read events */
     do_poll.dp_fds = (struct pollfd *)xcalloc(
-                         DEVPOLL_QUERYSIZE, sizeof(struct pollfd)
-                     );
+        DEVPOLL_QUERYSIZE, sizeof(struct pollfd));
     dpoll_nfds = DEVPOLL_QUERYSIZE;
 
     devpoll_update.pfds = (struct pollfd *)xcalloc(
-                              DEVPOLL_UPDATESIZE, sizeof(struct pollfd)
-                          );
+        DEVPOLL_UPDATESIZE, sizeof(struct pollfd));
     devpoll_update.cur = -1;
     devpoll_update.size = DEVPOLL_UPDATESIZE;
 
@@ -222,18 +217,16 @@ Comm::SelectLoopInit(void)
  * @param timeout if non-zero then timeout relative to now
  */
 void
-Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+Comm::SetSelect(int fd, unsigned int type, PF *handler, void *client_data, time_t timeout)
 {
     assert(fd >= 0);
-    debugs(5, 5, HERE << "FD " << fd << ", type=" << type <<
-           ", handler=" << handler << ", client_data=" << client_data <<
-           ", timeout=" << timeout);
+    debugs(5, 5, HERE << "FD " << fd << ", type=" << type << ", handler=" << handler << ", client_data=" << client_data << ", timeout=" << timeout);
 
     /* POLLIN/POLLOUT are defined in <sys/poll.h> */
     fde *F = &fd_table[fd];
     if (!F->flags.open) {
         /* remove from poll set */
-        comm_update_fd( fd, POLLREMOVE );
+        comm_update_fd(fd, POLLREMOVE);
         devpoll_state[fd].state = 0;
         return;
     }
@@ -241,8 +234,8 @@ Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time
     pollfd_events_t state_old = devpoll_state[fd].state;
     pollfd_events_t state_new = 0; /* new state (derive from old state) */
 
-    if ( type & COMM_SELECT_READ ) {
-        if ( handler != NULL ) {
+    if (type & COMM_SELECT_READ) {
+        if (handler != NULL) {
             // Hack to keep the events flowing if there is data immediately ready
             if (F->flags.read_pending)
                 state_new |= POLLOUT;
@@ -254,13 +247,13 @@ Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time
 
         F->read_handler = handler;
         F->read_data = client_data;
-    } else if ( state_old & POLLIN ) {
+    } else if (state_old & POLLIN) {
         /* we're not changing reading state so take from existing */
         state_new |= POLLIN;
     }
 
-    if ( type & COMM_SELECT_WRITE ) {
-        if ( handler != NULL ) {
+    if (type & COMM_SELECT_WRITE) {
+        if (handler != NULL) {
             /* we want to POLLOUT */
             state_new |= POLLOUT;
         } else {
@@ -269,24 +262,24 @@ Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time
 
         F->write_handler = handler;
         F->write_data = client_data;
-    } else if ( state_old & POLLOUT ) {
+    } else if (state_old & POLLOUT) {
         /* we're not changing writing state so take from existing */
         state_new |= POLLOUT;
     }
 
-    if ( pollfd_events_t bits_changed = (state_old ^ state_new) ) {
+    if (pollfd_events_t bits_changed = (state_old ^ state_new)) {
         /* something has changed, update /dev/poll of what to listen for */
 
         /* did any bits clear? (in which case a poll remove is necessary) */
-        if ( bits_changed & state_old ) {
-            comm_update_fd( fd, POLLREMOVE );
+        if (bits_changed & state_old) {
+            comm_update_fd(fd, POLLREMOVE);
             /* existing state cleared, so update with all required events */
-            if ( state_new )
-                comm_update_fd( fd, state_new );
+            if (state_new)
+                comm_update_fd(fd, state_new);
         } else {
             /* only update with new required event */
-            if ( pollfd_events_t newly_set_only = (bits_changed & state_new) )
-                comm_update_fd( fd, newly_set_only );
+            if (pollfd_events_t newly_set_only = (bits_changed & state_new))
+                comm_update_fd(fd, newly_set_only);
         }
 
         devpoll_state[fd].state = state_new;
@@ -328,7 +321,7 @@ Comm::DoSelect(int msec)
         comm_flush_updates(); /* ensure latest changes are sent to /dev/poll */
 
         num = ioctl(devpoll_fd, DP_POLL, &do_poll);
-        ++ statCounter.select_loops;
+        ++statCounter.select_loops;
 
         if (num >= 0)
             break; /* no error, skip out of loop */
@@ -359,41 +352,37 @@ Comm::DoSelect(int msec)
             5,
             DEBUG_DEVPOLL ? 0 : 8,
             HERE << "got FD " << fd
-            << ",events=" << std::hex << do_poll.dp_fds[i].revents
-            << ",monitoring=" << devpoll_state[fd].state
-            << ",F->read_handler=" << F->read_handler
-            << ",F->write_handler=" << F->write_handler
-        );
+                 << ",events=" << std::hex << do_poll.dp_fds[i].revents
+                 << ",monitoring=" << devpoll_state[fd].state
+                 << ",F->read_handler=" << F->read_handler
+                 << ",F->write_handler=" << F->write_handler);
 
         /* handle errors */
         if (do_poll.dp_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
             debugs(
                 5,
                 DEBUG_DEVPOLL ? 0 : 8,
-                HERE << "devpoll event error: fd " << fd
-            );
+                HERE << "devpoll event error: fd " << fd);
             continue;
         }
 
         /* check if file descriptor has data to read */
         if (do_poll.dp_fds[i].revents & POLLIN || F->flags.read_pending) {
-            if ( (hdl = F->read_handler) != NULL ) {
+            if ((hdl = F->read_handler) != NULL) {
                 debugs(
                     5,
                     DEBUG_DEVPOLL ? 0 : 8,
-                    HERE << "Calling read handler on FD " << fd
-                );
+                    HERE << "Calling read handler on FD " << fd);
                 PROF_start(comm_read_handler);
                 F->read_handler = NULL;
                 hdl(fd, F->read_data);
                 PROF_stop(comm_read_handler);
-                ++ statCounter.select_fds;
+                ++statCounter.select_fds;
             } else {
                 debugs(
                     5,
                     DEBUG_DEVPOLL ? 0 : 8,
-                    HERE << "no read handler for FD " << fd
-                );
+                    HERE << "no read handler for FD " << fd);
                 // remove interest since no handler exist for this event.
                 SetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
             }
@@ -405,19 +394,17 @@ Comm::DoSelect(int msec)
                 debugs(
                     5,
                     DEBUG_DEVPOLL ? 0 : 8,
-                    HERE << "Calling write handler on FD " << fd
-                );
+                    HERE << "Calling write handler on FD " << fd);
                 PROF_start(comm_write_handler);
                 F->write_handler = NULL;
                 hdl(fd, F->write_data);
                 PROF_stop(comm_write_handler);
-                ++ statCounter.select_fds;
+                ++statCounter.select_fds;
             } else {
                 debugs(
                     5,
                     DEBUG_DEVPOLL ? 0 : 8,
-                    HERE << "no write handler for FD " << fd
-                );
+                    HERE << "no write handler for FD " << fd);
                 // remove interest since no handler exist for this event.
                 SetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
             }
@@ -435,4 +422,3 @@ Comm::QuickPollRequired(void)
 }
 
 #endif /* USE_DEVPOLL */
-

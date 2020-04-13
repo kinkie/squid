@@ -9,8 +9,7 @@
 #ifndef _SQUID_AUTH_CREDENTIALSTATE_H
 #define _SQUID_AUTH_CREDENTIALSTATE_H
 
-namespace Auth
-{
+namespace Auth {
 
 typedef enum {
     Unchecked,
@@ -22,7 +21,6 @@ typedef enum {
 
 extern const char *CredentialState_str[];
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* _SQUID_AUTH_CREDENTIALSTATE_H */
-

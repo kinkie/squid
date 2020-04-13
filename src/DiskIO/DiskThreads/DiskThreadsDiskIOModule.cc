@@ -41,8 +41,7 @@ DiskThreadsDiskIOModule::createStrategy()
 }
 
 char const *
-DiskThreadsDiskIOModule::type () const
+DiskThreadsDiskIOModule::type() const
 {
     return "DiskThreads";
 }
-

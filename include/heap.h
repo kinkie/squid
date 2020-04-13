@@ -29,7 +29,7 @@
  * the current aging factor for the heap.
  */
 typedef unsigned long heap_mutex_t;
-typedef void * heap_t;
+typedef void *heap_t;
 typedef double heap_key;
 typedef heap_key heap_key_func(heap_t, heap_key);
 
@@ -54,7 +54,7 @@ typedef struct _heap {
     unsigned long size;
     unsigned long last;
     heap_key_func *gen_key; /* key generator for heap */
-    heap_key age;       /* aging factor for heap */
+    heap_key age;           /* aging factor for heap */
     heap_node **nodes;
 } heap;
 
@@ -85,7 +85,7 @@ SQUIDCEXTERN heap_node *heap_insert(heap *hp, heap_t dat);
  * Delete a node out of a heap.  Returns the heap data from the deleted
  * node.  The caller is responsible for freeing this data.
  */
-SQUIDCEXTERN heap_t heap_delete(heap *, heap_node * elm);
+SQUIDCEXTERN heap_t heap_delete(heap *, heap_node *elm);
 
 /*
  * The semantics of this routine is the same as the followings:
@@ -94,15 +94,15 @@ SQUIDCEXTERN heap_t heap_delete(heap *, heap_node * elm);
  * Returns the old data object from elm (the one being replaced).  The
  * caller must free this as necessary.
  */
-SQUIDCEXTERN heap_t heap_update(heap *, heap_node * elm, heap_t dat);
+SQUIDCEXTERN heap_t heap_update(heap *, heap_node *elm, heap_t dat);
 
 /*
  * Generate a heap key for a given data object.  Alternative macro form:
  */
-#ifdef  MACRO_DEBUG
-SQUIDCEXTERN heap_key heap_gen_key(heap * hp, heap_t dat);
+#ifdef MACRO_DEBUG
+SQUIDCEXTERN heap_key heap_gen_key(heap *hp, heap_t dat);
 #else
-#define heap_gen_key(hp,md) ((hp)->gen_key((md),(hp)->age))
+#define heap_gen_key(hp, md) ((hp)->gen_key((md), (hp)->age))
 #endif /* MACRO_DEBUG */
 
 /*
@@ -119,7 +119,7 @@ SQUIDCEXTERN heap_t heap_extractmin(heap *);
  * parent, but may not be less than any of the other (leaf or parent) notes
  * in the tree.  This operation is fast but imprecise.
  */
-SQUIDCEXTERN heap_t heap_extractlast(heap * hp);
+SQUIDCEXTERN heap_t heap_extractlast(heap *hp);
 
 /*
  * Get the root key, the nth key, the root (smallest) element, or the nth
@@ -134,21 +134,20 @@ SQUIDCEXTERN heap_t heap_peep(heap *, int n);
 /*
  * Is the heap empty?  How many nodes (data objects) are in it?
  */
-#ifdef  MACRO_DEBUG
+#ifdef MACRO_DEBUG
 SQUIDCEXTERN int heap_empty(heap *);
 SQUIDCEXTERN int heap_nodes(heap *);
 #else /* MACRO_DEBUG */
-#define heap_nodes(heap)    ((heap)->last)
-#define heap_empty(heap)    ((heap)->last <= 0 ? 1 : 0)
+#define heap_nodes(heap) ((heap)->last)
+#define heap_empty(heap) ((heap)->last <= 0 ? 1 : 0)
 #endif /* MACRO_DEBUG */
 
 /*
  * Print the heap or a node in the heap.
  */
 SQUIDCEXTERN void heap_print(heap *);
-SQUIDCEXTERN void heap_printnode(char *msg, heap_node * elm);
+SQUIDCEXTERN void heap_printnode(char *msg, heap_node *elm);
 
 SQUIDCEXTERN int verify_heap_property(heap *);
 
 #endif /* SQUID_HEAP_H */
-

@@ -10,9 +10,9 @@
 
 #include "squid.h"
 #include "ftp/Parsing.h"
-#include "ip/Address.h"
 #include "MemBuf.h"
 #include "SquidConfig.h"
+#include "ip/Address.h"
 
 bool
 Ftp::ParseIpPort(const char *buf, const char *forceIp, Ip::Address &addr)
@@ -26,7 +26,7 @@ Ftp::ParseIpPort(const char *buf, const char *forceIp, Ip::Address &addr)
         return false;
 
     if (forceIp) {
-        addr = forceIp; // but the above code still validates the IP we got
+        addr = forceIp;  // but the above code still validates the IP we got
     } else {
         static char ipBuf[1024];
         snprintf(ipBuf, sizeof(ipBuf), "%d.%d.%d.%d", h1, h2, h3, h4);
@@ -55,7 +55,7 @@ Ftp::ParseProtoIpPort(const char *buf, Ip::Address &addr)
     const char delim = *buf;
     const char *s = buf + 1;
     const char *e = s;
-    const int proto = strtol(s, const_cast<char**>(&e), 10);
+    const int proto = strtol(s, const_cast<char **>(&e), 10);
     if ((proto != 1 && proto != 2) || *e != delim)
         return false;
 
@@ -71,11 +71,11 @@ Ftp::ParseProtoIpPort(const char *buf, Ip::Address &addr)
     if (addr.isAnyAddr())
         return false;
 
-    if ((proto == 2) != addr.isIPv6()) // proto ID mismatches address version
+    if ((proto == 2) != addr.isIPv6())  // proto ID mismatches address version
         return false;
 
-    s = e + 1; // skip port delimiter
-    const int port = strtol(s, const_cast<char**>(&e), 10);
+    s = e + 1;  // skip port delimiter
+    const int port = strtol(s, const_cast<char **>(&e), 10);
     if (port < 0 || *e != '|')
         return false;
 
@@ -104,7 +104,7 @@ Ftp::UnescapeDoubleQuoted(const char *quotedPath)
                     ++s;
                 } else
                     parseDone = true;
-            } else { //parse error
+            } else {  //parse error
                 parseDone = true;
                 path.reset();
             }
@@ -112,4 +112,3 @@ Ftp::UnescapeDoubleQuoted(const char *quotedPath)
     }
     return path.content();
 }
-

@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
-#include "base/LookupTable.h"
 #include "testLookupTable.h"
+#include "base/LookupTable.h"
 #include "unitTestMain.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testLookupTable );
+CPPUNIT_TEST_SUITE_REGISTRATION(testLookupTable);
 
 enum EnumData {
     ENUM_1,
@@ -32,8 +32,7 @@ static const LookupTable<EnumData>::Record tableData[] = {
     {"five", ENUM_5},
     {"six", ENUM_6},
     {"seven", ENUM_7},
-    {nullptr, ENUM_INVALID}
-};
+    {nullptr, ENUM_INVALID}};
 
 void
 testLookupTable::testLookupTableLookup()
@@ -51,4 +50,3 @@ testLookupTable::testLookupTableLookup()
     // element not found
     CPPUNIT_ASSERT_EQUAL(lt.lookup(SBuf("eleventy")), ENUM_INVALID);
 }
-

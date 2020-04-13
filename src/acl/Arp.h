@@ -13,8 +13,7 @@
 
 #include <set>
 
-namespace Eui
-{
+namespace Eui {
 class Eui48;
 };
 
@@ -27,14 +26,14 @@ public:
     ACLARP(char const *);
     ACLARP(ACLARP const &);
     ~ACLARP() {}
-    ACLARP&operator=(ACLARP const &);
+    ACLARP &operator=(ACLARP const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
+    virtual bool empty() const;
 
 protected:
     char const *class_;
@@ -43,4 +42,3 @@ protected:
 };
 
 #endif /* SQUID_ACLARP_H */
-

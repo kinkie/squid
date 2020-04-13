@@ -92,10 +92,9 @@
  * But only for code linked into Squid, not the helpers.. (unlinkd, pinger)
  */
 #ifdef SQUID_FDSET_NOUSE
-# ifndef SQUID_HELPER
-#  define fd_set ERROR_FD_SET_USED
-# endif
+#ifndef SQUID_HELPER
+#define fd_set ERROR_FD_SET_USED
+#endif
 #endif
 
 #endif /* SQUID_FDSETSIZE_H */
-

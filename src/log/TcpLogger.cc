@@ -7,34 +7,34 @@
  */
 
 #include "squid.h"
+#include "log/TcpLogger.h"
+#include "Parsing.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
 #include "comm.h"
-#include "comm/Connection.h"
 #include "comm/ConnOpener.h"
+#include "comm/Connection.h"
 #include "comm/Loops.h"
 #include "comm/Write.h"
 #include "fatal.h"
 #include "fde.h"
-#include "globals.h" // for shutting_down
+#include "globals.h"  // for shutting_down
 #include "log/CustomLog.h"
 #include "log/File.h"
-#include "log/TcpLogger.h"
-#include "Parsing.h"
 #include "sbuf/MemBlob.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
 
 // a single I/O buffer should be large enough to store any access.log record
-const size_t Log::TcpLogger::IoBufSize = 2*MAX_URL;
+const size_t Log::TcpLogger::IoBufSize = 2 * MAX_URL;
 
 // We need at least two buffers because when we write the first buffer,
 // we have to use the second buffer to accumulate new entries.
-const size_t Log::TcpLogger::BufferCapacityMin = 2*Log::TcpLogger::IoBufSize;
+const size_t Log::TcpLogger::BufferCapacityMin = 2 * Log::TcpLogger::IoBufSize;
 
 #define MY_DEBUG_SECTION 50 /* Log file handling */
 
 CBDATA_NAMESPACED_CLASS_INIT(Log, TcpLogger);
 
-Log::TcpLogger::TcpLogger(size_t bufCap, bool dieOnErr, Ip::Address them):
+Log::TcpLogger::TcpLogger(size_t bufCap, bool dieOnErr, Ip::Address them) :
     AsyncJob("TcpLogger"),
     dieOnError(dieOnErr),
     bufferCapacity(bufCap),
@@ -50,10 +50,10 @@ Log::TcpLogger::TcpLogger(size_t bufCap, bool dieOnErr, Ip::Address them):
 {
     if (bufferCapacity < BufferCapacityMin) {
         debugs(MY_DEBUG_SECTION, DBG_IMPORTANT,
-               "WARNING: tcp:" << remote << " logger configured buffer " <<
-               "size " << bufferCapacity << " is smaller than the " <<
-               BufferCapacityMin << "-byte" << " minimum. " <<
-               "Using the minimum instead.");
+               "WARNING: tcp:" << remote << " logger configured buffer "
+                               << "size " << bufferCapacity << " is smaller than the " << BufferCapacityMin << "-byte"
+                               << " minimum. "
+                               << "Using the minimum instead.");
         bufferCapacity = BufferCapacityMin;
     }
 }
@@ -73,9 +73,7 @@ Log::TcpLogger::start()
 bool
 Log::TcpLogger::doneAll() const
 {
-    debugs(MY_DEBUG_SECTION, 5, "quitOnEmpty: " << quitOnEmpty <<
-           " buffered: " << bufferedSize <<
-           " conn: " << conn << ' ' << connectFailures);
+    debugs(MY_DEBUG_SECTION, 5, "quitOnEmpty: " << quitOnEmpty << " buffered: " << bufferedSize << " conn: " << conn << ' ' << connectFailures);
 
     // we do not quit unless we are told that we may
     if (!quitOnEmpty)
@@ -95,7 +93,7 @@ Log::TcpLogger::doneAll() const
 void
 Log::TcpLogger::swanSong()
 {
-    disconnect(); // optional: refcounting should close/delete conn eventually
+    disconnect();  // optional: refcounting should close/delete conn eventually
     AsyncJob::swanSong();
 }
 
@@ -133,17 +131,14 @@ Log::TcpLogger::writeIfNeeded()
 }
 
 /// starts writing if possible
-void Log::TcpLogger::writeIfPossible()
+void
+Log::TcpLogger::writeIfPossible()
 {
-    debugs(MY_DEBUG_SECTION, 7, "guards: " << (!writeScheduled) <<
-           (bufferedSize > 0) << (conn != NULL) <<
-           (conn != NULL && !fd_table[conn->fd].closing()) << " buffered: " <<
-           bufferedSize << '/' << buffers.size());
+    debugs(MY_DEBUG_SECTION, 7, "guards: " << (!writeScheduled) << (bufferedSize > 0) << (conn != NULL) << (conn != NULL && !fd_table[conn->fd].closing()) << " buffered: " << bufferedSize << '/' << buffers.size());
 
     // XXX: Squid shutdown sequence starts closing our connection before
     // calling LogfileClose, leading to loss of log records during shutdown.
-    if (!writeScheduled && bufferedSize > 0 && conn != NULL &&
-            !fd_table[conn->fd].closing()) {
+    if (!writeScheduled && bufferedSize > 0 && conn != NULL && !fd_table[conn->fd].closing()) {
         debugs(MY_DEBUG_SECTION, 5, "writing first buffer");
 
         typedef CommCbMemFunT<TcpLogger, CommIoCbParams> WriteDialer;
@@ -160,7 +155,7 @@ Log::TcpLogger::canFit(const size_t len) const
 {
     // TODO: limit reporting frequency in addition to reporting only changes
 
-    if (bufferedSize+len <= bufferCapacity) {
+    if (bufferedSize + len <= bufferCapacity) {
         if (drops) {
             // We can get here if a shorter record accidentally fits after we
             // started dropping records. When that happens, the following
@@ -170,10 +165,8 @@ Log::TcpLogger::canFit(const size_t len) const
             // difficult to prevent this without also creating the opposite
             // problem: A huge record that does not fit and is dropped blocks
             // subsequent regular records from being buffered until we write.
-            debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote <<
-                   " logger stops dropping records after " << drops << " drops" <<
-                   "; current buffer use: " << (bufferedSize+len) <<
-                   " out of " << bufferCapacity << " bytes");
+            debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote << " logger stops dropping records after " << drops << " drops"
+                                                           << "; current buffer use: " << (bufferedSize + len) << " out of " << bufferCapacity << " bytes");
         }
         return true;
     }
@@ -181,17 +174,15 @@ Log::TcpLogger::canFit(const size_t len) const
     if (!drops || dieOnError) {
         debugs(MY_DEBUG_SECTION,
                dieOnError ? DBG_CRITICAL : DBG_IMPORTANT,
-               "tcp:" << remote << " logger " << bufferCapacity << "-byte " <<
-               "buffer overflowed; cannot fit " <<
-               (bufferedSize+len-bufferCapacity) << " bytes");
+               "tcp:" << remote << " logger " << bufferCapacity << "-byte "
+                      << "buffer overflowed; cannot fit " << (bufferedSize + len - bufferCapacity) << " bytes");
     }
 
     if (dieOnError)
         fatal("tcp logger buffer overflowed");
 
     if (!drops) {
-        debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote <<
-               " logger starts dropping records.");
+        debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote << " logger starts dropping records.");
     }
 
     return false;
@@ -223,8 +214,7 @@ Log::TcpLogger::appendChunk(const char *chunk, const size_t len)
 {
     Must(len <= IoBufSize);
     // add a buffer if there is not one that can accommodate len bytes
-    bool addBuffer = buffers.empty() ||
-                     (buffers.back()->size+len > IoBufSize);
+    bool addBuffer = buffers.empty() || (buffers.back()->size + len > IoBufSize);
     // also add a buffer if there is only one and that one is being written
     addBuffer = addBuffer || (writeScheduled && buffers.size() == 1);
 
@@ -264,11 +254,9 @@ void
 Log::TcpLogger::connectDone(const CommConnectCbParams &params)
 {
     if (params.flag != Comm::OK) {
-        const double delay = 0.5; // seconds
+        const double delay = 0.5;  // seconds
         if (connectFailures++ % 100 == 0) {
-            debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote <<
-                   " logger connection attempt #" << connectFailures <<
-                   " failed. Will keep trying every " << delay << " seconds.");
+            debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote << " logger connection attempt #" << connectFailures << " failed. Will keep trying every " << delay << " seconds.");
         }
 
         if (!reconnectScheduled) {
@@ -279,9 +267,7 @@ Log::TcpLogger::connectDone(const CommConnectCbParams &params)
         }
     } else {
         if (connectFailures > 0) {
-            debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote <<
-                   " logger connectivity restored after " <<
-                   (connectFailures+1) << " attempts.");
+            debugs(MY_DEBUG_SECTION, DBG_IMPORTANT, "tcp:" << remote << " logger connectivity restored after " << (connectFailures + 1) << " attempts.");
             connectFailures = 0;
         }
 
@@ -302,7 +288,7 @@ Log::TcpLogger::connectDone(const CommConnectCbParams &params)
 void
 Log::TcpLogger::DelayedReconnect(void *data)
 {
-    Pointer *ptr = static_cast<Pointer*>(data);
+    Pointer *ptr = static_cast<Pointer *>(data);
     assert(ptr);
     if (TcpLogger *logger = ptr->valid()) {
         // Get back inside AsyncJob protections by scheduling another call.
@@ -341,7 +327,7 @@ Log::TcpLogger::writeDone(const CommIoCbParams &io)
     } else {
         debugs(MY_DEBUG_SECTION, 5, "write successful");
 
-        Must(!buffers.empty()); // we had a buffer to write
+        Must(!buffers.empty());  // we had a buffer to write
         const MemBlob::Pointer &written = buffers.front();
         const size_t writtenSize = static_cast<size_t>(written->size);
         // and we wrote the whole buffer
@@ -354,7 +340,7 @@ Log::TcpLogger::writeDone(const CommIoCbParams &io)
         if (flushDebt > io.size)
             flushDebt -= io.size;
         else
-            flushDebt = 0; // wrote everything we owed (or more)
+            flushDebt = 0;  // wrote everything we owed (or more)
 
         writeIfNeeded();
     }
@@ -391,20 +377,20 @@ Log::TcpLogger::disconnect()
 Log::TcpLogger *
 Log::TcpLogger::StillLogging(Logfile *lf)
 {
-    if (Pointer *pptr = static_cast<Pointer*>(lf->data))
-        return pptr->get(); // may be nil
+    if (Pointer *pptr = static_cast<Pointer *>(lf->data))
+        return pptr->get();  // may be nil
     return NULL;
 }
 
 void
-Log::TcpLogger::Flush(Logfile * lf)
+Log::TcpLogger::Flush(Logfile *lf)
 {
     if (TcpLogger *logger = StillLogging(lf))
         logger->flush();
 }
 
 void
-Log::TcpLogger::WriteLine(Logfile * lf, const char *buf, size_t len)
+Log::TcpLogger::WriteLine(Logfile *lf, const char *buf, size_t len)
 {
     if (TcpLogger *logger = StillLogging(lf))
         logger->logRecord(buf, len);
@@ -416,7 +402,7 @@ Log::TcpLogger::StartLine(Logfile *)
 }
 
 void
-Log::TcpLogger::EndLine(Logfile * lf)
+Log::TcpLogger::EndLine(Logfile *lf)
 {
     if (!Config.onoff.buffered_logs)
         Flush(lf);
@@ -428,7 +414,7 @@ Log::TcpLogger::Rotate(Logfile *, const int16_t)
 }
 
 void
-Log::TcpLogger::Close(Logfile * lf)
+Log::TcpLogger::Close(Logfile *lf)
 {
     if (TcpLogger *logger = StillLogging(lf)) {
         debugs(50, 3, "Closing " << logger);
@@ -437,7 +423,7 @@ Log::TcpLogger::Close(Logfile * lf)
         AsyncCall::Pointer call = asyncCall(50, 3, "Log::TcpLogger::endGracefully", dialer);
         ScheduleCallHere(call);
     }
-    delete static_cast<Pointer*>(lf->data);
+    delete static_cast<Pointer *>(lf->data);
     lf->data = NULL;
 }
 
@@ -445,7 +431,7 @@ Log::TcpLogger::Close(Logfile * lf)
  * This code expects the path to be //host:port
  */
 int
-Log::TcpLogger::Open(Logfile * lf, const char *path, size_t bufsz, int fatalFlag)
+Log::TcpLogger::Open(Logfile *lf, const char *path, size_t bufsz, int fatalFlag)
 {
     assert(!StillLogging(lf));
     debugs(5, 3, "Tcp Open called");
@@ -478,4 +464,3 @@ Log::TcpLogger::Open(Logfile * lf, const char *path, size_t bufsz, int fatalFlag
 
     return 1;
 }
-

@@ -9,9 +9,9 @@
 #ifndef SQUID_BODY_PIPE_H
 #define SQUID_BODY_PIPE_H
 
+#include "MemBuf.h"
 #include "base/AsyncJob.h"
 #include "base/CbcPointer.h"
-#include "MemBuf.h"
 
 class BodyPipe;
 
@@ -19,12 +19,13 @@ class BodyPipe;
  * BodyProducer is expected to create the BodyPipe.
  * One pipe cannot have more than one producer.
  */
-class BodyProducer: virtual public AsyncJob
+class BodyProducer : virtual public AsyncJob
 {
 public:
     typedef CbcPointer<BodyProducer> Pointer;
 
-    BodyProducer():AsyncJob("BodyProducer") {}
+    BodyProducer() :
+        AsyncJob("BodyProducer") {}
     virtual ~BodyProducer() {}
 
     virtual void noteMoreBodySpaceAvailable(RefCount<BodyPipe> bp) = 0;
@@ -39,12 +40,13 @@ protected:
  * by calling BodyPipe::setConsumer().
  * One pipe cannot have more than one consumer.
  */
-class BodyConsumer: virtual public AsyncJob
+class BodyConsumer : virtual public AsyncJob
 {
 public:
     typedef CbcPointer<BodyConsumer> Pointer;
 
-    BodyConsumer():AsyncJob("BodyConsumer") {}
+    BodyConsumer() :
+        AsyncJob("BodyConsumer") {}
     virtual ~BodyConsumer() {}
 
     virtual void noteMoreBodyDataAvailable(RefCount<BodyPipe> bp) = 0;
@@ -64,30 +66,30 @@ public:
     friend class BodyPipe;
 
 public:
-    BodyPipeCheckout(BodyPipe &); // checks out
-    ~BodyPipeCheckout(); // aborts checkout unless checkedIn
+    BodyPipeCheckout(BodyPipe &);  // checks out
+    ~BodyPipeCheckout();           // aborts checkout unless checkedIn
 
     void checkIn();
 
 public:
     BodyPipe &thePipe;
     MemBuf &buf;
-    const uint64_t offset; // of current content, relative to the body start
+    const uint64_t offset;  // of current content, relative to the body start
 
 protected:
     const size_t checkedOutSize;
     bool checkedIn;
 
 private:
-    BodyPipeCheckout(const BodyPipeCheckout &); // prevent copying
-    BodyPipeCheckout &operator =(const BodyPipeCheckout &); // prevent assignment
+    BodyPipeCheckout(const BodyPipeCheckout &);             // prevent copying
+    BodyPipeCheckout &operator=(const BodyPipeCheckout &);  // prevent assignment
 };
 
 /** Connects those who produces message body content with those who
  * consume it. For example, connects ConnStateData with FtpStateData OR
  * ICAPModXact with HttpStateData.
  */
-class BodyPipe: public RefCountable
+class BodyPipe : public RefCountable
 {
     MEMPROXY_CLASS(BodyPipe);
 
@@ -97,15 +99,15 @@ public:
     typedef BodyConsumer Consumer;
     typedef BodyPipeCheckout Checkout;
 
-    enum { MaxCapacity = 64*1024 };
+    enum { MaxCapacity = 64 * 1024 };
 
     friend class BodyPipeCheckout;
 
 public:
     BodyPipe(Producer *aProducer);
-    ~BodyPipe(); // asserts that producer and consumer are cleared
+    ~BodyPipe();  // asserts that producer and consumer are cleared
 
-    void setBodySize(uint64_t aSize); // set body size
+    void setBodySize(uint64_t aSize);  // set body size
     bool bodySizeKnown() const { return theBodySize >= 0; }
     uint64_t bodySize() const;
     uint64_t consumedSize() const { return theGetSize; }
@@ -113,22 +115,22 @@ public:
     bool productionEnded() const { return !theProducer; }
 
     // called by producers
-    void clearProducer(bool atEof); // aborts or sends eof
+    void clearProducer(bool atEof);  // aborts or sends eof
     size_t putMoreData(const char *buf, size_t size);
     bool mayNeedMoreData() const { return !bodySizeKnown() || needsMoreData(); }
     bool needsMoreData() const { return bodySizeKnown() && unproducedSize() > 0; }
-    uint64_t unproducedSize() const; // size of still unproduced data
+    uint64_t unproducedSize() const;  // size of still unproduced data
     bool stillProducing(const Producer::Pointer &producer) const { return theProducer == producer; }
-    void expectProductionEndAfter(uint64_t extraSize); ///< sets or checks body size
+    void expectProductionEndAfter(uint64_t extraSize);  ///< sets or checks body size
 
     // called by consumers
     bool setConsumerIfNotLate(const Consumer::Pointer &aConsumer);
-    void clearConsumer(); // aborts if still piping
-    void expectNoConsumption(); ///< there will be no more setConsumer() calls
+    void clearConsumer();        // aborts if still piping
+    void expectNoConsumption();  ///< there will be no more setConsumer() calls
     size_t getMoreData(MemBuf &buf);
     void consume(size_t size);
     bool expectMoreAfter(uint64_t offset) const;
-    bool exhausted() const; // saw eof/abort and all data consumed
+    bool exhausted() const;  // saw eof/abort and all data consumed
     bool stillConsuming(const Consumer::Pointer &consumer) const { return theConsumer == consumer; }
 
     /// start or continue consuming when producing without consumer
@@ -136,13 +138,13 @@ public:
 
     const MemBuf &buf() const { return theBuf; }
 
-    const char *status() const; // for debugging only
+    const char *status() const;  // for debugging only
 
 protected:
     // lower-level interface used by Checkout
-    MemBuf &checkOut(); // obtain raw buffer
-    void checkIn(Checkout &checkout); // return updated raw buffer
-    void undoCheckOut(Checkout &checkout); // undo checkout efffect
+    MemBuf &checkOut();                     // obtain raw buffer
+    void checkIn(Checkout &checkout);       // return updated raw buffer
+    void undoCheckOut(Checkout &checkout);  // undo checkout efffect
 
     void scheduleBodyDataNotification();
     void scheduleBodyEndNotification();
@@ -154,19 +156,18 @@ protected:
     void startAutoConsumptionIfNeeded();
 
 private:
-    int64_t  theBodySize;   // expected total content length, if known
-    Producer::Pointer theProducer; // content producer, if any
-    Consumer::Pointer theConsumer; // content consumer, if any
+    int64_t theBodySize;            // expected total content length, if known
+    Producer::Pointer theProducer;  // content producer, if any
+    Consumer::Pointer theConsumer;  // content consumer, if any
 
-    uint64_t thePutSize; // ever-increasing total
-    uint64_t theGetSize; // ever-increasing total
+    uint64_t thePutSize;  // ever-increasing total
+    uint64_t theGetSize;  // ever-increasing total
 
-    MemBuf theBuf; // produced but not yet consumed content, if any
+    MemBuf theBuf;  // produced but not yet consumed content, if any
 
-    bool mustAutoConsume; ///< keep theBuf empty when producing without consumer
-    bool abortedConsumption; ///< called BodyProducer::noteBodyConsumerAborted
-    bool isCheckedOut; // to keep track of checkout violations
+    bool mustAutoConsume;     ///< keep theBuf empty when producing without consumer
+    bool abortedConsumption;  ///< called BodyProducer::noteBodyConsumerAborted
+    bool isCheckedOut;        // to keep track of checkout violations
 };
 
 #endif /* SQUID_BODY_PIPE_H */
-

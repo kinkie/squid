@@ -9,14 +9,13 @@
 #ifndef SQUID_SRC_SECURITY_PEEROPTIONS_H
 #define SQUID_SRC_SECURITY_PEEROPTIONS_H
 
-#include "base/YesNoNone.h"
 #include "ConfigParser.h"
+#include "base/YesNoNone.h"
 #include "security/KeyData.h"
 
 class Packable;
 
-namespace Security
-{
+namespace Security {
 
 /// TLS squid.conf settings for a remote server peer
 class PeerOptions
@@ -24,9 +23,9 @@ class PeerOptions
 public:
     PeerOptions();
     PeerOptions(const PeerOptions &) = default;
-    PeerOptions &operator =(const PeerOptions &) = default;
+    PeerOptions &operator=(const PeerOptions &) = default;
     PeerOptions(PeerOptions &&) = default;
-    PeerOptions &operator =(PeerOptions &&) = default;
+    PeerOptions &operator=(PeerOptions &&) = default;
     virtual ~PeerOptions() {}
 
     /// parse a TLS squid.conf option
@@ -36,7 +35,7 @@ public:
     void parseOptions();
 
     /// reset the configuration details to default
-    virtual void clear() {*this = PeerOptions();}
+    virtual void clear() { *this = PeerOptions(); }
 
     /// generate an unset security context object
     virtual Security::ContextPointer createBlankContext() const;
@@ -74,12 +73,12 @@ private:
     void loadKeysFile();
 
 public:
-    SBuf sslOptions;     ///< library-specific options string
-    SBuf caDir;          ///< path of directory containing a set of trusted Certificate Authorities
-    SBuf crlFile;        ///< path of file containing Certificate Revoke List
+    SBuf sslOptions;  ///< library-specific options string
+    SBuf caDir;       ///< path of directory containing a set of trusted Certificate Authorities
+    SBuf crlFile;     ///< path of file containing Certificate Revoke List
 
     SBuf sslCipher;
-    SBuf sslFlags;       ///< flags defining what TLS operations Squid performs
+    SBuf sslFlags;  ///< flags defining what TLS operations Squid performs
     SBuf sslDomain;
 
     SBuf tlsMinVersion;  ///< version label for minimum TLS version to permit
@@ -97,25 +96,26 @@ private:
     bool optsReparse = true;
 
 public:
-    long parsedFlags = 0;   ///< parsed value of sslFlags
+    long parsedFlags = 0;  ///< parsed value of sslFlags
 
-    std::list<Security::KeyData> certs; ///< details from the cert= and file= config parameters
-    std::list<SBuf> caFiles;  ///< paths of files containing trusted Certificate Authority
-    Security::CertRevokeList parsedCrl; ///< CRL to use when verifying the remote end certificate
+    std::list<Security::KeyData> certs;  ///< details from the cert= and file= config parameters
+    std::list<SBuf> caFiles;             ///< paths of files containing trusted Certificate Authority
+    Security::CertRevokeList parsedCrl;  ///< CRL to use when verifying the remote end certificate
 
 protected:
-    template<typename T>
-    Security::ContextPointer convertContextFromRawPtr(T ctx) const {
+    template <typename T>
+    Security::ContextPointer convertContextFromRawPtr(T ctx) const
+    {
 #if USE_OPENSSL
-        debugs(83, 5, "SSL_CTX construct, this=" << (void*)ctx);
+        debugs(83, 5, "SSL_CTX construct, this=" << (void *)ctx);
         return ContextPointer(ctx, [](SSL_CTX *p) {
-            debugs(83, 5, "SSL_CTX destruct, this=" << (void*)p);
+            debugs(83, 5, "SSL_CTX destruct, this=" << (void *)p);
             SSL_CTX_free(p);
         });
 #elif USE_GNUTLS
-        debugs(83, 5, "gnutls_certificate_credentials construct, this=" << (void*)ctx);
+        debugs(83, 5, "gnutls_certificate_credentials construct, this=" << (void *)ctx);
         return Security::ContextPointer(ctx, [](gnutls_certificate_credentials_t p) {
-            debugs(83, 5, "gnutls_certificate_credentials destruct, this=" << (void*)p);
+            debugs(83, 5, "gnutls_certificate_credentials destruct, this=" << (void *)p);
             gnutls_certificate_free_credentials(p);
         });
 #else
@@ -128,9 +128,10 @@ protected:
 
     /// flags governing Squid internal TLS operations
     struct flags_ {
-        flags_() : tlsDefaultCa(true), tlsNpn(true) {}
+        flags_() :
+            tlsDefaultCa(true), tlsNpn(true) {}
         flags_(const flags_ &) = default;
-        flags_ &operator =(const flags_ &) = default;
+        flags_ &operator=(const flags_ &) = default;
 
         /// whether to use the system default Trusted CA when verifying the remote end certificate
         YesNoNone tlsDefaultCa;
@@ -147,12 +148,16 @@ public:
 /// configuration options for DIRECT server access
 extern PeerOptions ProxyOutgoingConfig;
 
-} // namespace Security
+}  // namespace Security
 
 // parse the tls_outgoing_options directive
 void parse_securePeerOptions(Security::PeerOptions *);
 #define free_securePeerOptions(x) Security::ProxyOutgoingConfig.clear()
-#define dump_securePeerOptions(e,n,x) do { (e)->appendf(n); (x).dumpCfg((e),""); (e)->append("\n",1); } while(false)
+#define dump_securePeerOptions(e, n, x) \
+    do {                                \
+        (e)->appendf(n);                \
+        (x).dumpCfg((e), "");           \
+        (e)->append("\n", 1);           \
+    } while (false)
 
 #endif /* SQUID_SRC_SECURITY_PEEROPTIONS_H */
-

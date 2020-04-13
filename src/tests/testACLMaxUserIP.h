@@ -20,10 +20,10 @@
 
 class testACLMaxUserIP : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testACLMaxUserIP );
+    CPPUNIT_TEST_SUITE(testACLMaxUserIP);
     /* note the statement here and then the actual prototype below */
-    CPPUNIT_TEST( testDefaults );
-    CPPUNIT_TEST( testParseLine );
+    CPPUNIT_TEST(testDefaults);
+    CPPUNIT_TEST(testParseLine);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -36,4 +36,3 @@ protected:
 
 #endif /* USE_AUTH */
 #endif /* SQUID_SRC_TEST_ACLMAXUSERIP_H */
-

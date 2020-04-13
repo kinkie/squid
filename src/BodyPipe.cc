@@ -7,34 +7,38 @@
  */
 
 #include "squid.h"
+#include "BodyPipe.h"
 #include "base/AsyncJobCalls.h"
 #include "base/TextException.h"
-#include "BodyPipe.h"
 
 // BodySink is a BodyConsumer class which  just consume and drops
 // data from a BodyPipe
-class BodySink: public BodyConsumer
+class BodySink : public BodyConsumer
 {
     CBDATA_CLASS(BodySink);
 
 public:
-    BodySink(const BodyPipe::Pointer &bp): AsyncJob("BodySink"), body_pipe(bp) {}
+    BodySink(const BodyPipe::Pointer &bp) :
+        AsyncJob("BodySink"), body_pipe(bp) {}
     virtual ~BodySink() { assert(!body_pipe); }
 
-    virtual void noteMoreBodyDataAvailable(BodyPipe::Pointer bp) {
+    virtual void noteMoreBodyDataAvailable(BodyPipe::Pointer bp)
+    {
         size_t contentSize = bp->buf().contentSize();
         bp->consume(contentSize);
     }
-    virtual void noteBodyProductionEnded(BodyPipe::Pointer) {
+    virtual void noteBodyProductionEnded(BodyPipe::Pointer)
+    {
         stopConsumingFrom(body_pipe);
     }
-    virtual void noteBodyProducerAborted(BodyPipe::Pointer) {
+    virtual void noteBodyProducerAborted(BodyPipe::Pointer)
+    {
         stopConsumingFrom(body_pipe);
     }
-    bool doneAll() const {return !body_pipe && AsyncJob::doneAll();}
+    bool doneAll() const { return !body_pipe && AsyncJob::doneAll(); }
 
 private:
-    BodyPipe::Pointer body_pipe; ///< the pipe we are consuming from
+    BodyPipe::Pointer body_pipe;  ///< the pipe we are consuming from
 };
 
 CBDATA_CLASS_INIT(BodySink);
@@ -42,13 +46,13 @@ CBDATA_CLASS_INIT(BodySink);
 // The BodyProducerDialer is an AsyncCall class which used to schedule BodyProducer calls.
 // In addition to a normal AsyncCall checks if the BodyProducer is still the producer of
 // the BodyPipe passed as argument
-class BodyProducerDialer: public UnaryMemFunT<BodyProducer, BodyPipe::Pointer>
+class BodyProducerDialer : public UnaryMemFunT<BodyProducer, BodyPipe::Pointer>
 {
 public:
     typedef UnaryMemFunT<BodyProducer, BodyPipe::Pointer> Parent;
 
     BodyProducerDialer(const BodyProducer::Pointer &aProducer,
-                       Parent::Method aHandler, BodyPipe::Pointer bp):
+                       Parent::Method aHandler, BodyPipe::Pointer bp) :
         Parent(aProducer, aHandler, bp) {}
 
     virtual bool canDial(AsyncCall &call);
@@ -57,13 +61,13 @@ public:
 // The BodyConsumerDialer is an AsyncCall class which used to schedule BodyConsumer calls.
 // In addition to a normal AsyncCall checks if the BodyConsumer is still the reciptient
 // of the BodyPipe passed as argument
-class BodyConsumerDialer: public UnaryMemFunT<BodyConsumer, BodyPipe::Pointer>
+class BodyConsumerDialer : public UnaryMemFunT<BodyConsumer, BodyPipe::Pointer>
 {
 public:
     typedef UnaryMemFunT<BodyConsumer, BodyPipe::Pointer> Parent;
 
     BodyConsumerDialer(const BodyConsumer::Pointer &aConsumer,
-                       Parent::Method aHandler, BodyPipe::Pointer bp):
+                       Parent::Method aHandler, BodyPipe::Pointer bp) :
         Parent(aConsumer, aHandler, bp) {}
 
     virtual bool canDial(AsyncCall &call);
@@ -104,10 +108,11 @@ BodyConsumerDialer::canDial(AsyncCall &call)
 /* BodyProducer */
 
 // inform the pipe that we are done and clear the Pointer
-void BodyProducer::stopProducingFor(RefCount<BodyPipe> &p, bool atEof)
+void
+BodyProducer::stopProducingFor(RefCount<BodyPipe> &p, bool atEof)
 {
-    debugs(91,7, this << " will not produce for " << p << "; atEof: " << atEof);
-    assert(p != NULL); // be strict: the caller state may depend on this
+    debugs(91, 7, this << " will not produce for " << p << "; atEof: " << atEof);
+    assert(p != NULL);  // be strict: the caller state may depend on this
     p->clearProducer(atEof);
     p = NULL;
 }
@@ -115,36 +120,39 @@ void BodyProducer::stopProducingFor(RefCount<BodyPipe> &p, bool atEof)
 /* BodyConsumer */
 
 // inform the pipe that we are done and clear the Pointer
-void BodyConsumer::stopConsumingFrom(RefCount<BodyPipe> &p)
+void
+BodyConsumer::stopConsumingFrom(RefCount<BodyPipe> &p)
 {
-    debugs(91,7, this << " will not consume from " << p);
-    assert(p != NULL); // be strict: the caller state may depend on this
+    debugs(91, 7, this << " will not consume from " << p);
+    assert(p != NULL);  // be strict: the caller state may depend on this
     p->clearConsumer();
     p = NULL;
 }
 
 /* BodyPipe */
 
-BodyPipe::BodyPipe(Producer *aProducer): theBodySize(-1),
+BodyPipe::BodyPipe(Producer *aProducer) :
+    theBodySize(-1),
     theProducer(aProducer), theConsumer(0),
     thePutSize(0), theGetSize(0),
     mustAutoConsume(false), abortedConsumption(false), isCheckedOut(false)
 {
     // TODO: teach MemBuf to start with zero minSize
     // TODO: limit maxSize by theBodySize, when known?
-    theBuf.init(2*1024, MaxCapacity);
-    debugs(91,7, HERE << "created BodyPipe" << status());
+    theBuf.init(2 * 1024, MaxCapacity);
+    debugs(91, 7, HERE << "created BodyPipe" << status());
 }
 
 BodyPipe::~BodyPipe()
 {
-    debugs(91,7, HERE << "destroying BodyPipe" << status());
+    debugs(91, 7, HERE << "destroying BodyPipe" << status());
     assert(!theProducer);
     assert(!theConsumer);
     theBuf.clean();
 }
 
-void BodyPipe::setBodySize(uint64_t aBodySize)
+void
+BodyPipe::setBodySize(uint64_t aBodySize)
 {
     assert(!bodySizeKnown());
     assert(thePutSize <= aBodySize);
@@ -155,33 +163,38 @@ void BodyPipe::setBodySize(uint64_t aBodySize)
     assert(!theConsumer);
 
     theBodySize = aBodySize;
-    debugs(91,7, HERE << "set body size" << status());
+    debugs(91, 7, HERE << "set body size" << status());
 }
 
-uint64_t BodyPipe::bodySize() const
+uint64_t
+BodyPipe::bodySize() const
 {
     assert(bodySizeKnown());
     return static_cast<uint64_t>(theBodySize);
 }
 
-bool BodyPipe::expectMoreAfter(uint64_t offset) const
+bool
+BodyPipe::expectMoreAfter(uint64_t offset) const
 {
     assert(theGetSize <= offset);
-    return offset < thePutSize || // buffer has more now or
-           (!productionEnded() && mayNeedMoreData()); // buffer will have more
+    return offset < thePutSize ||                   // buffer has more now or
+        (!productionEnded() && mayNeedMoreData());  // buffer will have more
 }
 
-bool BodyPipe::exhausted() const
+bool
+BodyPipe::exhausted() const
 {
     return !expectMoreAfter(theGetSize);
 }
 
-uint64_t BodyPipe::unproducedSize() const
+uint64_t
+BodyPipe::unproducedSize() const
 {
-    return bodySize() - thePutSize; // bodySize() asserts that size is known
+    return bodySize() - thePutSize;  // bodySize() asserts that size is known
 }
 
-void BodyPipe::expectProductionEndAfter(uint64_t size)
+void
+BodyPipe::expectProductionEndAfter(uint64_t size)
 {
     const uint64_t expectedSize = thePutSize + size;
     if (bodySizeKnown())
@@ -194,13 +207,13 @@ void
 BodyPipe::clearProducer(bool atEof)
 {
     if (theProducer.set()) {
-        debugs(91,7, HERE << "clearing BodyPipe producer" << status());
+        debugs(91, 7, HERE << "clearing BodyPipe producer" << status());
         theProducer.clear();
         if (atEof) {
             if (!bodySizeKnown())
                 theBodySize = thePutSize;
             else if (bodySize() != thePutSize)
-                debugs(91,3, HERE << "aborting on premature eof" << status());
+                debugs(91, 3, HERE << "aborting on premature eof" << status());
         } else {
             // asserta that we can detect the abort if the consumer joins later
             assert(!bodySizeKnown() || bodySize() != thePutSize);
@@ -228,7 +241,7 @@ bool
 BodyPipe::setConsumerIfNotLate(const Consumer::Pointer &aConsumer)
 {
     assert(!theConsumer);
-    assert(aConsumer.set()); // but might be invalid
+    assert(aConsumer.set());  // but might be invalid
 
     // TODO: convert this into an exception and remove IfNotLate suffix
     // If there is something consumed already, we are in an auto-consuming mode
@@ -238,10 +251,10 @@ BodyPipe::setConsumerIfNotLate(const Consumer::Pointer &aConsumer)
         return false;
     }
 
-    Must(!abortedConsumption); // did not promise to never consume
+    Must(!abortedConsumption);  // did not promise to never consume
 
     theConsumer = aConsumer;
-    debugs(91,7, HERE << "set consumer" << status());
+    debugs(91, 7, HERE << "set consumer" << status());
     if (theBuf.hasContent())
         scheduleBodyDataNotification();
     if (!theProducer)
@@ -254,7 +267,7 @@ void
 BodyPipe::clearConsumer()
 {
     if (theConsumer.set()) {
-        debugs(91,7, HERE << "clearing consumer" << status());
+        debugs(91, 7, HERE << "clearing consumer" << status());
         theConsumer.clear();
         // do not abort if we have not consumed so that HTTP or ICAP can retry
         // benign xaction failures due to persistent connection race conditions
@@ -278,10 +291,10 @@ BodyPipe::expectNoConsumption()
         // consumption must not be started.
         Must(!theConsumer);
 
-        AsyncCall::Pointer call= asyncCall(91, 7,
-                                           "BodyProducer::noteBodyConsumerAborted",
-                                           BodyProducerDialer(theProducer,
-                                                   &BodyProducer::noteBodyConsumerAborted, this));
+        AsyncCall::Pointer call = asyncCall(91, 7,
+                                            "BodyProducer::noteBodyConsumerAborted",
+                                            BodyProducerDialer(theProducer,
+                                                               &BodyProducer::noteBodyConsumerAborted, this));
         ScheduleCallHere(call);
         abortedConsumption = true;
 
@@ -294,7 +307,7 @@ size_t
 BodyPipe::getMoreData(MemBuf &aMemBuffer)
 {
     if (!theBuf.hasContent())
-        return 0; // did not touch the possibly uninitialized buf
+        return 0;  // did not touch the possibly uninitialized buf
 
     if (aMemBuffer.isNull())
         aMemBuffer.init();
@@ -302,7 +315,7 @@ BodyPipe::getMoreData(MemBuf &aMemBuffer)
     aMemBuffer.append(theBuf.content(), size);
     theBuf.consume(size);
     postConsume(size);
-    return size; // cannot be zero if we called buf.init above
+    return size;  // cannot be zero if we called buf.init above
 }
 
 void
@@ -316,7 +329,7 @@ void
 BodyPipe::enableAutoConsumption()
 {
     mustAutoConsume = true;
-    debugs(91,5, HERE << "enabled auto consumption" << status());
+    debugs(91, 5, HERE << "enabled auto consumption" << status());
     startAutoConsumptionIfNeeded();
 }
 
@@ -326,16 +339,15 @@ BodyPipe::enableAutoConsumption()
 void
 BodyPipe::startAutoConsumptionIfNeeded()
 {
-    const auto startNow =
-        mustAutoConsume && // was enabled
-        !theConsumer && // has not started yet
-        theProducer.valid() && // still useful (and will eventually stop)
-        theBuf.hasContent(); // has something to consume right now
+    const auto startNow = mustAutoConsume &&  // was enabled
+        !theConsumer &&                       // has not started yet
+        theProducer.valid() &&                // still useful (and will eventually stop)
+        theBuf.hasContent();                  // has something to consume right now
     if (!startNow)
         return;
 
     theConsumer = new BodySink(this);
-    debugs(91,7, HERE << "starting auto consumption" << status());
+    debugs(91, 7, HERE << "starting auto consumption" << status());
     scheduleBodyDataNotification();
 }
 
@@ -380,12 +392,12 @@ BodyPipe::postConsume(size_t size)
 {
     assert(!isCheckedOut);
     theGetSize += size;
-    debugs(91,7, HERE << "consumed " << size << " bytes" << status());
+    debugs(91, 7, HERE << "consumed " << size << " bytes" << status());
     if (mayNeedMoreData()) {
-        AsyncCall::Pointer call=  asyncCall(91, 7,
+        AsyncCall::Pointer call = asyncCall(91, 7,
                                             "BodyProducer::noteMoreBodySpaceAvailable",
                                             BodyProducerDialer(theProducer,
-                                                    &BodyProducer::noteMoreBodySpaceAvailable, this));
+                                                               &BodyProducer::noteMoreBodySpaceAvailable, this));
         ScheduleCallHere(call);
     }
 }
@@ -395,7 +407,7 @@ BodyPipe::postAppend(size_t size)
 {
     assert(!isCheckedOut);
     thePutSize += size;
-    debugs(91,7, HERE << "added " << size << " bytes" << status());
+    debugs(91, 7, HERE << "added " << size << " bytes" << status());
 
     // We should not consume here even if mustAutoConsume because the
     // caller may not be ready for the data to be consumed during this call.
@@ -404,7 +416,7 @@ BodyPipe::postAppend(size_t size)
     // Do this check after scheduleBodyDataNotification() to ensure the
     // natural order of "more body data" and "production ended" events.
     if (!mayNeedMoreData())
-        clearProducer(true); // reached end-of-body
+        clearProducer(true);  // reached end-of-body
 
     startAutoConsumptionIfNeeded();
 }
@@ -412,11 +424,11 @@ BodyPipe::postAppend(size_t size)
 void
 BodyPipe::scheduleBodyDataNotification()
 {
-    if (theConsumer.valid()) { // TODO: allow asyncCall() to check this instead
+    if (theConsumer.valid()) {  // TODO: allow asyncCall() to check this instead
         AsyncCall::Pointer call = asyncCall(91, 7,
                                             "BodyConsumer::noteMoreBodyDataAvailable",
                                             BodyConsumerDialer(theConsumer,
-                                                    &BodyConsumer::noteMoreBodyDataAvailable, this));
+                                                               &BodyConsumer::noteMoreBodyDataAvailable, this));
         ScheduleCallHere(call);
     }
 }
@@ -424,25 +436,26 @@ BodyPipe::scheduleBodyDataNotification()
 void
 BodyPipe::scheduleBodyEndNotification()
 {
-    if (theConsumer.valid()) { // TODO: allow asyncCall() to check this instead
+    if (theConsumer.valid()) {  // TODO: allow asyncCall() to check this instead
         if (bodySizeKnown() && bodySize() == thePutSize) {
             AsyncCall::Pointer call = asyncCall(91, 7,
                                                 "BodyConsumer::noteBodyProductionEnded",
                                                 BodyConsumerDialer(theConsumer,
-                                                        &BodyConsumer::noteBodyProductionEnded, this));
+                                                                   &BodyConsumer::noteBodyProductionEnded, this));
             ScheduleCallHere(call);
         } else {
             AsyncCall::Pointer call = asyncCall(91, 7,
                                                 "BodyConsumer::noteBodyProducerAborted",
                                                 BodyConsumerDialer(theConsumer,
-                                                        &BodyConsumer::noteBodyProducerAborted, this));
+                                                                   &BodyConsumer::noteBodyProducerAborted, this));
             ScheduleCallHere(call);
         }
     }
 }
 
 // a short temporary string describing buffer status for debugging
-const char *BodyPipe::status() const
+const char *
+BodyPipe::status() const
 {
     static MemBuf outputBuffer;
     outputBuffer.reset();
@@ -468,7 +481,7 @@ const char *BodyPipe::status() const
     if (abortedConsumption)
         outputBuffer.append(" !C", 3);
     if (isCheckedOut)
-        outputBuffer.append(" L", 2); // Locked
+        outputBuffer.append(" L", 2);  // Locked
 
     outputBuffer.append("]", 1);
 
@@ -479,7 +492,8 @@ const char *BodyPipe::status() const
 
 /* BodyPipeCheckout */
 
-BodyPipeCheckout::BodyPipeCheckout(BodyPipe &aPipe): thePipe(aPipe),
+BodyPipeCheckout::BodyPipeCheckout(BodyPipe &aPipe) :
+    thePipe(aPipe),
     buf(aPipe.checkOut()), offset(aPipe.consumedSize()),
     checkedOutSize(buf.contentSize()), checkedIn(false)
 {
@@ -491,7 +505,7 @@ BodyPipeCheckout::~BodyPipeCheckout()
         // Do not pipe.undoCheckOut(*this) because it asserts or throws
         // TODO: consider implementing the long-term solution discussed at
         // http://www.mail-archive.com/squid-dev@squid-cache.org/msg07910.html
-        debugs(91,2, HERE << "Warning: cannot undo BodyPipeCheckout");
+        debugs(91, 2, HERE << "Warning: cannot undo BodyPipeCheckout");
         thePipe.checkIn(*this);
     }
 }
@@ -504,17 +518,17 @@ BodyPipeCheckout::checkIn()
     checkedIn = true;
 }
 
-BodyPipeCheckout::BodyPipeCheckout(const BodyPipeCheckout &c): thePipe(c.thePipe),
+BodyPipeCheckout::BodyPipeCheckout(const BodyPipeCheckout &c) :
+    thePipe(c.thePipe),
     buf(c.buf), offset(c.offset), checkedOutSize(c.checkedOutSize),
     checkedIn(c.checkedIn)
 {
-    assert(false); // prevent copying
+    assert(false);  // prevent copying
 }
 
 BodyPipeCheckout &
-BodyPipeCheckout::operator =(const BodyPipeCheckout &)
+BodyPipeCheckout::operator=(const BodyPipeCheckout &)
 {
-    assert(false); // prevent assignment
+    assert(false);  // prevent assignment
     return *this;
 }
-

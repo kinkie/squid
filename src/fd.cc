@@ -9,14 +9,14 @@
 /* DEBUG: section 51    Filedescriptor Functions */
 
 #include "squid.h"
-#include "comm/Loops.h"
-#include "Debug.h"
-#include "fatal.h"
 #include "fd.h"
+#include "Debug.h"
+#include "SquidTime.h"
+#include "comm/Loops.h"
+#include "fatal.h"
 #include "fde.h"
 #include "globals.h"
 #include "profiler/Profiler.h"
-#include "SquidTime.h"
 
 // Solaris and possibly others lack MSG_NOSIGNAL optimization
 // TODO: move this into compat/? Use a dedicated compat file to avoid dragging
@@ -44,8 +44,7 @@ const char *fdTypeStr[] = {
     "Socket",
     "Pipe",
     "MsgHdr",
-    "Unknown"
-};
+    "Unknown"};
 
 static void fdUpdateBiggest(int fd, int);
 
@@ -106,7 +105,7 @@ socket_read_method(int fd, char *buf, int len)
 {
     int i;
     PROF_start(recv);
-    i = recv(fd, (void *) buf, len, 0);
+    i = recv(fd, (void *)buf, len, 0);
     PROF_stop(recv);
     return i;
 }
@@ -126,7 +125,7 @@ socket_write_method(int fd, const char *buf, int len)
 {
     int i;
     PROF_start(send);
-    i = send(fd, (const void *) buf, len, 0);
+    i = send(fd, (const void *)buf, len, 0);
     PROF_stop(send);
     return i;
 }
@@ -166,7 +165,7 @@ int
 msghdr_read_method(int fd, char *buf, int)
 {
     PROF_start(read);
-    const int i = recvmsg(fd, reinterpret_cast<msghdr*>(buf), MSG_DONTWAIT);
+    const int i = recvmsg(fd, reinterpret_cast<msghdr *>(buf), MSG_DONTWAIT);
     PROF_stop(read);
     return i;
 }
@@ -175,9 +174,9 @@ int
 msghdr_write_method(int fd, const char *buf, int len)
 {
     PROF_start(write);
-    const int i = sendmsg(fd, reinterpret_cast<const msghdr*>(buf), MSG_NOSIGNAL);
+    const int i = sendmsg(fd, reinterpret_cast<const msghdr *>(buf), MSG_NOSIGNAL);
     PROF_stop(write);
-    return i > 0 ? len : i; // len is imprecise but the caller expects a match
+    return i > 0 ? len : i;  // len is imprecise but the caller expects a match
 }
 
 #endif
@@ -249,7 +248,7 @@ fd_note(int fd, const char *s)
     if (s)
         xstrncpy(F->desc, s, FD_DESC_SZ);
     else
-        *(F->desc) = 0; // ""-string
+        *(F->desc) = 0;  // ""-string
 }
 
 void
@@ -283,11 +282,7 @@ fdDumpOpen(void)
         if (i == fileno(debug_log))
             continue;
 
-        debugs(51, DBG_IMPORTANT, "Open FD "<< std::left<< std::setw(10) <<
-               (F->bytes_read && F->bytes_written ? "READ/WRITE" :
-                F->bytes_read ? "READING" : F->bytes_written ? "WRITING" :
-                "UNSTARTED")  <<
-               " "<< std::right << std::setw(4) << i  << " " << F->desc);
+        debugs(51, DBG_IMPORTANT, "Open FD " << std::left << std::setw(10) << (F->bytes_read && F->bytes_written ? "READ/WRITE" : F->bytes_read ? "READING" : F->bytes_written ? "WRITING" : "UNSTARTED") << " " << std::right << std::setw(4) << i << " " << F->desc);
     }
 }
 
@@ -344,8 +339,6 @@ fdAdjustReserved(void)
     if (Squid_MaxFD - newReserve < min(256, Squid_MaxFD / 2))
         fatalf("Too few filedescriptors available in the system (%d usable of %d).\n", Squid_MaxFD - newReserve, Squid_MaxFD);
 
-    debugs(51, DBG_CRITICAL, "Reserved FD adjusted from " << RESERVED_FD << " to " << newReserve <<
-           " due to failures (" << (Squid_MaxFD - newReserve) << "/" << Squid_MaxFD << " file descriptors available)");
+    debugs(51, DBG_CRITICAL, "Reserved FD adjusted from " << RESERVED_FD << " to " << newReserve << " due to failures (" << (Squid_MaxFD - newReserve) << "/" << Squid_MaxFD << " file descriptors available)");
     RESERVED_FD = newReserve;
 }
-

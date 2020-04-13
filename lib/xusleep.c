@@ -25,4 +25,3 @@ xusleep(unsigned int usec)
     sl.tv_usec = usec % 1000000;
     return select(0, NULL, NULL, NULL, &sl);
 }
-

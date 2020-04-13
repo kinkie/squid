@@ -15,24 +15,24 @@
  */
 
 #include "squid.h"
+#include "store_digest.h"
 #include "Debug.h"
 #include "event.h"
 #include "globals.h"
 #include "mgr/Registration.h"
-#include "store_digest.h"
 
 #if USE_CACHE_DIGESTS
 #include "CacheDigest.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
-#include "internal.h"
 #include "MemObject.h"
 #include "PeerDigest.h"
-#include "refresh.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
 #include "Store.h"
 #include "StoreSearch.h"
+#include "internal.h"
+#include "refresh.h"
 #include "util.h"
 
 #include <cmath>
@@ -45,9 +45,9 @@ class StoreDigestState
 {
 public:
     StoreDigestCBlock cblock;
-    int rebuild_lock = 0;                 ///< bucket number
-    StoreEntry * rewrite_lock = nullptr;  ///< points to store entry with the digest
-    StoreEntry * publicEntry = nullptr;  ///< points to the previous store entry with the digest
+    int rebuild_lock = 0;                ///< bucket number
+    StoreEntry *rewrite_lock = nullptr;  ///< points to store entry with the digest
+    StoreEntry *publicEntry = nullptr;   ///< points to the previous store entry with the digest
     StoreSearchPointer theSearch;
     int rewrite_offset = 0;
     int rebuild_count = 0;
@@ -57,12 +57,12 @@ public:
 class StoreDigestStats
 {
 public:
-    int del_count = 0;          /* #store entries deleted from store_digest */
-    int del_lost_count = 0;     /* #store entries not found in store_digest on delete */
-    int add_count = 0;          /* #store entries accepted to store_digest */
-    int add_coll_count = 0;     /* #accepted entries that collided with existing ones */
-    int rej_count = 0;          /* #store entries not accepted to store_digest */
-    int rej_coll_count = 0;     /* #not accepted entries that collided with existing ones */
+    int del_count = 0;      /* #store entries deleted from store_digest */
+    int del_lost_count = 0; /* #store entries not found in store_digest on delete */
+    int add_count = 0;      /* #store entries accepted to store_digest */
+    int add_coll_count = 0; /* #accepted entries that collided with existing ones */
+    int rej_count = 0;      /* #store entries not accepted to store_digest */
+    int rej_coll_count = 0; /* #not accepted entries that collided with existing ones */
 };
 
 /* local vars */
@@ -76,9 +76,9 @@ static void storeDigestRebuildFinish(void);
 static void storeDigestRebuildStep(void *datanotused);
 static void storeDigestRewriteStart(void *);
 static void storeDigestRewriteResume(void);
-static void storeDigestRewriteFinish(StoreEntry * e);
+static void storeDigestRewriteFinish(StoreEntry *e);
 static EVH storeDigestSwapOutStep;
-static void storeDigestCBlockSwapOut(StoreEntry * e);
+static void storeDigestCBlockSwapOut(StoreEntry *e);
 static void storeDigestAdd(const StoreEntry *);
 
 /// calculates digest capacity
@@ -94,8 +94,7 @@ storeDigestCalcCap()
     const uint64_t lo_cap = 1 + Store::Root().currentSize() / Config.Store.avgObjectSize;
     const uint64_t e_count = StoreEntry::inUseCount();
     uint64_t cap = e_count ? e_count : hi_cap;
-    debugs(71, 2, "have: " << e_count << ", want " << cap <<
-           " entries; limits: [" << lo_cap << ", " << hi_cap << "]");
+    debugs(71, 2, "have: " << e_count << ", want " << cap << " entries; limits: [" << lo_cap << ", " << hi_cap << "]");
 
     if (cap < lo_cap)
         cap = lo_cap;
@@ -107,7 +106,7 @@ storeDigestCalcCap()
 
     // Bug 4534: we still have to set an upper-limit at some reasonable value though.
     // this matches cacheDigestCalcMaskSize doing (cap*bpe)+7 < INT_MAX
-    const uint64_t absolute_max = (INT_MAX -8) / Config.digest.bits_per_entry;
+    const uint64_t absolute_max = (INT_MAX - 8) / Config.digest.bits_per_entry;
     if (cap > absolute_max) {
         static time_t last_loud = 0;
         if (last_loud < squid_curtime - 86400) {
@@ -137,9 +136,7 @@ storeDigestInit(void)
 
     const uint64_t cap = storeDigestCalcCap();
     store_digest = new CacheDigest(cap, Config.digest.bits_per_entry);
-    debugs(71, DBG_IMPORTANT, "Local cache digest enabled; rebuild/rewrite every " <<
-           (int) Config.digest.rebuild_period << "/" <<
-           (int) Config.digest.rewrite_period << " sec");
+    debugs(71, DBG_IMPORTANT, "Local cache digest enabled; rebuild/rewrite every " << (int)Config.digest.rebuild_period << "/" << (int)Config.digest.rewrite_period << " sec");
 
     sd_state = StoreDigestState();
 #else
@@ -164,7 +161,7 @@ storeDigestNoteStoreReady(void)
 
 //TODO: this seems to be dead code. Is it needed?
 void
-storeDigestDel(const StoreEntry * entry)
+storeDigestDel(const StoreEntry *entry)
 {
 #if USE_CACHE_DIGESTS
 
@@ -178,18 +175,18 @@ storeDigestDel(const StoreEntry * entry)
     if (!EBIT_TEST(entry->flags, KEY_PRIVATE)) {
         if (!store_digest->contains(static_cast<const cache_key *>(entry->key))) {
             ++sd_stats.del_lost_count;
-            debugs(71, 6, "storeDigestDel: lost entry, key: " << entry->getMD5Text() << " url: " << entry->url()  );
+            debugs(71, 6, "storeDigestDel: lost entry, key: " << entry->getMD5Text() << " url: " << entry->url());
         } else {
             ++sd_stats.del_count;
             store_digest->remove(static_cast<const cache_key *>(entry->key));
             debugs(71, 6, "storeDigestDel: deled entry, key: " << entry->getMD5Text());
         }
     }
-#endif //USE_CACHE_DIGESTS
+#endif  //USE_CACHE_DIGESTS
 }
 
 void
-storeDigestReport(StoreEntry * e)
+storeDigestReport(StoreEntry *e)
 {
 #if USE_CACHE_DIGESTS
 
@@ -212,7 +209,7 @@ storeDigestReport(StoreEntry * e)
         storeAppendPrintf(e, "store digest: disabled.\n");
     }
 
-#endif //USE_CACHE_DIGESTS
+#endif  //USE_CACHE_DIGESTS
 }
 
 /*
@@ -223,7 +220,7 @@ storeDigestReport(StoreEntry * e)
 
 /* should we digest this entry? used by storeDigestAdd() */
 static int
-storeDigestAddable(const StoreEntry * e)
+storeDigestAddable(const StoreEntry *e)
 {
     /* add some stats! XXX */
 
@@ -252,7 +249,7 @@ storeDigestAddable(const StoreEntry * e)
     }
 
     /* do not digest huge objects */
-    if (e->swap_file_sz > (uint64_t )Config.Store.maxObjectSize) {
+    if (e->swap_file_sz > (uint64_t)Config.Store.maxObjectSize) {
         debugs(71, 6, "storeDigestAddable: NO: too big");
         return 0;
     }
@@ -277,7 +274,7 @@ storeDigestAddable(const StoreEntry * e)
 }
 
 static void
-storeDigestAdd(const StoreEntry * entry)
+storeDigestAdd(const StoreEntry *entry)
 {
     assert(entry && store_digest);
 
@@ -332,8 +329,7 @@ storeDigestResize()
         diff = cap - store_digest->capacity;
     else
         diff = store_digest->capacity - cap;
-    debugs(71, 2, store_digest->capacity << " -> " << cap << "; change: " <<
-           diff << " (" << xpercentInt(diff, store_digest->capacity) << "%)" );
+    debugs(71, 2, store_digest->capacity << " -> " << cap << "; change: " << diff << " (" << xpercentInt(diff, store_digest->capacity) << "%)");
     /* avoid minor adjustments */
 
     if (diff <= store_digest->capacity / 10) {
@@ -356,7 +352,7 @@ storeDigestRebuildResume(void)
     /* resize or clear */
 
     if (!storeDigestResize())
-        store_digest->clear();     /* not clean()! */
+        store_digest->clear(); /* not clean()! */
 
     sd_stats = StoreDigestStats();
 
@@ -371,8 +367,7 @@ storeDigestRebuildFinish(void)
     sd_state.rebuild_lock = 0;
     ++sd_state.rebuild_count;
     debugs(71, 2, "storeDigestRebuildFinish: done.");
-    eventAdd("storeDigestRebuildStart", storeDigestRebuildStart, NULL, (double)
-             Config.digest.rebuild_period, 1);
+    eventAdd("storeDigestRebuildStart", storeDigestRebuildStart, NULL, (double)Config.digest.rebuild_period, 1);
     /* resume pending Rewrite if any */
 
     if (sd_state.rewrite_lock)
@@ -384,8 +379,7 @@ static void
 storeDigestRebuildStep(void *datanotused)
 {
     /* TODO: call Store::Root().size() to determine this.. */
-    int count = Config.Store.objectsPerBucket * (int) ceil((double) store_hash_buckets *
-                (double) Config.digest.rebuild_chunk_percentage / 100.0);
+    int count = Config.Store.objectsPerBucket * (int)ceil((double)store_hash_buckets * (double)Config.digest.rebuild_chunk_percentage / 100.0);
     assert(sd_state.rebuild_lock);
 
     debugs(71, 3, "storeDigestRebuildStep: buckets: " << store_hash_buckets << " entries to check: " << count);
@@ -459,9 +453,8 @@ storeDigestRewriteResume(void)
     HttpReply *rep = new HttpReply;
     rep->setHeaders(Http::scOkay, "Cache Digest OK",
                     "application/cache-digest", (store_digest->mask_size + sizeof(sd_state.cblock)),
-                    squid_curtime, (squid_curtime + Config.digest.rewrite_period) );
-    debugs(71, 3, "storeDigestRewrite: entry expires on " << rep->expires <<
-           " (" << std::showpos << (int) (rep->expires - squid_curtime) << ")");
+                    squid_curtime, (squid_curtime + Config.digest.rewrite_period));
+    debugs(71, 3, "storeDigestRewrite: entry expires on " << rep->expires << " (" << std::showpos << (int)(rep->expires - squid_curtime) << ")");
     e->buffer();
     e->replaceHttpReply(rep);
     storeDigestCBlockSwapOut(e);
@@ -471,19 +464,17 @@ storeDigestRewriteResume(void)
 
 /* finishes swap out sequence for the digest; schedules next rewrite */
 static void
-storeDigestRewriteFinish(StoreEntry * e)
+storeDigestRewriteFinish(StoreEntry *e)
 {
     assert(e == sd_state.rewrite_lock);
     e->complete();
     e->timestampsSet();
-    debugs(71, 2, "storeDigestRewriteFinish: digest expires at " << e->expires <<
-           " (" << std::showpos << (int) (e->expires - squid_curtime) << ")");
+    debugs(71, 2, "storeDigestRewriteFinish: digest expires at " << e->expires << " (" << std::showpos << (int)(e->expires - squid_curtime) << ")");
     /* is this the write order? @?@ */
     e->mem_obj->unlinkRequest();
     sd_state.rewrite_lock = NULL;
     ++sd_state.rewrite_count;
-    eventAdd("storeDigestRewriteStart", storeDigestRewriteStart, NULL, (double)
-             Config.digest.rewrite_period, 1);
+    eventAdd("storeDigestRewriteStart", storeDigestRewriteStart, NULL, (double)Config.digest.rewrite_period, 1);
     /* resume pending Rebuild if any */
 
     if (sd_state.rebuild_lock)
@@ -505,9 +496,7 @@ storeDigestSwapOutStep(void *data)
 
     e->append(store_digest->mask + sd_state.rewrite_offset, chunk_size);
 
-    debugs(71, 3, "storeDigestSwapOutStep: size: " << store_digest->mask_size <<
-           " offset: " << sd_state.rewrite_offset << " chunk: " <<
-           chunk_size << " bytes");
+    debugs(71, 3, "storeDigestSwapOutStep: size: " << store_digest->mask_size << " offset: " << sd_state.rewrite_offset << " chunk: " << chunk_size << " bytes");
 
     sd_state.rewrite_offset += chunk_size;
 
@@ -519,7 +508,7 @@ storeDigestSwapOutStep(void *data)
 }
 
 static void
-storeDigestCBlockSwapOut(StoreEntry * e)
+storeDigestCBlockSwapOut(StoreEntry *e)
 {
     memset(&sd_state.cblock, 0, sizeof(sd_state.cblock));
     sd_state.cblock.ver.current = htons(CacheDigestVer.current);
@@ -529,9 +518,8 @@ storeDigestCBlockSwapOut(StoreEntry * e)
     sd_state.cblock.del_count = htonl(store_digest->del_count);
     sd_state.cblock.mask_size = htonl(store_digest->mask_size);
     sd_state.cblock.bits_per_entry = Config.digest.bits_per_entry;
-    sd_state.cblock.hash_func_count = (unsigned char) CacheDigestHashFuncCount;
-    e->append((char *) &sd_state.cblock, sizeof(sd_state.cblock));
+    sd_state.cblock.hash_func_count = (unsigned char)CacheDigestHashFuncCount;
+    e->append((char *)&sd_state.cblock, sizeof(sd_state.cblock));
 }
 
 #endif /* USE_CACHE_DIGESTS */
-

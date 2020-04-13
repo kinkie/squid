@@ -46,4 +46,3 @@ CommIO::NotifyIOCompleted()
 };
 
 #endif /* SQUID_SRC_DISKIO_DISKTHREADS_COMMIO_H */
-

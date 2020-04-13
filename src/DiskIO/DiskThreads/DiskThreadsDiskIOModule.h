@@ -20,12 +20,11 @@ public:
     virtual void init();
     //virtual void registerWithCacheManager(void);
     virtual void gracefulShutdown();
-    virtual char const *type () const;
-    virtual DiskIOStrategy* createStrategy();
+    virtual char const *type() const;
+    virtual DiskIOStrategy *createStrategy();
 
 private:
     static DiskThreadsDiskIOModule Instance;
 };
 
 #endif /* SQUID_DISKTHREADSDISKIOMODULE_H */
-

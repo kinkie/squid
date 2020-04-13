@@ -25,4 +25,3 @@ public:
 };
 
 #endif /* SQUID_TESTSTORESUPPORT_H */
-

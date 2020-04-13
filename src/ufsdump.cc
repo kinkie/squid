@@ -10,12 +10,12 @@
 
 #include "squid.h"
 #include "Generic.h"
-#include "md5.h"
-#include "mgr/Registration.h"
 #include "Store.h"
-#include "store_key_md5.h"
 #include "StoreMeta.h"
 #include "StoreMetaUnpacker.h"
+#include "md5.h"
+#include "mgr/Registration.h"
+#include "store_key_md5.h"
 
 #undef malloc
 #undef free
@@ -26,15 +26,21 @@
 
 /* stub functions for parts of squid not factored to be dynamic yet */
 void
-eventAdd(const char *name, EVH * func, void *arg, double when, int, bool cbdata)
-{}
+eventAdd(const char *name, EVH *func, void *arg, double when, int, bool cbdata)
+{
+}
 
 // required by storeKeyPublicByRequest*
 // XXX: what pulls in storeKeyPublicByRequest?
-const char *urlCanonical(HttpRequest *) { assert(false); return NULL; }
+const char *
+urlCanonical(HttpRequest *)
+{
+    assert(false);
+    return NULL;
+}
 
 void
-storeAppendPrintf(StoreEntry * e, const char *fmt,...)
+storeAppendPrintf(StoreEntry *e, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -45,13 +51,15 @@ storeAppendPrintf(StoreEntry * e, const char *fmt,...)
 }
 
 void
-Mgr::RegisterAction(char const * action, char const * desc, OBJH * handler, int pw_req_flag, int atomic) {}
+Mgr::RegisterAction(char const *action, char const *desc, OBJH *handler, int pw_req_flag, int atomic)
+{
+}
 
 /* MinGW needs also a stub of death() */
 void
 death(int sig)
 {
-    std::cout << "Fatal: Signal " <<  sig;
+    std::cout << "Fatal: Signal " << sig;
     exit(EXIT_FAILURE);
 }
 
@@ -87,7 +95,8 @@ struct MetaStdLfs {
 struct DumpStoreMeta : public unary_function<StoreMeta, void> {
     DumpStoreMeta() {}
 
-    void operator()(StoreMeta const &x) {
+    void operator()(StoreMeta const &x)
+    {
         switch (x.getType()) {
 
         case STORE_META_KEY:
@@ -95,27 +104,20 @@ struct DumpStoreMeta : public unary_function<StoreMeta, void> {
             break;
 
         case STORE_META_STD:
-            std::cout << "STD, Size:" << ((struct MetaStd*)x.value)->swap_file_sz <<
-                      " Flags: 0x" << std::hex << ((struct MetaStd*)x.value)->flags << std::dec <<
-                      " Refcount: " << ((struct MetaStd*)x.value)->refcount <<
-                      std::endl;
+            std::cout << "STD, Size:" << ((struct MetaStd *)x.value)->swap_file_sz << " Flags: 0x" << std::hex << ((struct MetaStd *)x.value)->flags << std::dec << " Refcount: " << ((struct MetaStd *)x.value)->refcount << std::endl;
             break;
 
         case STORE_META_STD_LFS:
-            std::cout << "STD_LFS, Size: " << ((struct MetaStdLfs*)x.value)->swap_file_sz <<
-                      " Flags: 0x" << std::hex << ((struct MetaStdLfs*)x.value)->flags << std::dec <<
-                      " Refcount: " << ((struct MetaStdLfs*)x.value)->refcount <<
-                      std::endl;
+            std::cout << "STD_LFS, Size: " << ((struct MetaStdLfs *)x.value)->swap_file_sz << " Flags: 0x" << std::hex << ((struct MetaStdLfs *)x.value)->flags << std::dec << " Refcount: " << ((struct MetaStdLfs *)x.value)->refcount << std::endl;
             break;
 
         case STORE_META_URL:
-            assert (((char *)x.value)[x.length - 1] == 0);
+            assert(((char *)x.value)[x.length - 1] == 0);
             std::cout << "URL: " << (char *)x.value << std::endl;
             break;
 
         default:
-            std::cout << "Unknown store meta type: " << (int)x.getType() <<
-                      " of length " << x.length << std::endl;
+            std::cout << "Unknown store meta type: " << (int)x.getType() << " of length " << x.length << std::endl;
             break;
         }
     }
@@ -131,7 +133,7 @@ main(int argc, char *argv[])
         if (argc != 2)
             throw std::runtime_error("No filename provided");
 
-        fd = open (argv[1], O_RDONLY | O_BINARY);
+        fd = open(argv[1], O_RDONLY | O_BINARY);
 
         if (fd < 0)
             throw std::runtime_error("Could not open file.");
@@ -143,7 +145,7 @@ main(int argc, char *argv[])
         if (len < 0)
             throw std::runtime_error("Could not read header into memory.");
 
-        close (fd);
+        close(fd);
 
         fd = -1;
 
@@ -151,7 +153,7 @@ main(int argc, char *argv[])
 
         StoreMetaUnpacker aBuilder(tempbuf, len, &hdr_len);
 
-        metadata = aBuilder.createStoreMeta ();
+        metadata = aBuilder.createStoreMeta();
 
         cache_key key[SQUID_MD5_DIGEST_LENGTH];
 
@@ -175,4 +177,3 @@ main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
-

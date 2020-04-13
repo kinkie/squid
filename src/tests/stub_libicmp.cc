@@ -13,28 +13,24 @@
 #include "icmp/IcmpSquid.h"
 //IcmpSquid::IcmpSquid() STUB
 //IcmpSquid::~IcmpSquid() STUB
-int IcmpSquid::Open() STUB_RETVAL(-1)
-void IcmpSquid::Close() STUB
-void IcmpSquid::DomainPing(Ip::Address &to, const char *domain) STUB
+int
+IcmpSquid::Open() STUB_RETVAL(-1) void IcmpSquid::Close() STUB
+    void IcmpSquid::DomainPing(Ip::Address &to, const char *domain) STUB
 #if USE_ICMP
-void IcmpSquid::SendEcho(Ip::Address &to, int opcode, const char* payload, int len) STUB
-void IcmpSquid::Recv(void) STUB
+    void IcmpSquid::SendEcho(Ip::Address &to, int opcode, const char *payload, int len) STUB
+    void IcmpSquid::Recv(void) STUB
 #endif
 //IcmpSquid icmpEngine;
 
 #include "icmp/net_db.h"
-void netdbInit(void) STUB
-void netdbHandlePingReply(const Ip::Address &from, int hops, int rtt) STUB
-void netdbPingSite(const char *hostname) STUB
-void netdbDump(StoreEntry *) STUB
-void netdbFreeMemory(void) STUB
-int netdbHostHops(const char *host) STUB_RETVAL(-1)
-int netdbHostRtt(const char *host) STUB_RETVAL(-1)
-void netdbUpdatePeer(const AnyP::Uri &, CachePeer *, int, int) STUB
-void netdbDeleteAddrNetwork(Ip::Address &addr) STUB
-void netdbBinaryExchange(StoreEntry *) STUB
-void netdbExchangeStart(void *) STUB
-void netdbExchangeUpdatePeer(Ip::Address &, CachePeer *, double, double) STUB
-CachePeer *netdbClosestParent(PeerSelector *) STUB_RETVAL(nullptr)
-void netdbHostData(const char *host, int *samp, int *rtt, int *hops) STUB
-
+    void netdbInit(void) STUB
+    void netdbHandlePingReply(const Ip::Address &from, int hops, int rtt) STUB
+    void netdbPingSite(const char *hostname) STUB
+    void netdbDump(StoreEntry *) STUB
+    void netdbFreeMemory(void) STUB
+    int netdbHostHops(const char *host) STUB_RETVAL(-1) int netdbHostRtt(const char *host) STUB_RETVAL(-1) void netdbUpdatePeer(const AnyP::Uri &, CachePeer *, int, int) STUB
+    void netdbDeleteAddrNetwork(Ip::Address &addr) STUB
+    void netdbBinaryExchange(StoreEntry *) STUB
+    void netdbExchangeStart(void *) STUB
+    void netdbExchangeUpdatePeer(Ip::Address &, CachePeer *, double, double) STUB
+    CachePeer *netdbClosestParent(PeerSelector *) STUB_RETVAL(nullptr) void netdbHostData(const char *host, int *samp, int *rtt, int *hops) STUB

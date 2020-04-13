@@ -104,7 +104,8 @@ init_mib(char *file)
 }
 
 static struct snmp_mib_tree *
-find_rfc1066_mib(struct snmp_mib_tree *root) {
+find_rfc1066_mib(struct snmp_mib_tree *root)
+{
     oid *op = RFC1066_MIB;
     struct snmp_mib_tree *tp;
     int len;
@@ -160,8 +161,7 @@ parse_subtree(struct snmp_mib_tree *subtree, char *input, oid *output, int *out_
      * No empty strings.  Can happen if there is a trailing '.' or two '.'s
      * in a row, i.e. "..".
      */
-    if ((*input == '\0') ||
-            (*input == '.'))
+    if ((*input == '\0') || (*input == '.'))
         return (0);
 
     if (xisdigit(*input)) {
@@ -181,8 +181,7 @@ parse_subtree(struct snmp_mib_tree *subtree, char *input, oid *output, int *out_
         /*
          * Read the name into a buffer.
          */
-        while ((*input != '\0') &&
-                (*input != '.')) {
+        while ((*input != '\0') && (*input != '.')) {
             *to++ = *input++;
         }
         *to = '\0';
@@ -207,7 +206,7 @@ parse_subtree(struct snmp_mib_tree *subtree, char *input, oid *output, int *out_
     }
 
 found:
-    if (subid > (u_int) MAX_SUBID) {
+    if (subid > (u_int)MAX_SUBID) {
         snmplib_debug(0, "sub-identifier too large: %s\n", buf);
         return (0);
     }
@@ -219,17 +218,15 @@ found:
 
     if (*input != '.')
         return (1);
-    if ((*out_len =
-                parse_subtree(tp ? tp->child_list : NULL, ++input, output, out_len)) == 0)
+    if ((*out_len = parse_subtree(tp ? tp->child_list : NULL, ++input, output, out_len)) == 0)
         return (0);
     return (++*out_len);
 }
 
 int
-read_objid(input, output, out_len)
-char *input;
+    read_objid(input, output, out_len) char *input;
 oid *output;
-int *out_len;       /* number of subid's in "output" */
+int *out_len; /* number of subid's in "output" */
 {
     struct snmp_mib_tree *root = Mib;
     oid *op = output;
@@ -261,34 +258,32 @@ int *out_len;       /* number of subid's in "output" */
 }
 
 void
-print_objid(objid, objidlen)
-oid *objid;
-int objidlen;       /* number of subidentifiers */
+    print_objid(objid, objidlen)
+        oid *objid;
+int objidlen; /* number of subidentifiers */
 {
     char buf[256];
     struct snmp_mib_tree *subtree = Mib;
 
-    *buf = '.';         /* this is a fully qualified name */
+    *buf = '.'; /* this is a fully qualified name */
     get_symbol(objid, objidlen, subtree, buf + 1);
     snmplib_debug(7, "%s\n", buf);
-
 }
 
 void
-sprint_objid(buf, objid, objidlen)
-char *buf;
+    sprint_objid(buf, objid, objidlen) char *buf;
 oid *objid;
-int objidlen;       /* number of subidentifiers */
+int objidlen; /* number of subidentifiers */
 {
     struct snmp_mib_tree *subtree = Mib;
 
-    *buf = '.';         /* this is a fully qualified name */
+    *buf = '.'; /* this is a fully qualified name */
     get_symbol(objid, objidlen, subtree, buf + 1);
 }
 
 static struct snmp_mib_tree *
-get_symbol(objid, objidlen, subtree, buf)
-oid *objid;
+    get_symbol(objid, objidlen, subtree, buf)
+        oid *objid;
 int objidlen;
 struct snmp_mib_tree *subtree;
 char *buf;
@@ -303,12 +298,12 @@ char *buf;
     }
 
     /* subtree not found */
-    while (objidlen--) {    /* output rest of name, uninterpreted */
+    while (objidlen--) { /* output rest of name, uninterpreted */
         sprintf(buf, "%u.", *objid++);
         while (*buf)
             buf++;
     }
-    *(buf - 1) = '\0';      /* remove trailing dot */
+    *(buf - 1) = '\0'; /* remove trailing dot */
     return NULL;
 
 found:
@@ -326,11 +321,10 @@ found:
 }
 
 void
-print_oid_nums(oid * O, int len)
+print_oid_nums(oid *O, int len)
 {
     int x;
 
     for (x = 0; x < len; x++)
         printf(".%u", O[x]);
 }
-

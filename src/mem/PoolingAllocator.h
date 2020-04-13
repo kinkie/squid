@@ -19,24 +19,24 @@ public:
     /* STL Allocator API */
     using value_type = Value;
     PoolingAllocator() noexcept {}
-    template <class Other> PoolingAllocator(const PoolingAllocator<Other> &) noexcept {}
-    value_type *allocate(std::size_t n) { return static_cast<value_type*>(memAllocRigid(n*sizeof(value_type))); }
-    void deallocate(value_type *vp, std::size_t n) noexcept { memFreeRigid(vp, n*sizeof(value_type)); }
+    template <class Other>
+    PoolingAllocator(const PoolingAllocator<Other> &) noexcept {}
+    value_type *allocate(std::size_t n) { return static_cast<value_type *>(memAllocRigid(n * sizeof(value_type))); }
+    void deallocate(value_type *vp, std::size_t n) noexcept { memFreeRigid(vp, n * sizeof(value_type)); }
 };
 
 template <class L, class R>
 inline bool
-operator ==(const PoolingAllocator<L>&, const PoolingAllocator<R>&) noexcept
+operator==(const PoolingAllocator<L> &, const PoolingAllocator<R> &) noexcept
 {
     return true;
 }
 
 template <class L, class R>
 inline bool
-operator !=(const PoolingAllocator<L> &l, const PoolingAllocator<R> &r) noexcept
+operator!=(const PoolingAllocator<L> &l, const PoolingAllocator<R> &r) noexcept
 {
     return !(l == r);
 }
 
 #endif /* SQUID_MEM_POOLINGALLOCATOR_H */
-

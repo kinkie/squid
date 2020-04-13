@@ -18,14 +18,13 @@
 
 #include <map>
 
-namespace Ipc
-{
+namespace Ipc {
 
 /** Forwards a worker request to coordinator.
  * Waits for an ACK from Coordinator
  * Send the data unit with an error response if forwarding fails.
  */
-class Forwarder: public AsyncJob
+class Forwarder : public AsyncJob
 {
     CBDATA_CLASS(Forwarder);
 
@@ -37,7 +36,7 @@ public:
     static void HandleRemoteAck(unsigned int requestId);
 
     /* has-to-be-public AsyncJob API */
-    virtual void callException(const std::exception& e);
+    virtual void callException(const std::exception &e);
 
 protected:
     /* AsyncJob API */
@@ -47,10 +46,10 @@ protected:
 
     virtual void handleError();
     virtual void handleTimeout();
-    virtual void handleException(const std::exception& e);
+    virtual void handleException(const std::exception &e);
 
 private:
-    static void RequestTimedOut(void* param);
+    static void RequestTimedOut(void *param);
     void requestTimedOut();
     void removeTimeoutEvent();
 
@@ -60,16 +59,15 @@ private:
 
 protected:
     Request::Pointer request;
-    const double timeout; ///< response wait timeout in seconds
+    const double timeout;  ///< response wait timeout in seconds
 
     /// maps request->id to Forwarder::handleRemoteAck callback
     typedef std::map<unsigned int, AsyncCall::Pointer> RequestsMap;
-    static RequestsMap TheRequestsMap; ///< pending Coordinator requests
+    static RequestsMap TheRequestsMap;  ///< pending Coordinator requests
 
-    static unsigned int LastRequestId; ///< last requestId used
+    static unsigned int LastRequestId;  ///< last requestId used
 };
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_FORWARDER_H */
-

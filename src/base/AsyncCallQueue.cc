@@ -9,25 +9,27 @@
 /* DEBUG: section 41    Event Processing */
 
 #include "squid.h"
-#include "base/AsyncCall.h"
 #include "base/AsyncCallQueue.h"
 #include "Debug.h"
+#include "base/AsyncCall.h"
 
 AsyncCallQueue *AsyncCallQueue::TheInstance = 0;
 
-AsyncCallQueue::AsyncCallQueue(): theHead(NULL), theTail(NULL)
+AsyncCallQueue::AsyncCallQueue() :
+    theHead(NULL), theTail(NULL)
 {
 }
 
-void AsyncCallQueue::schedule(AsyncCall::Pointer &call)
+void
+AsyncCallQueue::schedule(AsyncCall::Pointer &call)
 {
     assert(call != NULL);
     assert(!call->theNext);
-    if (theHead != NULL) { // append
+    if (theHead != NULL) {  // append
         assert(!theTail->theNext);
         theTail->theNext = call;
         theTail = call;
-    } else { // create queue from cratch
+    } else {  // create queue from cratch
         theHead = theTail = call;
     }
 }
@@ -70,4 +72,3 @@ AsyncCallQueue::Instance()
 
     return *TheInstance;
 }
-

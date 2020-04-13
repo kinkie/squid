@@ -13,24 +13,24 @@
  * See acl.c for access control and client_side.c for auditing */
 
 #include "squid.h"
+#include "auth/Gadgets.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
 #include "acl/Acl.h"
 #include "acl/FilledChecklist.h"
 #include "auth/AclProxyAuth.h"
-#include "auth/basic/User.h"
 #include "auth/Config.h"
 #include "auth/CredentialsCache.h"
-#include "auth/digest/User.h"
-#include "auth/Gadgets.h"
-#include "auth/negotiate/User.h"
-#include "auth/ntlm/User.h"
 #include "auth/Scheme.h"
 #include "auth/User.h"
 #include "auth/UserRequest.h"
+#include "auth/basic/User.h"
+#include "auth/digest/User.h"
+#include "auth/negotiate/User.h"
+#include "auth/ntlm/User.h"
 #include "client_side.h"
 #include "globals.h"
 #include "http/Stream.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 
 /**** PUBLIC FUNCTIONS (ALL GENERIC!)  ****/
 
@@ -60,14 +60,14 @@ authenticateSchemeCount(void)
 }
 
 static void
-authenticateRegisterWithCacheManager(Auth::ConfigVector * config)
+authenticateRegisterWithCacheManager(Auth::ConfigVector *config)
 {
     for (auto *scheme : *config)
         scheme->registerWithCacheManager();
 }
 
 void
-authenticateInit(Auth::ConfigVector * config)
+authenticateInit(Auth::ConfigVector *config)
 {
     /* If we do not have any auth config state to create stop now. */
     if (!config)
@@ -120,8 +120,8 @@ authenticateCachedUsersList()
         u2 = Auth::Digest::User::Cache()->sortedUsersList();
 #endif
     if (u1.size() > 0 || u2.size() > 0) {
-        v1.reserve(u1.size()+u2.size());
-        std::merge(u1.begin(), u1.end(),u2.begin(), u2.end(),
+        v1.reserve(u1.size() + u2.size());
+        std::merge(u1.begin(), u1.end(), u2.begin(), u2.end(),
                    std::back_inserter(v1), aucp_compare);
         u1.clear();
         u2.clear();
@@ -135,13 +135,12 @@ authenticateCachedUsersList()
         u2 = Auth::Ntlm::User::Cache()->sortedUsersList();
 #endif
     if (u1.size() > 0 || u2.size() > 0) {
-        v2.reserve(u1.size()+u2.size());
-        std::merge(u1.begin(), u1.end(),u2.begin(), u2.end(),
+        v2.reserve(u1.size() + u2.size());
+        std::merge(u1.begin(), u1.end(), u2.begin(), u2.end(),
                    std::back_inserter(v2), aucp_compare);
     }
-    rv.reserve(v1.size()+v2.size());
-    std::merge(v1.begin(), v1.end(),v2.begin(), v2.end(),
+    rv.reserve(v1.size() + v2.size());
+    std::merge(v1.begin(), v1.end(), v2.begin(), v2.end(),
                std::back_inserter(rv), aucp_compare);
     return rv;
 }
-

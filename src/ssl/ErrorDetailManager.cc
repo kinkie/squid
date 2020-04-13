@@ -7,38 +7,41 @@
  */
 
 #include "squid.h"
-#include "ErrorDetail.h"
 #include "ErrorDetailManager.h"
+#include "ErrorDetail.h"
 #include "errorpage.h"
 #include "http/ContentLengthInterpreter.h"
 #include "mime_header.h"
 
-void Ssl::errorDetailInitialize()
+void
+Ssl::errorDetailInitialize()
 {
     Ssl::ErrorDetailsManager::GetInstance();
 }
 
-void Ssl::errorDetailClean()
+void
+Ssl::errorDetailClean()
 {
     Ssl::ErrorDetailsManager::Shutdown();
 }
 
-namespace Ssl
-{
+namespace Ssl {
 
 /// manages error detail templates
 class ErrorDetailFile : public TemplateFile
 {
 public:
-    explicit ErrorDetailFile(ErrorDetailsList::Pointer const details): TemplateFile("error-details.txt", ERR_NONE) {
+    explicit ErrorDetailFile(ErrorDetailsList::Pointer const details) :
+        TemplateFile("error-details.txt", ERR_NONE)
+    {
         theDetails = details;
     }
 
 private:
-    ErrorDetailsList::Pointer  theDetails;
+    ErrorDetailsList::Pointer theDetails;
     virtual bool parse() override;
 };
-}// namespace Ssl
+}  // namespace Ssl
 
 /******************/
 bool
@@ -46,10 +49,10 @@ Ssl::ErrorDetailsList::getRecord(Security::ErrorCode value, ErrorDetailEntry &en
 {
     const ErrorDetails::const_iterator it = theList.find(value);
     if (it != theList.end()) {
-        entry.error_no =  it->second.error_no;
-        entry.name =  it->second.name;
-        entry.detail =  it->second.detail;
-        entry.descr =  it->second.descr;
+        entry.error_no = it->second.error_no;
+        entry.name = it->second.name;
+        entry.detail = it->second.detail;
+        entry.descr = it->second.descr;
         return true;
     }
     return false;
@@ -79,7 +82,8 @@ Ssl::ErrorDetailsList::getErrorDetail(Security::ErrorCode value)
 
 Ssl::ErrorDetailsManager *Ssl::ErrorDetailsManager::TheDetailsManager = NULL;
 
-Ssl::ErrorDetailsManager &Ssl::ErrorDetailsManager::GetInstance()
+Ssl::ErrorDetailsManager &
+Ssl::ErrorDetailsManager::GetInstance()
 {
     if (!TheDetailsManager)
         TheDetailsManager = new Ssl::ErrorDetailsManager;
@@ -88,7 +92,8 @@ Ssl::ErrorDetailsManager &Ssl::ErrorDetailsManager::GetInstance()
     return *TheDetailsManager;
 }
 
-void Ssl::ErrorDetailsManager::Shutdown()
+void
+Ssl::ErrorDetailsManager::Shutdown()
 {
     delete TheDetailsManager;
     TheDetailsManager = NULL;
@@ -101,7 +106,8 @@ Ssl::ErrorDetailsManager::ErrorDetailsManager()
     detailTmpl.loadDefault();
 }
 
-Ssl::ErrorDetailsList::Pointer Ssl::ErrorDetailsManager::getCachedDetails(const char *lang)
+Ssl::ErrorDetailsList::Pointer
+Ssl::ErrorDetailsManager::getCachedDetails(const char *lang)
 {
     Cache::iterator it;
     it = cache.find(lang);
@@ -113,7 +119,8 @@ Ssl::ErrorDetailsList::Pointer Ssl::ErrorDetailsManager::getCachedDetails(const 
     return NULL;
 }
 
-void Ssl::ErrorDetailsManager::cacheDetails(ErrorDetailsList::Pointer &errorDetails)
+void
+Ssl::ErrorDetailsManager::cacheDetails(ErrorDetailsList::Pointer &errorDetails)
 {
     const char *lang = errorDetails->errLanguage.termedBuf();
     assert(lang);
@@ -133,9 +140,9 @@ Ssl::ErrorDetailsManager::getErrorDetail(Security::ErrorCode value, const HttpRe
         char lang[256];
         // Get the first ellement of the Accept-Language header
         strHdrAcptLangGetItem(hdr, lang, 256, pos);
-        errDetails = getCachedDetails(lang); // search in cache
+        errDetails = getCachedDetails(lang);  // search in cache
 
-        if (!errDetails) { // Else try to load from disk
+        if (!errDetails) {  // Else try to load from disk
             debugs(83, 8, HERE << "Creating new ErrDetailList to read from disk");
             errDetails = new ErrorDetailsList();
             ErrorDetailFile detailTmpl(errDetails);
@@ -175,15 +182,20 @@ Ssl::ErrorDetailsManager::getDefaultErrorDetail(Security::ErrorCode value)
 }
 
 // Use HttpHeaders parser to parse error-details.txt files
-class DetailEntryParser: public HttpHeader
+class DetailEntryParser : public HttpHeader
 {
 public:
-    DetailEntryParser():HttpHeader(hoErrorDetail) {}
+    DetailEntryParser() :
+        HttpHeader(hoErrorDetail) {}
 };
 
 //The end of an error detrail entry is a double "\n". The headersEnd
 // functions can detect it
-inline size_t detailEntryEnd(const char *s, size_t len) {return headersEnd(s, len);}
+inline size_t
+detailEntryEnd(const char *s, size_t len)
+{
+    return headersEnd(s, len);
+}
 
 bool
 Ssl::ErrorDetailFile::parse()
@@ -192,33 +204,31 @@ Ssl::ErrorDetailFile::parse()
         return false;
 
     auto buf = template_;
-    buf.append("\n\n"); // ensure detailEntryEnd() finds the last entry
+    buf.append("\n\n");  // ensure detailEntryEnd() finds the last entry
 
     while (const auto size = detailEntryEnd(buf.rawContent(), buf.length())) {
         auto *s = buf.c_str();
         const auto e = s + size;
 
         //ignore spaces, new lines and comment lines (starting with #) at the beginning
-        for (; (*s == '\n' || *s == ' '  || *s == '\t' || *s == '#')  && s < e; ++s) {
+        for (; (*s == '\n' || *s == ' ' || *s == '\t' || *s == '#') && s < e; ++s) {
             if (*s == '#')
-                while (s<e &&  *s != '\n')
-                    ++s; // skip until the end of line
+                while (s < e && *s != '\n')
+                    ++s;  // skip until the end of line
         }
 
-        if ( s != e) {
+        if (s != e) {
             DetailEntryParser parser;
             Http::ContentLengthInterpreter interpreter;
             // no applyStatusCodeRules() -- error templates lack HTTP status code
             if (!parser.parse(s, e - s, interpreter)) {
-                debugs(83, DBG_IMPORTANT, HERE <<
-                       "WARNING! parse error on:" << s);
+                debugs(83, DBG_IMPORTANT, HERE << "WARNING! parse error on:" << s);
                 return false;
             }
 
             const String errorName = parser.getByName("name");
             if (!errorName.size()) {
-                debugs(83, DBG_IMPORTANT, HERE <<
-                       "WARNING! invalid or no error detail name on:" << s);
+                debugs(83, DBG_IMPORTANT, HERE << "WARNING! invalid or no error detail name on:" << s);
                 return false;
             }
 
@@ -226,8 +236,7 @@ Ssl::ErrorDetailFile::parse()
             if (ssl_error != SSL_ERROR_NONE) {
 
                 if (theDetails->getErrorDetail(ssl_error)) {
-                    debugs(83, DBG_IMPORTANT, HERE <<
-                           "WARNING! duplicate entry: " << errorName);
+                    debugs(83, DBG_IMPORTANT, HERE << "WARNING! duplicate entry: " << errorName);
                     return false;
                 }
 
@@ -241,22 +250,19 @@ Ssl::ErrorDetailFile::parse()
                 // TODO: Validate "descr" and "detail" field values.
 
                 if (!detailsParseOk || !descrParseOk) {
-                    debugs(83, DBG_IMPORTANT, HERE <<
-                           "WARNING! missing important field for detail error: " <<  errorName);
+                    debugs(83, DBG_IMPORTANT, HERE << "WARNING! missing important field for detail error: " << errorName);
                     return false;
                 }
 
             } else if (!Ssl::ErrorIsOptional(errorName.termedBuf())) {
-                debugs(83, DBG_IMPORTANT, HERE <<
-                       "WARNING! invalid error detail name: " << errorName);
+                debugs(83, DBG_IMPORTANT, HERE << "WARNING! invalid error detail name: " << errorName);
                 return false;
             }
 
-        }// else {only spaces and black lines; just ignore}
+        }  // else {only spaces and black lines; just ignore}
 
         buf.consume(size);
     }
     debugs(83, 9, Raw("unparsed data", buf.rawContent(), buf.length()));
     return true;
 }
-

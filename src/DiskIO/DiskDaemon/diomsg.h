@@ -31,8 +31,8 @@ struct diomsg {
     mtyp_t mtype;
     int id;
     int seq_no;
-    void * callback_data;
-    Lock * requestor;
+    void *callback_data;
+    Lock *requestor;
     size_t size;
     off_t offset;
     int status;
@@ -42,4 +42,3 @@ struct diomsg {
 };
 
 #endif /* SQUID_DIOMSG_H__ */
-

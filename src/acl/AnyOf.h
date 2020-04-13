@@ -11,11 +11,10 @@
 
 #include "acl/BoolOps.h"
 
-namespace Acl
-{
+namespace Acl {
 
 /// Configurable any-of ACL. Each ACL line is a disjuction of ACLs.
-class AnyOf: public Acl::OrNode
+class AnyOf : public Acl::OrNode
 {
     MEMPROXY_CLASS(AnyOf);
 
@@ -26,7 +25,6 @@ public:
     virtual void parse();
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACL_ANY_OF_H */
-

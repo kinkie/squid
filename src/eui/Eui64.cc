@@ -12,8 +12,8 @@
 
 #if USE_SQUID_EUI
 
-#include "compat/eui64_aton.h"
 #include "Debug.h"
+#include "compat/eui64_aton.h"
 #include "eui/Eui64.h"
 #include "globals.h"
 #include "ip/Address.h"
@@ -22,23 +22,24 @@ bool
 Eui::Eui64::decode(const char *asc)
 {
     if (eui64_aton(asc, (struct eui64 *)eui) != 0) {
-        debugs(28, 4, "id=" << (void*)this << " decode fail on " << asc);
+        debugs(28, 4, "id=" << (void *)this << " decode fail on " << asc);
         return false;
     }
 
-    debugs(28, 4, "id=" << (void*)this << " ATON decoded " << asc);
+    debugs(28, 4, "id=" << (void *)this << " ATON decoded " << asc);
     return true;
 }
 
 bool
 Eui::Eui64::encode(char *buf, const int len) const
 {
-    if (len < SZ_EUI64_BUF) return false;
+    if (len < SZ_EUI64_BUF)
+        return false;
 
     snprintf(buf, len, "%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x",
              eui[0], eui[1], eui[2], eui[3],
              eui[4], eui[5], eui[6], eui[7]);
-    debugs(28, 4, "id=" << (void*)this << " encoded " << buf);
+    debugs(28, 4, "id=" << (void *)this << " encoded " << buf);
     return true;
 }
 
@@ -64,20 +65,19 @@ Eui::Eui64::lookupSlaac(const Ip::Address &c)
         struct in6_addr tmp;
         c.getInAddr(tmp);
         memcpy(eui, &(tmp.s6_addr[8]), SZ_EUI64_BUF);
-        debugs(28, 4, "id=" << (void*)this << " SLAAC decoded " << c);
+        debugs(28, 4, "id=" << (void *)this << " SLAAC decoded " << c);
         return true;
     }
 
-    debugs(28, 4, "id=" << (void*)this << " SLAAC fail on " << c << " SL-6="
-           << (c.isSiteLocal6()?'T':'F') << " AAC-6=" << (c.isSiteLocalAuto()?'T':'F'));
+    debugs(28, 4, "id=" << (void *)this << " SLAAC fail on " << c << " SL-6=" << (c.isSiteLocal6() ? 'T' : 'F') << " AAC-6=" << (c.isSiteLocalAuto() ? 'T' : 'F'));
     return false;
 }
 
 // return binary representation of the EUI
 bool
-Eui::Eui64::lookupNdp(const Ip::Address &/*c*/)
+Eui::Eui64::lookupNdp(const Ip::Address & /*c*/)
 {
-#if 0 /* no actual lookup coded yet */
+#if 0  /* no actual lookup coded yet */
 
     /* no OS yet supported for NDP protocol lookup */
     debugs(28, DBG_CRITICAL, "ERROR: ARP / MAC / EUI-* operations not supported on this operating system.");
@@ -93,4 +93,3 @@ Eui::Eui64::lookupNdp(const Ip::Address &/*c*/)
 }
 
 #endif /* USE_SQUID_EUI */
-

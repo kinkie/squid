@@ -11,11 +11,11 @@
 
 #include "DiskIO/DiskFile.h"
 #include "DiskIO/IORequestor.h"
-#include "fs/rock/forward.h"
 #include "fs/rock/RockDbCell.h"
+#include "fs/rock/forward.h"
+#include "ipc/StoreMap.h"
 #include "ipc/mem/Page.h"
 #include "ipc/mem/PageStack.h"
-#include "ipc/StoreMap.h"
 #include "store/Disk.h"
 #include <vector>
 
@@ -23,11 +23,10 @@ class DiskIOStrategy;
 class ReadRequest;
 class WriteRequest;
 
-namespace Rock
-{
+namespace Rock {
 
 /// \ingroup Rock
-class SwapDir: public ::SwapDir, public IORequestor, public Ipc::StoreMapCleaner
+class SwapDir : public ::SwapDir, public IORequestor, public Ipc::StoreMapCleaner
 {
 public:
     typedef RefCount<SwapDir> Pointer;
@@ -57,10 +56,10 @@ public:
     // temporary path to the shared memory stack of free slots
     const char *freeSlotsPath() const;
 
-    int64_t entryLimitAbsolute() const { return SwapFilenMax+1; } ///< Core limit
-    int64_t entryLimitActual() const; ///< max number of possible entries in db
-    int64_t slotLimitAbsolute() const; ///< Rock store implementation limit
-    int64_t slotLimitActual() const; ///< total number of slots in this db
+    int64_t entryLimitAbsolute() const { return SwapFilenMax + 1; }  ///< Core limit
+    int64_t entryLimitActual() const;                                ///< max number of possible entries in db
+    int64_t slotLimitAbsolute() const;                               ///< Rock store implementation limit
+    int64_t slotLimitActual() const;                                 ///< total number of slots in this db
 
     /// whether the given slot ID may point to a slot in this db
     bool validSlotId(const SlotId slotId) const;
@@ -78,7 +77,7 @@ public:
     /* StoreMapCleaner API */
     virtual void noteFreeMapSlice(const Ipc::StoreMapSliceId fileno);
 
-    uint64_t slotSize; ///< all db slots are of this size
+    uint64_t slotSize;  ///< all db slots are of this size
 
 protected:
     /* Store API */
@@ -104,23 +103,23 @@ protected:
     /* IORequestor API */
     virtual void ioCompletedNotification();
     virtual void closeCompleted();
-    virtual void readCompleted(const char *buf, int len, int errflag, RefCount< ::ReadRequest>);
-    virtual void writeCompleted(int errflag, size_t len, RefCount< ::WriteRequest>);
+    virtual void readCompleted(const char *buf, int len, int errflag, RefCount<::ReadRequest>);
+    virtual void writeCompleted(int errflag, size_t len, RefCount<::WriteRequest>);
 
-    void parseSize(const bool reconfiguring); ///< parses anonymous cache_dir size option
-    void validateOptions(); ///< warns of configuration problems; may quit
+    void parseSize(const bool reconfiguring);  ///< parses anonymous cache_dir size option
+    void validateOptions();                    ///< warns of configuration problems; may quit
     bool parseTimeOption(char const *option, const char *value, int reconfiguring);
-    void dumpTimeOption(StoreEntry * e) const;
+    void dumpTimeOption(StoreEntry *e) const;
     bool parseRateOption(char const *option, const char *value, int reconfiguring);
-    void dumpRateOption(StoreEntry * e) const;
+    void dumpRateOption(StoreEntry *e) const;
     bool parseSizeOption(char const *option, const char *value, int reconfiguring);
-    void dumpSizeOption(StoreEntry * e) const;
+    void dumpSizeOption(StoreEntry *e) const;
 
-    void rebuild(); ///< starts loading and validating stored entry metadata
+    void rebuild();  ///< starts loading and validating stored entry metadata
 
-    bool full() const; ///< no more entries can be stored without purging
-    void trackReferences(StoreEntry &e); ///< add to replacement policy scope
-    void ignoreReferences(StoreEntry &e); ///< delete from repl policy scope
+    bool full() const;                     ///< no more entries can be stored without purging
+    void trackReferences(StoreEntry &e);   ///< add to replacement policy scope
+    void ignoreReferences(StoreEntry &e);  ///< delete from repl policy scope
 
     int64_t diskOffsetLimit() const;
 
@@ -133,8 +132,8 @@ protected:
     friend class Rebuild;
     friend class IoState;
     friend class HeaderUpdater;
-    const char *filePath; ///< location of cache storage file inside path/
-    DirMap *map; ///< entry key/sfileno to MaxExtras/inode mapping
+    const char *filePath;  ///< location of cache storage file inside path/
+    DirMap *map;           ///< entry key/sfileno to MaxExtras/inode mapping
 
 private:
     void createError(const char *const msg);
@@ -142,18 +141,18 @@ private:
     void handleWriteCompletionProblem(const int errflag, const WriteRequest &request);
 
     DiskIOStrategy *io;
-    RefCount<DiskFile> theFile; ///< cache storage for this cache_dir
-    Ipc::Mem::Pointer<Ipc::Mem::PageStack> freeSlots; ///< all unused slots
-    Ipc::Mem::PageId *waitingForPage; ///< one-page cache for a "hot" free slot
+    RefCount<DiskFile> theFile;                        ///< cache storage for this cache_dir
+    Ipc::Mem::Pointer<Ipc::Mem::PageStack> freeSlots;  ///< all unused slots
+    Ipc::Mem::PageId *waitingForPage;                  ///< one-page cache for a "hot" free slot
 
     /* configurable options */
-    DiskFile::Config fileConfig; ///< file-level configuration options
+    DiskFile::Config fileConfig;  ///< file-level configuration options
 
-    static const int64_t HeaderSize; ///< on-disk db header size
+    static const int64_t HeaderSize;  ///< on-disk db header size
 };
 
 /// initializes shared memory segments used by Rock::SwapDir
-class SwapDirRr: public Ipc::Mem::RegisteredRunner
+class SwapDirRr : public Ipc::Mem::RegisteredRunner
 {
 public:
     /* ::RegisteredRunner API */
@@ -165,10 +164,9 @@ protected:
 
 private:
     std::vector<SwapDir::DirMap::Owner *> mapOwners;
-    std::vector< Ipc::Mem::Owner<Ipc::Mem::PageStack> *> freeSlotsOwners;
+    std::vector<Ipc::Mem::Owner<Ipc::Mem::PageStack> *> freeSlotsOwners;
 };
 
-} // namespace Rock
+}  // namespace Rock
 
 #endif /* SQUID_FS_ROCK_SWAP_DIR_H */
-

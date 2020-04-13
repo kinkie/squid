@@ -9,10 +9,10 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS
-#include "comm/Connection.h"
 #include "DelayPools.h"
-#include "fde.h"
 #include "MessageBucket.h"
+#include "comm/Connection.h"
+#include "fde.h"
 
 MessageBucket::MessageBucket(const int speed, const int initialLevelPercent,
                              const double sizeLimit, MessageDelayPool::Pointer pool) :
@@ -51,4 +51,3 @@ MessageBucket::scheduleWrite(Comm::IoCallback *state)
 }
 
 #endif /* USE_DELAY_POOLS */
-

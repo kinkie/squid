@@ -7,26 +7,26 @@
  */
 
 #include "squid.h"
+#include "testUfs.h"
 #include "DiskIO/DiskIOModule.h"
-#include "fde.h"
-#include "fs/ufs/UFSSwapDir.h"
-#include "globals.h"
 #include "HttpHeader.h"
 #include "HttpReply.h"
 #include "MemObject.h"
 #include "RequestFlags.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "fde.h"
+#include "fs/ufs/UFSSwapDir.h"
+#include "globals.h"
 #include "store/Disks.h"
 #include "testStoreSupport.h"
-#include "testUfs.h"
 #include "unitTestMain.h"
 
 #include <stdexcept>
 
 #define TESTDIR "testUfs_Store"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testUfs );
+CPPUNIT_TEST_SUITE_REGISTRATION(testUfs);
 
 typedef RefCount<Fs::Ufs::UFSSwapDir> MySwapDirPointer;
 extern REMOVALPOLICYCREATE createRemovalPolicy_lru; /* XXX fails with --enable-removal-policies=heap */
@@ -92,12 +92,12 @@ testUfs::testUfsSearch()
      * check the entries we find are what we want
      */
 
-    if (0 > system ("rm -rf " TESTDIR))
+    if (0 > system("rm -rf " TESTDIR))
         throw std::runtime_error("Failed to clean test work directory");
 
     Store::Init();
 
-    MySwapDirPointer aStore (new Fs::Ufs::UFSSwapDir("ufs", "Blocking"));
+    MySwapDirPointer aStore(new Fs::Ufs::UFSSwapDir("ufs", "Blocking"));
 
     aStore->IO = new Fs::Ufs::UFSStrategy(DiskIOModule::Find("Blocking")->createStrategy());
 
@@ -106,16 +106,16 @@ testUfs::testUfsSearch()
     commonInit();
     mem_policy = createRemovalPolicy(Config.replPolicy);
 
-    char *path=xstrdup(TESTDIR);
+    char *path = xstrdup(TESTDIR);
 
-    char *config_line=xstrdup("100 1 1");
+    char *config_line = xstrdup("100 1 1");
 
     visible_appname_string = xstrdup(PACKAGE "/" VERSION);
 
     ConfigParser::SetCfgLine(config_line);
 
     aStore->parse(0, path);
-    store_maxobjsize = 1024*1024*2;
+    store_maxobjsize = 1024 * 1024 * 2;
 
     safe_free(path);
 
@@ -213,7 +213,7 @@ testUfs::testUfsSearch()
     safe_free(Config.replPolicy->type);
     delete Config.replPolicy;
 
-    if (0 > system ("rm -rf " TESTDIR))
+    if (0 > system("rm -rf " TESTDIR))
         throw std::runtime_error("Failed to clean test work directory");
 }
 
@@ -224,24 +224,24 @@ void
 testUfs::testUfsDefaultEngine()
 {
     /* boring common test boilerplate */
-    if (0 > system ("rm -rf " TESTDIR))
+    if (0 > system("rm -rf " TESTDIR))
         throw std::runtime_error("Failed to clean test work directory");
 
     // This assertion may fail if previous test cases fail.
     // Apparently, CPPUNIT_ASSERT* failure may prevent destructors of local
     // objects such as "StorePointer aRoot" from being called.
-    CPPUNIT_ASSERT(!store_table); // or StoreHashIndex ctor will abort below
+    CPPUNIT_ASSERT(!store_table);  // or StoreHashIndex ctor will abort below
 
     Store::Init();
-    MySwapDirPointer aStore (new Fs::Ufs::UFSSwapDir("ufs", "Blocking"));
+    MySwapDirPointer aStore(new Fs::Ufs::UFSSwapDir("ufs", "Blocking"));
     addSwapDir(aStore);
     commonInit();
     Config.replPolicy = new RemovalPolicySettings;
     Config.replPolicy->type = xstrdup("lru");
     mem_policy = createRemovalPolicy(Config.replPolicy);
 
-    char *path=xstrdup(TESTDIR);
-    char *config_line=xstrdup("100 1 1");
+    char *path = xstrdup(TESTDIR);
+    char *config_line = xstrdup("100 1 1");
     ConfigParser::SetCfgLine(config_line);
     aStore->parse(0, path);
     safe_free(path);
@@ -253,7 +253,6 @@ testUfs::testUfsDefaultEngine()
     safe_free(Config.replPolicy->type);
     delete Config.replPolicy;
 
-    if (0 > system ("rm -rf " TESTDIR))
+    if (0 > system("rm -rf " TESTDIR))
         throw std::runtime_error("Failed to clean test work directory");
 }
-

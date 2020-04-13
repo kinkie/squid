@@ -11,8 +11,7 @@
 #ifndef SQUID_SQUIDIPC_H_
 #define SQUID_SQUIDIPC_H_
 
-namespace Ip
-{
+namespace Ip {
 class Address;
 }
 pid_t ipcCreate(int type,
@@ -25,4 +24,3 @@ pid_t ipcCreate(int type,
                 void **hIpc);
 
 #endif /* SQUID_SQUIDIPC_H_ */
-

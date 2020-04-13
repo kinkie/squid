@@ -9,8 +9,8 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
 #include "acl/SourceIp.h"
+#include "acl/FilledChecklist.h"
 
 char const *
 ACLSourceIP::typeString() const
@@ -29,4 +29,3 @@ ACLSourceIP::clone() const
 {
     return new ACLSourceIP(*this);
 }
-

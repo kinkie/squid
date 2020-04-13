@@ -41,8 +41,8 @@
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #if HAVE_TDB_H
 #include <tdb.h>
 #endif
@@ -54,8 +54,8 @@
    protect from multiple type definition on platform where
    __BIT_TYPES_DEFINED__ is not defined.
  */
-#ifndef        __BIT_TYPES_DEFINED__
-#define        __BIT_TYPES_DEFINED__
+#ifndef __BIT_TYPES_DEFINED__
+#define __BIT_TYPES_DEFINED__
 #endif
 
 static int session_ttl = 3600;
@@ -96,13 +96,14 @@ shutdown_db()
     xfree(db_path);
 }
 
-static void init_db(void)
+static void
+init_db(void)
 {
     struct stat st_buf;
 
     if (db_path) {
         if (!stat(db_path, &st_buf)) {
-            if (S_ISDIR (st_buf.st_mode)) {
+            if (S_ISDIR(st_buf.st_mode)) {
 #if USE_BERKLEYDB
                 /* If directory then open database environment. This prevents sync problems
                     between different processes. Otherwise fallback to single file */
@@ -137,7 +138,7 @@ static void init_db(void)
         }
     }
 #elif USE_TRIVIALDB
-    db = tdb_open(db_path, 0, TDB_CLEAR_IF_FIRST, O_CREAT|O_DSYNC, 0666);
+    db = tdb_open(db_path, 0, TDB_CLEAR_IF_FIRST, O_CREAT | O_DSYNC, 0666);
 #endif
     if (!db) {
         fprintf(stderr, "FATAL: %s: Failed to open session db '%s'\n", program_name, db_path);
@@ -190,7 +191,8 @@ copyValue(void *dst, const DB_ENTRY *src, size_t sz)
 #endif
 }
 
-static int session_active(const char *details, size_t len)
+static int
+session_active(const char *details, size_t len)
 {
 #if USE_BERKLEYDB
     DBT key = {0};
@@ -250,7 +252,8 @@ session_logout(/*const*/ char *details, size_t len)
     deleteEntry(key);
 }
 
-static void usage(void)
+static void
+usage(void)
 {
     fprintf(stderr, "Usage: %s [-t|-T session_timeout] [-b dbpath] [-a]\n", program_name);
     fprintf(stderr, "	-t sessiontimeout	Idle timeout after which sessions will be forgotten (user activity will reset)\n");
@@ -258,7 +261,8 @@ static void usage(void)
     fprintf(stderr, "	-b dbpath		Path where persistent session database will be kept\n");
     fprintf(stderr, "	-a			Active mode requiring LOGIN argument to start a session\n");
 }
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     char request[HELPER_INPUT_BUFFER];
     int opt;
@@ -305,16 +309,16 @@ int main(int argc, char **argv)
         if (lastdetail) {
             if (strcmp(lastdetail, " LOGIN") == 0) {
                 action = 1;
-                detail_len = (size_t)(lastdetail-detail);
+                detail_len = (size_t)(lastdetail - detail);
                 *lastdetail = '\0';
             } else if (strcmp(lastdetail, " LOGOUT") == 0) {
                 action = -1;
-                detail_len = (size_t)(lastdetail-detail);
+                detail_len = (size_t)(lastdetail - detail);
                 *lastdetail = '\0';
             } else if (!default_action && strcmp(lastdetail, " -") == 0) {
                 // no action; LOGIN/LOGOUT not supplied
                 // but truncate the '-' %DATA value given by Squid-4 and later
-                detail_len = (size_t)(lastdetail-detail);
+                detail_len = (size_t)(lastdetail - detail);
                 *lastdetail = '\0';
             }
         }
@@ -339,4 +343,3 @@ int main(int argc, char **argv)
     shutdown_db();
     return EXIT_SUCCESS;
 }
-

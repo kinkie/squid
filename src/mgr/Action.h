@@ -16,12 +16,11 @@
 
 class StoreEntry;
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// Base API for organizing the processing of a compiled cache manager command.
 /// Not a job because all methods are synchronous (but they may start jobs).
-class Action: public RefCountable
+class Action : public RefCountable
 {
 public:
     typedef RefCount<Action> Pointer;
@@ -61,16 +60,16 @@ public:
 
     /// whether at least some local kid info can be combined and, hence, the
     /// combined data should be written at the end of the coordinated response
-    virtual bool aggregatable() const { return true; } // most kid classes are
+    virtual bool aggregatable() const { return true; }  // most kid classes are
 
-    bool atomic() const; ///< dump() call writes everything before returning
-    const char *name() const; ///< label as seen in the cache manager menu
-    const Command &command() const; ///< the cause of this action
+    bool atomic() const;             ///< dump() call writes everything before returning
+    const char *name() const;        ///< label as seen in the cache manager menu
+    const Command &command() const;  ///< the cause of this action
 
-    StoreEntry *createStoreEntry() const; ///< creates store entry from params
+    StoreEntry *createStoreEntry() const;  ///< creates store entry from params
 
     ///< Content-Type: header value for this report
-    virtual const char *contentType() const {return "text/plain;charset=utf-8";}
+    virtual const char *contentType() const { return "text/plain;charset=utf-8"; }
 
 protected:
     /// calculate and keep local action-specific information
@@ -83,14 +82,13 @@ protected:
     virtual void dump(StoreEntry *) {}
 
 private:
-    const CommandPointer cmd; ///< the command that caused this action
+    const CommandPointer cmd;  ///< the command that caused this action
 
 private:
-    Action(const Action &); // not implemented
-    Action &operator= (const Action &); // not implemented
+    Action(const Action &);             // not implemented
+    Action &operator=(const Action &);  // not implemented
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_ACTION_H */
-

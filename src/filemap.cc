@@ -9,28 +9,28 @@
 /* DEBUG: section 08    Swap File Bitmap */
 
 #include "squid.h"
-#include "Debug.h"
 #include "FileMap.h"
+#include "Debug.h"
 
 /* Number of bits in a long */
 #if SIZEOF_LONG == 8
 #define LONG_BIT_SHIFT 6
 #define BITS_IN_A_LONG 0x40
-#define LONG_BIT_MASK  0x3F
-#define ALL_ONES (unsigned long) 0xFFFFFFFFFFFFFFFF
+#define LONG_BIT_MASK 0x3F
+#define ALL_ONES (unsigned long)0xFFFFFFFFFFFFFFFF
 #elif SIZEOF_LONG == 4
 #define LONG_BIT_SHIFT 5
 #define BITS_IN_A_LONG 0x20
-#define LONG_BIT_MASK  0x1F
-#define ALL_ONES (unsigned long) 0xFFFFFFFF
+#define LONG_BIT_MASK 0x1F
+#define ALL_ONES (unsigned long)0xFFFFFFFF
 #else
 #define LONG_BIT_SHIFT 5
 #define BITS_IN_A_LONG 0x20
-#define LONG_BIT_MASK  0x1F
-#define ALL_ONES (unsigned long) 0xFFFFFFFF
+#define LONG_BIT_MASK 0x1F
+#define ALL_ONES (unsigned long)0xFFFFFFFF
 #endif
 
-#define FM_INITIAL_NUMBER (1<<14)
+#define FM_INITIAL_NUMBER (1 << 14)
 
 FileMap::FileMap() :
     capacity_(FM_INITIAL_NUMBER), usedSlots_(0),
@@ -121,7 +121,7 @@ FileMap::allocate(sfileno suggestion)
     }
 
     for (unsigned char bit = 0; bit < BITS_IN_A_LONG; ++bit) {
-        suggestion = ((unsigned long) word << LONG_BIT_SHIFT) | bit;
+        suggestion = ((unsigned long)word << LONG_BIT_SHIFT) | bit;
 
         if (!testBit(suggestion)) {
             return suggestion;
@@ -136,4 +136,3 @@ FileMap::~FileMap()
 {
     safe_free(bitmap);
 }
-

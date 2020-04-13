@@ -18,7 +18,7 @@ class DestinationIPLookup : public ACLChecklist::AsyncState
 
 public:
     static DestinationIPLookup *Instance();
-    virtual void checkForAsync(ACLChecklist *)const;
+    virtual void checkForAsync(ACLChecklist *) const;
 
 private:
     static DestinationIPLookup instance_;
@@ -34,11 +34,10 @@ public:
     virtual const Acl::Options &options();
     virtual int match(ACLChecklist *checklist);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
 
 private:
-    Acl::BooleanOptionValue lookupBanned; ///< are DNS lookups allowed?
+    Acl::BooleanOptionValue lookupBanned;  ///< are DNS lookups allowed?
 };
 
 #endif /* SQUID_ACLDESTINATIONIP_H */
-

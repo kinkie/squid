@@ -13,15 +13,14 @@
 
 #include "mgr/Action.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// store traffic and resource counters
 class CountersActionData
 {
 public:
     CountersActionData();
-    CountersActionData& operator += (const CountersActionData& stats);
+    CountersActionData &operator+=(const CountersActionData &stats);
 
 public:
     struct timeval sample_time;
@@ -88,7 +87,7 @@ public:
 };
 
 /// implement aggregated 'counters' action
-class CountersAction: public Action
+class CountersAction : public Action
 {
 protected:
     CountersAction(const CommandPointer &cmd);
@@ -96,20 +95,19 @@ protected:
 public:
     static Pointer Create(const CommandPointer &cmd);
     /* Action API */
-    virtual void add(const Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     CountersActionData data;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_COUNTERS_ACTION_H */
-

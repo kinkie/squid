@@ -9,13 +9,13 @@
 #include "squid.h"
 #include <cppunit/TestAssert.h>
 
-#include "http/RequestMethod.h"
 #include "SquidConfig.h"
+#include "http/RequestMethod.h"
 #include "testHttpRequestMethod.h"
 
 #include <sstream>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( testHttpRequestMethod );
+CPPUNIT_TEST_SUITE_REGISTRATION(testHttpRequestMethod);
 
 /*
  * We should be able to make an HttpRequestMethod straight from a string.
@@ -61,7 +61,7 @@ testHttpRequestMethod::testConstructCharStart()
 void
 testHttpRequestMethod::testConstructCharStartEnd()
 {
-    char const * buffer;
+    char const *buffer;
     /* parse an empty string -> Http::METHOD_NONE */
     CPPUNIT_ASSERT(HttpRequestMethod(SBuf()) == Http::METHOD_NONE);
     /* parsing a literal should work */
@@ -133,9 +133,9 @@ void
 testHttpRequestMethod::testEqualmethod_t()
 {
     CPPUNIT_ASSERT(HttpRequestMethod(Http::METHOD_NONE) == Http::METHOD_NONE);
-    CPPUNIT_ASSERT(not (HttpRequestMethod(Http::METHOD_POST) == Http::METHOD_GET));
+    CPPUNIT_ASSERT(not(HttpRequestMethod(Http::METHOD_POST) == Http::METHOD_GET));
     CPPUNIT_ASSERT(HttpRequestMethod(Http::METHOD_GET) == Http::METHOD_GET);
-    CPPUNIT_ASSERT(not (HttpRequestMethod(Http::METHOD_TRACE) == Http::METHOD_SEARCH));
+    CPPUNIT_ASSERT(not(HttpRequestMethod(Http::METHOD_TRACE) == Http::METHOD_SEARCH));
 }
 
 /*
@@ -145,9 +145,9 @@ void
 testHttpRequestMethod::testNotEqualmethod_t()
 {
     CPPUNIT_ASSERT(HttpRequestMethod(Http::METHOD_NONE) != Http::METHOD_GET);
-    CPPUNIT_ASSERT(not (HttpRequestMethod(Http::METHOD_POST) != Http::METHOD_POST));
+    CPPUNIT_ASSERT(not(HttpRequestMethod(Http::METHOD_POST) != Http::METHOD_POST));
     CPPUNIT_ASSERT(HttpRequestMethod(Http::METHOD_GET) != Http::METHOD_NONE);
-    CPPUNIT_ASSERT(not (HttpRequestMethod(Http::METHOD_SEARCH) != Http::METHOD_SEARCH));
+    CPPUNIT_ASSERT(not(HttpRequestMethod(Http::METHOD_SEARCH) != Http::METHOD_SEARCH));
 }
 
 /*
@@ -168,4 +168,3 @@ testHttpRequestMethod::testStream()
     buffer2 << HttpRequestMethod(SBuf("get"));
     CPPUNIT_ASSERT_EQUAL(String("get"), String(buffer2.str().c_str()));
 }
-

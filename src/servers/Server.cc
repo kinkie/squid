@@ -7,34 +7,34 @@
  */
 
 #include "squid.h"
+#include "servers/Server.h"
+#include "Debug.h"
+#include "MasterXaction.h"
+#include "SquidConfig.h"
+#include "StatCounters.h"
 #include "anyp/PortCfg.h"
 #include "client_side.h"
 #include "comm.h"
 #include "comm/Read.h"
-#include "Debug.h"
 #include "fd.h"
 #include "fde.h"
 #include "http/Stream.h"
-#include "MasterXaction.h"
-#include "servers/Server.h"
-#include "SquidConfig.h"
-#include "StatCounters.h"
 #include "tools.h"
 
 Server::Server(const MasterXaction::Pointer &xact) :
-    AsyncJob("::Server"), // kids overwrite
+    AsyncJob("::Server"),  // kids overwrite
     clientConnection(xact->tcpClient),
     transferProtocol(xact->squidPort->transport),
     port(xact->squidPort),
     receivedFirstByte_(false)
-{}
+{
+}
 
 bool
 Server::doneAll() const
 {
     // servers are not done while the connection is open
-    return !Comm::IsConnOpen(clientConnection) &&
-           BodyProducer::doneAll();
+    return !Comm::IsConnOpen(clientConnection) && BodyProducer::doneAll();
 }
 
 void
@@ -72,10 +72,10 @@ Server::maybeMakeSpaceAvailable()
     // The hard-coded parameters are arbitrary but seem reasonable.
     // A careful study of Squid I/O and parsing patterns is needed to tune them.
     SBufReservationRequirements requirements;
-    requirements.minSpace = 1024; // smaller I/Os are not worth their overhead
-    requirements.idealSpace = CLIENT_REQ_BUF_SZ; // we expect few larger I/Os
+    requirements.minSpace = 1024;                 // smaller I/Os are not worth their overhead
+    requirements.idealSpace = CLIENT_REQ_BUF_SZ;  // we expect few larger I/Os
     requirements.maxCapacity = Config.maxRequestBufferSize;
-    requirements.allowShared = true; // allow because inBuf is used immediately
+    requirements.allowShared = true;  // allow because inBuf is used immediately
     inBuf.reserve(requirements);
     if (!inBuf.spaceSize())
         debugs(33, 4, "request buffer full: client_request_buffer_max_size=" << Config.maxRequestBufferSize);
@@ -101,13 +101,13 @@ Server::readSomeData()
 void
 Server::doClientRead(const CommIoCbParams &io)
 {
-    debugs(33,5, io.conn);
+    debugs(33, 5, io.conn);
     Must(reading());
     reader = NULL;
 
     /* Bail out quickly on Comm::ERR_CLOSING - close handlers will tidy up */
     if (io.flag == Comm::ERR_CLOSING) {
-        debugs(33,5, io.conn << " closing Bailout.");
+        debugs(33, 5, io.conn << " closing Bailout.");
         return;
     }
 
@@ -122,7 +122,7 @@ Server::doClientRead(const CommIoCbParams &io)
      */
 
     maybeMakeSpaceAvailable();
-    CommIoCbParams rd(this); // will be expanded with ReadNow results
+    CommIoCbParams rd(this);  // will be expanded with ReadNow results
     rd.conn = io.conn;
     switch (Comm::ReadNow(rd, inBuf)) {
     case Comm::INPROGRESS:
@@ -143,7 +143,7 @@ Server::doClientRead(const CommIoCbParams &io)
         /* Continue to process previously read data */
         break;
 
-    case Comm::ENDFILE: // close detected by 0-byte read
+    case Comm::ENDFILE:  // close detected by 0-byte read
         debugs(33, 5, io.conn << " closed?");
 
         if (connFinishedWithConn(rd.size)) {
@@ -165,7 +165,7 @@ Server::doClientRead(const CommIoCbParams &io)
         break;
 
     // case Comm::COMM_ERROR:
-    default: // no other flags should ever occur
+    default:  // no other flags should ever occur
         debugs(33, 2, io.conn << ": got flag " << rd.flag << "; " << xstrerr(rd.xerrno));
         checkLogging();
         pipeline.terminateAll(rd.xerrno);
@@ -185,13 +185,13 @@ Server::doClientRead(const CommIoCbParams &io)
 void
 Server::clientWriteDone(const CommIoCbParams &io)
 {
-    debugs(33,5, io.conn);
+    debugs(33, 5, io.conn);
     Must(writer != nullptr);
     writer = nullptr;
 
     /* Bail out quickly on Comm::ERR_CLOSING - close handlers will tidy up */
     if (io.flag == Comm::ERR_CLOSING || !Comm::IsConnOpen(clientConnection)) {
-        debugs(33,5, io.conn << " closing Bailout.");
+        debugs(33, 5, io.conn << " closing Bailout.");
         return;
     }
 
@@ -200,7 +200,6 @@ Server::clientWriteDone(const CommIoCbParams &io)
     if (io.flag && pipeline.front())
         pipeline.front()->initiateClose("write failure");
 
-    afterClientWrite(io.size); // update state
-    writeSomeData(); // maybe schedules another write
+    afterClientWrite(io.size);  // update state
+    writeSomeData();            // maybe schedules another write
 }
-

@@ -91,7 +91,7 @@ enum {
     /// ENTRY_DELAY_WHILE_COALESCING to emphasize the difference from and
     /// similarity with ENTRY_FWD_HDR_WAIT.
     DELAY_SENDING,
-    RELEASE_REQUEST, ///< prohibits making the key public
+    RELEASE_REQUEST,  ///< prohibits making the key public
     REFRESH_REQUEST,
     ENTRY_REVALIDATE_STALE,
     ENTRY_DISPATCHED,
@@ -119,8 +119,8 @@ enum {
  * its status
  */
 typedef enum {
-    STREAM_NONE,        /* No particular status */
-    STREAM_COMPLETE,        /* All data has been flushed, no more reads allowed */
+    STREAM_NONE,     /* No particular status */
+    STREAM_COMPLETE, /* All data has been flushed, no more reads allowed */
     /* an unpredicted end has occurred, no more
      * reads occurred, but no need to tell
      * downstream that an error occurred
@@ -241,4 +241,3 @@ typedef enum {
 #endif /* USE_HTCP */
 
 #endif /* SQUID_ENUMS_H */
-

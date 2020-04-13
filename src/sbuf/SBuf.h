@@ -11,13 +11,13 @@
 #ifndef SQUID_SBUF_H
 #define SQUID_SBUF_H
 
+#include "Debug.h"
 #include "base/InstanceId.h"
 #include "base/TextException.h"
-#include "Debug.h"
 #include "globals.h"
-#include "sbuf/forward.h"
 #include "sbuf/MemBlob.h"
 #include "sbuf/Stats.h"
+#include "sbuf/forward.h"
 
 #include <climits>
 #include <iosfwd>
@@ -29,7 +29,7 @@
 /* SBuf placeholder for printf */
 #ifndef SQUIDSBUFPH
 #define SQUIDSBUFPH "%.*s"
-#define SQUIDSBUFPRINT(s) (s).plength(),(s).rawContent()
+#define SQUIDSBUFPRINT(s) (s).plength(), (s).rawContent()
 #endif /* SQUIDSBUFPH */
 
 // TODO: move within SBuf and rename
@@ -54,7 +54,11 @@ public:
     bool operator!=(const SBufIterator &s) const;
 
     const char &operator*() const { return *iter; }
-    SBufIterator& operator++() { ++iter; return *this; }
+    SBufIterator &operator++()
+    {
+        ++iter;
+        return *this;
+    }
 
 protected:
     SBufIterator(const SBuf &, size_type);
@@ -70,11 +74,18 @@ protected:
 class SBufReverseIterator : public SBufIterator
 {
     friend class SBuf;
+
 public:
-    SBufReverseIterator& operator++() { --iter; return *this;}
-    const char &operator*() const { return *(iter-1); }
+    SBufReverseIterator &operator++()
+    {
+        --iter;
+        return *this;
+    }
+    const char &operator*() const { return *(iter - 1); }
+
 protected:
-    SBufReverseIterator(const SBuf &s, size_type sz) : SBufIterator(s,sz) {}
+    SBufReverseIterator(const SBuf &s, size_type sz) :
+        SBufIterator(s, sz) {}
 };
 
 /**
@@ -89,7 +100,7 @@ public:
     typedef MemBlob::size_type size_type;
     typedef SBufIterator const_iterator;
     typedef SBufReverseIterator const_reverse_iterator;
-    static const size_type npos = 0xffffffff; // max(uint32_t)
+    static const size_type npos = 0xffffffff;  // max(uint32_t)
 
     /// Maximum size of a SBuf. By design it MUST be < MAX(size_type)/2. Currently 256Mb.
     static const size_type maxSize = 0xfffffff;
@@ -97,9 +108,11 @@ public:
     /// create an empty (zero-size) SBuf
     SBuf();
     SBuf(const SBuf &S);
-    SBuf(SBuf&& S) : store_(std::move(S.store_)), off_(S.off_), len_(S.len_) {
+    SBuf(SBuf &&S) :
+        store_(std::move(S.store_)), off_(S.off_), len_(S.len_)
+    {
         ++stats.moves;
-        S.store_ = nullptr; //RefCount supports nullptr, and S is about to be destructed
+        S.store_ = nullptr;  //RefCount supports nullptr, and S is about to be destructed
         S.off_ = S.len_ = 0;
     }
 
@@ -125,20 +138,21 @@ public:
      *
      * Current SBuf will share backing store with the assigned one.
      */
-    SBuf& assign(const SBuf &S);
+    SBuf &assign(const SBuf &S);
 
     /** Assignment operator.
      *
      * Current SBuf will share backing store with the assigned one.
      */
-    SBuf& operator =(const SBuf & S) {return assign(S);}
-    SBuf& operator =(SBuf &&S) {
+    SBuf &operator=(const SBuf &S) { return assign(S); }
+    SBuf &operator=(SBuf &&S)
+    {
         ++stats.moves;
         if (this != &S) {
             store_ = std::move(S.store_);
             off_ = S.off_;
             len_ = S.len_;
-            S.store_ = NULL; //RefCount supports NULL, and S is about to be destructed
+            S.store_ = NULL;  //RefCount supports NULL, and S is about to be destructed
             S.off_ = 0;
             S.len_ = 0;
         }
@@ -155,8 +169,8 @@ public:
      * \note to assign a std::string use the pattern:
      *    assign(stdstr.data(), stdstd.length())
      */
-    SBuf& assign(const char *S, size_type n);
-    SBuf& assign(const char *S) {return assign(S,npos);}
+    SBuf &assign(const char *S, size_type n);
+    SBuf &assign(const char *S) { return assign(S, npos); }
 
     /** Assignment operator. Copy a NULL-terminated c-style string into a SBuf.
      *
@@ -164,7 +178,7 @@ public:
      * It is the caller's duty to free the imported string, if needed.
      * \note not \0-clean
      */
-    SBuf& operator =(const char *S) {return assign(S);}
+    SBuf &operator=(const char *S) { return assign(S); }
 
     /** reset the SBuf as if it was just created.
      *
@@ -176,10 +190,10 @@ public:
      *
      * Append the supplied SBuf to the current one; extend storage as needed.
      */
-    SBuf& append(const SBuf & S);
+    SBuf &append(const SBuf &S);
 
     /// Append a single character. The character may be NUL (\0).
-    SBuf& append(const char c);
+    SBuf &append(const char c);
 
     /** Append operation for C-style strings.
      *
@@ -193,49 +207,57 @@ public:
      * \note to append a std::string use the pattern
      *     cstr_append(stdstr.data(), stdstd.length())
      */
-    SBuf& append(const char * S, size_type Ssize);
-    SBuf& append(const char * S) { return append(S,npos); }
+    SBuf &append(const char *S, size_type Ssize);
+    SBuf &append(const char *S) { return append(S, npos); }
 
     /** Assignment operation with printf(3)-style definition
      * \note arguments may be evaluated more than once, be careful
      *       of side-effects
      */
-    SBuf& Printf(const char *fmt, ...);
+    SBuf &Printf(const char *fmt, ...);
 
     /** Append operation with printf-style arguments
      * \note arguments may be evaluated more than once, be careful
      *       of side-effects
      */
-    SBuf& appendf(const char *fmt, ...);
+    SBuf &appendf(const char *fmt, ...);
 
     /** Append operation, with vsprintf(3)-style arguments.
      * \note arguments may be evaluated more than once, be careful
      *       of side-effects
      */
-    SBuf& vappendf(const char *fmt, va_list vargs);
+    SBuf &vappendf(const char *fmt, va_list vargs);
 
     /// print the SBuf contents to the supplied ostream
-    std::ostream& print(std::ostream &os) const;
+    std::ostream &print(std::ostream &os) const;
 
     /** print SBuf contents and debug information about the SBuf to an ostream
      *
      * Debug function, dumps to a stream information on the current SBuf,
      * including low-level details and statistics.
      */
-    std::ostream& dump(std::ostream &os) const;
+    std::ostream &dump(std::ostream &os) const;
 
     /** random-access read to any char within the SBuf
      *
      * does not check access bounds. If you need that, use at()
      */
-    char operator [](size_type pos) const {++stats.getChar; return store_->mem[off_+pos];}
+    char operator[](size_type pos) const
+    {
+        ++stats.getChar;
+        return store_->mem[off_ + pos];
+    }
 
     /** random-access read to any char within the SBuf.
      *
      * \throw std::exception when access is out of bounds
      * \note bounds is 0 <= pos < length(); caller must pay attention to signedness
      */
-    char at(size_type pos) const {checkAccessBounds(pos); return operator[](pos);}
+    char at(size_type pos) const
+    {
+        checkAccessBounds(pos);
+        return operator[](pos);
+    }
 
     /** direct-access set a byte at a specified operation.
      *
@@ -256,46 +278,56 @@ public:
      * \retval 0  argument of the call has the same contents of called SBuf
      */
     int compare(const SBuf &S, const SBufCaseSensitive isCaseSensitive, const size_type n) const;
-    int compare(const SBuf &S, const SBufCaseSensitive isCaseSensitive) const {
+    int compare(const SBuf &S, const SBufCaseSensitive isCaseSensitive) const
+    {
         return compare(S, isCaseSensitive, npos);
     }
 
     /// shorthand version for compare()
-    inline int cmp(const SBuf &S, const size_type n) const {
-        return compare(S,caseSensitive,n);
+    inline int cmp(const SBuf &S, const size_type n) const
+    {
+        return compare(S, caseSensitive, n);
     }
-    inline int cmp(const SBuf &S) const {
-        return compare(S,caseSensitive,npos);
+    inline int cmp(const SBuf &S) const
+    {
+        return compare(S, caseSensitive, npos);
     }
 
     /// shorthand version for case-insensitive compare()
-    inline int caseCmp(const SBuf &S, const size_type n) const {
-        return compare(S,caseInsensitive,n);
+    inline int caseCmp(const SBuf &S, const size_type n) const
+    {
+        return compare(S, caseInsensitive, n);
     }
-    inline int caseCmp(const SBuf &S) const {
-        return compare(S,caseInsensitive,npos);
+    inline int caseCmp(const SBuf &S) const
+    {
+        return compare(S, caseInsensitive, npos);
     }
 
     /// Comparison with a C-string.
     int compare(const char *s, const SBufCaseSensitive isCaseSensitive, const size_type n) const;
-    int compare(const char *s, const SBufCaseSensitive isCaseSensitive) const {
-        return compare(s,isCaseSensitive,npos);
+    int compare(const char *s, const SBufCaseSensitive isCaseSensitive) const
+    {
+        return compare(s, isCaseSensitive, npos);
     }
 
     /// Shorthand version for C-string compare().
-    inline int cmp(const char *S, const size_type n) const {
-        return compare(S,caseSensitive,n);
+    inline int cmp(const char *S, const size_type n) const
+    {
+        return compare(S, caseSensitive, n);
     }
-    inline int cmp(const char *S) const {
-        return compare(S,caseSensitive,npos);
+    inline int cmp(const char *S) const
+    {
+        return compare(S, caseSensitive, npos);
     }
 
     /// Shorthand version for case-insensitive C-string compare().
-    inline int caseCmp(const char *S, const size_type n) const {
-        return compare(S,caseInsensitive,n);
+    inline int caseCmp(const char *S, const size_type n) const
+    {
+        return compare(S, caseInsensitive, n);
     }
-    inline int caseCmp(const char *S) const {
-        return compare(S,caseInsensitive,npos);
+    inline int caseCmp(const char *S) const
+    {
+        return compare(S, caseInsensitive, npos);
     }
 
     /** check whether the entire supplied argument is a prefix of the SBuf.
@@ -305,12 +337,12 @@ public:
      */
     bool startsWith(const SBuf &S, const SBufCaseSensitive isCaseSensitive = caseSensitive) const;
 
-    bool operator ==(const SBuf & S) const;
-    bool operator !=(const SBuf & S) const;
-    bool operator <(const SBuf &S) const {return (cmp(S) < 0);}
-    bool operator >(const SBuf &S) const {return (cmp(S) > 0);}
-    bool operator <=(const SBuf &S) const {return (cmp(S) <= 0);}
-    bool operator >=(const SBuf &S) const {return (cmp(S) >= 0);}
+    bool operator==(const SBuf &S) const;
+    bool operator!=(const SBuf &S) const;
+    bool operator<(const SBuf &S) const { return (cmp(S) < 0); }
+    bool operator>(const SBuf &S) const { return (cmp(S) > 0); }
+    bool operator<=(const SBuf &S) const { return (cmp(S) <= 0); }
+    bool operator>=(const SBuf &S) const { return (cmp(S) >= 0); }
 
     /** Consume bytes at the head of the SBuf
      *
@@ -324,7 +356,7 @@ public:
     SBuf consume(size_type n = npos);
 
     /// gets global statistic information
-    static const SBufStats& GetStats();
+    static const SBufStats &GetStats();
 
     /** Copy SBuf contents into user-supplied C buffer.
      *
@@ -359,7 +391,7 @@ public:
      * doSomething(bar); //unsafe
      * \endcode
      */
-    const char* rawContent() const;
+    const char *rawContent() const;
 
     /// \returns a buffer suitable for appending at most `anticipatedSize` bytes
     /// The buffer must be used "immediately" because it is invalidated by most
@@ -398,17 +430,18 @@ public:
      *    caller keeps holding a valid reference to the SBuf object and
      *    does not write or append to it
      */
-    const char* c_str();
+    const char *c_str();
 
     /// Returns the number of bytes stored in SBuf.
-    size_type length() const {return len_;}
+    size_type length() const { return len_; }
 
     /** Get the length of the SBuf, as a signed integer
      *
      * Compatibility function for printf(3) which requires a signed int
      * \throw std::exception if buffer length does not fit a signed integer
      */
-    int plength() const {
+    int plength() const
+    {
         Must(length() <= INT_MAX);
         return static_cast<int>(length());
     }
@@ -417,7 +450,7 @@ public:
      *
      * \return true if length() == 0
      */
-    bool isEmpty() const {return (len_==0);}
+    bool isEmpty() const { return (len_ == 0); }
 
     /** Request to guarantee the SBuf's free store space.
      *
@@ -426,10 +459,11 @@ public:
      * used portion and single ownership of the backing store.
      * \throw std::exception if the user tries to allocate a too big SBuf
      */
-    void reserveSpace(size_type minSpace) {
+    void reserveSpace(size_type minSpace)
+    {
         Must(minSpace <= maxSize);
         Must(length() <= maxSize - minSpace);
-        reserveCapacity(length()+minSpace);
+        reserveCapacity(length() + minSpace);
     }
 
     /** Request to guarantee the SBuf's store capacity
@@ -462,7 +496,7 @@ public:
      *     if it overflows the end of the SBuf, it is capped to the end of SBuf
      * \see substr, trim
      */
-    SBuf& chop(size_type pos, size_type n = npos);
+    SBuf &chop(size_type pos, size_type n = npos);
 
     /** Remove characters in the toremove set at the beginning, end or both
      *
@@ -471,7 +505,7 @@ public:
      * \param atBeginning if true (default), strips at the beginning of the SBuf
      * \param atEnd if true (default), strips at the end of the SBuf
      */
-    SBuf& trim(const SBuf &toRemove, bool atBeginning = true, bool atEnd = true);
+    SBuf &trim(const SBuf &toRemove, bool atBeginning = true, bool atEnd = true);
 
     /** Extract a part of the current SBuf.
      *
@@ -499,7 +533,7 @@ public:
      *     if startPos is npos or greater than length() npos is always returned
      * \return npos if the SBuf was not found
      */
-    size_type find(const SBuf & str, size_type startPos = 0) const;
+    size_type find(const SBuf &str, size_type startPos = 0) const;
 
     /** Find last occurrence of character in SBuf
      *
@@ -567,21 +601,25 @@ public:
     void toUpper();
 
     /// std::string export function
-    std::string toStdString() const { return std::string(buf(),length()); }
+    std::string toStdString() const { return std::string(buf(), length()); }
 
-    const_iterator begin() const {
+    const_iterator begin() const
+    {
         return const_iterator(*this, 0);
     }
 
-    const_iterator end() const {
+    const_iterator end() const
+    {
         return const_iterator(*this, length());
     }
 
-    const_reverse_iterator rbegin() const {
+    const_reverse_iterator rbegin() const
+    {
         return const_reverse_iterator(*this, length());
     }
 
-    const_reverse_iterator rend() const {
+    const_reverse_iterator rend() const
+    {
         return const_reverse_iterator(*this, 0);
     }
 
@@ -593,7 +631,6 @@ public:
     const InstanceId<SBuf> id;
 
 private:
-
     /**
      * Keeps SBuf's MemBlob alive in a blob-destroying context where
      * a seemingly unrelated memory pointer may belong to the same blob.
@@ -604,21 +641,23 @@ private:
     class Locker
     {
     public:
-        Locker(SBuf *parent, const char *otherBuffer) {
+        Locker(SBuf *parent, const char *otherBuffer)
+        {
             // lock if otherBuffer intersects the parents buffer area
             const MemBlob *blob = parent->store_.getRaw();
             if (blob->mem <= otherBuffer && otherBuffer < (blob->mem + blob->capacity))
                 locket = blob;
         }
+
     private:
         MemBlob::Pointer locket;
     };
     friend class Locker;
 
-    MemBlob::Pointer store_; ///< memory block, possibly shared with other SBufs
-    size_type off_ = 0; ///< our content start offset from the beginning of shared store_
-    size_type len_ = 0; ///< number of our content bytes in shared store_
-    static SBufStats stats; ///< class-wide statistics
+    MemBlob::Pointer store_;  ///< memory block, possibly shared with other SBufs
+    size_type off_ = 0;       ///< our content start offset from the beginning of shared store_
+    size_type len_ = 0;       ///< number of our content bytes in shared store_
+    static SBufStats stats;   ///< class-wide statistics
 
     /** obtain prototype store
      *
@@ -631,20 +670,20 @@ private:
      * obtains a char* to the beginning of this SBuf in memory.
      * \note the obtained string is NOT null-terminated.
      */
-    char * buf() const {return (store_->mem+off_);}
+    char *buf() const { return (store_->mem + off_); }
 
     /** returns the pointer to the first char after this SBuf end
      *
      *  No checks are made that the space returned is safe, checking that is
      *  up to the caller.
      */
-    char * bufEnd() const {return (store_->mem+off_+len_);}
+    char *bufEnd() const { return (store_->mem + off_ + len_); }
 
     /**
      * Try to guesstimate how big a MemBlob to allocate.
      * The result is guaranteed to be to be at least the desired size.
      */
-    size_type estimateCapacity(size_type desired) const {return (2*desired);}
+    size_type estimateCapacity(size_type desired) const { return (2 * desired); }
 
     void reAlloc(size_type newsize);
 
@@ -678,7 +717,7 @@ private:
      * on the supplied memory buffer, it is the duty of the caller to ensure
      * that the supplied area is valid.
      */
-    SBuf& lowAppend(const char * memArea, size_type areaSize);
+    SBuf &lowAppend(const char *memArea, size_type areaSize);
 };
 
 /// Named SBuf::reserve() parameters. Defaults ask for and restrict nothing.
@@ -692,15 +731,15 @@ public:
      * the lower-listed requirements may violate the higher-listed requirements.
      * For example, idealSpace has no effect unless it exceeds minSpace.
      */
-    size_type idealSpace = 0; ///< if allocating anyway, provide this much space
-    size_type minSpace = 0; ///< allocate [at least this much] if spaceSize() is smaller
-    size_type maxCapacity = SBuf::maxSize; ///< do not allocate more than this
-    bool allowShared = true; ///< whether sharing our storage with others is OK
+    size_type idealSpace = 0;               ///< if allocating anyway, provide this much space
+    size_type minSpace = 0;                 ///< allocate [at least this much] if spaceSize() is smaller
+    size_type maxCapacity = SBuf::maxSize;  ///< do not allocate more than this
+    bool allowShared = true;                ///< whether sharing our storage with others is OK
 };
 
 /// ostream output operator
 inline std::ostream &
-operator <<(std::ostream& os, const SBuf& S)
+operator<<(std::ostream &os, const SBuf &S)
 {
     return S.print(os);
 }
@@ -741,7 +780,7 @@ inline void
 SBufToCstring(char *d, const SBuf &s)
 {
     s.copy(d, s.length());
-    d[s.length()] = '\0'; // 0-terminate the destination
+    d[s.length()] = '\0';  // 0-terminate the destination
     debugs(1, DBG_DATA, "built c-string '" << d << "' from " << s);
 }
 
@@ -756,15 +795,15 @@ SBufToCstring(char *d, const SBuf &s)
 inline char *
 SBufToCstring(const SBuf &s)
 {
-    char *d = static_cast<char*>(xmalloc(s.length()+1));
+    char *d = static_cast<char *>(xmalloc(s.length() + 1));
     SBufToCstring(d, s);
     return d;
 }
 
-inline
-SBufIterator::SBufIterator(const SBuf &s, size_type pos)
-    : iter(s.rawContent()+pos)
-{}
+inline SBufIterator::SBufIterator(const SBuf &s, size_type pos) :
+    iter(s.rawContent() + pos)
+{
+}
 
 inline bool
 SBufIterator::operator==(const SBufIterator &s) const
@@ -781,4 +820,3 @@ SBufIterator::operator!=(const SBufIterator &s) const
 }
 
 #endif /* SQUID_SBUF_H */
-

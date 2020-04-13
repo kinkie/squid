@@ -11,21 +11,18 @@
 
 #include "store/forward.h"
 
-namespace Ipc
-{
+namespace Ipc {
 
 class StoreMapAnchor;
 class StoreMapSlice;
 
-namespace Mem
-{
-class PageId;
+namespace Mem {
+    class PageId;
 }
 
 }
 
-namespace Rock
-{
+namespace Rock {
 
 class SwapDir;
 
@@ -50,4 +47,3 @@ class WriteRequest;
 }
 
 #endif /* SQUID_FS_ROCK_FORWARD_H */
-

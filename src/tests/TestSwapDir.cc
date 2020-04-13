@@ -35,11 +35,13 @@ TestSwapDir::stat(StoreEntry &) const
 
 void
 TestSwapDir::reconfigure()
-{}
+{
+}
 
 void
 TestSwapDir::init()
-{}
+{
+}
 
 bool
 TestSwapDir::unlinkdUseful() const
@@ -67,6 +69,6 @@ TestSwapDir::openStoreIO(StoreEntry &, StoreIOState::STFNCB *, StoreIOState::STI
 }
 
 void
-TestSwapDir::parse(int, char*)
-{}
-
+TestSwapDir::parse(int, char *)
+{
+}

@@ -14,30 +14,30 @@
 #include "base/RefCount.h"
 #include "ipc/forward.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
-class QueryParam: public RefCountable
+class QueryParam : public RefCountable
 {
 public:
-    typedef enum {ptInt = 1, ptString} Type;
+    typedef enum { ptInt = 1,
+                   ptString } Type;
     typedef RefCount<QueryParam> Pointer;
 
 public:
-    QueryParam(Type aType): type(aType) {}
+    QueryParam(Type aType) :
+        type(aType) {}
     virtual ~QueryParam() {}
-    virtual void pack(Ipc::TypedMsgHdr& msg) const = 0; ///< store parameter into msg
-    virtual void unpackValue(const Ipc::TypedMsgHdr& msg) = 0; ///< load parameter value from msg
+    virtual void pack(Ipc::TypedMsgHdr &msg) const = 0;         ///< store parameter into msg
+    virtual void unpackValue(const Ipc::TypedMsgHdr &msg) = 0;  ///< load parameter value from msg
 
 private:
-    QueryParam(const QueryParam&); // not implemented
-    QueryParam& operator= (const QueryParam&); // not implemented
+    QueryParam(const QueryParam &);             // not implemented
+    QueryParam &operator=(const QueryParam &);  // not implemented
 
 public:
     Type type;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_QUERY_PARAM_H */
-

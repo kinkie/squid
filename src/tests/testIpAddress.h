@@ -17,29 +17,28 @@
 
 class testIpAddress : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( testIpAddress );
-    CPPUNIT_TEST( testDefaults );
-    CPPUNIT_TEST( testInAddrConstructor );
-    CPPUNIT_TEST( testInAddr6Constructor );
-    CPPUNIT_TEST( testSockAddrConstructor );
-    CPPUNIT_TEST( testSockAddr6Constructor );
-    CPPUNIT_TEST( testHostentConstructor );
-    CPPUNIT_TEST( testStringConstructor );
-    CPPUNIT_TEST( testCopyConstructor );
-    CPPUNIT_TEST( testsetEmpty );
-    CPPUNIT_TEST( testBooleans );
-    CPPUNIT_TEST( testAddrInfo );
-    CPPUNIT_TEST( testtoStr );
-    CPPUNIT_TEST( testtoUrl_fromInAddr );
-    CPPUNIT_TEST( testtoUrl_fromSockAddr );
-    CPPUNIT_TEST( testgetReverseString );
-    CPPUNIT_TEST( testMasking );
+    CPPUNIT_TEST_SUITE(testIpAddress);
+    CPPUNIT_TEST(testDefaults);
+    CPPUNIT_TEST(testInAddrConstructor);
+    CPPUNIT_TEST(testInAddr6Constructor);
+    CPPUNIT_TEST(testSockAddrConstructor);
+    CPPUNIT_TEST(testSockAddr6Constructor);
+    CPPUNIT_TEST(testHostentConstructor);
+    CPPUNIT_TEST(testStringConstructor);
+    CPPUNIT_TEST(testCopyConstructor);
+    CPPUNIT_TEST(testsetEmpty);
+    CPPUNIT_TEST(testBooleans);
+    CPPUNIT_TEST(testAddrInfo);
+    CPPUNIT_TEST(testtoStr);
+    CPPUNIT_TEST(testtoUrl_fromInAddr);
+    CPPUNIT_TEST(testtoUrl_fromSockAddr);
+    CPPUNIT_TEST(testgetReverseString);
+    CPPUNIT_TEST(testMasking);
 
-    CPPUNIT_TEST( testBugNullingDisplay );
+    CPPUNIT_TEST(testBugNullingDisplay);
     CPPUNIT_TEST_SUITE_END();
 
 public:
-
 protected:
     void testDefaults();
 
@@ -64,8 +63,6 @@ protected:
 
     // bugs.
     void testBugNullingDisplay();
-
 };
 
 #endif /* SQUID_SRC_TEST_IPADDRESS_H */
-

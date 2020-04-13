@@ -93,28 +93,29 @@ public:
     static void SetupAllFs();
     static void FsAdd(StoreFileSystem &);
     static void FreeAllFs();
-    static std::vector<StoreFileSystem*> const &FileSystems();
-    typedef std::vector<StoreFileSystem*>::iterator iterator;
-    typedef std::vector<StoreFileSystem*>::const_iterator const_iterator;
-    StoreFileSystem() : initialised(false) {}
+    static std::vector<StoreFileSystem *> const &FileSystems();
+    typedef std::vector<StoreFileSystem *>::iterator iterator;
+    typedef std::vector<StoreFileSystem *>::const_iterator const_iterator;
+    StoreFileSystem() :
+        initialised(false) {}
 
     virtual ~StoreFileSystem() {}
 
-    virtual char const *type () const = 0;
+    virtual char const *type() const = 0;
     virtual SwapDir *createSwapDir() = 0;
     virtual void done() = 0;
     virtual void setup() = 0;
     // Not implemented
     StoreFileSystem(StoreFileSystem const &);
-    StoreFileSystem &operator=(StoreFileSystem const&);
+    StoreFileSystem &operator=(StoreFileSystem const &);
 
 protected:
     bool initialised;
     virtual void registerWithCacheManager(void);
 
 private:
-    static std::vector<StoreFileSystem*> &GetFileSystems();
-    static std::vector<StoreFileSystem*> *_FileSystems;
+    static std::vector<StoreFileSystem *> &GetFileSystems();
+    static std::vector<StoreFileSystem *> *_FileSystems;
     static void RegisterAllFsWithCacheManager(void);
 };
 
@@ -122,4 +123,3 @@ private:
 typedef StoreFileSystem storefs_entry_t;
 
 #endif /* SQUID_STOREFILESYSTEM_H */
-

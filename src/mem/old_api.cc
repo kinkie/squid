@@ -9,21 +9,21 @@
 /* DEBUG: section 13    High Level Memory Pool Management */
 
 #include "squid.h"
-#include "base/PackableStream.h"
 #include "ClientInfo.h"
+#include "MemBuf.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "Store.h"
+#include "base/PackableStream.h"
 #include "dlink.h"
 #include "event.h"
 #include "fs_io.h"
 #include "icmp/net_db.h"
 #include "md5.h"
-#include "mem/forward.h"
 #include "mem/Meter.h"
 #include "mem/Pool.h"
-#include "MemBuf.h"
+#include "mem/forward.h"
 #include "mgr/Registration.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "Store.h"
 
 #include <iomanip>
 
@@ -84,13 +84,12 @@ GetStrPool(size_t type)
     static bool initialized = false;
 
     static const PoolMeta PoolAttrs[mem_str_pool_count] = {
-        {"Short Strings", MemAllocator::RoundedSize(36)},      /* to fit rfc1123 and similar */
-        {"Medium Strings", MemAllocator::RoundedSize(128)},    /* to fit most urls */
+        {"Short Strings", MemAllocator::RoundedSize(36)},   /* to fit rfc1123 and similar */
+        {"Medium Strings", MemAllocator::RoundedSize(128)}, /* to fit most urls */
         {"Long Strings", MemAllocator::RoundedSize(512)},
         {"1KB Strings", MemAllocator::RoundedSize(1024)},
-        {"4KB Strings", MemAllocator::RoundedSize(4*1024)},
-        {"16KB Strings", MemAllocator::RoundedSize(16*1024)}
-    };
+        {"4KB Strings", MemAllocator::RoundedSize(4 * 1024)},
+        {"16KB Strings", MemAllocator::RoundedSize(16 * 1024)}};
 
     if (!initialized) {
         memset(strPools, '\0', sizeof(strPools));
@@ -101,10 +100,7 @@ GetStrPool(size_t type)
             strPools[i]->zeroBlocks(false);
 
             if (strPools[i]->objectSize() != PoolAttrs[i].obj_size)
-                debugs(13, DBG_IMPORTANT, "NOTICE: " << PoolAttrs[i].name <<
-                       " is " << strPools[i]->objectSize() <<
-                       " bytes instead of requested " <<
-                       PoolAttrs[i].obj_size << " bytes");
+                debugs(13, DBG_IMPORTANT, "NOTICE: " << PoolAttrs[i].name << " is " << strPools[i]->objectSize() << " bytes instead of requested " << PoolAttrs[i].obj_size << " bytes");
         }
 
         initialized = true;
@@ -155,15 +151,13 @@ memStringStats(std::ostream &stream)
 }
 
 static void
-memBufStats(std::ostream & stream)
+memBufStats(std::ostream &stream)
 {
-    stream << "Large buffers: " <<
-           HugeBufCountMeter.currentLevel() << " (" <<
-           HugeBufVolumeMeter.currentLevel() / 1024 << " KB)\n";
+    stream << "Large buffers: " << HugeBufCountMeter.currentLevel() << " (" << HugeBufVolumeMeter.currentLevel() / 1024 << " KB)\n";
 }
 
 void
-Mem::Stats(StoreEntry * sentry)
+Mem::Stats(StoreEntry *sentry)
 {
     PackableStream stream(*sentry);
     Report(stream);
@@ -227,7 +221,7 @@ memFree(void *p, int type)
 
 /* allocate a variable size buffer using best-fit string pool */
 void *
-memAllocString(size_t net_size, size_t * gross_size)
+memAllocString(size_t net_size, size_t *gross_size)
 {
     assert(gross_size);
 
@@ -306,7 +300,7 @@ memFreeRigid(void *buf, size_t net_size)
 
 /* Find the best fit MEM_X_BUF type */
 static mem_type
-memFindBufSizeType(size_t net_size, size_t * gross_size)
+memFindBufSizeType(size_t net_size, size_t *gross_size)
 {
     mem_type type;
     size_t size;
@@ -342,7 +336,7 @@ memFindBufSizeType(size_t net_size, size_t * gross_size)
 
 /* allocate a variable size buffer using best-fit pool */
 void *
-memAllocBuf(size_t net_size, size_t * gross_size)
+memAllocBuf(size_t net_size, size_t *gross_size)
 {
     mem_type type = memFindBufSizeType(net_size, gross_size);
 
@@ -357,7 +351,7 @@ memAllocBuf(size_t net_size, size_t * gross_size)
 
 /* resize a variable sized buffer using best-fit pool */
 void *
-memReallocBuf(void *oldbuf, size_t net_size, size_t * gross_size)
+memReallocBuf(void *oldbuf, size_t net_size, size_t *gross_size)
 {
     /* XXX This can be optimized on very large buffers to use realloc() */
     /* TODO: if the existing gross size is >= new gross size, do nothing */
@@ -394,7 +388,7 @@ memFreeBuf(size_t size, void *buf)
     }
 }
 
-static double clean_interval = 15.0;    /* time to live of idle chunk before release */
+static double clean_interval = 15.0; /* time to live of idle chunk before release */
 
 void
 Mem::CleanIdlePools(void *)
@@ -478,13 +472,11 @@ Mem::Init(void)
 void
 Mem::Report()
 {
-    debugs(13, 3, "Memory pools are '" <<
-           (Config.onoff.mem_pools ? "on" : "off")  << "'; limit: " <<
-           std::setprecision(3) << toMB(MemPools::GetInstance().idleLimit()) <<
-           " MB");
+    debugs(13, 3, "Memory pools are '" << (Config.onoff.mem_pools ? "on" : "off") << "'; limit: " << std::setprecision(3) << toMB(MemPools::GetInstance().idleLimit()) << " MB");
 }
 
-mem_type &operator++ (mem_type &aMem)
+mem_type &
+operator++(mem_type &aMem)
 {
     int tmp = (int)aMem;
     aMem = (mem_type)(++tmp);
@@ -512,15 +504,13 @@ void
 memClean(void)
 {
     MemPoolGlobalStats stats;
-    if (Config.MemPools.limit > 0) // do not reset if disabled or same
+    if (Config.MemPools.limit > 0)  // do not reset if disabled or same
         MemPools::GetInstance().setIdleLimit(0);
     MemPools::GetInstance().clean(0);
     memPoolGetGlobalStats(&stats);
 
     if (stats.tot_items_inuse)
-        debugs(13, 2, "memCleanModule: " << stats.tot_items_inuse <<
-               " items in " << stats.tot_chunks_inuse << " chunks and " <<
-               stats.tot_pools_inuse << " pools are left dirty");
+        debugs(13, 2, "memCleanModule: " << stats.tot_items_inuse << " items in " << stats.tot_chunks_inuse << " chunks and " << stats.tot_pools_inuse << " pools are left dirty");
 }
 
 int
@@ -568,7 +558,7 @@ memFree64K(void *p)
 }
 
 static void
-cxx_xfree(void * ptr)
+cxx_xfree(void *ptr)
 {
     xfree(ptr);
 }
@@ -606,7 +596,7 @@ memFreeBufFunc(size_t size)
 /* MemPoolMeter */
 
 void
-Mem::PoolReport(const MemPoolStats * mp_st, const MemPoolMeter * AllMeter, std::ostream &stream)
+Mem::PoolReport(const MemPoolStats *mp_st, const MemPoolMeter *AllMeter, std::ostream &stream)
 {
     int excess = 0;
     int needed = 0;
@@ -678,13 +668,13 @@ Mem::PoolReport(const MemPoolStats * mp_st, const MemPoolMeter * AllMeter, std::
 static int
 MemPoolReportSorter(const void *a, const void *b)
 {
-    const MemPoolStats *A =  (MemPoolStats *) a;
-    const MemPoolStats *B =  (MemPoolStats *) b;
+    const MemPoolStats *A = (MemPoolStats *)a;
+    const MemPoolStats *B = (MemPoolStats *)b;
 
     // use this to sort on %Total Allocated
     //
-    double pa = (double) A->obj_size * A->meter->alloc.currentLevel();
-    double pb = (double) B->obj_size * B->meter->alloc.currentLevel();
+    double pa = (double)A->obj_size * A->meter->alloc.currentLevel();
+    double pb = (double)B->obj_size * B->meter->alloc.currentLevel();
 
     if (pa > pb)
         return -1;
@@ -720,29 +710,29 @@ Mem::Report(std::ostream &stream)
     stream << "Current memory usage:\n";
     /* heading */
     stream << "Pool\t Obj Size\t"
-           "Chunks\t\t\t\t\t\t\t"
-           "Allocated\t\t\t\t\t"
-           "In Use\t\t\t\t\t"
-           "Idle\t\t\t"
-           "Allocations Saved\t\t\t"
-           "Rate\t"
-           "\n"
-           " \t (bytes)\t"
-           "KB/ch\t obj/ch\t"
-           "(#)\t used\t free\t part\t %Frag\t "
-           "(#)\t (KB)\t high (KB)\t high (hrs)\t %Tot\t"
-           "(#)\t (KB)\t high (KB)\t high (hrs)\t %alloc\t"
-           "(#)\t (KB)\t high (KB)\t"
-           "(#)\t %cnt\t %vol\t"
-           "(#)/sec\t"
-           "\n";
+              "Chunks\t\t\t\t\t\t\t"
+              "Allocated\t\t\t\t\t"
+              "In Use\t\t\t\t\t"
+              "Idle\t\t\t"
+              "Allocations Saved\t\t\t"
+              "Rate\t"
+              "\n"
+              " \t (bytes)\t"
+              "KB/ch\t obj/ch\t"
+              "(#)\t used\t free\t part\t %Frag\t "
+              "(#)\t (KB)\t high (KB)\t high (hrs)\t %Tot\t"
+              "(#)\t (KB)\t high (KB)\t high (hrs)\t %alloc\t"
+              "(#)\t (KB)\t high (KB)\t"
+              "(#)\t %cnt\t %vol\t"
+              "(#)/sec\t"
+              "\n";
     xm_deltat = current_dtime - xm_time;
     xm_time = current_dtime;
 
     /* Get stats for Totals report line */
     memPoolGetGlobalStats(&mp_total);
 
-    MemPoolStats *sortme = (MemPoolStats *) xcalloc(mp_total.tot_pools_alloc,sizeof(*sortme));
+    MemPoolStats *sortme = (MemPoolStats *)xcalloc(mp_total.tot_pools_alloc, sizeof(*sortme));
     int npools = 0;
 
     /* main table */
@@ -767,7 +757,7 @@ Mem::Report(std::ostream &stream)
 
     qsort(sortme, npools, sizeof(*sortme), MemPoolReportSorter);
 
-    for (int i = 0; i< npools; ++i) {
+    for (int i = 0; i < npools; ++i) {
         PoolReport(&sortme[i], mp_total.TheMeter, stream);
     }
 
@@ -791,10 +781,9 @@ Mem::Report(std::ostream &stream)
     PoolReport(&mp_stats, mp_total.TheMeter, stream);
 
     /* Cumulative */
-    stream << "Cumulative allocated volume: "<< double_to_str(buf, 64, mp_total.TheMeter->gb_allocated.bytes) << "\n";
+    stream << "Cumulative allocated volume: " << double_to_str(buf, 64, mp_total.TheMeter->gb_allocated.bytes) << "\n";
     /* overhead */
-    stream << "Current overhead: " << mp_total.tot_overhead << " bytes (" <<
-           std::setprecision(3) << xpercent(mp_total.tot_overhead, mp_total.TheMeter->inuse.currentLevel()) << "%)\n";
+    stream << "Current overhead: " << mp_total.tot_overhead << " bytes (" << std::setprecision(3) << xpercent(mp_total.tot_overhead, mp_total.TheMeter->inuse.currentLevel()) << "%)\n";
     /* limits */
     if (mp_total.mem_idle_limit >= 0)
         stream << "Idle pool limit: " << std::setprecision(2) << toMB(mp_total.mem_idle_limit) << " MB\n";
@@ -803,4 +792,3 @@ Mem::Report(std::ostream &stream)
     stream << "Pools ever used:     " << mp_total.tot_pools_alloc - not_used << " (shown above)\n";
     stream << "Currently in use:    " << mp_total.tot_pools_inuse << "\n";
 }
-

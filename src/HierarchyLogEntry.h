@@ -9,12 +9,12 @@
 #ifndef SQUID_HTTPHIERARCHYLOGENTRY_H
 #define SQUID_HTTPHIERARCHYLOGENTRY_H
 
+#include "PingData.h"
 #include "comm/Connection.h"
 #include "enums.h"
 #include "hier_code.h"
 #include "http/StatusCode.h"
 #include "lookup_t.h"
-#include "PingData.h"
 #include "rfc2181.h"
 
 /// Maintains peer selection details and peer I/O stats.
@@ -58,26 +58,25 @@ public:
     char host[SQUIDHOSTNAMELEN];
     ping_data ping;
     char cd_host[SQUIDHOSTNAMELEN]; /* the host of selected by cd peer */
-    lookup_t cd_lookup;     /* cd prediction: none, miss, hit */
-    int n_choices;      /* #peers we selected from (cd only) */
-    int n_ichoices;     /* #peers with known rtt we selected from (cd only) */
+    lookup_t cd_lookup;             /* cd prediction: none, miss, hit */
+    int n_choices;                  /* #peers we selected from (cd only) */
+    int n_ichoices;                 /* #peers with known rtt we selected from (cd only) */
 
     struct timeval peer_select_start;
 
     struct timeval store_complete_stop;
 
-    Http::StatusCode peer_reply_status; ///< last HTTP status code received
-    Comm::ConnectionPointer tcpServer; ///< TCP/IP level details of the last peer/server connection
-    int64_t bodyBytesRead;  ///< number of body bytes received from the next hop or -1
+    Http::StatusCode peer_reply_status;  ///< last HTTP status code received
+    Comm::ConnectionPointer tcpServer;   ///< TCP/IP level details of the last peer/server connection
+    int64_t bodyBytesRead;               ///< number of body bytes received from the next hop or -1
 
 private:
     void clearPeerNotes();
 
-    timeval firstConnStart_; ///< first connection use among all peers
-    struct timeval peer_last_read_; ///< time of the last read from the last peer
-    struct timeval peer_last_write_; ///< time of the last write to the last peer
-    struct timeval totalResponseTime_; ///< cumulative for all peers
+    timeval firstConnStart_;            ///< first connection use among all peers
+    struct timeval peer_last_read_;     ///< time of the last read from the last peer
+    struct timeval peer_last_write_;    ///< time of the last write to the last peer
+    struct timeval totalResponseTime_;  ///< cumulative for all peers
 };
 
 #endif /* SQUID_HTTPHIERARCHYLOGENTRY_H */
-

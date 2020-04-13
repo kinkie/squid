@@ -11,8 +11,7 @@
 
 #include "http/one/forward.h"
 
-namespace Http
-{
+namespace Http {
 
 class ContentLengthInterpreter;
 
@@ -22,7 +21,7 @@ typedef RefCount<Http::Message> MessagePointer;
 class Stream;
 typedef RefCount<Http::Stream> StreamPointer;
 
-} // namespace Http
+}  // namespace Http
 
 // TODO move these classes into Http namespace
 class HttpRequestMethod;
@@ -35,4 +34,3 @@ class HttpReply;
 typedef RefCount<HttpReply> HttpReplyPointer;
 
 #endif /* SQUID_SRC_HTTP_FORWARD_H */
-

@@ -12,9 +12,9 @@
 #if USE_DELAY_POOLS
 
 #include "BandwidthBucket.h"
+#include "MessageDelayPools.h"
 #include "base/RefCount.h"
 #include "comm/forward.h"
-#include "MessageDelayPools.h"
 
 /// Limits Squid-to-client bandwidth for each matching response
 class MessageBucket : public RefCountable, public BandwidthBucket
@@ -38,4 +38,3 @@ private:
 #endif /* USE_DELAY_POOLS */
 
 #endif
-

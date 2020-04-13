@@ -23,4 +23,3 @@ Acl::Answer AuthenticateAcl(ACLChecklist *ch);
 
 #endif /* USE_AUTH */
 #endif /* SQUID_AUTH_ACL_H */
-

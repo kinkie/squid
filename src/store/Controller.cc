@@ -9,16 +9,16 @@
 /* DEBUG: section 20    Store Controller */
 
 #include "squid.h"
-#include "mem_node.h"
+#include "store/Controller.h"
 #include "MemStore.h"
-#include "profiler/Profiler.h"
 #include "SquidConfig.h"
 #include "SquidMath.h"
-#include "store/Controller.h"
+#include "Transients.h"
+#include "mem_node.h"
+#include "profiler/Profiler.h"
 #include "store/Disks.h"
 #include "store/LocalSearch.h"
 #include "tools.h"
-#include "Transients.h"
 
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -101,9 +101,7 @@ Store::Controller::maintain()
 
     if (Root().currentSize() > Store::Root().maxSize()) {
         if (squid_curtime - last_warn_time > 10) {
-            debugs(20, DBG_CRITICAL, "WARNING: Disk space over limit: "
-                   << Store::Root().currentSize() / 1024.0 << " KB > "
-                   << (Store::Root().maxSize() >> 10) << " KB");
+            debugs(20, DBG_CRITICAL, "WARNING: Disk space over limit: " << Store::Root().currentSize() / 1024.0 << " KB > " << (Store::Root().maxSize() >> 10) << " KB");
             last_warn_time = squid_curtime;
         }
     }
@@ -199,10 +197,8 @@ Store::Controller::updateLimits()
 {
     swapDir->updateLimits();
 
-    store_swap_high = (long) (((float) maxSize() *
-                               (float) Config.Swap.highWaterMark) / (float) 100);
-    store_swap_low = (long) (((float) maxSize() *
-                              (float) Config.Swap.lowWaterMark) / (float) 100);
+    store_swap_high = (long)(((float)maxSize() * (float)Config.Swap.highWaterMark) / (float)100);
+    store_swap_low = (long)(((float)maxSize() * (float)Config.Swap.lowWaterMark) / (float)100);
     store_pages_max = Config.memMaxSize / sizeof(mem_node);
 
     // TODO: move this into a memory cache class when we have one
@@ -276,7 +272,7 @@ Store::Controller::dereferenceIdle(StoreEntry &e, bool wantsLocalMemory)
     if (EBIT_TEST(e.flags, ENTRY_SPECIAL))
         return true;
 
-    bool keepInStoreTable = false; // keep only if somebody needs it there
+    bool keepInStoreTable = false;  // keep only if somebody needs it there
 
     /* Notify the fs that we're not referencing this object any more */
 
@@ -311,8 +307,7 @@ Store::Controller::markedForDeletionAndAbandoned(const StoreEntry &e) const
 {
     // The opposite check order could miss a reader that has arrived after the
     // !readers() and before the markedForDeletion() check.
-    return markedForDeletion(reinterpret_cast<const cache_key*>(e.key)) &&
-           transients && !transients->readers(e);
+    return markedForDeletion(reinterpret_cast<const cache_key *>(e.key)) && transients && !transients->readers(e);
 }
 
 bool
@@ -380,7 +375,7 @@ Store::Controller::findCallbackXXX(const cache_key *key)
     // member or use an HTCP/ICP-specific index rather than store_table.
 
     // cannot reuse peekAtLocal() because HTCP/ICP callbacks may use private keys
-    return static_cast<StoreEntry*>(hash_lookup(store_table, key));
+    return static_cast<StoreEntry *>(hash_lookup(store_table, key));
 }
 
 /// \returns either an existing local reusable StoreEntry object or nil
@@ -389,7 +384,7 @@ Store::Controller::findCallbackXXX(const cache_key *key)
 StoreEntry *
 Store::Controller::peekAtLocal(const cache_key *key)
 {
-    if (StoreEntry *e = static_cast<StoreEntry*>(hash_lookup(store_table, key))) {
+    if (StoreEntry *e = static_cast<StoreEntry *>(hash_lookup(store_table, key))) {
         // callers must only search for public entries
         assert(!EBIT_TEST(e->flags, KEY_PRIVATE));
         assert(e->publicKey());
@@ -508,7 +503,7 @@ Store::Controller::memoryCacheHasSpaceFor(const int pagesRequired) const
 void
 Store::Controller::freeMemorySpace(const int bytesRequired)
 {
-    const auto pagesRequired = (bytesRequired + SM_PAGE_SIZE-1) / SM_PAGE_SIZE;
+    const auto pagesRequired = (bytesRequired + SM_PAGE_SIZE - 1) / SM_PAGE_SIZE;
 
     if (memoryCacheHasSpaceFor(pagesRequired))
         return;
@@ -533,14 +528,14 @@ Store::Controller::freeMemorySpace(const int bytesRequired)
     int removed = 0;
     while (const auto entry = walker->Next(walker)) {
         // Abandoned memory cache entries are purged during memory shortage.
-        entry->abandon(__FUNCTION__); // may delete entry
+        entry->abandon(__FUNCTION__);  // may delete entry
         ++removed;
 
         if (memoryCacheHasSpaceFor(pagesRequired))
             break;
     }
     // TODO: Move to RemovalPolicyWalker::Done() that has more/better details.
-    debugs(20, 3, "removed " << removed << " out of " << hot_obj_count  << " memory-cached entries");
+    debugs(20, 3, "removed " << removed << " out of " << hot_obj_count << " memory-cached entries");
     walker->Done(walker);
     memoryPagesDebt_ = 0;
 }
@@ -556,11 +551,11 @@ Store::Controller::keepForLocalMemoryCache(StoreEntry &e) const
     // does the current and expected size obey memory caching limits?
     assert(e.mem_obj);
     const int64_t loadedSize = e.mem_obj->endOffset();
-    const int64_t expectedSize = e.mem_obj->expectedReplySize(); // may be < 0
+    const int64_t expectedSize = e.mem_obj->expectedReplySize();  // may be < 0
     const int64_t ramSize = max(loadedSize, expectedSize);
     const int64_t ramLimit = min(
-                                 static_cast<int64_t>(Config.memMaxSize),
-                                 static_cast<int64_t>(Config.Store.maxInMemObjSize));
+        static_cast<int64_t>(Config.memMaxSize),
+        static_cast<int64_t>(Config.Store.maxInMemObjSize));
     return ramSize <= ramLimit;
 }
 
@@ -569,7 +564,7 @@ Store::Controller::memoryOut(StoreEntry &e, const bool preserveSwappable)
 {
     bool keepInLocalMemory = false;
     if (sharedMemStore)
-        sharedMemStore->write(e); // leave keepInLocalMemory false
+        sharedMemStore->write(e);  // leave keepInLocalMemory false
     else if (localMemStore)
         keepInLocalMemory = keepForLocalMemoryCache(e);
 
@@ -587,9 +582,9 @@ Store::Controller::memoryEvictCached(StoreEntry &e)
     // TODO: Untangle memory caching from mem_obj.
     if (sharedMemStore)
         sharedMemStore->evictCached(e);
-    else // TODO: move into [non-shared] memory cache class when we have one
+    else  // TODO: move into [non-shared] memory cache class when we have one
         if (!e.locked())
-            e.destroyMemObject();
+        e.destroyMemObject();
 }
 
 void
@@ -624,8 +619,7 @@ Store::Controller::transientsCompleteWriting(StoreEntry &e)
 int
 Store::Controller::transientReaders(const StoreEntry &e) const
 {
-    return (transients && e.hasTransients()) ?
-           transients->readers(e) : 0;
+    return (transients && e.hasTransients()) ? transients->readers(e) : 0;
 }
 
 void
@@ -655,16 +649,16 @@ Store::Controller::handleIdleEntry(StoreEntry &e)
     } else if (sharedMemStore) {
         // leave keepInLocalMemory false; sharedMemStore maintains its own cache
     } else if (localMemStore) {
-        keepInLocalMemory = keepForLocalMemoryCache(e) && // in good shape and
-                            // the local memory cache is not overflowing
-                            memoryCacheHasSpaceFor(memoryPagesDebt_);
+        keepInLocalMemory = keepForLocalMemoryCache(e) &&  // in good shape and
+            // the local memory cache is not overflowing
+            memoryCacheHasSpaceFor(memoryPagesDebt_);
     }
 
     // An idle, unlocked entry that only belongs to a SwapDir which controls
     // its own index, should not stay in the global store_table.
     if (!dereferenceIdle(e, keepInLocalMemory)) {
         debugs(20, 5, HERE << "destroying unlocked entry: " << &e << ' ' << e);
-        destroyStoreEntry(static_cast<hash_link*>(&e));
+        destroyStoreEntry(static_cast<hash_link *>(&e));
         return;
     }
 
@@ -680,11 +674,11 @@ Store::Controller::handleIdleEntry(StoreEntry &e)
     // We know the in-memory data will be gone. Get rid of the entire entry if
     // it has nothing worth preserving on disk either.
     if (!e.swappedOut()) {
-        e.release(); // deletes e
+        e.release();  // deletes e
         return;
     }
 
-    memoryEvictCached(e); // may already be gone
+    memoryEvictCached(e);  // may already be gone
     // and keep the entry in store_table for its on-disk data
 }
 
@@ -728,9 +722,8 @@ Store::Controller::allowCollapsing(StoreEntry *e, const RequestFlags &reqFlags,
     const KeyScope keyScope = reqFlags.refresh ? ksRevalidation : ksDefault;
     // set the flag now so that it gets copied into the Transients entry
     e->setCollapsingRequirement(true);
-    if (e->makePublic(keyScope)) { // this is needed for both local and SMP collapsing
-        debugs(20, 3, "may " << (transients && e->hasTransients() ?
-                                 "SMP-" : "locally-") << "collapse " << *e);
+    if (e->makePublic(keyScope)) {  // this is needed for both local and SMP collapsing
+        debugs(20, 3, "may " << (transients && e->hasTransients() ? "SMP-" : "locally-") << "collapse " << *e);
         return true;
     }
     // paranoid cleanup; the flag is meaningless for private entries
@@ -751,7 +744,7 @@ Store::Controller::addWriting(StoreEntry *e, const cache_key *key)
 {
     assert(e);
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
-        return; // constant memory-resident entries do not need transients
+        return;  // constant memory-resident entries do not need transients
 
     if (transients)
         transients->monitorIo(e, key, Store::ioWriting);
@@ -764,7 +757,7 @@ Store::Controller::syncCollapsed(const sfileno xitIndex)
     assert(transients);
 
     StoreEntry *collapsed = transients->findCollapsed(xitIndex);
-    if (!collapsed) { // the entry is no longer active, ignore update
+    if (!collapsed) {  // the entry is no longer active, ignore update
         debugs(20, 7, "not SMP-syncing not-transient " << xitIndex);
         return;
     }
@@ -794,11 +787,11 @@ Store::Controller::syncCollapsed(const sfileno xitIndex)
 
     if (entryStatus.waitingToBeFreed) {
         debugs(20, 3, "will release " << *collapsed << " due to waitingToBeFreed");
-        collapsed->release(true); // may already be marked
+        collapsed->release(true);  // may already be marked
     }
 
     if (transients->isWriter(*collapsed))
-        return; // readers can only change our waitingToBeFreed flag
+        return;  // readers can only change our waitingToBeFreed flag
 
     assert(transients->isReader(*collapsed));
 
@@ -832,8 +825,7 @@ Store::Controller::syncCollapsed(const sfileno xitIndex)
     }
 
     if (entryStatus.waitingToBeFreed && !found) {
-        debugs(20, 3, "aborting unattached " << *collapsed <<
-               " because it was marked for deletion before we could attach it");
+        debugs(20, 3, "aborting unattached " << *collapsed << " because it was marked for deletion before we could attach it");
         collapsed->abort();
         return;
     }
@@ -844,7 +836,7 @@ Store::Controller::syncCollapsed(const sfileno xitIndex)
         return;
     }
 
-    if (found) { // unrecoverable problem syncing this entry
+    if (found) {  // unrecoverable problem syncing this entry
         debugs(20, 3, "aborting unsyncable " << *collapsed);
         collapsed->abort();
         return;
@@ -901,7 +893,7 @@ namespace Store {
 static RefCount<Controller> TheRoot;
 }
 
-Store::Controller&
+Store::Controller &
 Store::Root()
 {
     assert(TheRoot);
@@ -919,4 +911,3 @@ Store::FreeMemory()
 {
     TheRoot = nullptr;
 }
-

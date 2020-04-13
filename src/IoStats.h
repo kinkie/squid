@@ -13,7 +13,7 @@
 class IoStats
 {
 public:
-    static const int histSize=16;
+    static const int histSize = 16;
 
     struct {
         int reads;
@@ -21,9 +21,7 @@ public:
         int read_hist[histSize];
         int writes;
         int write_hist[histSize];
-    }
-    Http, Ftp, Gopher;
+    } Http, Ftp, Gopher;
 };
 
 #endif /* SQUID_IOSTATS_H_ */
-

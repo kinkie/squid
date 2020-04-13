@@ -51,7 +51,7 @@ public:
     virtual int Open();
 
 #if USE_ICMP
-    virtual void SendEcho(Ip::Address &, int, const char*, int);
+    virtual void SendEcho(Ip::Address &, int, const char *, int);
     virtual void Recv(void);
 #endif
 };
@@ -63,4 +63,3 @@ extern Icmp6 icmp6;
 
 #endif /* USE_ICMP && SQUID_HELPER */
 #endif /* _INCLUDE_ICMPV6_H */
-

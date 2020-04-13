@@ -9,12 +9,12 @@
 /* DEBUG: section 03    Configuration File Parsing */
 
 #include "squid.h"
-#include "cache_cf.h"
-#include "compat/strtoll.h"
+#include "Parsing.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "cache_cf.h"
+#include "compat/strtoll.h"
 #include "globals.h"
-#include "Parsing.h"
 
 /*
  * These functions is the same as atoi/l/f, except that they check for errors
@@ -43,7 +43,7 @@ int
 xatoi(const char *token)
 {
     int64_t input = xatoll(token, 10);
-    int ret = (int) input;
+    int ret = (int)input;
 
     if (input != static_cast<int64_t>(ret)) {
         debugs(0, DBG_PARSE_NOTE(DBG_IMPORTANT), "ERROR: The value '" << token << "' is larger than the type 'int'.");
@@ -62,7 +62,7 @@ xatoui(const char *token, char eov)
         self_destruct();
     }
 
-    unsigned int ret = (unsigned int) input;
+    unsigned int ret = (unsigned int)input;
     if (input != static_cast<int64_t>(ret)) {
         debugs(0, DBG_PARSE_NOTE(DBG_IMPORTANT), "ERROR: The value '" << token << "' is larger than the type 'unsigned int'.");
         self_destruct();
@@ -75,7 +75,7 @@ long
 xatol(const char *token)
 {
     int64_t input = xatoll(token, 10);
-    long ret = (long) input;
+    long ret = (long)input;
 
     if (input != static_cast<int64_t>(ret)) {
         debugs(0, DBG_PARSE_NOTE(DBG_IMPORTANT), "ERROR: The value '" << token << "' is larger than the type 'long'.");
@@ -128,7 +128,7 @@ GetInteger64(void)
     char *token = ConfigParser::NextToken();
     if (!token) {
         self_destruct();
-        return -1; // not reachable
+        return -1;  // not reachable
     }
 
     return xatoll(token, 10);
@@ -146,13 +146,13 @@ GetInteger(void)
 
     if (!token) {
         self_destruct();
-        return -1; // not reachable
+        return -1;  // not reachable
     }
 
     // The conversion must honor 0 and 0x prefixes, which are important for things like umask
     int64_t ret = xatoll(token, 0);
 
-    i = (int) ret;
+    i = (int)ret;
     if (ret != static_cast<int64_t>(i)) {
         debugs(0, DBG_PARSE_NOTE(DBG_IMPORTANT), "ERROR: The value '" << token << "' is larger than the type 'int'.");
         self_destruct();
@@ -176,11 +176,11 @@ GetPercentage(bool limit)
     if (!token) {
         debugs(3, DBG_CRITICAL, "FATAL: A percentage value is missing.");
         self_destruct();
-        return 0.0; // not reachable
+        return 0.0;  // not reachable
     }
 
     //if there is a % in the end of the digits, we remove it and go on.
-    char* end = &token[strlen(token)-1];
+    char *end = &token[strlen(token) - 1];
     if (*end == '%') {
         *end = '\0';
     }
@@ -201,7 +201,7 @@ GetShort(void)
     char *token = ConfigParser::NextToken();
     if (!token) {
         self_destruct();
-        return 0; // not reachable
+        return 0;  // not reachable
     }
 
     return xatos(token);
@@ -212,7 +212,7 @@ StringToInt(const char *s, int &result, const char **p, int base)
 {
     if (s) {
         char *ptr = 0;
-        const int h = (int) strtol(s, &ptr, base);
+        const int h = (int)strtol(s, &ptr, base);
 
         if (ptr != s && ptr) {
             result = h;
@@ -232,7 +232,7 @@ StringToInt64(const char *s, int64_t &result, const char **p, int base)
 {
     if (s) {
         char *ptr = 0;
-        const int64_t h = (int64_t) strtoll(s, &ptr, base);
+        const int64_t h = (int64_t)strtoll(s, &ptr, base);
 
         if (ptr != s && ptr) {
             result = h;
@@ -287,7 +287,7 @@ GetHostWithPort(char *token, Ip::Address *ipa)
     if (NULL == host)
         ipa->setAnyAddr();
     else if (ipa->GetHostByName(host)) /* do not use ipcache. Accept either FQDN or IPA. */
-        (void) 0;
+        (void)0;
     else
         return false;
 
@@ -296,4 +296,3 @@ GetHostWithPort(char *token, Ip::Address *ipa)
 
     return true;
 }
-

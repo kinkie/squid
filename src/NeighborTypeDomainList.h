@@ -19,4 +19,3 @@ public:
 };
 
 #endif /* SQUID_NEIGHBORTYPEDOMAINLIST_H_ */
-

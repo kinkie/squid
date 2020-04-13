@@ -21,19 +21,19 @@ ResetGetopt(const bool allowStderrWarnings)
     optind = 0;
 }
 
-CommandLine::CommandLine(int argC, char *argV[], const char *shortRules, const RawLongOption *longRules):
+CommandLine::CommandLine(int argC, char *argV[], const char *shortRules, const RawLongOption *longRules) :
     argv_(),
     shortOptions_(shortRules ? xstrdup(shortRules) : ""),
     longOptions_()
 {
-    assert(argC > 0); // C++ main() requirement that makes our arg0() safe
+    assert(argC > 0);  // C++ main() requirement that makes our arg0() safe
     assert(shortRules);
 
     /* copy argV items */
-    argv_.reserve(argC+1);
+    argv_.reserve(argC + 1);
     for (int i = 0; i < argC; ++i)
         argv_.push_back(xstrdup(argV[i]));
-    argv_.push_back(nullptr); // POSIX argv "must be terminated by a null pointer"
+    argv_.push_back(nullptr);  // POSIX argv "must be terminated by a null pointer"
 
     /* copy grammar rules for the long options */
     if (longRules) {
@@ -43,13 +43,13 @@ CommandLine::CommandLine(int argC, char *argV[], const char *shortRules, const R
     }
 }
 
-CommandLine::CommandLine(const CommandLine &them):
+CommandLine::CommandLine(const CommandLine &them) :
     CommandLine(them.argc(), them.argv(), them.shortOptions_, them.longOptions())
 {
 }
 
 CommandLine &
-CommandLine::operator =(const CommandLine &them)
+CommandLine::operator=(const CommandLine &them)
 {
     // cannot just swap(*this, them): std::swap(T,T) may call this assignment op
     CommandLine tmp(them);
@@ -61,7 +61,7 @@ CommandLine::operator =(const CommandLine &them)
 
 CommandLine::~CommandLine()
 {
-    for (auto arg: argv_)
+    for (auto arg : argv_)
         xfree(arg);
 
     xfree(shortOptions_);
@@ -70,7 +70,7 @@ CommandLine::~CommandLine()
 bool
 CommandLine::hasOption(const int optIdToFind, const char **optValue) const
 {
-    ResetGetopt(false); // avoid duped warnings; forEachOption() will complain
+    ResetGetopt(false);  // avoid duped warnings; forEachOption() will complain
     int optId = 0;
     while (nextOption(optId)) {
         if (optId == optIdToFind) {
@@ -104,8 +104,7 @@ CommandLine::nextOption(int &optId) const
     if ((optId == ':' && shortOptions_[0] == ':') || optId == '?') {
         assert(optind > 0 && static_cast<unsigned int>(optind) < argv_.size());
         SBuf errMsg;
-        errMsg.Printf("'%s': %s", argv_[optind - 1],  optId == '?' ?
-                      "unrecognized option or missing required argument" : "missing required argument");
+        errMsg.Printf("'%s': %s", argv_[optind - 1], optId == '?' ? "unrecognized option or missing required argument" : "missing required argument");
         throw TexcHere(errMsg);
     }
     return optId != -1;
@@ -139,7 +138,7 @@ LongOption::LongOption(const RawLongOption &opt) :
     copy(opt);
 }
 
-LongOption::LongOption(const LongOption &opt):
+LongOption::LongOption(const LongOption &opt) :
     LongOption(static_cast<const RawLongOption &>(opt))
 {
 }
@@ -150,7 +149,7 @@ LongOption::~LongOption()
 }
 
 LongOption &
-LongOption::operator =(const LongOption &opt)
+LongOption::operator=(const LongOption &opt)
 {
     if (this != &opt)
         copy(static_cast<const RawLongOption &>(opt));
@@ -166,4 +165,3 @@ LongOption::copy(const RawLongOption &opt)
     flag = opt.flag;
     val = opt.val;
 }
-

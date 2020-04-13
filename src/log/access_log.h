@@ -18,8 +18,7 @@ void fvdbCountForw(const char *key);
 
 #if HEADERS_LOG
 class HttpRequestMethod;
-void headersLog(int cs, int pq, const HttpRequestMethod& m, void *data);
+void headersLog(int cs, int pq, const HttpRequestMethod &m, void *data);
 #endif
 
 #endif /* SQUID_LOG_ACCESS_LOG_H_ */
-

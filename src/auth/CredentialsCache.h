@@ -23,11 +23,11 @@ class CredentialsCache
     CBDATA_CLASS(CredentialsCache);
 
 public:
-    explicit CredentialsCache(const char *name, const char * const eventName);
+    explicit CredentialsCache(const char *name, const char *const eventName);
 
     ~CredentialsCache() = default;
-    CredentialsCache(const CredentialsCache&) = delete;
-    CredentialsCache& operator=(const CredentialsCache&) = delete;
+    CredentialsCache(const CredentialsCache &) = delete;
+    CredentialsCache &operator=(const CredentialsCache &) = delete;
 
     /// \returns a pointer to cached credentials, or nil if none found
     Auth::User::Pointer lookup(const SBuf &userKey) const;
@@ -71,10 +71,9 @@ private:
     StoreType store_;
 
     // c-string raw pointer used as event name
-    const char * const cacheCleanupEventName;
+    const char *const cacheCleanupEventName;
 };
 
 } /* namespace Auth */
 
 #endif /* SQUID_SRC_AUTH_CREDENTIALSCACHE_H */
-

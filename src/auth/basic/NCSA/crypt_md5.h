@@ -29,4 +29,3 @@ char *crypt_md5(const char *pw, const char *salt);
 char *md5sum(const char *s);
 
 #endif /* _CRYPT_MD5_H */
-

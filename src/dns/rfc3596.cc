@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "dns/rfc2671.h"
 #include "dns/rfc3596.h"
+#include "dns/rfc2671.h"
 #include "util.h"
 
 #if HAVE_UNISTD_H
@@ -56,7 +56,7 @@
  * Returns the size of the query
  */
 ssize_t
-rfc3596BuildHostQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, int qtype, ssize_t edns_sz)
+rfc3596BuildHostQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, int qtype, ssize_t edns_sz)
 {
     static rfc1035_message h;
     size_t offset = 0;
@@ -64,8 +64,8 @@ rfc3596BuildHostQuery(const char *hostname, char *buf, size_t sz, unsigned short
     h.id = qid;
     h.qr = 0;
     h.rd = 1;
-    h.opcode = 0;               /* QUERY */
-    h.qdcount = (unsigned int) 1;
+    h.opcode = 0; /* QUERY */
+    h.qdcount = (unsigned int)1;
     h.arcount = (edns_sz > 0 ? 1 : 0);
     offset += rfc1035HeaderPack(buf + offset, sz - offset, &h);
     offset += rfc1035QuestionPack(buf + offset,
@@ -95,7 +95,7 @@ rfc3596BuildHostQuery(const char *hostname, char *buf, size_t sz, unsigned short
  * \return the size of the query
  */
 ssize_t
-rfc3596BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, ssize_t edns_sz)
+rfc3596BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, ssize_t edns_sz)
 {
     return rfc3596BuildHostQuery(hostname, buf, sz, qid, query, RFC1035_TYPE_A, edns_sz);
 }
@@ -109,7 +109,7 @@ rfc3596BuildAQuery(const char *hostname, char *buf, size_t sz, unsigned short qi
  * \return the size of the query
  */
 ssize_t
-rfc3596BuildAAAAQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, ssize_t edns_sz)
+rfc3596BuildAAAAQuery(const char *hostname, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, ssize_t edns_sz)
 {
     return rfc3596BuildHostQuery(hostname, buf, sz, qid, query, RFC1035_TYPE_AAAA, edns_sz);
 }
@@ -123,12 +123,12 @@ rfc3596BuildAAAAQuery(const char *hostname, char *buf, size_t sz, unsigned short
  * \return the size of the query
  */
 ssize_t
-rfc3596BuildPTRQuery4(const struct in_addr addr, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, ssize_t edns_sz)
+rfc3596BuildPTRQuery4(const struct in_addr addr, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, ssize_t edns_sz)
 {
     static char rev[RFC1035_MAXHOSTNAMESZ];
     unsigned int i;
 
-    i = (unsigned int) ntohl(addr.s_addr);
+    i = (unsigned int)ntohl(addr.s_addr);
     snprintf(rev, RFC1035_MAXHOSTNAMESZ, "%u.%u.%u.%u.in-addr.arpa.",
              i & 255,
              (i >> 8) & 255,
@@ -139,20 +139,20 @@ rfc3596BuildPTRQuery4(const struct in_addr addr, char *buf, size_t sz, unsigned 
 }
 
 ssize_t
-rfc3596BuildPTRQuery6(const struct in6_addr addr, char *buf, size_t sz, unsigned short qid, rfc1035_query * query, ssize_t edns_sz)
+rfc3596BuildPTRQuery6(const struct in6_addr addr, char *buf, size_t sz, unsigned short qid, rfc1035_query *query, ssize_t edns_sz)
 {
     static char rev[RFC1035_MAXHOSTNAMESZ];
-    const uint8_t* r = addr.s6_addr;
-    char* p = rev;
+    const uint8_t *r = addr.s6_addr;
+    char *p = rev;
     int i; /* NP: MUST allow signed for loop termination. */
 
     /* work from the raw addr field. anything else may have representation changes. */
     /* The sin6_port and sin6_addr members shall be in network byte order. */
-    for (i = 15; i >= 0; i--, p+=4) {
-        snprintf(p, 5, "%1x.%1x.", ((r[i])&0xf), (r[i]>>4)&0xf );
+    for (i = 15; i >= 0; i--, p += 4) {
+        snprintf(p, 5, "%1x.%1x.", ((r[i]) & 0xf), (r[i] >> 4) & 0xf);
     }
 
-    snprintf(p,10,"ip6.arpa.");
+    snprintf(p, 10, "ip6.arpa.");
 
     return rfc3596BuildHostQuery(rev, buf, sz, qid, query, RFC1035_TYPE_PTR, edns_sz);
 }
@@ -160,16 +160,16 @@ rfc3596BuildPTRQuery6(const struct in6_addr addr, char *buf, size_t sz, unsigned
 #if DRIVER
 
 /* driver needs the rfc1035 code _without_ the main() */
-#  define main(a,b) rfc1035_main(a,b)
-#  include "rfc1035.c"
-#  undef main(a,b)
+#define main(a, b) rfc1035_main(a, b)
+#include "rfc1035.c"
+#undef main(a, b)
 
 #include <sys/socket.h>
 
 int
 main(int argc, char *argv[])
 {
-#define PACKET_BUFSZ        1024
+#define PACKET_BUFSZ 1024
     char input[PACKET_BUFSZ];
     char buf[PACKET_BUFSZ];
     char rbuf[PACKET_BUFSZ];
@@ -179,10 +179,10 @@ main(int argc, char *argv[])
     int rl;
     ssize_t edns_max = -1;
 
-    struct sockaddr* S;
+    struct sockaddr *S;
     int var = 1;
 
-    if ( argc < 3 || argc > 4) {
+    if (argc < 3 || argc > 4) {
         fprintf(stderr, "usage: %s [-6|-4] ip port\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -216,33 +216,32 @@ main(int argc, char *argv[])
     memset(&S, '\0', sizeof(S));
 
     if (prefer == 6) {
-        S = (struct sockaddr *) new sockaddr_in6;
-        memset(S,0,sizeof(struct sockaddr_in6));
+        S = (struct sockaddr *)new sockaddr_in6;
+        memset(S, 0, sizeof(struct sockaddr_in6));
 
         ((struct sockaddr_in6 *)S)->sin6_family = AF_INET6;
-        ((struct sockaddr_in6 *)S)->sin6_port = htons(atoi(argv[var+1]));
+        ((struct sockaddr_in6 *)S)->sin6_port = htons(atoi(argv[var + 1]));
 
-        if ( ! inet_pton(AF_INET6, argv[var], &((struct sockaddr_in6 *)S)->sin6_addr.s_addr) ) {
+        if (!inet_pton(AF_INET6, argv[var], &((struct sockaddr_in6 *)S)->sin6_addr.s_addr)) {
             perror("listen address");
             exit(EXIT_FAILURE);
         }
 
         s = socket(PF_INET6, SOCK_DGRAM, 0);
     } else {
-        S = (struct sockaddr *) new sockaddr_in;
-        memset(S,0,sizeof(struct sockaddr_in));
+        S = (struct sockaddr *)new sockaddr_in;
+        memset(S, 0, sizeof(struct sockaddr_in));
 
         ((struct sockaddr_in *)S)->sin_family = AF_INET;
-        ((struct sockaddr_in *)S)->sin_port = htons(atoi(argv[var+1]));
+        ((struct sockaddr_in *)S)->sin_port = htons(atoi(argv[var + 1]));
 
-        if ( ! inet_pton(AF_INET, argv[var], &((struct sockaddr_in *)S)->sin_addr.s_addr) ) {
+        if (!inet_pton(AF_INET, argv[var], &((struct sockaddr_in *)S)->sin_addr.s_addr)) {
             perror("listen address");
             exit(EXIT_FAILURE);
         }
     }
 
-    while (fgets(input, PACKET_BUFSZ, stdin))
-    {
+    while (fgets(input, PACKET_BUFSZ, stdin)) {
 
         struct in6_addr junk6;
 
@@ -253,10 +252,10 @@ main(int argc, char *argv[])
 
         if (inet_pton(AF_INET6, input, &junk6)) {
             sid = rfc1035BuildPTRQuery6(junk6, buf, &sz, edns_max);
-            sidb=0;
+            sidb = 0;
         } else if (inet_pton(AF_INET, input, &junk4)) {
             sid = rfc1035BuildPTRQuery4(junk4, buf, &sz, edns_max);
-            sidb=0;
+            sidb = 0;
         } else {
             sid = rfc1035BuildAAAAQuery(input, buf, &sz, edns_max);
             sidb = rfc1035BuildAQuery(input, buf, &sz, edns_max);
@@ -306,13 +305,13 @@ main(int argc, char *argv[])
                         struct in_addr a;
                         char tmp[16];
                         memcpy(&a, answers[i].rdata, 4);
-                        printf("A\t%d\t%s\n", answers[i].ttl, inet_ntop(AF_INET,&a,tmp,16));
+                        printf("A\t%d\t%s\n", answers[i].ttl, inet_ntop(AF_INET, &a, tmp, 16));
                     } else if (answers[i].type == RFC1035_TYPE_AAAA) {
 
                         struct in6_addr a;
                         char tmp[INET6_ADDRSTRLEN];
                         memcpy(&a, answers[i].rdata, 16);
-                        printf("AAAA\t%d\t%s\n", answers[i].ttl, inet_ntop(AF_INET6,&a,tmp,sizeof(tmp)));
+                        printf("AAAA\t%d\t%s\n", answers[i].ttl, inet_ntop(AF_INET6, &a, tmp, sizeof(tmp)));
                     } else if (answers[i].type == RFC1035_TYPE_PTR) {
                         char ptr[RFC1035_MAXHOSTNAMESZ];
                         strncpy(ptr, answers[i].rdata, answers[i].rdlength);
@@ -323,7 +322,7 @@ main(int argc, char *argv[])
                         printf("CNAME\t%d\t%s\n", answers[i].ttl, ptr);
                     } else {
                         fprintf(stderr, "can't print answer type %d\n",
-                                (int) answers[i].type);
+                                (int)answers[i].type);
                     }
                 }
             }
@@ -334,4 +333,3 @@ main(int argc, char *argv[])
 }
 
 #endif
-

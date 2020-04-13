@@ -24,13 +24,16 @@ ACLExtUser::~ACLExtUser()
     delete data;
 }
 
-ACLExtUser::ACLExtUser(ACLData<char const *> *newData, char const *newType) : data (newData), type_ (newType) {}
+ACLExtUser::ACLExtUser(ACLData<char const *> *newData, char const *newType) :
+    data(newData), type_(newType) {}
 
-ACLExtUser::ACLExtUser (ACLExtUser const &old) : data (old.data->clone()), type_ (old.type_)
-{}
+ACLExtUser::ACLExtUser(ACLExtUser const &old) :
+    data(old.data->clone()), type_(old.type_)
+{
+}
 
 ACLExtUser &
-ACLExtUser::operator= (ACLExtUser const &rhs)
+ACLExtUser::operator=(ACLExtUser const &rhs)
 {
     data = rhs.data->clone();
     type_ = rhs.type_;
@@ -73,7 +76,7 @@ ACLExtUser::dump() const
 }
 
 bool
-ACLExtUser::empty () const
+ACLExtUser::empty() const
 {
     return data->empty();
 }
@@ -85,4 +88,3 @@ ACLExtUser::clone() const
 }
 
 #endif /* USE_AUTH */
-

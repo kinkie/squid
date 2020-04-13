@@ -13,4 +13,3 @@
 
 CBDATA_NAMESPACED_CLASS_INIT(Auth, StateData);
 #endif /* USE_AUTH */
-

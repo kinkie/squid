@@ -9,10 +9,10 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "globals.h"
 #include "ipc/Kids.h"
 #include "SquidConfig.h"
+#include "base/TextException.h"
+#include "globals.h"
 #include "tools.h"
 
 Kids TheKids;
@@ -23,7 +23,8 @@ Kids::Kids()
 }
 
 /// maintain n kids
-void Kids::init()
+void
+Kids::init()
 {
     storage.clear();
 
@@ -44,7 +45,8 @@ void Kids::init()
 }
 
 /// returns kid by pid
-Kid* Kids::find(pid_t pid)
+Kid *
+Kids::find(pid_t pid)
 {
     assert(pid > 0);
     assert(count() > 0);
@@ -57,14 +59,16 @@ Kid* Kids::find(pid_t pid)
 }
 
 /// returns the kid by index, useful for kids iteration
-Kid& Kids::get(size_t i)
+Kid &
+Kids::get(size_t i)
 {
     assert(i < count());
     return storage[i];
 }
 
 /// whether all kids are hopeless
-bool Kids::allHopeless() const
+bool
+Kids::allHopeless() const
 {
     for (size_t i = 0; i < storage.size(); ++i) {
         if (!storage[i].hopeless())
@@ -76,7 +80,7 @@ bool Kids::allHopeless() const
 void
 Kids::forgetAllFailures()
 {
-    for (auto &kid: storage)
+    for (auto &kid : storage)
         kid.forgetFailures();
 }
 
@@ -84,13 +88,13 @@ time_t
 Kids::forgetOldFailures()
 {
     time_t nextCheckDelay = 0;
-    for (auto &kid: storage) {
+    for (auto &kid : storage) {
         if (!kid.hopeless())
             continue;
 
-        const auto deathDuration = kid.deathDuration(); // protect from time changes
+        const auto deathDuration = kid.deathDuration();  // protect from time changes
         if (Config.hopelessKidRevivalDelay <= deathDuration) {
-            kid.forgetFailures(); // this kid will be revived now
+            kid.forgetFailures();  // this kid will be revived now
             continue;
         }
 
@@ -99,11 +103,12 @@ Kids::forgetOldFailures()
         if (remainingDeathTime < nextCheckDelay || !nextCheckDelay)
             nextCheckDelay = remainingDeathTime;
     }
-    return nextCheckDelay; // still zero if there were no still-hopeless kids
+    return nextCheckDelay;  // still zero if there were no still-hopeless kids
 }
 
 /// whether all kids called exited happy
-bool Kids::allExitedHappy() const
+bool
+Kids::allExitedHappy() const
 {
     for (size_t i = 0; i < storage.size(); ++i) {
         if (!storage[i].exitedHappy())
@@ -113,7 +118,8 @@ bool Kids::allExitedHappy() const
 }
 
 /// whether some kids died from a given signal
-bool Kids::someSignaled(const int sgnl) const
+bool
+Kids::someSignaled(const int sgnl) const
 {
     for (size_t i = 0; i < storage.size(); ++i) {
         if (storage[i].signaled(sgnl))
@@ -123,7 +129,8 @@ bool Kids::someSignaled(const int sgnl) const
 }
 
 /// whether some kids are running
-bool Kids::someRunning() const
+bool
+Kids::someRunning() const
 {
     for (size_t i = 0; i < storage.size(); ++i) {
         if (storage[i].running())
@@ -133,7 +140,8 @@ bool Kids::someRunning() const
 }
 
 /// whether some kids should be restarted by master
-bool Kids::shouldRestartSome() const
+bool
+Kids::shouldRestartSome() const
 {
     for (size_t i = 0; i < storage.size(); ++i) {
         if (storage[i].shouldRestart())
@@ -143,8 +151,8 @@ bool Kids::shouldRestartSome() const
 }
 
 /// returns the number of kids
-size_t Kids::count() const
+size_t
+Kids::count() const
 {
     return storage.size();
 }
-

@@ -12,12 +12,12 @@
 #if USE_AUTH
 
 #include "AccessLogEntry.h"
+#include "HttpHeader.h"
 #include "auth/AuthAclState.h"
 #include "auth/Scheme.h"
 #include "auth/User.h"
 #include "dlink.h"
 #include "helper/forward.h"
-#include "HttpHeader.h"
 #include "ip/Address.h"
 
 class ConnStateData;
@@ -28,7 +28,7 @@ class HttpRequest;
  * Maximum length (buffer size) for token strings.
  */
 // XXX: Keep in sync with all others: bzr grep 'define MAX_AUTHTOKEN_LEN'
-#define MAX_AUTHTOKEN_LEN   65535
+#define MAX_AUTHTOKEN_LEN 65535
 
 /**
  * Node used to link an IP address to some user credentials
@@ -39,7 +39,8 @@ class AuthUserIP
     MEMPROXY_CLASS(AuthUserIP);
 
 public:
-    AuthUserIP(const Ip::Address &ip, time_t t) : ipaddr(ip), ip_expiretime(t) {}
+    AuthUserIP(const Ip::Address &ip, time_t t) :
+        ipaddr(ip), ip_expiretime(t) {}
 
     dlink_node node;
 
@@ -54,18 +55,17 @@ public:
 };
 
 // TODO: make auth schedule AsyncCalls?
-typedef void AUTHCB(void*);
+typedef void AUTHCB(void *);
 
-namespace Auth
-{
+namespace Auth {
 
 // NP: numeric values specified for old code backward compatibility.
 //  remove after transition is complete
 enum Direction {
-    CRED_CHALLENGE = 1, ///< Client needs to be challenged. secure token.
-    CRED_VALID = 0,     ///< Credentials are valid and a up to date. The OK/Failed state is accurate.
-    CRED_LOOKUP = -1,   ///< Credentials need to be validated with the backend helper
-    CRED_ERROR = -2     ///< ERROR in the auth module. Cannot determine the state of this request.
+    CRED_CHALLENGE = 1,  ///< Client needs to be challenged. secure token.
+    CRED_VALID = 0,      ///< Credentials are valid and a up to date. The OK/Failed state is accurate.
+    CRED_LOOKUP = -1,    ///< Credentials need to be validated with the backend helper
+    CRED_ERROR = -2      ///< ERROR in the auth module. Cannot determine the state of this request.
 };
 
 /**
@@ -126,23 +126,23 @@ public:
      */
     bool valid() const;
 
-    virtual void authenticate(HttpRequest * request, ConnStateData * conn, Http::HdrType type) = 0;
+    virtual void authenticate(HttpRequest *request, ConnStateData *conn, Http::HdrType type) = 0;
 
     /* template method - what needs to be done next? advertise schemes, challenge, handle error, nothing? */
     virtual Direction module_direction() = 0;
 
     /* add the [Proxy-]Authentication-Info header */
-    virtual void addAuthenticationInfoHeader(HttpReply * rep, int accel);
+    virtual void addAuthenticationInfoHeader(HttpReply *rep, int accel);
 
     /* add the [Proxy-]Authentication-Info trailer */
-    virtual void addAuthenticationInfoTrailer(HttpReply * rep, int accel);
+    virtual void addAuthenticationInfoTrailer(HttpReply *rep, int accel);
 
     virtual void releaseAuthServer();
 
     // User credentials object this UserRequest is managing
-    virtual User::Pointer user() {return _auth_user;}
-    virtual const User::Pointer user() const {return _auth_user;}
-    virtual void user(User::Pointer aUser) {_auth_user=aUser;}
+    virtual User::Pointer user() { return _auth_user; }
+    virtual const User::Pointer user() const { return _auth_user; }
+    virtual void user(User::Pointer aUser) { _auth_user = aUser; }
 
     /**
      * Locate user credentials in one of several locations. Begin authentication if needed.
@@ -165,7 +165,7 @@ public:
     static AuthAclState tryToAuthenticateAndSetAuthUser(UserRequest::Pointer *aUR, Http::HdrType, HttpRequest *, ConnStateData *, Ip::Address &, AccessLogEntry::Pointer &);
 
     /// Add the appropriate [Proxy-]Authenticate header to the given reply
-    static void AddReplyAuthHeader(HttpReply * rep, UserRequest::Pointer auth_user_request, HttpRequest * request, int accelerated, int internal);
+    static void AddReplyAuthHeader(HttpReply *rep, UserRequest::Pointer auth_user_request, HttpRequest *request, int accelerated, int internal);
 
     /** Start an asynchronous helper lookup to verify the user credentials
      *
@@ -179,13 +179,13 @@ public:
      */
     void start(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *handler, void *data);
 
-    char const * denyMessage(char const * const default_message = NULL) const;
+    char const *denyMessage(char const *const default_message = NULL) const;
 
     /** Possibly overridable in future */
     void setDenyMessage(char const *);
 
     /** Possibly overridable in future */
-    char const * getDenyMessage() const;
+    char const *getDenyMessage() const;
 
     /**
      * Squid does not make assumptions about where the username is stored.
@@ -199,7 +199,7 @@ public:
 
     Scheme::Pointer scheme() const;
 
-    virtual const char * connLastHeader();
+    virtual const char *connLastHeader();
 
     /**
      * The string representation of the credentials send by client
@@ -220,8 +220,7 @@ protected:
     virtual void startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *handler, void *data) = 0;
 
 private:
-
-    static AuthAclState authenticate(UserRequest::Pointer * auth_user_request, Http::HdrType headertype, HttpRequest * request, ConnStateData * conn, Ip::Address &src_addr, AccessLogEntry::Pointer &al);
+    static AuthAclState authenticate(UserRequest::Pointer *auth_user_request, Http::HdrType headertype, HttpRequest *request, ConnStateData *conn, Ip::Address &src_addr, AccessLogEntry::Pointer &al);
 
     /** return a message on the 407 error pages */
     char *message;
@@ -234,7 +233,7 @@ private:
     AuthAclState lastReply;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 /* AuthUserRequest */
 
@@ -251,4 +250,3 @@ int authenticateUserAuthenticated(Auth::UserRequest::Pointer);
 
 #endif /* USE_AUTH */
 #endif /* SQUID_AUTHUSERREQUEST_H */
-

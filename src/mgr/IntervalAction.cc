@@ -9,24 +9,24 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "ipc/Messages.h"
-#include "ipc/TypedMsgHdr.h"
 #include "mgr/IntervalAction.h"
 #include "SquidMath.h"
 #include "Store.h"
+#include "base/TextException.h"
+#include "ipc/Messages.h"
+#include "ipc/TypedMsgHdr.h"
 #include "tools.h"
 
-void GetAvgStat(Mgr::IntervalActionData& stats, int minutes, int hours);
-void DumpAvgStat(Mgr::IntervalActionData& stats, StoreEntry* sentry);
+void GetAvgStat(Mgr::IntervalActionData &stats, int minutes, int hours);
+void DumpAvgStat(Mgr::IntervalActionData &stats, StoreEntry *sentry);
 
 Mgr::IntervalActionData::IntervalActionData()
 {
     memset(this, 0, sizeof(*this));
 }
 
-Mgr::IntervalActionData&
-Mgr::IntervalActionData::operator += (const IntervalActionData& stats)
+Mgr::IntervalActionData &
+Mgr::IntervalActionData::operator+=(const IntervalActionData &stats)
 {
     if (!timerisset(&sample_start_time) || timercmp(&sample_start_time, &stats.sample_start_time, >))
         sample_start_time = stats.sample_start_time;
@@ -125,17 +125,17 @@ Mgr::IntervalAction::Create60min(const CommandPointer &cmd)
     return new IntervalAction(cmd, 60, 0);
 }
 
-Mgr::IntervalAction::IntervalAction(const CommandPointer &aCmd, int aMinutes, int aHours):
+Mgr::IntervalAction::IntervalAction(const CommandPointer &aCmd, int aMinutes, int aHours) :
     Action(aCmd), minutes(aMinutes), hours(aHours), data()
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::IntervalAction::add(const Action& action)
+Mgr::IntervalAction::add(const Action &action)
 {
     debugs(16, 5, HERE);
-    data += dynamic_cast<const IntervalAction&>(action).data;
+    data += dynamic_cast<const IntervalAction &>(action).data;
 }
 
 void
@@ -145,7 +145,7 @@ Mgr::IntervalAction::collect()
 }
 
 void
-Mgr::IntervalAction::dump(StoreEntry* entry)
+Mgr::IntervalAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
@@ -153,16 +153,15 @@ Mgr::IntervalAction::dump(StoreEntry* entry)
 }
 
 void
-Mgr::IntervalAction::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::IntervalAction::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtCacheMgrResponse);
     msg.putPod(data);
 }
 
 void
-Mgr::IntervalAction::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::IntervalAction::unpack(const Ipc::TypedMsgHdr &msg)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
     msg.getPod(data);
 }
-

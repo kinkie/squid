@@ -7,14 +7,13 @@
  */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
-#include "acl/HttpHeaderData.h"
 #include "acl/HttpRepHeader.h"
 #include "HttpReply.h"
+#include "acl/FilledChecklist.h"
+#include "acl/HttpHeaderData.h"
 
 int
-ACLHTTPRepHeaderStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLHTTPRepHeaderStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
-    return data->match (&checklist->reply->header);
+    return data->match(&checklist->reply->header);
 }
-

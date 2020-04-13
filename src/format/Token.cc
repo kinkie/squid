@@ -7,19 +7,18 @@
  */
 
 #include "squid.h"
-#include "format/Config.h"
 #include "format/Token.h"
+#include "SquidConfig.h"
+#include "Store.h"
+#include "format/Config.h"
 #include "format/TokenTableEntry.h"
 #include "globals.h"
 #include "proxyp/Elements.h"
 #include "sbuf/Stream.h"
-#include "SquidConfig.h"
-#include "Store.h"
 
 // Due to token overlaps between 1 and 2 letter tokens (Bug 3310)
 // We split the token table into sets determined by the token length
-namespace Format
-{
+namespace Format {
 
 /// 1-char tokens.
 static TokenTableEntry TokenTable1C[] = {
@@ -41,7 +40,7 @@ static TokenTableEntry TokenTable1C[] = {
 
     TokenTableEntry("%", LFT_PERCENT),
 
-    TokenTableEntry(NULL, LFT_NONE)        /* this must be last */
+    TokenTableEntry(NULL, LFT_NONE) /* this must be last */
 };
 
 /// 2-char tokens
@@ -99,7 +98,7 @@ static TokenTableEntry TokenTable2C[] = {
     TokenTableEntry(">rv", LFT_CLIENT_REQ_VERSION),
 
     TokenTableEntry("rm", LFT_REQUEST_METHOD),
-    TokenTableEntry("ru", LFT_REQUEST_URI),    /* doesn't include the query-string */
+    TokenTableEntry("ru", LFT_REQUEST_URI), /* doesn't include the query-string */
     TokenTableEntry("rp", LFT_REQUEST_URLPATH_OLD_31),
     /* TokenTableEntry( "rq", LFT_REQUEST_QUERY ), * /     / * the query-string, INCLUDING the leading ? */
     TokenTableEntry("rv", LFT_REQUEST_VERSION),
@@ -114,26 +113,26 @@ static TokenTableEntry TokenTable2C[] = {
     /*TokenTableEntry("<rq", LFT_SERVER_REQ_QUERY),*/
     TokenTableEntry("<rv", LFT_SERVER_REQ_VERSION),
 
-    TokenTableEntry(">st", LFT_CLIENT_REQUEST_SIZE_TOTAL ),
-    TokenTableEntry(">sh", LFT_CLIENT_REQUEST_SIZE_HEADERS ),
+    TokenTableEntry(">st", LFT_CLIENT_REQUEST_SIZE_TOTAL),
+    TokenTableEntry(">sh", LFT_CLIENT_REQUEST_SIZE_HEADERS),
     /*TokenTableEntry( ">sb", LFT_REQUEST_SIZE_BODY ), */
     /*TokenTableEntry( ">sB", LFT_REQUEST_SIZE_BODY_NO_TE ), */
 
-    TokenTableEntry("<st", LFT_ADAPTED_REPLY_SIZE_TOTAL), // XXX: adapted should be code: <sta
+    TokenTableEntry("<st", LFT_ADAPTED_REPLY_SIZE_TOTAL),  // XXX: adapted should be code: <sta
     TokenTableEntry("<sH", LFT_REPLY_HIGHOFFSET),
     TokenTableEntry("<sS", LFT_REPLY_OBJECTSIZE),
-    TokenTableEntry("<sh", LFT_ADAPTED_REPLY_SIZE_HEADERS ), // XXX: adapted should be code: <sha
+    TokenTableEntry("<sh", LFT_ADAPTED_REPLY_SIZE_HEADERS),  // XXX: adapted should be code: <sha
     /*TokenTableEntry( "<sb", LFT_REPLY_SIZE_BODY ), */
     /*TokenTableEntry( "<sB", LFT_REPLY_SIZE_BODY_NO_TE ), */
 
-    TokenTableEntry("st", LFT_CLIENT_IO_SIZE_TOTAL), // XXX: total from client should be stC ??
+    TokenTableEntry("st", LFT_CLIENT_IO_SIZE_TOTAL),  // XXX: total from client should be stC ??
     /*TokenTableEntry("stP", LFT_SERVER_IO_SIZE_TOTAL),*/
 
     TokenTableEntry("et", LFT_TAG),
     TokenTableEntry("ea", LFT_EXT_LOG),
     TokenTableEntry("sn", LFT_SEQUENCE_NUMBER),
 
-    TokenTableEntry(NULL, LFT_NONE)        /* this must be last */
+    TokenTableEntry(NULL, LFT_NONE) /* this must be last */
 };
 
 /// Miscellaneous >2 byte tokens
@@ -144,9 +143,9 @@ static TokenTableEntry TokenTableMisc[] = {
     TokenTableEntry(">nfmark", LFT_CLIENT_LOCAL_NFMARK),
     TokenTableEntry("<nfmark", LFT_SERVER_LOCAL_NFMARK),
     TokenTableEntry(">handshake", LFT_CLIENT_HANDSHAKE),
-    TokenTableEntry("err_code", LFT_SQUID_ERROR ),
-    TokenTableEntry("err_detail", LFT_SQUID_ERROR_DETAIL ),
-    TokenTableEntry("note", LFT_NOTE ),
+    TokenTableEntry("err_code", LFT_SQUID_ERROR),
+    TokenTableEntry("err_detail", LFT_SQUID_ERROR_DETAIL),
+    TokenTableEntry("note", LFT_NOTE),
     TokenTableEntry("credentials", LFT_CREDENTIALS),
     TokenTableEntry("master_xaction", LFT_MASTER_XACTION),
     /*
@@ -169,14 +168,14 @@ static TokenTableEntry TokenTableMisc[] = {
     TokenTableEntry("SRCEUI48", LFT_EXT_ACL_CLIENT_EUI48),
     TokenTableEntry("SRCEUI64", LFT_EXT_ACL_CLIENT_EUI64),
     TokenTableEntry("SRCPORT", LFT_CLIENT_PORT),
-    TokenTableEntry("SRC", LFT_CLIENT_IP_ADDRESS), // keep after longer SRC* tokens
+    TokenTableEntry("SRC", LFT_CLIENT_IP_ADDRESS),  // keep after longer SRC* tokens
     TokenTableEntry("TAG", LFT_TAG),
     TokenTableEntry("URI", LFT_CLIENT_REQ_URI),
 #if USE_OPENSSL
     TokenTableEntry("USER_CERTCHAIN", LFT_EXT_ACL_USER_CERTCHAIN_RAW),
     TokenTableEntry("USER_CERT", LFT_EXT_ACL_USER_CERT_RAW),
 #endif
-    TokenTableEntry(NULL, LFT_NONE)        /* this must be last */
+    TokenTableEntry(NULL, LFT_NONE) /* this must be last */
 };
 
 static TokenTableEntry TokenTableProxyProtocol[] = {
@@ -192,7 +191,7 @@ static TokenTableEntry TokenTableAdapt[] = {
     TokenTableEntry("all_trs", LFT_ADAPTATION_ALL_XACT_TIMES),
     TokenTableEntry("sum_trs", LFT_ADAPTATION_SUM_XACT_TIMES),
     TokenTableEntry("<last_h", LFT_ADAPTATION_LAST_HEADER),
-    TokenTableEntry(NULL, LFT_NONE)           /* this must be last */
+    TokenTableEntry(NULL, LFT_NONE) /* this must be last */
 };
 #endif
 
@@ -200,25 +199,25 @@ static TokenTableEntry TokenTableAdapt[] = {
 /// ICAP (icap::) tokens
 static TokenTableEntry TokenTableIcap[] = {
     TokenTableEntry("tt", LFT_ICAP_TOTAL_TIME),
-    TokenTableEntry("<last_h", LFT_ADAPTATION_LAST_HEADER), // deprecated
+    TokenTableEntry("<last_h", LFT_ADAPTATION_LAST_HEADER),  // deprecated
 
-    TokenTableEntry("<A",  LFT_ICAP_ADDR),
-    TokenTableEntry("<service_name",  LFT_ICAP_SERV_NAME),
-    TokenTableEntry("ru",  LFT_ICAP_REQUEST_URI),
-    TokenTableEntry("rm",  LFT_ICAP_REQUEST_METHOD),
+    TokenTableEntry("<A", LFT_ICAP_ADDR),
+    TokenTableEntry("<service_name", LFT_ICAP_SERV_NAME),
+    TokenTableEntry("ru", LFT_ICAP_REQUEST_URI),
+    TokenTableEntry("rm", LFT_ICAP_REQUEST_METHOD),
     TokenTableEntry(">st", LFT_ICAP_BYTES_SENT),
     TokenTableEntry("<st", LFT_ICAP_BYTES_READ),
     TokenTableEntry("<bs", LFT_ICAP_BODY_BYTES_READ),
 
-    TokenTableEntry(">h",  LFT_ICAP_REQ_HEADER),
-    TokenTableEntry("<h",  LFT_ICAP_REP_HEADER),
+    TokenTableEntry(">h", LFT_ICAP_REQ_HEADER),
+    TokenTableEntry("<h", LFT_ICAP_REP_HEADER),
 
-    TokenTableEntry("tr",  LFT_ICAP_TR_RESPONSE_TIME),
+    TokenTableEntry("tr", LFT_ICAP_TR_RESPONSE_TIME),
     TokenTableEntry("tio", LFT_ICAP_IO_TIME),
-    TokenTableEntry("to",  LFT_ICAP_OUTCOME),
-    TokenTableEntry("Hs",  LFT_ICAP_STATUS_CODE),
+    TokenTableEntry("to", LFT_ICAP_OUTCOME),
+    TokenTableEntry("Hs", LFT_ICAP_STATUS_CODE),
 
-    TokenTableEntry(NULL, LFT_NONE)           /* this must be last */
+    TokenTableEntry(NULL, LFT_NONE) /* this must be last */
 };
 #endif
 
@@ -241,10 +240,9 @@ static TokenTableEntry TokenTableSsl[] = {
     TokenTableEntry("<received_hello_version", LFT_TLS_SERVER_RECEIVED_HELLO_VERSION),
     TokenTableEntry(">received_supported_version", LFT_TLS_CLIENT_SUPPORTED_VERSION),
     TokenTableEntry("<received_supported_version", LFT_TLS_SERVER_SUPPORTED_VERSION),
-    TokenTableEntry(NULL, LFT_NONE)
-};
+    TokenTableEntry(NULL, LFT_NONE)};
 #endif
-} // namespace Format
+}  // namespace Format
 
 /// Register all components custom format tokens
 void
@@ -253,14 +251,14 @@ Format::Token::Init()
     // TODO standard log tokens
 
 #if USE_ADAPTATION
-    TheConfig.registerTokens(SBuf("adapt"),::Format::TokenTableAdapt);
+    TheConfig.registerTokens(SBuf("adapt"), ::Format::TokenTableAdapt);
 #endif
 #if ICAP_CLIENT
-    TheConfig.registerTokens(SBuf("icap"),::Format::TokenTableIcap);
+    TheConfig.registerTokens(SBuf("icap"), ::Format::TokenTableIcap);
 #endif
 #if USE_OPENSSL
-    TheConfig.registerTokens(SBuf("tls"),::Format::TokenTableSsl);
-    TheConfig.registerTokens(SBuf("ssl"),::Format::TokenTableSsl);
+    TheConfig.registerTokens(SBuf("tls"), ::Format::TokenTableSsl);
+    TheConfig.registerTokens(SBuf("ssl"), ::Format::TokenTableSsl);
 #endif
     TheConfig.registerTokens(SBuf("proxy_protocol"), ::Format::TokenTableProxyProtocol);
     TheConfig.registerTokens(SBuf("transport"), ::Format::TokenTableTransport);
@@ -412,13 +410,13 @@ Format::Token::parse(const char *def, Quoting *quoting)
         for (const auto &itr : TheConfig.tokens) {
             debugs(46, 7, "check for possible " << itr.prefix << ":: token");
             const size_t len = itr.prefix.length();
-            if (itr.prefix.cmp(cur, len) == 0 && cur[len] == ':' && cur[len+1] == ':') {
+            if (itr.prefix.cmp(cur, len) == 0 && cur[len] == ':' && cur[len + 1] == ':') {
                 debugs(46, 5, "check for " << itr.prefix << ":: token in '" << cur << "'");
                 const char *old = cur;
-                cur = scanForToken(itr.tokenSet, cur+len+2);
-                if (old != cur) // found
+                cur = scanForToken(itr.tokenSet, cur + len + 2);
+                if (old != cur)  // found
                     break;
-                else // reset to start of namespace
+                else  // reset to start of namespace
                     cur = cur - len - 2;
             }
         }
@@ -427,7 +425,7 @@ Format::Token::parse(const char *def, Quoting *quoting)
             // For upward compatibility, assume "http::" prefix as default prefix
             // for all log access formatting codes, except those starting with a
             // "%" or a known namespace. (ie "icap::", "adapt::")
-            if (strncmp(cur,"http::", 6) == 0 && *(cur+6) != '%' )
+            if (strncmp(cur, "http::", 6) == 0 && *(cur + 6) != '%')
                 cur += 6;
 
             // NP: scan the sets of tokens in decreasing size to guarantee no
@@ -499,7 +497,7 @@ Format::Token::parse(const char *def, Quoting *quoting)
             const auto initialType = type;
 
             const auto pseudoHeader = header[0] == ':';
-            char *cp = strchr(pseudoHeader ? header+1 : header, ':');
+            char *cp = strchr(pseudoHeader ? header + 1 : header, ':');
 
             if (cp) {
                 *cp = '\0';
@@ -668,7 +666,8 @@ Format::Token::parse(const char *def, Quoting *quoting)
     return (cur - def);
 }
 
-Format::Token::Token() : type(LFT_NONE),
+Format::Token::Token() :
+    type(LFT_NONE),
     label(NULL),
     widthMin(-1),
     widthMax(-1),
@@ -688,7 +687,7 @@ Format::Token::Token() : type(LFT_NONE),
 
 Format::Token::~Token()
 {
-    label = NULL; // drop reference to global static.
+    label = NULL;  // drop reference to global static.
     safe_free(data.string);
     while (next) {
         Token *tokens = next;
@@ -697,4 +696,3 @@ Format::Token::~Token()
         delete tokens;
     }
 }
-

@@ -9,9 +9,9 @@
 #ifndef SQUID_MMAPPEDFILE_H
 #define SQUID_MMAPPEDFILE_H
 
-#include "cbdata.h"
 #include "DiskIO/DiskFile.h"
 #include "DiskIO/IORequestor.h"
+#include "cbdata.h"
 
 class MmappedFile : public DiskFile
 {
@@ -26,7 +26,7 @@ public:
     virtual void write(WriteRequest *);
     virtual void close();
     virtual bool error() const;
-    virtual int getFD() const { return fd;}
+    virtual int getFD() const { return fd; }
 
     virtual bool canRead() const;
     virtual bool canWrite() const;
@@ -40,8 +40,8 @@ private:
     int fd;
 
     // mmapped memory leads to SEGV and bus errors if it maps beyond file
-    int64_t minOffset; ///< enforced if not negative (to preserve file headers)
-    int64_t maxOffset; ///< enforced if not negative (to avoid crashes)
+    int64_t minOffset;  ///< enforced if not negative (to preserve file headers)
+    int64_t maxOffset;  ///< enforced if not negative (to avoid crashes)
 
     bool error_;
 
@@ -49,4 +49,3 @@ private:
 };
 
 #endif /* SQUID_MMAPPEDFILE_H */
-

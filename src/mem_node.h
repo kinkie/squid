@@ -9,10 +9,10 @@
 #ifndef SQUID_MEM_NODE_H
 #define SQUID_MEM_NODE_H
 
+#include "StoreIOBuffer.h"
 #include "base/Range.h"
 #include "defines.h"
 #include "mem/forward.h"
-#include "StoreIOBuffer.h"
 
 class mem_node
 {
@@ -28,9 +28,9 @@ public:
     int64_t start() const;
     int64_t end() const;
     Range<int64_t> dataRange() const;
-    bool contains (int64_t const &location) const;
-    bool canAccept (int64_t const &location) const;
-    bool operator < (mem_node const & rhs) const;
+    bool contains(int64_t const &location) const;
+    bool canAccept(int64_t const &location) const;
+    bool operator<(mem_node const &rhs) const;
     /* public */
     StoreIOBuffer nodeBuffer;
     /* Private */
@@ -39,7 +39,7 @@ public:
 };
 
 inline std::ostream &
-operator << (std::ostream &os, mem_node &aNode)
+operator<<(std::ostream &os, mem_node &aNode)
 {
     os << aNode.nodeBuffer.range();
     return os;
@@ -48,4 +48,3 @@ operator << (std::ostream &os, mem_node &aNode)
 void memNodeWriteComplete(void *);
 
 #endif /* SQUID_MEM_NODE_H */
-

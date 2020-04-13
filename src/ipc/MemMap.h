@@ -10,9 +10,9 @@
 #define SQUID_IPC_STORE_MAP_H
 
 #include "Debug.h"
+#include "ipc/ReadWriteLock.h"
 #include "ipc/mem/FlexibleArray.h"
 #include "ipc/mem/Pointer.h"
-#include "ipc/ReadWriteLock.h"
 #include "sbuf/SBuf.h"
 #include "store/forward.h"
 #include "store_key_md5.h"
@@ -20,32 +20,31 @@
 
 #include <atomic>
 
-namespace Ipc
-{
+namespace Ipc {
 
 // The MEMMAP_SLOT_KEY_SIZE and MEMMAP_SLOT_DATA_SIZE must be enough big
 // to hold cached keys and data. Currently MemMap used only to store SSL
 // shared session data which have keys of 32bytes and at most 10K data
 #define MEMMAP_SLOT_KEY_SIZE 32
-#define MEMMAP_SLOT_DATA_SIZE 10*1024
+#define MEMMAP_SLOT_DATA_SIZE 10 * 1024
 
 /// a MemMap basic element, holding basic shareable memory block info
 class MemMapSlot
 {
 public:
     MemMapSlot();
-    size_t size() const {return sizeof(MemMapSlot);}
-    size_t keySize() const {return sizeof(key);}
+    size_t size() const { return sizeof(MemMapSlot); }
+    size_t keySize() const { return sizeof(key); }
     bool sameKey(const cache_key *const aKey) const;
     void set(const unsigned char *aKey, const void *block, size_t blockSize, time_t expire = 0);
     bool empty() const;
     bool reading() const { return lock.readers; }
     bool writing() const { return lock.writing; }
 
-    std::atomic<uint8_t> waitingToBeFreed; ///< may be accessed w/o a lock
-    mutable ReadWriteLock lock; ///< protects slot data below
-    unsigned char key[MEMMAP_SLOT_KEY_SIZE]; ///< The entry key
-    unsigned char p[MEMMAP_SLOT_DATA_SIZE]; ///< The memory block;
+    std::atomic<uint8_t> waitingToBeFreed;    ///< may be accessed w/o a lock
+    mutable ReadWriteLock lock;               ///< protects slot data below
+    unsigned char key[MEMMAP_SLOT_KEY_SIZE];  ///< The entry key
+    unsigned char p[MEMMAP_SLOT_DATA_SIZE];   ///< The memory block;
     size_t pSize;
     time_t expire;
 };
@@ -67,10 +66,10 @@ public:
         static size_t SharedMemorySize(const int limit, const size_t anExtrasSize);
         ~Shared();
 
-        const int limit; ///< maximum number of map slots
-        const size_t extrasSize; ///< size of slot extra data
-        std::atomic<int> count; ///< current number of map slots
-        Ipc::Mem::FlexibleArray<Slot> slots; ///< storage
+        const int limit;                      ///< maximum number of map slots
+        const size_t extrasSize;              ///< size of slot extra data
+        std::atomic<int> count;               ///< current number of map slots
+        Ipc::Mem::FlexibleArray<Slot> slots;  ///< storage
     };
 
 public:
@@ -110,10 +109,10 @@ public:
     /// close slot after reading, decrements read level
     void closeForReading(const sfileno fileno);
 
-    bool full() const; ///< there are no empty slots left
-    bool valid(const int n) const; ///< whether n is a valid slot coordinate
-    int entryCount() const; ///< number of used slots
-    int entryLimit() const; ///< maximum number of slots that can be used
+    bool full() const;              ///< there are no empty slots left
+    bool valid(const int n) const;  ///< whether n is a valid slot coordinate
+    int entryCount() const;         ///< number of used slots
+    int entryLimit() const;         ///< maximum number of slots that can be used
 
     /// adds approximate current stats to the supplied ones
     void updateStats(ReadWriteLockStats &stats) const;
@@ -125,7 +124,7 @@ public:
 protected:
     static Owner *Init(const char *const path, const int limit, const size_t extrasSize);
 
-    const SBuf path; ///< cache_dir path, used for logging
+    const SBuf path;  ///< cache_dir path, used for logging
     Mem::Pointer<Shared> shared;
 
 private:
@@ -148,7 +147,6 @@ public:
     virtual void noteFreeMapSlot(const sfileno slotId) = 0;
 };
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_STORE_MAP_H */
-

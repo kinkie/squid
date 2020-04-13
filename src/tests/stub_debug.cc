@@ -20,19 +20,19 @@
 #include "tests/STUB.h"
 
 char *Debug::debugOptions;
-char *Debug::cache_log= NULL;
+char *Debug::cache_log = NULL;
 int Debug::rotateNumber = 0;
 int Debug::Levels[MAX_DEBUG_SECTIONS];
 int Debug::override_X = 0;
 int Debug::log_stderr = 1;
 bool Debug::log_syslog = false;
-void Debug::ForceAlert() STUB
+void
+Debug::ForceAlert() STUB
 
-void StopUsingDebugLog() STUB
-void ResyncDebugLog(FILE *) STUB
+    void StopUsingDebugLog() STUB
+    void ResyncDebugLog(FILE *) STUB
 
-FILE *
-DebugStream()
+    FILE *DebugStream()
 {
     return stderr;
 }
@@ -44,26 +44,30 @@ ctx_enter(const char *)
 }
 
 void
-ctx_exit(Ctx)
-{}
+    ctx_exit(Ctx)
+{
+}
 
 void
 _db_init(const char *, const char *)
-{}
+{
+}
 
 void
 _db_set_syslog(const char *)
-{}
+{
+}
 
 void
 _db_rotate_log(void)
-{}
+{
+}
 
 static void
 _db_print_stderr(const char *format, va_list args);
 
 void
-_db_print(const char *format,...)
+_db_print(const char *format, ...)
 {
     static char f[BUFSIZ];
     va_list args1;
@@ -75,7 +79,7 @@ _db_print(const char *format,...)
     va_start(args3, format);
 
     snprintf(f, BUFSIZ, "%s| %s",
-             "stub time", //debugLogTime(squid_curtime),
+             "stub time",  //debugLogTime(squid_curtime),
              format);
 
     _db_print_stderr(f, args2);
@@ -96,11 +100,12 @@ _db_print_stderr(const char *format, va_list args)
 
 void
 Debug::parseOptions(char const *)
-{}
+{
+}
 
 Debug::Context *Debug::Current = nullptr;
 
-Debug::Context::Context(const int aSection, const int aLevel):
+Debug::Context::Context(const int aSection, const int aLevel) :
     level(aLevel),
     sectionLevel(Levels[aSection]),
     upper(Current),
@@ -127,8 +132,8 @@ Debug::Finish()
     }
 }
 
-std::ostream&
-ForceAlert(std::ostream& s)
+std::ostream &
+ForceAlert(std::ostream &s)
 {
     return s;
 }
@@ -143,8 +148,7 @@ Raw::print(std::ostream &os) const
         return os;
 
     // finalize debugging level if no level was set explicitly via minLevel()
-    const int finalLevel = (level >= 0) ? level :
-                           (size_ > 40 ? DBG_DATA : Debug::SectionLevel());
+    const int finalLevel = (level >= 0) ? level : (size_ > 40 ? DBG_DATA : Debug::SectionLevel());
     if (finalLevel <= Debug::SectionLevel()) {
         os << (label_ ? '=' : ' ');
         if (data_)
@@ -155,4 +159,3 @@ Raw::print(std::ostream &os) const
 
     return os;
 }
-

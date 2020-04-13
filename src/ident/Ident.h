@@ -17,8 +17,7 @@
 typedef void IDCB(const char *ident, void *data);
 
 /// Ident Lookup API
-namespace Ident
-{
+namespace Ident {
 
 /**
  * Open a connection and request IDENT information from a peer machine.
@@ -26,7 +25,7 @@ namespace Ident
  * Self-registers with a global ident lookup manager,
  * will call Ident::Init() itself if the manager has not been initialized already.
  */
-void Start(const Comm::ConnectionPointer &conn, IDCB * callback, void *cbdata);
+void Start(const Comm::ConnectionPointer &conn, IDCB *callback, void *cbdata);
 
 /**
  * Initialize IDENT lookup manager.
@@ -34,8 +33,7 @@ void Start(const Comm::ConnectionPointer &conn, IDCB * callback, void *cbdata);
  */
 void Init(void);
 
-} // namespace Ident
+}  // namespace Ident
 
 #endif /* USE_IDENT */
 #endif /* SQUID_IDENT_H */
-

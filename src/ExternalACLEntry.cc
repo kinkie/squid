@@ -48,4 +48,3 @@ ExternalACLEntry::update(ExternalACLEntryData const &someData)
     tag = someData.tag;
     log = someData.log;
 }
-

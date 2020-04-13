@@ -9,16 +9,16 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/Filler.h"
+#include "Store.h"
 #include "base/TextException.h"
 #include "comm/Connection.h"
-#include "mgr/Filler.h"
 #include "mgr/Response.h"
-#include "Store.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Mgr, Filler);
 
 Mgr::Filler::Filler(const Action::Pointer &anAction, const Comm::ConnectionPointer &conn,
-                    unsigned int aRequestId):
+                    unsigned int aRequestId) :
     StoreToCommWriter(conn, anAction->createStoreEntry()),
     action(anAction),
     requestId(aRequestId)
@@ -44,4 +44,3 @@ Mgr::Filler::swanSong()
     action->sendResponse(requestId);
     StoreToCommWriter::swanSong();
 }
-

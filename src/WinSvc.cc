@@ -9,12 +9,12 @@
 /* Inspired by previous work by Romeo Anghelache & Eric Stern. */
 
 #include "squid.h"
+#include "WinSvc.h"
 #include "Debug.h"
+#include "SquidConfig.h"
 #include "globals.h"
 #include "protos.h"
-#include "SquidConfig.h"
 #include "tools.h"
-#include "WinSvc.h"
 
 #if _SQUID_WINDOWS_
 #if !defined(_MSWSOCK_)
@@ -37,11 +37,11 @@ extern "C" void WINAPI SquidWinSvcMain(DWORD, char **);
 static void WIN32_Abort(int);
 static int WIN32_StoreKey(const char *, DWORD, unsigned char *, int);
 static int WIN32_create_key(void);
-static void WIN32_build_argv (char *);
+static void WIN32_build_argv(char *);
 #endif
 
 #if defined(_MSC_VER) /* Microsoft C Compiler ONLY */
-void Squid_Win32InvalidParameterHandler(const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t);
+void Squid_Win32InvalidParameterHandler(const wchar_t *, const wchar_t *, const wchar_t *, unsigned int, uintptr_t);
 #endif
 static int Win32SockInit(void);
 static void Win32SockCleanup(void);
@@ -51,15 +51,15 @@ static int s_iInitCount = 0;
 static HANDLE NotifyAddrChange_thread = INVALID_HANDLE_VALUE;
 
 #undef NotifyAddrChange
-typedef DWORD(WINAPI * PFNotifyAddrChange) (OUT PHANDLE, IN LPOVERLAPPED);
+typedef DWORD(WINAPI *PFNotifyAddrChange)(OUT PHANDLE, IN LPOVERLAPPED);
 #define NOTIFYADDRCHANGE "NotifyAddrChange"
 
 #if USE_WIN32_SERVICE
 static SERVICE_STATUS svcStatus;
 static SERVICE_STATUS_HANDLE svcHandle;
 static int WIN32_argc;
-static char ** WIN32_argv;
-static char * WIN32_module_name;
+static char **WIN32_argv;
+static char *WIN32_module_name;
 
 #define VENDOR "squid-cache.org"
 static char VENDORString[] = VENDOR;
@@ -68,25 +68,25 @@ static char SOFTWARENAMEString[] = SOFTWARENAME;
 #define SOFTWARE "SOFTWARE"
 static char SOFTWAREString[] = SOFTWARE;
 #define COMMANDLINE "CommandLine"
-#define CONFIGFILE  "ConfigFile"
+#define CONFIGFILE "ConfigFile"
 #undef ChangeServiceConfig2
-typedef BOOL (WINAPI * PFChangeServiceConfig2) (SC_HANDLE, DWORD, LPVOID);
+typedef BOOL(WINAPI *PFChangeServiceConfig2)(SC_HANDLE, DWORD, LPVOID);
 #ifdef UNICODE
 #define CHANGESERVICECONFIG2 "ChangeServiceConfig2W"
 #else
 #define CHANGESERVICECONFIG2 "ChangeServiceConfig2A"
 #endif
-static SC_ACTION Squid_SCAction[] = { { SC_ACTION_RESTART, 60000 } };
+static SC_ACTION Squid_SCAction[] = {{SC_ACTION_RESTART, 60000}};
 static char Squid_ServiceDescriptionString[] = SOFTWARENAME " " VERSION " WWW Proxy Server";
-static SERVICE_DESCRIPTION Squid_ServiceDescription = { Squid_ServiceDescriptionString };
-static SERVICE_FAILURE_ACTIONS Squid_ServiceFailureActions = { INFINITE, NULL, NULL, 1, Squid_SCAction };
+static SERVICE_DESCRIPTION Squid_ServiceDescription = {Squid_ServiceDescriptionString};
+static SERVICE_FAILURE_ACTIONS Squid_ServiceFailureActions = {INFINITE, NULL, NULL, 1, Squid_SCAction};
 static char REGKEY[256] = SOFTWARE "\\" VENDOR "\\" SOFTWARENAME "\\";
 static char *keys[] = {
     SOFTWAREString,     /* key[0] */
     VENDORString,       /* key[1] */
-    SOFTWARENAMEString,   /* key[2] */
-    NULL,       /* key[3] */
-    NULL        /* key[4] */
+    SOFTWARENAMEString, /* key[2] */
+    NULL,               /* key[3] */
+    NULL                /* key[4] */
 };
 
 static int Squid_Aborting = 0;
@@ -114,13 +114,13 @@ WIN32_create_key(void)
 
     while (keys[index]) {
         unsigned long result;
-        rv = RegCreateKeyEx(hKey, keys[index],  /* subkey */
-                            0,          /* reserved */
-                            NULL,       /* class */
+        rv = RegCreateKeyEx(hKey, keys[index], /* subkey */
+                            0,                 /* reserved */
+                            NULL,              /* class */
                             REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKeyNext, &result);
 
         if (rv != ERROR_SUCCESS) {
-            fprintf(stderr, "RegCreateKeyEx(%s),%d\n", keys[index], (int) rv);
+            fprintf(stderr, "RegCreateKeyEx(%s),%d\n", keys[index], (int)rv);
             retval = -4;
         }
 
@@ -128,7 +128,7 @@ WIN32_create_key(void)
         rv = RegCloseKey(hKey);
 
         if (rv != ERROR_SUCCESS) {
-            fprintf(stderr, "RegCloseKey %d\n", (int) rv);
+            fprintf(stderr, "RegCloseKey %d\n", (int)rv);
 
             if (retval == 0) {
                 /* Keep error status from RegCreateKeyEx, if any */
@@ -151,7 +151,7 @@ WIN32_create_key(void)
         rv = RegCloseKey(hKey);
 
         if (rv != ERROR_SUCCESS) {
-            fprintf(stderr, "RegCloseKey %d\n", (int) rv);
+            fprintf(stderr, "RegCloseKey %d\n", (int)rv);
 
             if (retval == 0) {
                 /* Keep error status from RegCreateKeyEx, if any */
@@ -194,27 +194,27 @@ WIN32_StoreKey(const char *key, DWORD type, unsigned char *value,
     }
 
     if (rv != ERROR_SUCCESS) {
-        fprintf(stderr, "RegOpenKeyEx HKLM\\%s, %d\n", REGKEY, (int) rv);
+        fprintf(stderr, "RegOpenKeyEx HKLM\\%s, %d\n", REGKEY, (int)rv);
         return -4;
     }
 
     /* Now set the value and data */
-    rv = RegSetValueEx(hKey, key,   /* value key name */
-                       0,           /* reserved */
-                       type,            /* type */
-                       value,           /* value data */
-                       (DWORD) value_size); /* for size of "value" */
+    rv = RegSetValueEx(hKey, key,          /* value key name */
+                       0,                  /* reserved */
+                       type,               /* type */
+                       value,              /* value data */
+                       (DWORD)value_size); /* for size of "value" */
 
-    retval = 0;         /* Return value */
+    retval = 0; /* Return value */
 
     if (rv != ERROR_SUCCESS) {
-        fprintf(stderr, "RegQueryValueEx(key %s),%d\n", key, (int) rv);
+        fprintf(stderr, "RegQueryValueEx(key %s),%d\n", key, (int)rv);
         retval = -4;
     } else {
         fprintf(stderr, "Registry stored HKLM\\%s\\%s value %s\n",
                 REGKEY,
                 key,
-                type == REG_SZ ? value : (unsigned char *) "(not displayable)");
+                type == REG_SZ ? value : (unsigned char *)"(not displayable)");
     }
 
     /* Make sure we close the key even if there was an error storing
@@ -223,7 +223,7 @@ WIN32_StoreKey(const char *key, DWORD type, unsigned char *value,
     rv = RegCloseKey(hKey);
 
     if (rv != ERROR_SUCCESS) {
-        fprintf(stderr, "RegCloseKey HKLM\\%s, %d\n", REGKEY, (int) rv);
+        fprintf(stderr, "RegCloseKey HKLM\\%s, %d\n", REGKEY, (int)rv);
 
         if (retval == 0) {
             /* Keep error status from RegQueryValueEx, if any */
@@ -235,14 +235,15 @@ WIN32_StoreKey(const char *key, DWORD type, unsigned char *value,
 }
 
 /* Build argv, argc from string passed from Windows.  */
-static void WIN32_build_argv(char *cmd)
+static void
+WIN32_build_argv(char *cmd)
 {
     int argvlen = 0;
     char *word;
 
     WIN32_argc = 1;
-    WIN32_argv = (char **) xmalloc ((WIN32_argc+1) * sizeof (char *));
-    WIN32_argv[0]=xstrdup(WIN32_module_name);
+    WIN32_argv = (char **)xmalloc((WIN32_argc + 1) * sizeof(char *));
+    WIN32_argv[0] = xstrdup(WIN32_module_name);
     /* Scan command line until there is nothing left. */
 
     while (*cmd) {
@@ -257,19 +258,19 @@ static void WIN32_build_argv(char *cmd)
         word = cmd;
 
         while (*cmd) {
-            ++cmd;      /* Skip over this character */
+            ++cmd; /* Skip over this character */
 
             if (xisspace(*cmd)) /* End of argument if space */
                 break;
         }
 
         if (*cmd)
-            *cmd++ = '\0';      /* Terminate `word' */
+            *cmd++ = '\0'; /* Terminate `word' */
 
         /* See if we need to allocate more space for argv */
         if (WIN32_argc >= argvlen) {
             argvlen = WIN32_argc + 1;
-            WIN32_argv = (char **) xrealloc (WIN32_argv, (1 + argvlen) * sizeof (char *));
+            WIN32_argv = (char **)xrealloc(WIN32_argv, (1 + argvlen) * sizeof(char *));
         }
 
         /* Add word to argv file. */
@@ -295,9 +296,9 @@ GetOSVersion()
 
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 
-    if (!(bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) & osvi))) {
+    if (!(bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi))) {
         osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        if (!GetVersionEx((OSVERSIONINFO *) & osvi))
+        if (!GetVersionEx((OSVERSIONINFO *)&osvi))
             goto GetVerError;
     }
     switch (osvi.dwPlatformId) {
@@ -423,7 +424,7 @@ WIN32_IpAddrChangeMonitor(LPVOID lpParam)
 
     if ((IPHLPAPIHandle = GetModuleHandle("IPHLPAPI")) == NULL)
         IPHLPAPIHandle = LoadLibrary("IPHLPAPI");
-    NotifyAddrChange = (PFNotifyAddrChange) GetProcAddress(IPHLPAPIHandle, NOTIFYADDRCHANGE);
+    NotifyAddrChange = (PFNotifyAddrChange)GetProcAddress(IPHLPAPIHandle, NOTIFYADDRCHANGE);
 
     while (1) {
         Result = NotifyAddrChange(NULL, NULL);
@@ -456,7 +457,8 @@ WIN32_IpAddrChangeMonitorInit()
     return status;
 }
 
-int WIN32_Subsystem_Init(int * argc, char *** argv)
+int
+WIN32_Subsystem_Init(int *argc, char ***argv)
 {
 #if defined(_MSC_VER) /* Microsoft C Compiler ONLY */
     _invalid_parameter_handler oldHandler, newHandler;
@@ -497,7 +499,7 @@ int WIN32_Subsystem_Init(int * argc, char *** argv)
         /* Set Process work dir to directory containing squid.exe */
         GetModuleFileName(NULL, path, 512);
 
-        WIN32_module_name=xstrdup(path);
+        WIN32_module_name = xstrdup(path);
 
         path[strlen(path) - 10] = '\0';
 
@@ -543,8 +545,7 @@ int WIN32_Subsystem_Init(int * argc, char *** argv)
         /* Set Service Status to SERVICE_START_PENDING */
         svcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
         svcStatus.dwCurrentState = SERVICE_START_PENDING;
-        svcStatus.dwControlsAccepted =
-            SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
+        svcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
         svcStatus.dwWin32ExitCode = 0;
         svcStatus.dwServiceSpecificExitCode = 0;
         svcStatus.dwCheckPoint = 0;
@@ -552,7 +553,6 @@ int WIN32_Subsystem_Init(int * argc, char *** argv)
         SetServiceStatus(svcHandle, &svcStatus);
 
         _setmaxstdio(Squid_MaxFD);
-
     }
 
 #endif /* USE_WIN32_SERVICE */
@@ -653,15 +653,15 @@ WIN32_RemoveService()
     if (service_name.isEmpty())
         service_name = SBuf(APP_SHORTNAME);
 
-    const char *service =  service_name.c_str();
+    const char *service = service_name.c_str();
     strcat(REGKEY, service);
 
-    keys[4] = const_cast<char*>(service);
+    keys[4] = const_cast<char *>(service);
 
-    schSCManager = OpenSCManager(NULL,  /* machine (NULL == local)    */
-                                 NULL,          /* database (NULL == default) */
-                                 SC_MANAGER_ALL_ACCESS  /* access required            */
-                                );
+    schSCManager = OpenSCManager(NULL,                 /* machine (NULL == local)    */
+                                 NULL,                 /* database (NULL == default) */
+                                 SC_MANAGER_ALL_ACCESS /* access required            */
+    );
 
     if (!schSCManager)
         fprintf(stderr, "OpenSCManager failed\n");
@@ -709,10 +709,10 @@ WIN32_SetServiceCommandLine()
     const char *service = service_name.c_str();
     strcat(REGKEY, service);
 
-    keys[4] = const_cast<char*>(service);
+    keys[4] = const_cast<char *>(service);
 
     /* Now store the Service Command Line in the registry */
-    WIN32_StoreKey(COMMANDLINE, REG_SZ, (unsigned char *) WIN32_Command_Line, strlen(WIN32_Command_Line) + 1);
+    WIN32_StoreKey(COMMANDLINE, REG_SZ, (unsigned char *)WIN32_Command_Line, strlen(WIN32_Command_Line) + 1);
 }
 
 void
@@ -730,7 +730,7 @@ WIN32_InstallService()
     const char *service = service_name.c_str();
     strcat(REGKEY, service);
 
-    keys[4] = const_cast<char*>(service);
+    keys[4] = const_cast<char *>(service);
 
     if ((lenpath = GetModuleFileName(NULL, ServicePath, 512)) == 0) {
         fprintf(stderr, "Can't get executable path\n");
@@ -738,28 +738,28 @@ WIN32_InstallService()
     }
 
     snprintf(szPath, sizeof(szPath), "%s %s:" SQUIDSBUFPH, ServicePath, _WIN_SQUID_SERVICE_OPTION, SQUIDSBUFPRINT(service_name));
-    schSCManager = OpenSCManager(NULL,  /* machine (NULL == local)    */
-                                 NULL,          /* database (NULL == default) */
-                                 SC_MANAGER_ALL_ACCESS  /* access required            */
-                                );
+    schSCManager = OpenSCManager(NULL,                 /* machine (NULL == local)    */
+                                 NULL,                 /* database (NULL == default) */
+                                 SC_MANAGER_ALL_ACCESS /* access required            */
+    );
 
     if (!schSCManager) {
         fprintf(stderr, "OpenSCManager failed\n");
         exit(EXIT_FAILURE);
     } else {
-        schService = CreateService(schSCManager,    /* SCManager database     */
-                                   service,             /* name of service        */
-                                   service,             /* name to display        */
-                                   SERVICE_ALL_ACCESS,              /* desired access         */
-                                   SERVICE_WIN32_OWN_PROCESS,           /* service type           */
-                                   SERVICE_AUTO_START,              /* start type             */
-                                   SERVICE_ERROR_NORMAL,            /* error control type     */
-                                   (const char *) szPath,           /* service's binary       */
-                                   NULL,                    /* no load ordering group */
-                                   NULL,                    /* no tag identifier      */
-                                   "Tcpip\0AFD\0",              /* dependencies           */
-                                   NULL,                    /* LocalSystem account    */
-                                   NULL);                   /* no password            */
+        schService = CreateService(schSCManager,              /* SCManager database     */
+                                   service,                   /* name of service        */
+                                   service,                   /* name to display        */
+                                   SERVICE_ALL_ACCESS,        /* desired access         */
+                                   SERVICE_WIN32_OWN_PROCESS, /* service type           */
+                                   SERVICE_AUTO_START,        /* start type             */
+                                   SERVICE_ERROR_NORMAL,      /* error control type     */
+                                   (const char *)szPath,      /* service's binary       */
+                                   NULL,                      /* no load ordering group */
+                                   NULL,                      /* no tag identifier      */
+                                   "Tcpip\0AFD\0",            /* dependencies           */
+                                   NULL,                      /* LocalSystem account    */
+                                   NULL);                     /* no password            */
 
         if (schService) {
             if (WIN32_OS_version > _WIN_OS_WINNT) {
@@ -768,7 +768,7 @@ WIN32_InstallService()
                 DWORD dwInfoLevel = SERVICE_CONFIG_DESCRIPTION;
 
                 ADVAPI32Handle = GetModuleHandle("advapi32");
-                ChangeServiceConfig2 = (PFChangeServiceConfig2) GetProcAddress(ADVAPI32Handle, CHANGESERVICECONFIG2);
+                ChangeServiceConfig2 = (PFChangeServiceConfig2)GetProcAddress(ADVAPI32Handle, CHANGESERVICECONFIG2);
                 ChangeServiceConfig2(schService, dwInfoLevel, &Squid_ServiceDescription);
                 dwInfoLevel = SERVICE_CONFIG_FAILURE_ACTIONS;
                 ChangeServiceConfig2(schService, dwInfoLevel, &Squid_ServiceFailureActions);
@@ -780,7 +780,7 @@ WIN32_InstallService()
             if (!ConfigFile)
                 ConfigFile = xstrdup(DEFAULT_CONFIG_FILE);
 
-            WIN32_StoreKey(CONFIGFILE, REG_SZ, (unsigned char *) ConfigFile, strlen(ConfigFile) + 1);
+            WIN32_StoreKey(CONFIGFILE, REG_SZ, (unsigned char *)ConfigFile, strlen(ConfigFile) + 1);
 
             printf("Squid Cache version %s for %s\n", version_string, CONFIG_HOST_TYPE);
             printf("installed successfully as " SQUIDSBUFPH " Windows System Service.\n", SQUIDSBUFPRINT(service_name));
@@ -806,10 +806,10 @@ WIN32_sendSignal(int WIN32_signal)
     if (service_name.isEmpty())
         service_name = SBuf(APP_SHORTNAME);
 
-    schSCManager = OpenSCManager(NULL,  /* machine (NULL == local)    */
-                                 NULL,          /* database (NULL == default) */
-                                 SC_MANAGER_ALL_ACCESS  /* access required            */
-                                );
+    schSCManager = OpenSCManager(NULL,                 /* machine (NULL == local)    */
+                                 NULL,                 /* database (NULL == default) */
+                                 SC_MANAGER_ALL_ACCESS /* access required            */
+    );
 
     if (!schSCManager) {
         fprintf(stderr, "OpenSCManager failed\n");
@@ -819,7 +819,7 @@ WIN32_sendSignal(int WIN32_signal)
     /* The required service object access depends on the control. */
     switch (WIN32_signal) {
 
-    case 0:         /* SIGNULL */
+    case 0: /* SIGNULL */
         fdwAccess = SERVICE_INTERROGATE;
         fdwControl = _WIN_SQUID_SERVICE_CONTROL_INTERROGATE;
         break;
@@ -856,9 +856,9 @@ WIN32_sendSignal(int WIN32_signal)
     }
 
     /* Open a handle to the service. */
-    schService = OpenService(schSCManager,  /* SCManager database */
-                             service_name.c_str(),  /* name of service    */
-                             fdwAccess);        /* specify access     */
+    schService = OpenService(schSCManager,         /* SCManager database */
+                             service_name.c_str(), /* name of service    */
+                             fdwAccess);           /* specify access     */
 
     if (schService == NULL) {
         fprintf(stderr, "%s: ERROR: Could not open Service " SQUIDSBUFPH "\n", APP_SHORTNAME, SQUIDSBUFPRINT(service_name));
@@ -866,9 +866,9 @@ WIN32_sendSignal(int WIN32_signal)
     } else {
         /* Send a control value to the service. */
 
-        if (!ControlService(schService, /* handle of service      */
-                            fdwControl, /* control value to send  */
-                            &ssStatus)) {   /* address of status info */
+        if (!ControlService(schService,   /* handle of service      */
+                            fdwControl,   /* control value to send  */
+                            &ssStatus)) { /* address of status info */
             fprintf(stderr, "%s: ERROR: Could not Control Service " SQUIDSBUFPH "\n",
                     APP_SHORTNAME, SQUIDSBUFPRINT(service_name));
             exit(EXIT_FAILURE);
@@ -891,31 +891,31 @@ WIN32_sendSignal(int WIN32_signal)
     CloseServiceHandle(schSCManager);
 }
 
-int WIN32_StartService(int argc, char **argv)
+int
+WIN32_StartService(int argc, char **argv)
 {
     SERVICE_TABLE_ENTRY DispatchTable[] = {
         {NULL, SquidWinSvcMain},
-        {NULL, NULL}
-    };
+        {NULL, NULL}};
     char *c;
     char stderr_path[256];
 
     strcpy(stderr_path, argv[0]);
-    strcat(stderr_path,".log");
+    strcat(stderr_path, ".log");
     freopen(stderr_path, "w", stderr);
     setmode(fileno(stderr), O_TEXT);
     WIN32_run_mode = _WIN_SQUID_RUN_MODE_SERVICE;
 
-    if (!(c=strchr(argv[1],':'))) {
+    if (!(c = strchr(argv[1], ':'))) {
         fprintf(stderr, "Bad Service Parameter: %s\n", argv[1]);
         return 1;
     }
 
-    service_name = SBuf(c+1);
+    service_name = SBuf(c + 1);
     const char *service = service_name.c_str();
-    DispatchTable[0].lpServiceName = const_cast<char*>(service);
+    DispatchTable[0].lpServiceName = const_cast<char *>(service);
     strcat(REGKEY, service);
-    keys[4] = const_cast<char*>(service);
+    keys[4] = const_cast<char *>(service);
 
     if (!StartServiceCtrlDispatcher(DispatchTable)) {
         fprintf(stderr, "StartServiceCtrlDispatcher error = %ld\n", GetLastError());
@@ -927,7 +927,8 @@ int WIN32_StartService(int argc, char **argv)
 
 #endif /* USE_WIN32_SERVICE */
 
-static int Win32SockInit(void)
+static int
+Win32SockInit(void)
 {
     int iVersionRequested;
     WSADATA wsaData;
@@ -943,21 +944,20 @@ static int Win32SockInit(void)
     /* s_iInitCount == 0. Do the initialization */
     iVersionRequested = MAKEWORD(2, 0);
 
-    err = WSAStartup((WORD) iVersionRequested, &wsaData);
+    err = WSAStartup((WORD)iVersionRequested, &wsaData);
 
     if (err) {
         s_iInitCount = -1;
         return (s_iInitCount);
     }
 
-    if (LOBYTE(wsaData.wVersion) != 2 ||
-            HIBYTE(wsaData.wVersion) != 0) {
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 0) {
         s_iInitCount = -2;
         WSACleanup();
         return (s_iInitCount);
     }
 
-    if (WIN32_OS_version !=_WIN_OS_WINNT) {
+    if (WIN32_OS_version != _WIN_OS_WINNT) {
         if (::getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, &optlen)) {
             s_iInitCount = -3;
             WSACleanup();
@@ -965,7 +965,7 @@ static int Win32SockInit(void)
         } else {
             opt = opt | SO_SYNCHRONOUS_NONALERT;
 
-            if (::setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen)) {
+            if (::setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, optlen)) {
                 s_iInitCount = -3;
                 WSACleanup();
                 return (s_iInitCount);
@@ -978,7 +978,8 @@ static int Win32SockInit(void)
     return (s_iInitCount);
 }
 
-static void Win32SockCleanup(void)
+static void
+Win32SockCleanup(void)
 {
     if (--s_iInitCount == 0)
         WSACleanup();
@@ -986,8 +987,8 @@ static void Win32SockCleanup(void)
     return;
 }
 
-void Squid_Win32InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, unsigned int line, uintptr_t pReserved)
+void
+Squid_Win32InvalidParameterHandler(const wchar_t *expression, const wchar_t *function, const wchar_t *file, unsigned int line, uintptr_t pReserved)
 {
     return;
 }
-

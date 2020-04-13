@@ -32,23 +32,43 @@
 // Define the problem functions as needed
 #if defined(fgetpos)
 #undef fgetpos
-inline int fgetpos(FILE *f, fpos64_t *p) { return fgetpos64(f,p); }
+inline int
+fgetpos(FILE *f, fpos64_t *p)
+{
+    return fgetpos64(f, p);
+}
 #endif
 #if defined(fopen)
 #undef fopen
-inline FILE * fopen(const char *f, const char *m) { return fopen64(f,m); }
+inline FILE *
+fopen(const char *f, const char *m)
+{
+    return fopen64(f, m);
+}
 #endif
 #if defined(freopen)
 #undef freopen
-inline FILE * freopen(const char *f, const char *m, FILE *s) { return freopen64(f,m,s); }
+inline FILE *
+freopen(const char *f, const char *m, FILE *s)
+{
+    return freopen64(f, m, s);
+}
 #endif
 #if defined(fsetpos)
 #undef fsetpos
-inline int fsetpos(FILE *f, fpos64_t *p) { return fsetpos64(f,p); }
+inline int
+fsetpos(FILE *f, fpos64_t *p)
+{
+    return fsetpos64(f, p);
+}
 #endif
 #if defined(tmpfile)
 #undef tmpfile
-inline FILE * tmpfile(void) { return tmpfile64(); }
+inline FILE *
+tmpfile(void)
+{
+    return tmpfile64();
+}
 #endif
 
 #endif /* __USE_FILE_OFFSET64 && !__REDIRECT */
@@ -63,4 +83,3 @@ inline FILE * tmpfile(void) { return tmpfile64(); }
 #endif
 
 #endif /* _SQUID_COMPAT_STDIO_H */
-

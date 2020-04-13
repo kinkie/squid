@@ -11,9 +11,9 @@
 #include "squid.h"
 #include "DiskThreads.h"
 #include "DiskThreadsIOStrategy.h"
-#include "fde.h"
 #include "Generic.h"
 #include "Store.h"
+#include "fde.h"
 
 AIOCounts squidaio_counts;
 
@@ -26,7 +26,7 @@ typedef struct squidaio_unlinkq_t {
 dlink_list used_list;
 
 void
-aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data)
+aioOpen(const char *path, int oflag, mode_t mode, AIOCB *callback, void *callback_data)
 {
     squidaio_ctrl_t *ctrlp;
 
@@ -104,7 +104,7 @@ aioCancel(int fd)
 }
 
 void
-aioWrite(int fd, off_t offset, char *bufp, size_t len, AIOCB * callback, void *callback_data, FREE * free_func)
+aioWrite(int fd, off_t offset, char *bufp, size_t len, AIOCB *callback, void *callback_data, FREE *free_func)
 {
     squidaio_ctrl_t *ctrlp;
     int seekmode;
@@ -129,10 +129,10 @@ aioWrite(int fd, off_t offset, char *bufp, size_t len, AIOCB * callback, void *c
     ctrlp->result.data = ctrlp;
     squidaio_write(fd, bufp, len, offset, seekmode, &ctrlp->result);
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
-}               /* aioWrite */
+} /* aioWrite */
 
 void
-aioRead(int fd, off_t offset, size_t len, AIOCB * callback, void *callback_data)
+aioRead(int fd, off_t offset, size_t len, AIOCB *callback, void *callback_data)
 {
     squidaio_ctrl_t *ctrlp;
     int seekmode;
@@ -158,11 +158,11 @@ aioRead(int fd, off_t offset, size_t len, AIOCB * callback, void *callback_data)
     squidaio_read(fd, ctrlp->bufp, len, offset, seekmode, &ctrlp->result);
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
     return;
-}               /* aioRead */
+} /* aioRead */
 
 void
 
-aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
+aioStat(char *path, struct stat *sb, AIOCB *callback, void *callback_data)
 {
     squidaio_ctrl_t *ctrlp;
 
@@ -177,10 +177,10 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
     squidaio_stat(path, sb, &ctrlp->result);
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
     return;
-}               /* aioStat */
+} /* aioStat */
 
 void
-aioUnlink(const char *path, AIOCB * callback, void *callback_data)
+aioUnlink(const char *path, AIOCB *callback, void *callback_data)
 {
     squidaio_ctrl_t *ctrlp;
     assert(DiskThreadsIOStrategy::Instance.initialised);
@@ -193,11 +193,10 @@ aioUnlink(const char *path, AIOCB * callback, void *callback_data)
     ctrlp->result.data = ctrlp;
     squidaio_unlink(path, &ctrlp->result);
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
-}               /* aioUnlink */
+} /* aioUnlink */
 
 int
 aioQueueSize(void)
 {
     return squidaio_ctrl_t::UseCount();
 }
-

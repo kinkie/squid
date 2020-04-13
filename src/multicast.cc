@@ -9,8 +9,8 @@
 /* DEBUG: section 07    Multicast */
 
 #include "squid.h"
-#include "comm/Connection.h"
 #include "Debug.h"
+#include "comm/Connection.h"
 // XXX: for icpIncomingConn - need to pass it as a generic parameter.
 #include "ICP.h"
 #include "ipcache.h"
@@ -20,7 +20,7 @@ int
 mcastSetTtl(int fd, int mcast_ttl)
 {
 #ifdef IP_MULTICAST_TTL
-    char ttl = (char) mcast_ttl;
+    char ttl = (char)mcast_ttl;
 
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, 1) < 0) {
         int xerrno = errno;
@@ -42,7 +42,7 @@ mcastJoinGroups(const ipcache_addrs *ia, const Dns::LookupDetails &, void *)
         return;
     }
 
-    for (const auto ip: ia->goodAndBad()) { // TODO: Consider using just good().
+    for (const auto ip : ia->goodAndBad()) {  // TODO: Consider using just good().
         debugs(7, 9, "Listening for ICP requests on " << ip);
 
         if (!ip.isIPv4()) {
@@ -54,7 +54,7 @@ mcastJoinGroups(const ipcache_addrs *ia, const Dns::LookupDetails &, void *)
 
         mr.imr_interface.s_addr = INADDR_ANY;
 
-        if (setsockopt(icpIncomingConn->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &mr, sizeof(struct ip_mreq)) < 0)
+        if (setsockopt(icpIncomingConn->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mr, sizeof(struct ip_mreq)) < 0)
             debugs(7, DBG_IMPORTANT, "ERROR: Join failed for " << icpIncomingConn << ", Multicast IP=" << ip);
 
         char c = 0;
@@ -66,4 +66,3 @@ mcastJoinGroups(const ipcache_addrs *ia, const Dns::LookupDetails &, void *)
 
 #endif
 }
-

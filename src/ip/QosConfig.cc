@@ -7,17 +7,17 @@
  */
 
 #include "squid.h"
+#include "ip/QosConfig.h"
+#include "ConfigParser.h"
+#include "Parsing.h"
 #include "acl/Gadgets.h"
 #include "cache_cf.h"
 #include "comm/Connection.h"
 #include "compat/cmsg.h"
-#include "ConfigParser.h"
 #include "fde.h"
 #include "globals.h"
 #include "hier_code.h"
-#include "ip/QosConfig.h"
 #include "ip/tools.h"
-#include "Parsing.h"
 
 #include <cerrno>
 
@@ -45,22 +45,22 @@ Ip::Qos::getTosFromServer(const Comm::ConnectionPointer &server, fde *clientFde)
     tos_t tos = 1;
     int tos_len = sizeof(tos);
     clientFde->tosFromServer = 0;
-    if (setsockopt(server->fd,SOL_IP,IP_RECVTOS,&tos,tos_len)==0) {
+    if (setsockopt(server->fd, SOL_IP, IP_RECVTOS, &tos, tos_len) == 0) {
         unsigned char buf[512];
         int len = 512;
-        if (getsockopt(server->fd,SOL_IP,IP_PKTOPTIONS,buf,(socklen_t*)&len) == 0) {
+        if (getsockopt(server->fd, SOL_IP, IP_PKTOPTIONS, buf, (socklen_t *)&len) == 0) {
             /* Parse the PKTOPTIONS structure to locate the TOS data message
              * prepared in the kernel by the ZPH incoming TCP TOS preserving
              * patch.
              */
-            unsigned char * pbuf = buf;
-            while (pbuf-buf < len) {
-                struct cmsghdr *o = (struct cmsghdr*)pbuf;
-                if (o->cmsg_len<=0)
+            unsigned char *pbuf = buf;
+            while (pbuf - buf < len) {
+                struct cmsghdr *o = (struct cmsghdr *)pbuf;
+                if (o->cmsg_len <= 0)
                     break;
 
                 if (o->cmsg_level == SOL_IP && o->cmsg_type == IP_TOS) {
-                    int *tmp = (int*)SQUID_CMSG_DATA(o);
+                    int *tmp = (int *)SQUID_CMSG_DATA(o);
                     clientFde->tosFromServer = (tos_t)*tmp;
                     break;
                 }
@@ -154,8 +154,7 @@ Ip::Qos::getNfConnmark(const Comm::ConnectionPointer &conn, const Ip::Qos::Conne
             int x = nfct_query(h, NFCT_Q_GET, ct);
             if (x == -1) {
                 const int xerrno = errno;
-                debugs(17, 2, "QOS: Failed to retrieve connection mark: (" << x << ") " << xstrerr(xerrno)
-                       << " (Destination " << dst << ", source " << src << ")" );
+                debugs(17, 2, "QOS: Failed to retrieve connection mark: (" << x << ") " << xstrerr(xerrno) << " (Destination " << dst << ", source " << src << ")");
             }
             nfct_close(h);
         } else {
@@ -195,8 +194,7 @@ Ip::Qos::setNfConnmark(Comm::ConnectionPointer &conn, const Ip::Qos::ConnectionD
                 ret = true;
             } else {
                 const int xerrno = errno;
-                debugs(17, 2, "QOS: Failed to modify connection mark: (" << queryResult << ") " << xstrerr(xerrno)
-                       << " (Destination " << dst << ", source " << src << ")" );
+                debugs(17, 2, "QOS: Failed to modify connection mark: (" << queryResult << ") " << xstrerr(xerrno) << " (Destination " << dst << ", source " << src << ")");
             }
             nfct_close(h);
         } else {
@@ -214,10 +212,10 @@ int
 Ip::Qos::doTosLocalMiss(const Comm::ConnectionPointer &conn, const hier_code hierCode)
 {
     tos_t tos = 0;
-    if (Ip::Qos::TheConfig.tosSiblingHit && hierCode==SIBLING_HIT) {
+    if (Ip::Qos::TheConfig.tosSiblingHit && hierCode == SIBLING_HIT) {
         tos = Ip::Qos::TheConfig.tosSiblingHit;
         debugs(33, 2, "QOS: Sibling Peer hit with hier code=" << hierCode << ", TOS=" << int(tos));
-    } else if (Ip::Qos::TheConfig.tosParentHit && hierCode==PARENT_HIT) {
+    } else if (Ip::Qos::TheConfig.tosParentHit && hierCode == PARENT_HIT) {
         tos = Ip::Qos::TheConfig.tosParentHit;
         debugs(33, 2, "QOS: Parent Peer hit with hier code=" << hierCode << ", TOS=" << int(tos));
     } else if (Ip::Qos::TheConfig.preserveMissTos) {
@@ -235,10 +233,10 @@ int
 Ip::Qos::doNfmarkLocalMiss(const Comm::ConnectionPointer &conn, const hier_code hierCode)
 {
     nfmark_t mark = 0;
-    if (Ip::Qos::TheConfig.markSiblingHit && hierCode==SIBLING_HIT) {
+    if (Ip::Qos::TheConfig.markSiblingHit && hierCode == SIBLING_HIT) {
         mark = Ip::Qos::TheConfig.markSiblingHit;
         debugs(33, 2, "QOS: Sibling Peer hit with hier code=" << hierCode << ", Mark=" << mark);
-    } else if (Ip::Qos::TheConfig.markParentHit && hierCode==PARENT_HIT) {
+    } else if (Ip::Qos::TheConfig.markParentHit && hierCode == PARENT_HIT) {
         mark = Ip::Qos::TheConfig.markParentHit;
         debugs(33, 2, "QOS: Parent Peer hit with hier code=" << hierCode << ", Mark=" << mark);
     } else if (Ip::Qos::TheConfig.preserveMissMark) {
@@ -270,7 +268,8 @@ Ip::Qos::doNfmarkLocalHit(const Comm::ConnectionPointer &conn)
 
 Ip::Qos::Config Ip::Qos::TheConfig;
 
-Ip::Qos::Config::Config() : tosLocalHit(0), tosSiblingHit(0), tosParentHit(0),
+Ip::Qos::Config::Config() :
+    tosLocalHit(0), tosSiblingHit(0), tosParentHit(0),
     tosMiss(0), tosMissMask(0), preserveMissTos(false),
     preserveMissTosMask(0xFF), markLocalHit(0), markSiblingHit(0),
     markParentHit(0), markMiss(0), markMissMask(0),
@@ -295,31 +294,31 @@ Ip::Qos::Config::parseConfigLine()
     self_destruct();
 #endif
 
-    while ( (token = ConfigParser::NextToken()) ) {
+    while ((token = ConfigParser::NextToken())) {
 
         // Work out TOS or mark. Default to TOS for backwards compatibility
         if (!(mark || tos)) {
-            if (strncmp(token, "mark",4) == 0) {
+            if (strncmp(token, "mark", 4) == 0) {
 #if SO_MARK && USE_LIBCAP
                 mark = true;
                 // Assume preserve is true. We don't set at initialisation as this affects isHitNfmarkActive()
 #if USE_LIBNETFILTERCONNTRACK
                 preserveMissMark = true;
-# else // USE_LIBNETFILTERCONNTRACK
+#else          // USE_LIBNETFILTERCONNTRACK
                 preserveMissMark = false;
                 debugs(3, DBG_IMPORTANT, "WARNING: Squid not compiled with Netfilter conntrack library. "
-                       << "Netfilter mark preservation not available.");
-#endif // USE_LIBNETFILTERCONNTRACK
-#elif SO_MARK // SO_MARK && USE_LIBCAP
+                           << "Netfilter mark preservation not available.");
+#endif         // USE_LIBNETFILTERCONNTRACK
+#elif SO_MARK  // SO_MARK && USE_LIBCAP
                 debugs(3, DBG_CRITICAL, "ERROR: Invalid parameter 'mark' in qos_flows option. "
-                       << "Linux Netfilter marking not available without LIBCAP support.");
+                           << "Linux Netfilter marking not available without LIBCAP support.");
                 self_destruct();
-#else // SO_MARK && USE_LIBCAP
+#else          // SO_MARK && USE_LIBCAP
                 debugs(3, DBG_CRITICAL, "ERROR: Invalid parameter 'mark' in qos_flows option. "
-                       << "Linux Netfilter marking not available on this platform.");
+                           << "Linux Netfilter marking not available on this platform.");
                 self_destruct();
-#endif // SO_MARK && USE_LIBCAP
-            } else if (strncmp(token, "tos",3) == 0) {
+#endif         // SO_MARK && USE_LIBCAP
+            } else if (strncmp(token, "tos", 3) == 0) {
                 preserveMissTos = true;
                 tos = true;
             } else {
@@ -328,7 +327,7 @@ Ip::Qos::Config::parseConfigLine()
             }
         }
 
-        if (strncmp(token, "local-hit=",10) == 0) {
+        if (strncmp(token, "local-hit=", 10) == 0) {
 
             if (mark) {
                 if (!xstrtoui(&token[10], NULL, &markLocalHit, 0, std::numeric_limits<nfmark_t>::max())) {
@@ -344,7 +343,7 @@ Ip::Qos::Config::parseConfigLine()
                 tosLocalHit = (tos_t)v;
             }
 
-        } else if (strncmp(token, "sibling-hit=",12) == 0) {
+        } else if (strncmp(token, "sibling-hit=", 12) == 0) {
 
             if (mark) {
                 if (!xstrtoui(&token[12], NULL, &markSiblingHit, 0, std::numeric_limits<nfmark_t>::max())) {
@@ -360,7 +359,7 @@ Ip::Qos::Config::parseConfigLine()
                 tosSiblingHit = (tos_t)v;
             }
 
-        } else if (strncmp(token, "parent-hit=",11) == 0) {
+        } else if (strncmp(token, "parent-hit=", 11) == 0) {
 
             if (mark) {
                 if (!xstrtoui(&token[11], NULL, &markParentHit, 0, std::numeric_limits<nfmark_t>::max())) {
@@ -376,7 +375,7 @@ Ip::Qos::Config::parseConfigLine()
                 tosParentHit = (tos_t)v;
             }
 
-        } else if (strncmp(token, "miss=",5) == 0) {
+        } else if (strncmp(token, "miss=", 5) == 0) {
 
             char *end;
             if (mark) {
@@ -412,7 +411,7 @@ Ip::Qos::Config::parseConfigLine()
 
         } else if (strcmp(token, "disable-preserve-miss") == 0) {
 
-            if (preserveMissTosMask!=0xFFU || preserveMissMarkMask!=0xFFFFFFFFU) {
+            if (preserveMissTosMask != 0xFFU || preserveMissMarkMask != 0xFFFFFFFFU) {
                 debugs(3, DBG_CRITICAL, "ERROR: miss-mask feature cannot be set with disable-preserve-miss");
                 self_destruct();
             }
@@ -424,7 +423,7 @@ Ip::Qos::Config::parseConfigLine()
                 preserveMissTosMask = 0;
             }
 
-        } else if (strncmp(token, "miss-mask=",10) == 0) {
+        } else if (strncmp(token, "miss-mask=", 10) == 0) {
 
             if (mark && preserveMissMark) {
                 if (!xstrtoui(&token[10], NULL, &preserveMissMarkMask, 0, std::numeric_limits<nfmark_t>::max())) {
@@ -442,7 +441,6 @@ Ip::Qos::Config::parseConfigLine()
                 debugs(3, DBG_CRITICAL, "ERROR: miss-mask feature cannot be set without miss-preservation enabled");
                 self_destruct();
             }
-
         }
     }
 }
@@ -458,7 +456,7 @@ Ip::Qos::Config::dumpConfigLine(char *entry, const char *name) const
     char *p = entry;
     if (isHitTosActive()) {
 
-        p += snprintf(p, 11, "%s", name); // strlen("qos_flows ");
+        p += snprintf(p, 11, "%s", name);  // strlen("qos_flows ");
         p += snprintf(p, 4, "%s", "tos");
 
         if (tosLocalHit > 0) {
@@ -472,7 +470,7 @@ Ip::Qos::Config::dumpConfigLine(char *entry, const char *name) const
         }
         if (tosMiss > 0) {
             p += snprintf(p, 11, " miss=0x%02X", tosMiss);
-            if (tosMissMask!=0xFFU) {
+            if (tosMissMask != 0xFFU) {
                 p += snprintf(p, 6, "/0x%02X", tosMissMask);
             }
         }
@@ -486,7 +484,7 @@ Ip::Qos::Config::dumpConfigLine(char *entry, const char *name) const
     }
 
     if (isHitNfmarkActive()) {
-        p += snprintf(p, 11, "%s", name); // strlen("qos_flows ");
+        p += snprintf(p, 11, "%s", name);  // strlen("qos_flows ");
         p += snprintf(p, 5, "%s", "mark");
 
         if (markLocalHit > 0) {
@@ -500,7 +498,7 @@ Ip::Qos::Config::dumpConfigLine(char *entry, const char *name) const
         }
         if (markMiss > 0) {
             p += snprintf(p, 17, " miss=0x%02X", markMiss);
-            if (markMissMask!=0xFFFFFFFFU) {
+            if (markMissMask != 0xFFFFFFFFU) {
                 p += snprintf(p, 12, "/0x%02X", markMissMask);
             }
         }
@@ -537,7 +535,7 @@ Ip::Qos::setSockTos(const int fd, tos_t tos, int type)
         debugs(50, DBG_IMPORTANT, "WARNING: setsockopt(IP_TOS) not supported on this platform");
         return -1;
 #endif
-    } else { // type == AF_INET6
+    } else {  // type == AF_INET6
 #if defined(IPV6_TCLASS)
         const int x = setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &bTos, sizeof(bTos));
         if (x < 0) {
@@ -593,9 +591,9 @@ Ip::Qos::setSockNfmark(const Comm::ConnectionPointer &conn, nfmark_t mark)
 bool
 Ip::Qos::Config::isAclNfmarkActive() const
 {
-    acl_nfmark * nfmarkAcls [] = { nfmarkToServer, nfmarkToClient };
+    acl_nfmark *nfmarkAcls[] = {nfmarkToServer, nfmarkToClient};
 
-    for (int i=0; i<2; ++i) {
+    for (int i = 0; i < 2; ++i) {
         while (nfmarkAcls[i]) {
             acl_nfmark *l = nfmarkAcls[i];
             if (!l->markConfig.isEmpty())
@@ -610,9 +608,9 @@ Ip::Qos::Config::isAclNfmarkActive() const
 bool
 Ip::Qos::Config::isAclTosActive() const
 {
-    acl_tos * tosAcls [] = { tosToServer, tosToClient };
+    acl_tos *tosAcls[] = {tosToServer, tosToClient};
 
-    for (int i=0; i<2; ++i) {
+    for (int i = 0; i < 2; ++i) {
         while (tosAcls[i]) {
             acl_tos *l = tosAcls[i];
             if (l->tos > 0)
@@ -623,4 +621,3 @@ Ip::Qos::Config::isAclTosActive() const
 
     return false;
 }
-

@@ -17,7 +17,7 @@
 
 template <>
 inline int
-ACLReplyHeaderStrategy<Http::HdrType::CONTENT_TYPE>::match(ACLData<char const *> * &data, ACLFilledChecklist *checklist)
+ACLReplyHeaderStrategy<Http::HdrType::CONTENT_TYPE>::match(ACLData<char const *> *&data, ACLFilledChecklist *checklist)
 {
     char const *theHeader = checklist->reply->header.getStr(Http::HdrType::CONTENT_TYPE);
 
@@ -28,4 +28,3 @@ ACLReplyHeaderStrategy<Http::HdrType::CONTENT_TYPE>::match(ACLData<char const *>
 }
 
 #endif /* SQUID_ACLREPLYMIMETYPE_H */
-

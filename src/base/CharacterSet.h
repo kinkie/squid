@@ -20,7 +20,7 @@ public:
     typedef std::vector<uint8_t> Storage;
 
     /// a character set with a given label and contents
-    explicit CharacterSet(const char *label = "anonymous", const char * const chars = "");
+    explicit CharacterSet(const char *label = "anonymous", const char *const chars = "");
 
     /// define a character set with the given label ("anonymous" if nullptr)
     ///  containing characters defined in the supplied ranges
@@ -30,43 +30,47 @@ public:
     /// define a character set with the given label ("anonymous" if nullptr)
     ///  containing characters defined in the supplied list of low-high ranges
     /// \see addRange
-    CharacterSet(const char *label, std::initializer_list<std::pair<uint8_t,uint8_t>> ranges);
+    CharacterSet(const char *label, std::initializer_list<std::pair<uint8_t, uint8_t>> ranges);
 
     /// whether the set lacks any members
     bool isEmpty() const { return chars_.empty(); }
 
     /// whether a given character exists in the set
-    bool operator[](unsigned char c) const {return chars_[static_cast<uint8_t>(c)] != 0;}
+    bool operator[](unsigned char c) const { return chars_[static_cast<uint8_t>(c)] != 0; }
 
     /// add a given character to the character set
-    CharacterSet & add(const unsigned char c);
+    CharacterSet &add(const unsigned char c);
 
     /// add a list of character ranges, expressed as pairs [low,high], including both ends
-    CharacterSet & addRange(unsigned char low, unsigned char high);
+    CharacterSet &addRange(unsigned char low, unsigned char high);
 
     /// set addition: add to this set all characters that are also in rhs
-    CharacterSet &operator +=(const CharacterSet &rhs);
+    CharacterSet &operator+=(const CharacterSet &rhs);
 
     /// set subtraction: remove all characters that are also in rhs
-    CharacterSet &operator -=(const CharacterSet &rhs);
+    CharacterSet &operator-=(const CharacterSet &rhs);
 
     /// return a new CharacterSet containing characters not in this set
     ///  use the supplied label if provided, default is "complement_of_some_other_set"
     CharacterSet complement(const char *complementLabel = nullptr) const;
 
     /// change name; handy in const declarations that use operators
-    CharacterSet &rename(const char *label) { name = label; return *this; }
+    CharacterSet &rename(const char *label)
+    {
+        name = label;
+        return *this;
+    }
 
     /// \note Ignores label
-    bool operator == (const CharacterSet &cs) const { return chars_ == cs.chars_; }
+    bool operator==(const CharacterSet &cs) const { return chars_ == cs.chars_; }
     /// \note Ignores label
-    bool operator != (const CharacterSet &cs) const { return !operator==(cs); }
+    bool operator!=(const CharacterSet &cs) const { return !operator==(cs); }
 
     /// prints all chars in arbitrary order, without any quoting/escaping
     void printChars(std::ostream &os) const;
 
     /// optional set label for debugging (default: "anonymous")
-    const char * name;
+    const char *name;
 
     // common character sets, RFC 5234
     // A-Za-z
@@ -130,7 +134,7 @@ private:
  *  and rhs, labeled as lhs is
  */
 CharacterSet
-operator+ (CharacterSet lhs, const CharacterSet &rhs);
+operator+(CharacterSet lhs, const CharacterSet &rhs);
 
 /** CharacterSet subtraction
  *
@@ -138,10 +142,9 @@ operator+ (CharacterSet lhs, const CharacterSet &rhs);
  *  and not present in rhs, labeled as lhs is
  */
 CharacterSet
-operator- (CharacterSet lhs, const CharacterSet &rhs);
+operator-(CharacterSet lhs, const CharacterSet &rhs);
 
-std::ostream&
-operator <<(std::ostream &, const CharacterSet &);
+std::ostream &
+operator<<(std::ostream &, const CharacterSet &);
 
 #endif /* _SQUID_SRC_PARSER_CHARACTERSET_H */
-

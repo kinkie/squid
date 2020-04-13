@@ -12,8 +12,8 @@
 #if USE_AUTH
 
 #include "AccessLogEntry.h"
-#include "auth/forward.h"
 #include "auth/UserRequest.h"
+#include "auth/forward.h"
 #include "helper/ChildConfig.h"
 
 class StoreEntry;
@@ -24,13 +24,11 @@ class wordlist;
 /* for Http::HdrType parameters-by-value */
 #include "HttpHeader.h"
 
-namespace Format
-{
+namespace Format {
 class Format;
 }
 
-namespace Auth
-{
+namespace Auth {
 
 /**
  * \ingroup AuthAPI
@@ -53,7 +51,8 @@ public:
     /// Call this method if you need a guarantee that all auth schemes has been
     /// already configured.
     static SchemeConfig *GetParsed(const char *proxy_auth);
-    SchemeConfig() : authenticateChildren(20) {}
+    SchemeConfig() :
+        authenticateChildren(20) {}
 
     virtual ~SchemeConfig() {}
 
@@ -122,15 +121,15 @@ public:
     virtual void parse(SchemeConfig *, int, char *);
 
     /** the http string id */
-    virtual const char * type() const = 0;
+    virtual const char *type() const = 0;
 
 public:
     Helper::ChildConfig authenticateChildren;
-    wordlist *authenticateProgram = nullptr; ///< Helper program to run, includes all parameters
-    String keyExtrasLine;  ///< The format of the request to the auth helper
-    Format::Format *keyExtras = nullptr; ///< The compiled request format
-    int keep_alive = 1; ///< whether to close the connection on auth challenges. default: on
-    int utf8 = 0; ///< whether to accept UTF-8 characterset instead of ASCII. default: off
+    wordlist *authenticateProgram = nullptr;  ///< Helper program to run, includes all parameters
+    String keyExtrasLine;                     ///< The format of the request to the auth helper
+    Format::Format *keyExtras = nullptr;      ///< The compiled request format
+    int keep_alive = 1;                       ///< whether to close the connection on auth challenges. default: on
+    int utf8 = 0;                             ///< whether to accept UTF-8 characterset instead of ASCII. default: off
 
 protected:
     /**
@@ -146,8 +145,7 @@ protected:
     SBuf realm;
 };
 
-} // namespace Auth
+}  // namespace Auth
 
 #endif /* USE_AUTH */
 #endif /* SQUID_SRC_AUTH_SCHEMECONFIG_H */
-

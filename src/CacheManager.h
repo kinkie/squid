@@ -32,27 +32,27 @@ class CacheManager
 public:
     typedef std::vector<Mgr::ActionProfilePointer> Menu;
 
-    void registerProfile(char const * action, char const * desc,
-                         OBJH * handler,
+    void registerProfile(char const *action, char const *desc,
+                         OBJH *handler,
                          int pw_req_flag, int atomic);
-    void registerProfile(char const * action, char const * desc,
+    void registerProfile(char const *action, char const *desc,
                          Mgr::ClassActionCreationHandler *handler,
                          int pw_req_flag, int atomic);
-    Mgr::ActionProfilePointer findAction(char const * action) const;
+    Mgr::ActionProfilePointer findAction(char const *action) const;
     Mgr::Action::Pointer createNamedAction(const char *actionName);
     Mgr::Action::Pointer createRequestedAction(const Mgr::ActionParams &);
-    const Menu& menu() const { return menu_; }
+    const Menu &menu() const { return menu_; }
 
     void start(const Comm::ConnectionPointer &client, HttpRequest *request, StoreEntry *entry, const AccessLogEntryPointer &ale);
 
-    static CacheManager* GetInstance();
+    static CacheManager *GetInstance();
     const char *ActionProtection(const Mgr::ActionProfilePointer &profile);
 
 protected:
-    CacheManager() {} ///< use Instance() instead
+    CacheManager() {}  ///< use Instance() instead
 
     Mgr::CommandPointer ParseUrl(const char *url);
-    void ParseHeaders(const HttpRequest * request, Mgr::ActionParams &params);
+    void ParseHeaders(const HttpRequest *request, Mgr::ActionParams &params);
     int CheckPassword(const Mgr::Command &cmd);
     char *PasswdGet(Mgr::ActionPasswordList *, const char *);
 
@@ -62,4 +62,3 @@ protected:
 };
 
 #endif /* SQUID_CACHEMANAGER_H */
-

@@ -11,19 +11,19 @@
 #include "squid.h"
 
 #if USE_POLL
+#include "ICP.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
+#include "StatCounters.h"
+#include "Store.h"
 #include "anyp/PortCfg.h"
 #include "comm/Connection.h"
 #include "comm/Loops.h"
 #include "fd.h"
 #include "fde.h"
 #include "globals.h"
-#include "ICP.h"
 #include "mgr/Registration.h"
 #include "profiler/Profiler.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
-#include "StatCounters.h"
-#include "Store.h"
 
 #include <cerrno>
 #if HAVE_POLL_H
@@ -40,16 +40,16 @@
 #endif
 #endif
 
-static int MAX_POLL_TIME = 1000;    /* see also Comm::QuickPollRequired() */
+static int MAX_POLL_TIME = 1000; /* see also Comm::QuickPollRequired() */
 
-#ifndef        howmany
-#define howmany(x, y)   (((x)+((y)-1))/(y))
+#ifndef howmany
+#define howmany(x, y) (((x) + ((y)-1)) / (y))
 #endif
-#ifndef        NBBY
-#define        NBBY    8
+#ifndef NBBY
+#define NBBY 8
 #endif
 #define FD_MASK_BYTES sizeof(fd_mask)
-#define FD_MASK_BITS (FD_MASK_BYTES*NBBY)
+#define FD_MASK_BITS (FD_MASK_BYTES * NBBY)
 
 /* STATIC */
 static int fdIsTcpListen(int fd);
@@ -110,25 +110,23 @@ static void comm_poll_dns_incoming(void);
 #define MAX_INCOMING_INTEGER 256
 #define INCOMING_FACTOR 5
 #define MAX_INCOMING_INTERVAL (MAX_INCOMING_INTEGER << INCOMING_FACTOR)
-static int udp_io_events = 0; ///< I/O events passed since last UDP receiver socket poll
-static int dns_io_events = 0; ///< I/O events passed since last DNS socket poll
-static int tcp_io_events = 0; ///< I/O events passed since last TCP listening socket poll
+static int udp_io_events = 0;  ///< I/O events passed since last UDP receiver socket poll
+static int dns_io_events = 0;  ///< I/O events passed since last DNS socket poll
+static int tcp_io_events = 0;  ///< I/O events passed since last TCP listening socket poll
 static int incoming_udp_interval = 16 << INCOMING_FACTOR;
 static int incoming_dns_interval = 16 << INCOMING_FACTOR;
 static int incoming_tcp_interval = 16 << INCOMING_FACTOR;
-#define commCheckUdpIncoming (++udp_io_events > (incoming_udp_interval>> INCOMING_FACTOR))
-#define commCheckDnsIncoming (++dns_io_events > (incoming_dns_interval>> INCOMING_FACTOR))
-#define commCheckTcpIncoming (++tcp_io_events > (incoming_tcp_interval>> INCOMING_FACTOR))
+#define commCheckUdpIncoming (++udp_io_events > (incoming_udp_interval >> INCOMING_FACTOR))
+#define commCheckDnsIncoming (++dns_io_events > (incoming_dns_interval >> INCOMING_FACTOR))
+#define commCheckTcpIncoming (++tcp_io_events > (incoming_tcp_interval >> INCOMING_FACTOR))
 
 void
-Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+Comm::SetSelect(int fd, unsigned int type, PF *handler, void *client_data, time_t timeout)
 {
     fde *F = &fd_table[fd];
     assert(fd >= 0);
     assert(F->flags.open || (!handler && !client_data && !timeout));
-    debugs(5, 5, HERE << "FD " << fd << ", type=" << type <<
-           ", handler=" << handler << ", client_data=" << client_data <<
-           ", timeout=" << timeout);
+    debugs(5, 5, HERE << "FD " << fd << ", type=" << type << ", handler=" << handler << ", client_data=" << client_data << ", timeout=" << timeout);
 
     if (type & COMM_SELECT_READ) {
         F->read_handler = handler;
@@ -216,7 +214,7 @@ comm_check_incoming_poll_handlers(int nfds, int *fds)
     }
 
     getCurrentTime();
-    ++ statCounter.syscalls.selects;
+    ++statCounter.syscalls.selects;
 
     if (poll(pfds, npfds, 0) < 1) {
         PROF_stop(comm_check_incoming);
@@ -308,7 +306,7 @@ comm_poll_tcp_incoming(void)
 
     nevents = comm_check_incoming_poll_handlers(nfds, fds);
     incoming_tcp_interval = incoming_tcp_interval
-                            + Config.comm_incoming.tcp.average - nevents;
+        + Config.comm_incoming.tcp.average - nevents;
 
     if (incoming_tcp_interval < Config.comm_incoming.tcp.min_poll)
         incoming_tcp_interval = Config.comm_incoming.tcp.min_poll;
@@ -405,10 +403,10 @@ Comm::DoSelect(int msec)
 
         for (;;) {
             PROF_start(comm_poll_normal);
-            ++ statCounter.syscalls.selects;
+            ++statCounter.syscalls.selects;
             num = poll(pfds, nfds, msec);
             int xerrno = errno;
-            ++ statCounter.select_loops;
+            ++statCounter.select_loops;
             PROF_stop(comm_poll_normal);
 
             if (num >= 0 || npending > 0)
@@ -478,7 +476,7 @@ Comm::DoSelect(int msec)
                     F->read_handler = NULL;
                     hdl(fd, F->read_data);
                     PROF_stop(comm_read_handler);
-                    ++ statCounter.select_fds;
+                    ++statCounter.select_fds;
 
                     if (commCheckUdpIncoming)
                         comm_poll_udp_incoming();
@@ -499,7 +497,7 @@ Comm::DoSelect(int msec)
                     F->write_handler = NULL;
                     hdl(fd, F->write_data);
                     PROF_stop(comm_write_handler);
-                    ++ statCounter.select_fds;
+                    ++statCounter.select_fds;
 
                     if (commCheckUdpIncoming)
                         comm_poll_udp_incoming();
@@ -517,8 +515,7 @@ Comm::DoSelect(int msec)
                 debugs(5, DBG_CRITICAL, "WARNING: FD " << fd << " has handlers, but it's invalid.");
                 debugs(5, DBG_CRITICAL, "FD " << fd << " is a " << fdTypeStr[F->type]);
                 debugs(5, DBG_CRITICAL, "--> " << F->desc);
-                debugs(5, DBG_CRITICAL, "tmout:" << F->timeoutHandler << "read:" <<
-                       F->read_handler << " write:" << F->write_handler);
+                debugs(5, DBG_CRITICAL, "tmout:" << F->timeoutHandler << "read:" << F->read_handler << " write:" << F->write_handler);
 
                 for (ch = F->closeHandler; ch != NULL; ch = ch->Next())
                     debugs(5, DBG_CRITICAL, " close handler: " << ch);
@@ -618,7 +615,7 @@ Comm::SelectLoopInit(void)
 }
 
 static void
-commIncomingStats(StoreEntry * sentry)
+commIncomingStats(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Current incoming_udp_interval: %d\n",
                       incoming_udp_interval >> INCOMING_FACTOR);
@@ -644,4 +641,3 @@ Comm::QuickPollRequired(void)
 }
 
 #endif /* USE_POLL */
-

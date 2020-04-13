@@ -9,18 +9,18 @@
 /* DEBUG: section 20    Storage Manager Swapfile Metadata */
 
 #include "squid.h"
-#include "md5.h"
 #include "MemObject.h"
 #include "Store.h"
 #include "StoreMeta.h"
 #include "StoreMetaUnpacker.h"
+#include "md5.h"
 
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
 
 void
-storeSwapTLVFree(tlv * n)
+storeSwapTLVFree(tlv *n)
 {
     tlv *t;
 
@@ -37,7 +37,7 @@ storeSwapTLVFree(tlv * n)
 tlv *
 storeSwapMetaBuild(const StoreEntry *e)
 {
-    tlv *TLV = NULL;        /* we'll return this */
+    tlv *TLV = NULL; /* we'll return this */
     tlv **T = &TLV;
     assert(e->mem_obj != NULL);
     const int64_t objsize = e->mem_obj->expectedReplySize();
@@ -51,7 +51,7 @@ storeSwapMetaBuild(const StoreEntry *e)
 
     debugs(20, 3, "storeSwapMetaBuild URL: " << url);
 
-    tlv *t = StoreMeta::Factory (STORE_META_KEY,SQUID_MD5_DIGEST_LENGTH, e->key);
+    tlv *t = StoreMeta::Factory(STORE_META_KEY, SQUID_MD5_DIGEST_LENGTH, e->key);
 
     if (!t) {
         storeSwapTLVFree(TLV);
@@ -59,7 +59,7 @@ storeSwapMetaBuild(const StoreEntry *e)
     }
 
     T = StoreMeta::Add(T, t);
-    t = StoreMeta::Factory(STORE_META_STD_LFS,STORE_HDR_METASIZE,&e->timestamp);
+    t = StoreMeta::Factory(STORE_META_STD_LFS, STORE_HDR_METASIZE, &e->timestamp);
 
     if (!t) {
         storeSwapTLVFree(TLV);
@@ -68,7 +68,7 @@ storeSwapMetaBuild(const StoreEntry *e)
 
     // XXX: do TLV without the c_str() termination. check readers first though
     T = StoreMeta::Add(T, t);
-    t = StoreMeta::Factory(STORE_META_URL, url.length()+1, url.c_str());
+    t = StoreMeta::Factory(STORE_META_URL, url.length() + 1, url.c_str());
 
     if (!t) {
         storeSwapTLVFree(TLV);
@@ -96,29 +96,29 @@ storeSwapMetaBuild(const StoreEntry *e)
             return NULL;
         }
 
-        StoreMeta::Add (T, t);
+        StoreMeta::Add(T, t);
     }
 
     return TLV;
 }
 
 char *
-storeSwapMetaPack(tlv * tlv_list, int *length)
+storeSwapMetaPack(tlv *tlv_list, int *length)
 {
     int buflen = 0;
     tlv *t;
     int j = 0;
     char *buf;
     assert(length != NULL);
-    ++buflen;           /* STORE_META_OK */
-    buflen += sizeof(int);  /* size of header to follow */
+    ++buflen;              /* STORE_META_OK */
+    buflen += sizeof(int); /* size of header to follow */
 
     for (t = tlv_list; t; t = t->next)
         buflen += sizeof(char) + sizeof(int) + t->length;
 
     buf = (char *)xmalloc(buflen);
 
-    buf[j] = (char) STORE_META_OK;
+    buf[j] = (char)STORE_META_OK;
     ++j;
 
     memcpy(&buf[j], &buflen, sizeof(int));
@@ -134,8 +134,7 @@ storeSwapMetaPack(tlv * tlv_list, int *length)
         j += t->length;
     }
 
-    assert((int) j == buflen);
+    assert((int)j == buflen);
     *length = buflen;
     return buf;
 }
-

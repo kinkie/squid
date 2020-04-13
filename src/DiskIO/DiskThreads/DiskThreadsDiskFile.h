@@ -11,10 +11,10 @@
 #ifndef SQUID_DISKTHREADSDISKFILE_H
 #define SQUID_DISKTHREADSDISKFILE_H
 
-#include "cbdata.h"
 #include "DiskIO/DiskFile.h"
 #include "DiskThreads.h"
-#include "typedefs.h" //for DWCB
+#include "cbdata.h"
+#include "typedefs.h"  //for DWCB
 
 class DiskThreadsDiskFile : public DiskFile
 {
@@ -29,7 +29,7 @@ public:
     virtual void write(WriteRequest *);
     virtual void close();
     virtual bool error() const;
-    virtual int getFD() const { return fd;}
+    virtual int getFD() const { return fd; }
 
     virtual bool canRead() const;
     virtual bool canWrite() const;
@@ -72,7 +72,8 @@ class IoResult
     CBDATA_CLASS(IoResult);
 
 public:
-    IoResult(RefCount<DiskThreadsDiskFile> aFile, RefCount<RT> aRequest) : file(aFile), request(aRequest) {}
+    IoResult(RefCount<DiskThreadsDiskFile> aFile, RefCount<RT> aRequest) :
+        file(aFile), request(aRequest) {}
 
     RefCount<DiskThreadsDiskFile> file;
     RefCount<RT> request;
@@ -80,7 +81,9 @@ public:
 
 template <class RT>
 IoResult<RT>
-IOResult(RefCount<RT> aRequest, RefCount<DiskThreadsDiskFile> aFile) { return IoResult<RT>(aFile, aRequest);}
+IOResult(RefCount<RT> aRequest, RefCount<DiskThreadsDiskFile> aFile)
+{
+    return IoResult<RT>(aFile, aRequest);
+}
 
 #endif /* SQUID_DISKTHREADSDISKFILE_H */
-

@@ -22,7 +22,8 @@
 
 #include <cerrno>
 
-IcmpPinger::IcmpPinger() : Icmp()
+IcmpPinger::IcmpPinger() :
+    Icmp()
 {
     // these start invalid. Setup properly in Open()
     socket_from_squid = -1;
@@ -98,7 +99,7 @@ IcmpPinger::Open(void)
         return -1;
     }
 
-    x = connect(icmp_sock, (struct sockaddr *) &PS, sizeof(PS));
+    x = connect(icmp_sock, (struct sockaddr *)&PS, sizeof(PS));
 
     if (SOCKET_ERROR == x) {
         xerrno = errno;
@@ -110,7 +111,7 @@ IcmpPinger::Open(void)
 
     write(1, "OK\n", 3);
     memset(buf, 0, sizeof(buf));
-    x = recv(icmp_sock, (void *) buf, sizeof(buf), 0);
+    x = recv(icmp_sock, (void *)buf, sizeof(buf), 0);
 
     if (x < 3) {
         xerrno = errno;
@@ -118,7 +119,7 @@ IcmpPinger::Open(void)
         return -1;
     }
 
-    x = send(icmp_sock, (const void *) buf, strlen(buf), 0);
+    x = send(icmp_sock, (const void *)buf, strlen(buf), 0);
     xerrno = errno;
 
     if (x < 3 || strncmp("OK\n", buf, 3)) {
@@ -138,8 +139,8 @@ IcmpPinger::Open(void)
 #else /* !_SQUID_WINDOWS_ */
 
     /* non-windows apps use stdin/out pipes as the squid channel(s) */
-    socket_from_squid = 0; // use STDIN macro ??
-    socket_to_squid = 1; // use STDOUT macro ??
+    socket_from_squid = 0;  // use STDIN macro ??
+    socket_to_squid = 1;    // use STDOUT macro ??
     return socket_to_squid;
 #endif
 }
@@ -208,7 +209,7 @@ IcmpPinger::Recv(void)
                        pecho.payload,
                        pecho.psize);
     } else {
-        debugs(42, DBG_IMPORTANT, HERE << " IP has unknown Type. " << pecho.to );
+        debugs(42, DBG_IMPORTANT, HERE << " IP has unknown Type. " << pecho.to);
     }
 }
 
@@ -226,4 +227,3 @@ IcmpPinger::SendResult(pingerReplyData &preply, int len)
 }
 
 #endif /* USE_ICMP */
-

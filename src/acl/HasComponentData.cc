@@ -8,17 +8,18 @@
 
 #include "squid.h"
 #include "acl/HasComponentData.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
+#include "cache_cf.h"
 #include "sbuf/Algorithms.h"
 
 const SBuf ACLHasComponentData::RequestStr("request");
 const SBuf ACLHasComponentData::ResponseStr("response");
 const SBuf ACLHasComponentData::AleStr("ALE");
 
-ACLHasComponentData::ACLHasComponentData()
-    : componentMethods(coEnd, nullptr)
-{ }
+ACLHasComponentData::ACLHasComponentData() :
+    componentMethods(coEnd, nullptr)
+{
+}
 
 void
 ACLHasComponentData::parse()
@@ -40,7 +41,7 @@ ACLHasComponentData::parse()
 bool
 ACLHasComponentData::match(ACLChecklist *checklist)
 {
-    for (const auto method: componentMethods)
+    for (const auto method : componentMethods)
         if (method && (checklist->*method)())
             return true;
     return false;
@@ -79,4 +80,3 @@ ACLHasComponentData::clone() const
 {
     return new ACLHasComponentData(*this);
 }
-

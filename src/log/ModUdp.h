@@ -13,7 +13,6 @@
 
 class Logfile;
 
-int logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_flag);
+int logfile_mod_udp_open(Logfile *lf, const char *path, size_t bufsz, int fatal_flag);
 
 #endif /* _SQUID_SRC_LOG_MODUDP_H */
-

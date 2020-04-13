@@ -9,16 +9,15 @@
 #ifndef SQUID_ACLANNOTATECLIENT
 #define SQUID_ACLANNOTATECLIENT
 
-#include "acl/Note.h"
 #include "Notes.h"
+#include "acl/Note.h"
 
 /// \ingroup ACLAPI
 class ACLAnnotateClientStrategy : public Acl::AnnotationStrategy
 {
 public:
     virtual bool requiresRequest() const { return true; }
-    virtual int match(ACLData<MatchType> * &, ACLFilledChecklist *);
+    virtual int match(ACLData<MatchType> *&, ACLFilledChecklist *);
 };
 
 #endif /* SQUID_ACLANNOTATECLIENT */
-

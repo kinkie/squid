@@ -20,14 +20,16 @@
 class PackableStreamBuf : public std::streambuf
 {
 public:
-    explicit PackableStreamBuf(Packable &p) : buf_(p) { buf_.buffer(); }
+    explicit PackableStreamBuf(Packable &p) :
+        buf_(p) { buf_.buffer(); }
     virtual ~PackableStreamBuf() = default;
 
 protected:
     /** flush the current buffer and the character that is overflowing
      * to the Packable.
      */
-    virtual int_type overflow(int_type aChar = traits_type::eof()) override {
+    virtual int_type overflow(int_type aChar = traits_type::eof()) override
+    {
         std::streamsize pending(pptr() - pbase());
 
         if (pending && sync())
@@ -43,7 +45,8 @@ protected:
     }
 
     /** push the buffer to the Packable */
-    virtual int sync() override {
+    virtual int sync() override
+    {
         std::streamsize pending(pptr() - pbase());
         lowAppend(pbase(), pending);
         buf_.flush();
@@ -53,13 +56,14 @@ protected:
     /** write multiple characters to the Packable
      * - this is an optimisation method.
      */
-    virtual std::streamsize xsputn(const char * chars, std::streamsize number) override {
+    virtual std::streamsize xsputn(const char *chars, std::streamsize number) override
+    {
         lowAppend(chars, number);
         return number;
     }
 
 private:
-    void lowAppend(const char *s, const std::streamsize n) {buf_.append(s,n);}
+    void lowAppend(const char *s, const std::streamsize n) { buf_.append(s, n); }
 
     Packable &buf_;
 };
@@ -69,9 +73,11 @@ class PackableStream : public std::ostream
 public:
     /* create a stream for writing text etc into theBuffer */
     // See http://www.codecomments.com/archive292-2005-2-396222.html
-    explicit PackableStream(Packable &p) : std::ostream(0), theBuffer(p) {
-        rdbuf(&theBuffer); // set the buffer to now-initialized theBuffer
-        clear(); //clear badbit set by calling init(0)
+    explicit PackableStream(Packable &p) :
+        std::ostream(0), theBuffer(p)
+    {
+        rdbuf(&theBuffer);  // set the buffer to now-initialized theBuffer
+        clear();            //clear badbit set by calling init(0)
     }
 
 private:
@@ -79,4 +85,3 @@ private:
 };
 
 #endif /* SQUID_SRC_BASE_PACKABLESTREAM_H */
-

@@ -10,10 +10,10 @@
 
 #include "squid.h"
 #include "ipc/StoreMap.h"
-#include "sbuf/SBuf.h"
 #include "SquidConfig.h"
 #include "StatCounters.h"
 #include "Store.h"
+#include "sbuf/SBuf.h"
 #include "store/Controller.h"
 #include "store_key_md5.h"
 #include "tools.h"
@@ -41,7 +41,7 @@ StoreMapFileNosId(const SBuf &path)
 Ipc::StoreMap::Owner *
 Ipc::StoreMap::Init(const SBuf &path, const int sliceLimit)
 {
-    assert(sliceLimit > 0); // we should not be created otherwise
+    assert(sliceLimit > 0);  // we should not be created otherwise
     const int anchorLimit = min(sliceLimit, static_cast<int>(SwapFilenMax));
     Owner *owner = new Owner;
     owner->fileNos = shm_new(FileNos)(StoreMapFileNosId(path).c_str(), anchorLimit);
@@ -51,17 +51,16 @@ Ipc::StoreMap::Init(const SBuf &path, const int sliceLimit)
     return owner;
 }
 
-Ipc::StoreMap::StoreMap(const SBuf &aPath): cleaner(NULL), path(aPath),
+Ipc::StoreMap::StoreMap(const SBuf &aPath) :
+    cleaner(NULL), path(aPath),
     fileNos(shm_old(FileNos)(StoreMapFileNosId(path).c_str())),
     anchors(shm_old(Anchors)(StoreMapAnchorsId(path).c_str())),
     slices(shm_old(Slices)(StoreMapSlicesId(path).c_str())),
     hitValidation(true)
 {
-    debugs(54, 5, "attached " << path << " with " <<
-           fileNos->capacity << '+' <<
-           anchors->capacity << '+' << slices->capacity);
-    assert(entryLimit() > 0); // key-to-position mapping requires this
-    assert(entryLimit() <= sliceLimit()); // at least one slice per entry
+    debugs(54, 5, "attached " << path << " with " << fileNos->capacity << '+' << anchors->capacity << '+' << slices->capacity);
+    assert(entryLimit() > 0);              // key-to-position mapping requires this
+    assert(entryLimit() <= sliceLimit());  // at least one slice per entry
 }
 
 int
@@ -102,8 +101,7 @@ Ipc::StoreMap::forgetWritingEntry(sfileno fileno)
 Ipc::StoreMap::Anchor *
 Ipc::StoreMap::openForWriting(const cache_key *const key, sfileno &fileno)
 {
-    debugs(54, 5, "opening entry with key " << storeKeyText(key)
-           << " for writing " << path);
+    debugs(54, 5, "opening entry with key " << storeKeyText(key) << " for writing " << path);
     const int idx = fileNoByKey(key);
 
     if (Anchor *anchor = openForWritingAt(idx)) {
@@ -126,8 +124,7 @@ Ipc::StoreMap::openForWritingAt(const sfileno fileno, bool overwriteExisting)
         // bail if we cannot empty this position
         if (!s.waitingToBeFreed && !s.empty() && !overwriteExisting) {
             lock.unlockExclusive();
-            debugs(54, 5, "cannot open existing entry " << fileno <<
-                   " for writing " << path);
+            debugs(54, 5, "cannot open existing entry " << fileno << " for writing " << path);
             return NULL;
         }
 
@@ -136,17 +133,16 @@ Ipc::StoreMap::openForWritingAt(const sfileno fileno, bool overwriteExisting)
             freeChain(fileno, s, true);
 
         assert(s.empty());
-        s.start = -1; // we have not allocated any slices yet
+        s.start = -1;  // we have not allocated any slices yet
         s.splicingPoint = -1;
         ++anchors->count;
 
         //s.setKey(key); // XXX: the caller should do that
         debugs(54, 5, "opened entry " << fileno << " for writing " << path);
-        return &s; // and keep the entry locked
+        return &s;  // and keep the entry locked
     }
 
-    debugs(54, 5, "cannot open busy entry " << fileno <<
-           " for writing " << path);
+    debugs(54, 5, "cannot open busy entry " << fileno << " for writing " << path);
     return NULL;
 }
 
@@ -216,7 +212,7 @@ Ipc::StoreMap::abortWriting(const sfileno fileno)
     debugs(54, 5, "aborting entry " << fileno << " for writing " << path);
     Anchor &s = anchorAt(fileno);
     assert(s.writing());
-    s.lock.appending = false; // locks out any new readers
+    s.lock.appending = false;  // locks out any new readers
     if (!s.lock.readers) {
         freeChain(fileno, s, false);
         debugs(54, 5, "closed clean entry " << fileno << " for writing " << path);
@@ -251,8 +247,8 @@ Ipc::StoreMap::peekAtReader(const sfileno fileno) const
 {
     const Anchor &s = anchorAt(fileno);
     if (s.reading())
-        return &s; // immediate access by lock holder so no locking
-    assert(s.writing()); // must be locked for reading or writing
+        return &s;        // immediate access by lock holder so no locking
+    assert(s.writing());  // must be locked for reading or writing
     return nullptr;
 }
 
@@ -261,8 +257,8 @@ Ipc::StoreMap::peekAtWriter(const sfileno fileno) const
 {
     const Anchor &s = anchorAt(fileno);
     if (s.writing())
-        return &s; // immediate access by lock holder so no locking
-    assert(s.reading()); // must be locked for reading or writing
+        return &s;        // immediate access by lock holder so no locking
+    assert(s.reading());  // must be locked for reading or writing
     return nullptr;
 }
 
@@ -293,8 +289,7 @@ Ipc::StoreMap::freeEntry(const sfileno fileno)
 void
 Ipc::StoreMap::freeEntryByKey(const cache_key *const key)
 {
-    debugs(54, 5, "marking entry with key " << storeKeyText(key)
-           << " to be freed in " << path);
+    debugs(54, 5, "marking entry with key " << storeKeyText(key) << " to be freed in " << path);
 
     const int idx = fileNoByKey(key);
     Anchor &s = anchorAt(idx);
@@ -304,13 +299,13 @@ Ipc::StoreMap::freeEntryByKey(const cache_key *const key)
         s.lock.unlockExclusive();
     } else if (s.lock.lockShared()) {
         if (s.sameKey(key))
-            s.waitingToBeFreed = true; // mark to free it later
+            s.waitingToBeFreed = true;  // mark to free it later
         s.lock.unlockShared();
     } else {
         // we cannot be sure that the entry we found is ours because we do not
         // have a lock on it, but we still check to minimize false deletions
         if (s.sameKey(key))
-            s.waitingToBeFreed = true; // mark to free it later
+            s.waitingToBeFreed = true;  // mark to free it later
     }
 }
 
@@ -326,7 +321,7 @@ bool
 Ipc::StoreMap::hasReadableEntry(const cache_key *const key)
 {
     sfileno index;
-    if (openForReading(reinterpret_cast<const cache_key*>(key), index)) {
+    if (openForReading(reinterpret_cast<const cache_key *>(key), index)) {
         closeForReading(index);
         return true;
     }
@@ -337,8 +332,7 @@ Ipc::StoreMap::hasReadableEntry(const cache_key *const key)
 void
 Ipc::StoreMap::freeChain(const sfileno fileno, Anchor &inode, const bool keepLocked)
 {
-    debugs(54, 7, "freeing entry " << fileno <<
-           " in " << path);
+    debugs(54, 7, "freeing entry " << fileno << " in " << path);
     if (!inode.empty())
         freeChainAt(inode.start, inode.splicingPoint);
     inode.rewind();
@@ -353,7 +347,7 @@ Ipc::StoreMap::freeChain(const sfileno fileno, Anchor &inode, const bool keepLoc
 void
 Ipc::StoreMap::freeChainAt(SliceId sliceId, const SliceId splicingPoint)
 {
-    static uint64_t ChainId = 0; // to pair freeing/freed calls in debugs()
+    static uint64_t ChainId = 0;  // to pair freeing/freed calls in debugs()
     const uint64_t chainId = ++ChainId;
     debugs(54, 7, "freeing chain #" << chainId << " starting at " << sliceId << " in " << path);
     while (sliceId >= 0) {
@@ -361,11 +355,10 @@ Ipc::StoreMap::freeChainAt(SliceId sliceId, const SliceId splicingPoint)
         const SliceId nextId = slice.next;
         slice.clear();
         if (cleaner)
-            cleaner->noteFreeMapSlice(sliceId); // might change slice state
+            cleaner->noteFreeMapSlice(sliceId);  // might change slice state
         if (sliceId == splicingPoint) {
-            debugs(54, 5, "preserving chain #" << chainId << " in " << path <<
-                   " suffix after slice " << splicingPoint);
-            break; // do not free the rest of the chain
+            debugs(54, 5, "preserving chain #" << chainId << " in " << path << " suffix after slice " << splicingPoint);
+            break;  // do not free the rest of the chain
         }
         sliceId = nextId;
     }
@@ -394,20 +387,18 @@ Ipc::StoreMap::sliceContaining(const sfileno fileno, const uint64_t bytesNeeded)
             break;
         lastSlice = slice.next;
     }
-    debugs(54, 7, "entry " << fileno << " has " << bytesNeeded << '/' << bytesSeen <<
-           " bytes at slice " << lastSlice << " in " << path);
-    return lastSlice; // may be negative
+    debugs(54, 7, "entry " << fileno << " has " << bytesNeeded << '/' << bytesSeen << " bytes at slice " << lastSlice << " in " << path);
+    return lastSlice;  // may be negative
 }
 
 const Ipc::StoreMap::Anchor *
 Ipc::StoreMap::openForReading(const cache_key *const key, sfileno &fileno)
 {
-    debugs(54, 5, "opening entry with key " << storeKeyText(key)
-           << " for reading " << path);
+    debugs(54, 5, "opening entry with key " << storeKeyText(key) << " for reading " << path);
     const int idx = fileNoByKey(key);
     if (const auto anchor = openForReadingAt(idx, key)) {
         fileno = idx;
-        return anchor; // locked for reading
+        return anchor;  // locked for reading
     }
     return NULL;
 }
@@ -419,36 +410,31 @@ Ipc::StoreMap::openForReadingAt(const sfileno fileno, const cache_key *const key
     Anchor &s = anchorAt(fileno);
 
     if (!s.lock.lockShared()) {
-        debugs(54, 5, "cannot open busy entry " << fileno <<
-               " for reading " << path);
+        debugs(54, 5, "cannot open busy entry " << fileno << " for reading " << path);
         return NULL;
     }
 
     if (s.empty()) {
         s.lock.unlockShared();
-        debugs(54, 7, "cannot open empty entry " << fileno <<
-               " for reading " << path);
+        debugs(54, 7, "cannot open empty entry " << fileno << " for reading " << path);
         return NULL;
     }
 
     if (s.waitingToBeFreed) {
         s.lock.unlockShared();
-        debugs(54, 7, "cannot open marked entry " << fileno <<
-               " for reading " << path);
+        debugs(54, 7, "cannot open marked entry " << fileno << " for reading " << path);
         return NULL;
     }
 
     if (!s.sameKey(key)) {
         s.lock.unlockShared();
-        debugs(54, 5, "cannot open wrong-key entry " << fileno <<
-               " for reading " << path);
+        debugs(54, 5, "cannot open wrong-key entry " << fileno << " for reading " << path);
         return nullptr;
     }
 
     if (Config.paranoid_hit_validation.count() && hitValidation && !validateHit(fileno)) {
         s.lock.unlockShared();
-        debugs(54, 5, "cannot open corrupted entry " << fileno <<
-               " for reading " << path);
+        debugs(54, 5, "cannot open corrupted entry " << fileno << " for reading " << path);
         return nullptr;
     }
 
@@ -487,12 +473,11 @@ Ipc::StoreMap::openForUpdating(Update &update, const sfileno fileNoHint)
 {
     Must(update.entry);
     const StoreEntry &entry = *update.entry;
-    const cache_key *const key = reinterpret_cast<const cache_key*>(entry.key);
+    const cache_key *const key = reinterpret_cast<const cache_key *>(entry.key);
     update.stale.name = nameByKey(key);
 
     if (!validEntry(fileNoHint)) {
-        debugs(54, 5, "opening entry with key " << storeKeyText(key) <<
-               " for updating " << path);
+        debugs(54, 5, "opening entry with key " << storeKeyText(key) << " for updating " << path);
         update.stale.fileNo = fileNoByName(update.stale.name);
     } else {
         update.stale.fileNo = fileNoHint;
@@ -513,15 +498,13 @@ Ipc::StoreMap::openForUpdating(Update &update, const sfileno fileNoHint)
         // For example, MemStore::updateHeaders() would not know how
         // many old prefix body bytes to copy to the new prefix if the last old
         // prefix slice has not been formed yet (i.e., still gets more bytes).
-        debugs(54, 5, "cannot open appending entry " << update.stale.fileNo <<
-               " for updating " << path);
+        debugs(54, 5, "cannot open appending entry " << update.stale.fileNo << " for updating " << path);
         closeForReading(update.stale.fileNo);
         return false;
     }
 
     if (!update.stale.anchor->lock.lockHeaders()) {
-        debugs(54, 5, "cannot open updating entry " << update.stale.fileNo <<
-               " for updating " << path);
+        debugs(54, 5, "cannot open updating entry " << update.stale.fileNo << " for updating " << path);
         closeForReading(update.stale.fileNo);
         return false;
     }
@@ -529,8 +512,7 @@ Ipc::StoreMap::openForUpdating(Update &update, const sfileno fileNoHint)
     /* stale anchor is properly locked; we can now use abortUpdating() if needed */
 
     if (!openKeyless(update.fresh)) {
-        debugs(54, 5, "cannot open freshchainless entry " << update.stale.fileNo <<
-               " for updating " << path);
+        debugs(54, 5, "cannot open freshchainless entry " << update.stale.fileNo << " for updating " << path);
         abortUpdating(update);
         return false;
     }
@@ -538,8 +520,7 @@ Ipc::StoreMap::openForUpdating(Update &update, const sfileno fileNoHint)
     Must(update.stale);
     Must(update.fresh);
     update.fresh.anchor->set(entry);
-    debugs(54, 5, "opened entry " << update.stale.fileNo << " for updating " << path <<
-           " using entry " << update.fresh.fileNo << " of " << entry);
+    debugs(54, 5, "opened entry " << update.stale.fileNo << " for updating " << path << " using entry " << update.fresh.fileNo << " of " << entry);
 
     return true;
 }
@@ -554,8 +535,7 @@ Ipc::StoreMap::openKeyless(Update::Edition &edition)
         temp.name = name;
         temp.fileNo = fileNoByName(temp.name);
         if ((temp.anchor = openForWritingAt(temp.fileNo))) {
-            debugs(54, 5, "created entry " << temp.fileNo <<
-                   " for updating " << path);
+            debugs(54, 5, "created entry " << temp.fileNo << " for updating " << path);
             Must(temp);
             edition = temp;
             return true;
@@ -583,7 +563,7 @@ Ipc::StoreMap::closeForUpdating(Update &update)
 
     /* splice the fresh chain prefix with the stale chain suffix */
     Slice &freshSplicingSlice = sliceAt(update.fresh.splicingPoint);
-    const SliceId suffixStart = sliceAt(update.stale.splicingPoint).next; // may be negative
+    const SliceId suffixStart = sliceAt(update.stale.splicingPoint).next;  // may be negative
     // the fresh chain is either properly terminated or already spliced
     if (freshSplicingSlice.next < 0)
         freshSplicingSlice.next = suffixStart;
@@ -622,7 +602,7 @@ Ipc::StoreMap::closeForUpdating(Update &update)
     // preventing its premature reuse by others.
     relocate(update.fresh.name, update.stale.fileNo);
 
-    const Update updateSaved = update; // for post-close debugging below
+    const Update updateSaved = update;  // for post-close debugging below
 
     /* unlock the stale anchor/chain */
     update.stale.anchor->lock.unlockHeaders();
@@ -633,11 +613,7 @@ Ipc::StoreMap::closeForUpdating(Update &update)
     closeForReading(update.fresh.fileNo);
     update.fresh = Update::Edition();
 
-    debugs(54, 5, "closed entry " << updateSaved.stale.fileNo << " of " << *updateSaved.entry <<
-           " named " << updateSaved.stale.name << " for updating " << path <<
-           " to fresh entry " << updateSaved.fresh.fileNo << " named " << updateSaved.fresh.name <<
-           " with [" << updateSaved.fresh.anchor->start << ',' << updateSaved.fresh.splicingPoint <<
-           "] prefix containing at least " << freshSplicingSlice.size << " bytes");
+    debugs(54, 5, "closed entry " << updateSaved.stale.fileNo << " of " << *updateSaved.entry << " named " << updateSaved.stale.name << " for updating " << path << " to fresh entry " << updateSaved.fresh.fileNo << " named " << updateSaved.fresh.name << " with [" << updateSaved.fresh.anchor->start << ',' << updateSaved.fresh.splicingPoint << "] prefix containing at least " << freshSplicingSlice.size << " bytes");
 }
 
 /// Visits entries until either
@@ -695,7 +671,7 @@ Ipc::StoreMap::importSlice(const SliceId sliceId, const Slice &slice)
 int
 Ipc::StoreMap::entryLimit() const
 {
-    return min(sliceLimit(), static_cast<int>(SwapFilenMax+1));
+    return min(sliceLimit(), static_cast<int>(SwapFilenMax + 1));
 }
 
 int
@@ -737,15 +713,16 @@ class ConservativeTimer
 public:
     typedef std::chrono::high_resolution_clock Clock;
 
-    explicit ConservativeTimer(const Clock::duration max):
+    explicit ConservativeTimer(const Clock::duration max) :
         startTime(Clock::now()),
         lastTime(startTime),
         maxTime(startTime + max) {}
 
     /// whether the current time reached the provided maximum time
-    bool expired() {
+    bool expired()
+    {
         const auto currentTime = Clock::now();
-        if (currentTime < lastTime) // time went backwards
+        if (currentTime < lastTime)  // time went backwards
             return true;
         lastTime = currentTime;
         return lastTime > maxTime;
@@ -772,12 +749,12 @@ Ipc::StoreMap::validateHit(const sfileno fileno)
 
     if (!anchor.basics.swap_file_sz) {
         ++statCounter.hitValidation.refusalsDueToZeroSize;
-        return true; // presume valid; cannot validate w/o known swap_file_sz
+        return true;  // presume valid; cannot validate w/o known swap_file_sz
     }
 
     if (!anchor.lock.lockHeaders()) {
         ++statCounter.hitValidation.refusalsDueToLocking;
-        return true; // presume valid; cannot validate changing entry
+        return true;  // presume valid; cannot validate changing entry
     }
 
     const uint64_t expectedByteCount = anchor.basics.swap_file_sz;
@@ -808,39 +785,33 @@ Ipc::StoreMap::validateHit(const sfileno fileno)
 
     ++statCounter.hitValidation.failures;
 
-    debugs(54, DBG_IMPORTANT, "BUG: purging corrupted cache entry " << fileno <<
-           " from " << path <<
-           " expected swap_file_sz=" << expectedByteCount <<
-           " actual swap_file_sz=" << actualByteCount <<
-           " actual slices=" << actualSliceCount <<
-           " last slice seen=" << lastSeenSlice << "\n" <<
-           "    key=" << storeKeyText(reinterpret_cast<const cache_key*>(anchor.key)) << "\n" <<
-           "    tmestmp=" << anchor.basics.timestamp << "\n" <<
-           "    lastref=" << anchor.basics.lastref << "\n" <<
-           "    expires=" << anchor.basics.expires << "\n" <<
-           "    lastmod=" << anchor.basics.lastmod << "\n" <<
-           "    refcount=" << anchor.basics.refcount << "\n" <<
-           "    flags=0x" << std::hex << anchor.basics.flags << std::dec << "\n" <<
-           "    start=" << anchor.start << "\n" <<
-           "    splicingPoint=" << anchor.splicingPoint << "\n" <<
-           "    lock=" << anchor.lock << "\n" <<
-           "    waitingToBeFreed=" << (anchor.waitingToBeFreed ? 1 : 0) << "\n"
-          );
+    debugs(54, DBG_IMPORTANT, "BUG: purging corrupted cache entry " << fileno << " from " << path << " expected swap_file_sz=" << expectedByteCount << " actual swap_file_sz=" << actualByteCount << " actual slices=" << actualSliceCount << " last slice seen=" << lastSeenSlice << "\n"
+                                                                    << "    key=" << storeKeyText(reinterpret_cast<const cache_key *>(anchor.key)) << "\n"
+                                                                    << "    tmestmp=" << anchor.basics.timestamp << "\n"
+                                                                    << "    lastref=" << anchor.basics.lastref << "\n"
+                                                                    << "    expires=" << anchor.basics.expires << "\n"
+                                                                    << "    lastmod=" << anchor.basics.lastmod << "\n"
+                                                                    << "    refcount=" << anchor.basics.refcount << "\n"
+                                                                    << "    flags=0x" << std::hex << anchor.basics.flags << std::dec << "\n"
+                                                                    << "    start=" << anchor.start << "\n"
+                                                                    << "    splicingPoint=" << anchor.splicingPoint << "\n"
+                                                                    << "    lock=" << anchor.lock << "\n"
+                                                                    << "    waitingToBeFreed=" << (anchor.waitingToBeFreed ? 1 : 0) << "\n");
     freeEntry(fileno);
     return false;
 }
 
-Ipc::StoreMap::Anchor&
+Ipc::StoreMap::Anchor &
 Ipc::StoreMap::anchorAt(const sfileno fileno)
 {
     assert(validEntry(fileno));
     return anchors->items[fileno];
 }
 
-const Ipc::StoreMap::Anchor&
+const Ipc::StoreMap::Anchor &
 Ipc::StoreMap::anchorAt(const sfileno fileno) const
 {
-    return const_cast<StoreMap&>(*this).anchorAt(fileno);
+    return const_cast<StoreMap &>(*this).anchorAt(fileno);
 }
 
 sfileno
@@ -859,7 +830,7 @@ Ipc::StoreMap::fileNoByName(const sfileno name) const
     // fileNos->items are initialized to zero, which we treat as "name is fileno";
     // a positive value means the entry anchor got moved to a new fileNo
     if (const int item = fileNos->items[name])
-        return item-1;
+        return item - 1;
     return name;
 }
 
@@ -868,7 +839,7 @@ void
 Ipc::StoreMap::relocate(const sfileno name, const sfileno fileno)
 {
     // preserve special meaning for zero; see fileNoByName
-    fileNos->items[name] = fileno+1;
+    fileNos->items[name] = fileno + 1;
 }
 
 sfileno
@@ -884,22 +855,23 @@ Ipc::StoreMap::anchorByKey(const cache_key *const key)
     return anchorAt(fileNoByKey(key));
 }
 
-Ipc::StoreMap::Slice&
+Ipc::StoreMap::Slice &
 Ipc::StoreMap::sliceAt(const SliceId sliceId)
 {
     assert(validSlice(sliceId));
     return slices->items[sliceId];
 }
 
-const Ipc::StoreMap::Slice&
+const Ipc::StoreMap::Slice &
 Ipc::StoreMap::sliceAt(const SliceId sliceId) const
 {
-    return const_cast<StoreMap&>(*this).sliceAt(sliceId);
+    return const_cast<StoreMap &>(*this).sliceAt(sliceId);
 }
 
 /* Ipc::StoreMapAnchor */
 
-Ipc::StoreMapAnchor::StoreMapAnchor(): start(0), splicingPoint(-1)
+Ipc::StoreMapAnchor::StoreMapAnchor() :
+    start(0), splicingPoint(-1)
 {
     // keep in sync with rewind()
 }
@@ -922,7 +894,7 @@ void
 Ipc::StoreMapAnchor::set(const StoreEntry &from, const cache_key *aKey)
 {
     assert(writing() && !reading());
-    setKey(reinterpret_cast<const cache_key*>(aKey ? aKey : from.key));
+    setKey(reinterpret_cast<const cache_key *>(aKey ? aKey : from.key));
     basics.timestamp = from.timestamp;
     basics.lastref = from.lastref;
     basics.expires = from.expires;
@@ -971,13 +943,13 @@ Ipc::StoreMapAnchor::rewind()
 
 /* Ipc::StoreMapUpdate */
 
-Ipc::StoreMapUpdate::StoreMapUpdate(StoreEntry *anEntry):
+Ipc::StoreMapUpdate::StoreMapUpdate(StoreEntry *anEntry) :
     entry(anEntry)
 {
     entry->lock("Ipc::StoreMapUpdate1");
 }
 
-Ipc::StoreMapUpdate::StoreMapUpdate(const StoreMapUpdate &other):
+Ipc::StoreMapUpdate::StoreMapUpdate(const StoreMapUpdate &other) :
     entry(other.entry),
     stale(other.stale),
     fresh(other.fresh)
@@ -992,7 +964,7 @@ Ipc::StoreMapUpdate::~StoreMapUpdate()
 
 /* Ipc::StoreMap::Owner */
 
-Ipc::StoreMap::Owner::Owner():
+Ipc::StoreMap::Owner::Owner() :
     fileNos(nullptr),
     anchors(nullptr),
     slices(nullptr)
@@ -1008,7 +980,7 @@ Ipc::StoreMap::Owner::~Owner()
 
 /* Ipc::StoreMapAnchors */
 
-Ipc::StoreMapAnchors::StoreMapAnchors(const int aCapacity):
+Ipc::StoreMapAnchors::StoreMapAnchors(const int aCapacity) :
     count(0),
     victim(0),
     capacity(aCapacity),
@@ -1027,4 +999,3 @@ Ipc::StoreMapAnchors::SharedMemorySize(const int capacity)
 {
     return sizeof(StoreMapAnchors) + capacity * sizeof(StoreMapAnchor);
 }
-

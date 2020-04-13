@@ -14,7 +14,7 @@
 #include "wordlist.h"
 
 static Http::MethodType &
-operator++ (Http::MethodType &aMethod)
+operator++(Http::MethodType &aMethod)
 {
     int tmp = (int)aMethod;
     aMethod = (Http::MethodType)(++tmp);
@@ -48,20 +48,20 @@ HttpRequestMethod::HttpRequestMethodXXX(char const *begin)
     for (++theMethod; theMethod < Http::METHOD_ENUM_END; ++theMethod) {
         // RFC 2616 section 5.1.1 - Method names are case-sensitive
         // NP: this is not a HTTP_VIOLATIONS case since there is no MUST/SHOULD involved.
-        if (0 == image().caseCmp(begin, end-begin)) {
+        if (0 == image().caseCmp(begin, end - begin)) {
 
             // relaxed parser allows mixed-case and corrects them on output
             if (Config.onoff.relaxed_header_parser)
                 return;
 
-            if (0 == image().cmp(begin, end-begin))
+            if (0 == image().cmp(begin, end - begin))
                 return;
         }
     }
 
     // if method not found and method string is not null then it is other method
     theMethod = Http::METHOD_OTHER;
-    theImage.assign(begin, end-begin);
+    theImage.assign(begin, end - begin);
 }
 
 /**
@@ -70,7 +70,8 @@ HttpRequestMethod::HttpRequestMethodXXX(char const *begin)
  *
  * Assumes the s parameter contains only the characters representing the method name
  */
-HttpRequestMethod::HttpRequestMethod(const SBuf &s) : theMethod(Http::METHOD_NONE)
+HttpRequestMethod::HttpRequestMethod(const SBuf &s) :
+    theMethod(Http::METHOD_NONE)
 {
     if (s.isEmpty())
         return;
@@ -215,7 +216,7 @@ HttpRequestMethod::respMaybeCacheable() const
     case Http::METHOD_HEAD:
         return true;
 #if WHEN_POST_CACHE_SUPPORTED
-    case Http::METHOD_POST: // Special case.
+    case Http::METHOD_POST:  // Special case.
         // RFC 2616 specifies POST as possibly cacheable
         // However, Squid does not implement the required checks yet
         return true;
@@ -223,7 +224,7 @@ HttpRequestMethod::respMaybeCacheable() const
 
         // RFC 4918 section 9
 #if WHEN_PROPFIND_CACHE_SUPPORTED
-    case Http::METHOD_PROPFIND: // Special case.
+    case Http::METHOD_PROPFIND:  // Special case.
         // RFC 4918 specifies PROPFIND as possibly cacheable
         // However, Squid does not implement the required checks yet
         return true;
@@ -248,7 +249,7 @@ HttpRequestMethod::respMaybeCacheable() const
         // XXX: follow RFC 2616 definition of "no-cache" meaning "MAY cache, always revalidate"
         // XXX: or treat as unregistered/undefined methods ??
         // However, Squid may not implement the required revalidation checks yet
-        return ??;
+        return ? ? ;
 #endif
 
     // Special Squid method tokens are not cacheable.
@@ -296,7 +297,7 @@ HttpRequestMethod::purgesOthers() const
 
     switch (theMethod) {
     /* common sense suggests purging is not required? */
-    case Http::METHOD_GET:     // XXX: but we do purge HEAD on successful GET
+    case Http::METHOD_GET:  // XXX: but we do purge HEAD on successful GET
     case Http::METHOD_HEAD:
     case Http::METHOD_NONE:
     case Http::METHOD_CONNECT:
@@ -313,4 +314,3 @@ HttpRequestMethod::purgesOthers() const
         return true;
     }
 }
-

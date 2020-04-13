@@ -28,10 +28,10 @@
 #if _SQUID_WINDOWS_
 struct arpreq {
 
-    Ip::Address arp_pa;   /* protocol address */
+    Ip::Address arp_pa; /* protocol address */
 
-    struct sockaddr arp_ha;   /* hardware address */
-    int arp_flags;            /* flags */
+    struct sockaddr arp_ha; /* hardware address */
+    int arp_flags;          /* flags */
 };
 #if HAVE_IPHLPAPI_H
 #include <iphlpapi.h>
@@ -101,17 +101,17 @@ Eui::Eui48::decode(const char *asc)
     if (sscanf(asc, "%x:%x:%x:%x:%x:%x", &a1, &a2, &a3, &a4, &a5, &a6) != 6) {
         debugs(28, DBG_CRITICAL, "Decode EUI-48: Invalid ethernet address '" << asc << "'");
         clear();
-        return false;       /* This is not valid address */
+        return false; /* This is not valid address */
     }
 
-    eui[0] = (u_char) a1;
-    eui[1] = (u_char) a2;
-    eui[2] = (u_char) a3;
-    eui[3] = (u_char) a4;
-    eui[4] = (u_char) a5;
-    eui[5] = (u_char) a6;
+    eui[0] = (u_char)a1;
+    eui[1] = (u_char)a2;
+    eui[2] = (u_char)a3;
+    eui[3] = (u_char)a4;
+    eui[4] = (u_char)a5;
+    eui[5] = (u_char)a6;
 
-    debugs(28, 4, "id=" << (void*)this << " decoded " << asc);
+    debugs(28, 4, "id=" << (void *)this << " decoded " << asc);
     return true;
 }
 
@@ -126,7 +126,7 @@ Eui::Eui48::encode(char *buf, const int len) const
              eui[2] & 0xff, eui[3] & 0xff,
              eui[4] & 0xff, eui[5] & 0xff);
 
-    debugs(28, 4, "id=" << (void*)this << " encoded " << buf);
+    debugs(28, 4, "id=" << (void *)this << " encoded " << buf);
     return true;
 }
 
@@ -146,7 +146,7 @@ Eui::Eui48::lookup(const Ip::Address &c)
     int offset;
 
     /* IPv6 builds do not provide the first http_port as an IPv4 socket for ARP */
-    int tmpSocket = socket(AF_INET,SOCK_STREAM,0);
+    int tmpSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (tmpSocket < 0) {
         int xerrno = errno;
         debugs(28, DBG_IMPORTANT, "Attempt to open socket for EUI retrieval failed: " << xstrerr(xerrno));
@@ -172,28 +172,22 @@ Eui::Eui48::lookup(const Ip::Address &c)
     struct arpreq arpReq;
     memset(&arpReq, '\0', sizeof(arpReq));
 
-    struct sockaddr_in *sa = (struct sockaddr_in*)&arpReq.arp_pa;
+    struct sockaddr_in *sa = (struct sockaddr_in *)&arpReq.arp_pa;
     ipAddr.getSockAddr(*sa);
 
     /* Query ARP table */
-    debugs(28, 4, "id=" << (void*)this << " query ARP table");
+    debugs(28, 4, "id=" << (void *)this << " query ARP table");
     if (ioctl(tmpSocket, SIOCGARP, &arpReq) != -1) {
         /* Skip non-ethernet interfaces */
         close(tmpSocket);
 
         if (arpReq.arp_ha.sa_family != ARPHRD_ETHER) {
-            debugs(28, 4, "id=" << (void*)this << " ... not an Ethernet interface: " << arpReq.arp_ha.sa_data);
+            debugs(28, 4, "id=" << (void *)this << " ... not an Ethernet interface: " << arpReq.arp_ha.sa_data);
             clear();
             return false;
         }
 
-        debugs(28, 4, "id=" << (void*)this << " got address "<< std::setfill('0') << std::hex <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
+        debugs(28, 4, "id=" << (void *)this << " got address " << std::setfill('0') << std::hex << std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
 
         set(arpReq.arp_ha.sa_data, 6);
         return true;
@@ -221,13 +215,13 @@ Eui::Eui48::lookup(const Ip::Address &c)
 
     /* Attempt ARP lookup on each interface */
     offset = 0;
-    debugs(28, 4, "id=" << (void*)this << " query ARP on each interface (" << ifc.ifc_len << " found)");
+    debugs(28, 4, "id=" << (void *)this << " query ARP on each interface (" << ifc.ifc_len << " found)");
     while (offset < ifc.ifc_len) {
 
-        ifr = (struct ifreq *) (ifbuffer + offset);
+        ifr = (struct ifreq *)(ifbuffer + offset);
         offset += sizeof(*ifr);
 
-        debugs(28, 4, "id=" << (void*)this << " found interface " << ifr->ifr_name);
+        debugs(28, 4, "id=" << (void *)this << " found interface " << ifr->ifr_name);
 
         /* Skip loopback and aliased interfaces */
         if (!strncmp(ifr->ifr_name, "lo", 2))
@@ -236,13 +230,13 @@ Eui::Eui48::lookup(const Ip::Address &c)
         if (strchr(ifr->ifr_name, ':'))
             continue;
 
-        debugs(28, 4, "id=" << (void*)this << " looking up ARP address for " << ipAddr << " on " << ifr->ifr_name);
+        debugs(28, 4, "id=" << (void *)this << " looking up ARP address for " << ipAddr << " on " << ifr->ifr_name);
 
         /* Set up structures for ARP lookup */
 
         memset(&arpReq, '\0', sizeof(arpReq));
 
-        sa = (sockaddr_in*)&arpReq.arp_pa;
+        sa = (sockaddr_in *)&arpReq.arp_pa;
         ipAddr.getSockAddr(*sa);
 
         strncpy(arpReq.arp_dev, ifr->ifr_name, sizeof(arpReq.arp_dev) - 1);
@@ -261,18 +255,11 @@ Eui::Eui48::lookup(const Ip::Address &c)
 
         /* Skip non-ethernet interfaces */
         if (arpReq.arp_ha.sa_family != ARPHRD_ETHER) {
-            debugs(28, 4, "id=" << (void*)this << "... not an Ethernet interface");
+            debugs(28, 4, "id=" << (void *)this << "... not an Ethernet interface");
             continue;
         }
 
-        debugs(28, 4, "id=" << (void*)this << " got address "<< std::setfill('0') << std::hex <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff)  << " on "<<
-               std::setfill(' ') << ifr->ifr_name);
+        debugs(28, 4, "id=" << (void *)this << " got address " << std::setfill('0') << std::hex << std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff) << " on " << std::setfill(' ') << ifr->ifr_name);
 
         set(arpReq.arp_ha.sa_data, 6);
 
@@ -291,7 +278,7 @@ Eui::Eui48::lookup(const Ip::Address &c)
 #elif _SQUID_SOLARIS_
 
     /* IPv6 builds do not provide the first http_port as an IPv4 socket for ARP */
-    int tmpSocket = socket(AF_INET,SOCK_STREAM,0);
+    int tmpSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (tmpSocket < 0) {
         int xerrno = errno;
         debugs(28, DBG_IMPORTANT, "Attempt to open socket for EUI retrieval failed: " << xstrerr(xerrno));
@@ -303,7 +290,7 @@ Eui::Eui48::lookup(const Ip::Address &c)
     struct arpreq arpReq;
     memset(&arpReq, '\0', sizeof(arpReq));
 
-    struct sockaddr_in *sa = (struct sockaddr_in*)&arpReq.arp_pa;
+    struct sockaddr_in *sa = (struct sockaddr_in *)&arpReq.arp_pa;
     ipAddr.getSockAddr(*sa);
 
     /* Query ARP table */
@@ -314,22 +301,12 @@ Eui::Eui48::lookup(const Ip::Address &c)
         */
         close(tmpSocket);
 
-        if (arpReq.arp_ha.sa_data[0] == 0 &&
-                arpReq.arp_ha.sa_data[1] == 0 &&
-                arpReq.arp_ha.sa_data[2] == 0 &&
-                arpReq.arp_ha.sa_data[3] == 0 &&
-                arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0) {
+        if (arpReq.arp_ha.sa_data[0] == 0 && arpReq.arp_ha.sa_data[1] == 0 && arpReq.arp_ha.sa_data[2] == 0 && arpReq.arp_ha.sa_data[3] == 0 && arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0) {
             clear();
             return false;
         }
 
-        debugs(28, 4, "Got address "<< std::setfill('0') << std::hex <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff)  << ":" <<
-               std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
+        debugs(28, 4, "Got address " << std::setfill('0') << std::hex << std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
 
         set(arpReq.arp_ha.sa_data, 6);
         return true;
@@ -357,7 +334,7 @@ Eui::Eui48::lookup(const Ip::Address &c)
     struct arpreq arpReq;
     memset(&arpReq, '\0', sizeof(arpReq));
 
-    struct sockaddr_in *sa = (struct sockaddr_in*)&arpReq.arp_pa;
+    struct sockaddr_in *sa = (struct sockaddr_in *)&arpReq.arp_pa;
     ipAddr.getSockAddr(*sa);
 
     /* Query ARP table */
@@ -400,15 +377,15 @@ Eui::Eui48::lookup(const Ip::Address &c)
 
     for (next = buf; next < lim; next += rtm->rtm_msglen) {
 
-        rtm = (struct rt_msghdr *) next;
+        rtm = (struct rt_msghdr *)next;
 
-        sin = (struct sockaddr_inarp *) (rtm + 1);
+        sin = (struct sockaddr_inarp *)(rtm + 1);
         /*sdl = (struct sockaddr_dl *) (sin + 1); */
 
 #define ROUNDUP(a) \
-        ((a) > 0 ? (1 + (((a) - 1) | (sizeof(long) - 1))) : sizeof(long))
+    ((a) > 0 ? (1 + (((a)-1) | (sizeof(long) - 1))) : sizeof(long))
 
-        sdl = (struct sockaddr_dl *)((char *) sin + ROUNDUP(sin->sin_len));
+        sdl = (struct sockaddr_dl *)((char *)sin + ROUNDUP(sin->sin_len));
 
         if (ipAddr == sin->sin_addr) {
             if (sdl->sdl_alen) {
@@ -422,33 +399,25 @@ Eui::Eui48::lookup(const Ip::Address &c)
 
     xfree(buf);
 
-    if (arpReq.arp_ha.sa_data[0] == 0 && arpReq.arp_ha.sa_data[1] == 0 &&
-            arpReq.arp_ha.sa_data[2] == 0 && arpReq.arp_ha.sa_data[3] == 0 &&
-            arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0) {
+    if (arpReq.arp_ha.sa_data[0] == 0 && arpReq.arp_ha.sa_data[1] == 0 && arpReq.arp_ha.sa_data[2] == 0 && arpReq.arp_ha.sa_data[3] == 0 && arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0) {
         clear();
         return false;
     }
 
-    debugs(28, 4, "Got address "<< std::setfill('0') << std::hex <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
+    debugs(28, 4, "Got address " << std::setfill('0') << std::hex << std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
 
     set(arpReq.arp_ha.sa_data, 6);
     return true;
 
 #elif _SQUID_WINDOWS_
 
-    DWORD           dwNetTable = 0;
+    DWORD dwNetTable = 0;
 
-    DWORD           ipNetTableLen = 0;
+    DWORD ipNetTableLen = 0;
 
     PMIB_IPNETTABLE NetTable = NULL;
 
-    DWORD            i;
+    DWORD i;
 
     struct arpreq arpReq;
     memset(&arpReq, '\0', sizeof(arpReq));
@@ -476,7 +445,7 @@ Eui::Eui48::lookup(const Ip::Address &c)
     }
 
     /* Find MAC address from net table */
-    for (i = 0 ; i < NetTable->dwNumEntries ; ++i) {
+    for (i = 0; i < NetTable->dwNumEntries; ++i) {
         in_addr a;
         a.s_addr = NetTable->table[i].dwAddr;
         if (c == a && (NetTable->table[i].dwType > 2)) {
@@ -487,20 +456,12 @@ Eui::Eui48::lookup(const Ip::Address &c)
 
     xfree(NetTable);
 
-    if (arpReq.arp_ha.sa_data[0] == 0 && arpReq.arp_ha.sa_data[1] == 0 &&
-            arpReq.arp_ha.sa_data[2] == 0 && arpReq.arp_ha.sa_data[3] == 0 &&
-            arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0) {
+    if (arpReq.arp_ha.sa_data[0] == 0 && arpReq.arp_ha.sa_data[1] == 0 && arpReq.arp_ha.sa_data[2] == 0 && arpReq.arp_ha.sa_data[3] == 0 && arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0) {
         clear();
         return false;
     }
 
-    debugs(28, 4, "Got address "<< std::setfill('0') << std::hex <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff)  << ":" <<
-           std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
+    debugs(28, 4, "Got address " << std::setfill('0') << std::hex << std::setw(2) << (arpReq.arp_ha.sa_data[0] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[1] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[2] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[3] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[4] & 0xff) << ":" << std::setw(2) << (arpReq.arp_ha.sa_data[5] & 0xff));
 
     set(arpReq.arp_ha.sa_data, 6);
     return true;
@@ -513,7 +474,7 @@ Eui::Eui48::lookup(const Ip::Address &c)
     /*
      * Address was not found on any interface
      */
-    debugs(28, 3, "id=" << (void*)this << ' ' << ipAddr << " NOT found");
+    debugs(28, 3, "id=" << (void *)this << ' ' << ipAddr << " NOT found");
 
     clear();
     return false;
@@ -522,4 +483,3 @@ Eui::Eui48::lookup(const Ip::Address &c)
 /* ==== END EUI LOOKUP SUPPORT =============================================== */
 
 #endif /* USE_SQUID_EUI */
-

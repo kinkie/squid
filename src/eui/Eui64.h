@@ -11,8 +11,7 @@
 
 #if USE_SQUID_EUI
 
-namespace Ip
-{
+namespace Ip {
 class Address;
 }
 
@@ -21,8 +20,7 @@ class Address;
 #include <sys/eui64.h>
 #endif
 
-namespace Eui
-{
+namespace Eui {
 
 /* EUI-64 is 8 bytes. */
 #if defined(EUI64_LEN)
@@ -37,14 +35,17 @@ class Eui64
 public:
     Eui64() { clear(); }
 
-    bool operator== (const Eui64 &t) const { return (memcmp(eui,t.eui,SZ_EUI64_BUF) == 0); }
-    bool operator< (const Eui64 &t) const { return (memcmp(eui,t.eui,SZ_EUI64_BUF) < 0); }
+    bool operator==(const Eui64 &t) const { return (memcmp(eui, t.eui, SZ_EUI64_BUF) == 0); }
+    bool operator<(const Eui64 &t) const { return (memcmp(eui, t.eui, SZ_EUI64_BUF) < 0); }
 
     const unsigned char *get(void);
 
-    bool set(const char *src, const int len) {
-        if (len > SZ_EUI64_BUF) return false;
-        if (len < SZ_EUI64_BUF) clear();
+    bool set(const char *src, const int len)
+    {
+        if (len > SZ_EUI64_BUF)
+            return false;
+        if (len < SZ_EUI64_BUF)
+            clear();
         memcpy(eui, src, len);
         return true;
     }
@@ -85,8 +86,7 @@ private:
     unsigned char eui[SZ_EUI64_BUF];
 };
 
-} // namespace Eui
+}  // namespace Eui
 
 #endif /* USE_SQUID_EUI */
 #endif /* _SQUID_EUI_EUI64_H */
-

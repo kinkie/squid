@@ -11,29 +11,29 @@
 #include "squid.h"
 
 #if USE_SELECT_WIN32
-#include "anyp/PortCfg.h"
-#include "comm/Connection.h"
-#include "comm/Loops.h"
-#include "fde.h"
 #include "ICP.h"
-#include "mgr/Registration.h"
 #include "SquidTime.h"
 #include "StatCounters.h"
 #include "StatHist.h"
 #include "Store.h"
+#include "anyp/PortCfg.h"
+#include "comm/Connection.h"
+#include "comm/Loops.h"
+#include "fde.h"
+#include "mgr/Registration.h"
 
 #include <cerrno>
 
-static int MAX_POLL_TIME = 1000;    /* see also Comm::QuickPollRequired() */
+static int MAX_POLL_TIME = 1000; /* see also Comm::QuickPollRequired() */
 
-#ifndef        howmany
-#define howmany(x, y)   (((x)+((y)-1))/(y))
+#ifndef howmany
+#define howmany(x, y) (((x) + ((y)-1)) / (y))
 #endif
-#ifndef        NBBY
-#define        NBBY    8
+#ifndef NBBY
+#define NBBY 8
 #endif
 #define FD_MASK_BYTES sizeof(fd_mask)
-#define FD_MASK_BITS (FD_MASK_BYTES*NBBY)
+#define FD_MASK_BITS (FD_MASK_BYTES * NBBY)
 
 /* STATIC */
 static int examine_select(fd_set *, fd_set *);
@@ -43,8 +43,8 @@ static int fdIsDns(int fd);
 static OBJH commIncomingStats;
 static int comm_check_incoming_select_handlers(int nfds, int *fds);
 static void comm_select_dns_incoming(void);
-static void commUpdateReadBits(int fd, PF * handler);
-static void commUpdateWriteBits(int fd, PF * handler);
+static void commUpdateReadBits(int fd, PF *handler);
+static void commUpdateWriteBits(int fd, PF *handler);
 
 static struct timeval zero_tv;
 static fd_set global_readfds;
@@ -109,19 +109,17 @@ static int tcp_io_events = 0;
 static int incoming_udp_interval = 16 << INCOMING_FACTOR;
 static int incoming_dns_interval = 16 << INCOMING_FACTOR;
 static int incoming_tcp_interval = 16 << INCOMING_FACTOR;
-#define commCheckUdpIncoming (++udp_io_events > (incoming_udp_interval>> INCOMING_FACTOR))
-#define commCheckDnsIncoming (++dns_io_events > (incoming_dns_interval>> INCOMING_FACTOR))
-#define commCheckTcpIncoming (++tcp_io_events > (incoming_tcp_interval>> INCOMING_FACTOR))
+#define commCheckUdpIncoming (++udp_io_events > (incoming_udp_interval >> INCOMING_FACTOR))
+#define commCheckDnsIncoming (++dns_io_events > (incoming_dns_interval >> INCOMING_FACTOR))
+#define commCheckTcpIncoming (++tcp_io_events > (incoming_tcp_interval >> INCOMING_FACTOR))
 
 void
-Comm::SetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+Comm::SetSelect(int fd, unsigned int type, PF *handler, void *client_data, time_t timeout)
 {
     fde *F = &fd_table[fd];
     assert(fd >= 0);
     assert(F->flags.open || (!handler && !client_data && !timeout));
-    debugs(5, 5, HERE << "FD " << fd << ", type=" << type <<
-           ", handler=" << handler << ", client_data=" << client_data <<
-           ", timeout=" << timeout);
+    debugs(5, 5, HERE << "FD " << fd << ", type=" << type << ", handler=" << handler << ", client_data=" << client_data << ", timeout=" << timeout);
 
     if (type & COMM_SELECT_READ) {
         F->read_handler = handler;
@@ -210,7 +208,7 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
 
     getCurrentTime();
 
-    ++ statCounter.syscalls.selects;
+    ++statCounter.syscalls.selects;
 
     if (select(maxfd, &read_mask, &write_mask, NULL, &zero_tv) < 1)
         return incoming_sockets_accepted;
@@ -368,12 +366,12 @@ Comm::DoSelect(int msec)
 
         FD_ZERO(&pendingfds);
 
-        for (j = 0; j < (int) readfds.fd_count; ++j) {
+        for (j = 0; j < (int)readfds.fd_count; ++j) {
             register int readfds_handle = readfds.fd_array[j];
             no_bits = 1;
 
-            for ( fd = Biggest_FD; fd; --fd ) {
-                if ( fd_table[fd].win32.handle == readfds_handle ) {
+            for (fd = Biggest_FD; fd; --fd) {
+                if (fd_table[fd].win32.handle == readfds_handle) {
                     if (fd_table[fd].flags.open) {
                         no_bits = 0;
                         break;
@@ -418,10 +416,10 @@ Comm::DoSelect(int msec)
         for (;;) {
             poll_time.tv_sec = msec / 1000;
             poll_time.tv_usec = (msec % 1000) * 1000;
-            ++ statCounter.syscalls.selects;
+            ++statCounter.syscalls.selects;
             num = select(maxfd, &readfds, &writefds, &errfds, &poll_time);
             int xerrno = errno;
-            ++ statCounter.select_loops;
+            ++statCounter.select_loops;
 
             if (num >= 0 || pending > 0)
                 break;
@@ -451,20 +449,19 @@ Comm::DoSelect(int msec)
             continue;
 
         /* Scan return fd masks for ready descriptors */
-        assert(readfds.fd_count <= (unsigned int) Biggest_FD);
-        assert(pendingfds.fd_count <= (unsigned int) Biggest_FD);
+        assert(readfds.fd_count <= (unsigned int)Biggest_FD);
+        assert(pendingfds.fd_count <= (unsigned int)Biggest_FD);
 
-        for (j = 0; j < (int) readfds.fd_count; ++j) {
+        for (j = 0; j < (int)readfds.fd_count; ++j) {
             register int readfds_handle = readfds.fd_array[j];
             register int pendingfds_handle = pendingfds.fd_array[j];
             register int osfhandle;
             no_bits = 1;
 
-            for ( fd = Biggest_FD; fd; --fd ) {
+            for (fd = Biggest_FD; fd; --fd) {
                 osfhandle = fd_table[fd].win32.handle;
 
-                if (( osfhandle == readfds_handle ) ||
-                        ( osfhandle == pendingfds_handle )) {
+                if ((osfhandle == readfds_handle) || (osfhandle == pendingfds_handle)) {
                     if (fd_table[fd].flags.open) {
                         no_bits = 0;
                         break;
@@ -505,7 +502,7 @@ Comm::DoSelect(int msec)
                 F->read_handler = NULL;
                 commUpdateReadBits(fd, NULL);
                 hdl(fd, F->read_data);
-                ++ statCounter.select_fds;
+                ++statCounter.select_fds;
 
                 if (commCheckUdpIncoming)
                     comm_select_udp_incoming();
@@ -518,13 +515,13 @@ Comm::DoSelect(int msec)
             }
         }
 
-        assert(errfds.fd_count <= (unsigned int) Biggest_FD);
+        assert(errfds.fd_count <= (unsigned int)Biggest_FD);
 
-        for (j = 0; j < (int) errfds.fd_count; ++j) {
+        for (j = 0; j < (int)errfds.fd_count; ++j) {
             register int errfds_handle = errfds.fd_array[j];
 
-            for ( fd = Biggest_FD; fd; --fd ) {
-                if ( fd_table[fd].win32.handle == errfds_handle )
+            for (fd = Biggest_FD; fd; --fd) {
+                if (fd_table[fd].win32.handle == errfds_handle)
                     break;
             }
 
@@ -535,19 +532,19 @@ Comm::DoSelect(int msec)
                     F->write_handler = NULL;
                     commUpdateWriteBits(fd, NULL);
                     hdl(fd, F->write_data);
-                    ++ statCounter.select_fds;
+                    ++statCounter.select_fds;
                 }
             }
         }
 
-        assert(writefds.fd_count <= (unsigned int) Biggest_FD);
+        assert(writefds.fd_count <= (unsigned int)Biggest_FD);
 
-        for (j = 0; j < (int) writefds.fd_count; ++j) {
+        for (j = 0; j < (int)writefds.fd_count; ++j) {
             register int writefds_handle = writefds.fd_array[j];
             no_bits = 1;
 
-            for ( fd = Biggest_FD; fd; --fd ) {
-                if ( fd_table[fd].win32.handle == writefds_handle ) {
+            for (fd = Biggest_FD; fd; --fd) {
+                if (fd_table[fd].win32.handle == writefds_handle) {
                     if (fd_table[fd].flags.open) {
                         no_bits = 0;
                         break;
@@ -588,7 +585,7 @@ Comm::DoSelect(int msec)
                 F->write_handler = NULL;
                 commUpdateWriteBits(fd, NULL);
                 hdl(fd, F->write_data);
-                ++ statCounter.select_fds;
+                ++statCounter.select_fds;
 
                 if (commCheckUdpIncoming)
                     comm_select_udp_incoming();
@@ -686,7 +683,7 @@ Comm::SelectLoopInit(void)
  * Call this from where the select loop fails.
  */
 static int
-examine_select(fd_set * readfds, fd_set * writefds)
+examine_select(fd_set *readfds, fd_set *writefds)
 {
     int fd = 0;
     fd_set read_x;
@@ -711,7 +708,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
         else
             continue;
 
-        ++ statCounter.syscalls.selects;
+        ++statCounter.syscalls.selects;
         errno = 0;
 
         if (!fstat(fd, &sb)) {
@@ -748,7 +745,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
 }
 
 static void
-commIncomingStats(StoreEntry * sentry)
+commIncomingStats(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Current incoming_udp_interval: %d\n",
                       incoming_udp_interval >> INCOMING_FACTOR);
@@ -767,7 +764,7 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 void
-commUpdateReadBits(int fd, PF * handler)
+commUpdateReadBits(int fd, PF *handler)
 {
     if (handler && !FD_ISSET(fd, &global_readfds)) {
         FD_SET(fd, &global_readfds);
@@ -779,7 +776,7 @@ commUpdateReadBits(int fd, PF * handler)
 }
 
 void
-commUpdateWriteBits(int fd, PF * handler)
+commUpdateWriteBits(int fd, PF *handler)
 {
     if (handler && !FD_ISSET(fd, &global_writefds)) {
         FD_SET(fd, &global_writefds);
@@ -798,4 +795,3 @@ Comm::QuickPollRequired(void)
 }
 
 #endif /* USE_SELECT_WIN32 */
-

@@ -13,14 +13,17 @@ typedef void HASHFREE(void *);
 typedef int HASHCMP(const void *, const void *);
 typedef unsigned int HASHHASH(const void *, unsigned int);
 
-class hash_link {
+class hash_link
+{
 public:
-    hash_link() : key(nullptr), next(nullptr) {}
+    hash_link() :
+        key(nullptr), next(nullptr) {}
     void *key;
     hash_link *next;
 };
 
-class hash_table {
+class hash_table
+{
 public:
     hash_link **buckets;
     HASHCMP *cmp;
@@ -63,7 +66,6 @@ SQUIDCEXTERN const char *hashKeyStr(const hash_link *);
  *  HASH_SIZE 33493             // prime number < 32768
  *  HASH_SIZE 65357             // prime number < 65536
  */
-#define  DEFAULT_HASH_SIZE 7951 /* prime number < 8192 */
+#define DEFAULT_HASH_SIZE 7951 /* prime number < 8192 */
 
 #endif /* SQUID_HASH_H */
-

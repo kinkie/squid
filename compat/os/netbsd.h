@@ -31,4 +31,3 @@
 
 #endif /* _SQUID_NETBSD_ */
 #endif /* SQUID_OS_NETBSD_H */
-

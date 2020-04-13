@@ -13,7 +13,8 @@
 class ByteCounter
 {
 public:
-    ByteCounter &operator +=(size_t v) {
+    ByteCounter &operator+=(size_t v)
+    {
         bytes += v;
         kb += (bytes >> 10);
         bytes &= 0x3FF;
@@ -26,4 +27,3 @@ public:
 };
 
 #endif /* SQUID_SRC_BYTECOUNTER_H */
-

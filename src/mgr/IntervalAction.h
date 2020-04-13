@@ -13,8 +13,7 @@
 
 #include "mgr/Action.h"
 
-namespace Mgr
-{
+namespace Mgr {
 
 /// auxiliary class which store stats computed
 /// from StatCounters for specified interval
@@ -22,7 +21,7 @@ class IntervalActionData
 {
 public:
     IntervalActionData();
-    IntervalActionData& operator += (const IntervalActionData& stats);
+    IntervalActionData &operator+=(const IntervalActionData &stats);
 
 public:
     struct timeval sample_start_time;
@@ -107,7 +106,7 @@ public:
 };
 
 /// implement aggregated interval actions
-class IntervalAction: public Action
+class IntervalAction : public Action
 {
 protected:
     IntervalAction(const CommandPointer &cmd, int aMinutes, int aHours);
@@ -116,14 +115,14 @@ public:
     static Pointer Create5min(const CommandPointer &cmd);
     static Pointer Create60min(const CommandPointer &cmd);
     /* Action API */
-    virtual void add(const Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
 protected:
     /* Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     int minutes;
@@ -131,7 +130,6 @@ private:
     IntervalActionData data;
 };
 
-} // namespace Mgr
+}  // namespace Mgr
 
 #endif /* SQUID_MGR_INTERVAL_ACTION_H */
-

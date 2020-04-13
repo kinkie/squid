@@ -7,14 +7,15 @@
  */
 
 #include "squid.h"
+#include "LoadableModule.h"
 #include "base/TextException.h"
 #include "libltdl/ltdl.h" /* generated file */
-#include "LoadableModule.h"
 
 // Note: We must use preprocessor instead of C ifs because if dlopen()
 // is seen by the static linker, the linker will complain.
 
-LoadableModule::LoadableModule(const String &aName): theName(aName), theHandle(0)
+LoadableModule::LoadableModule(const String &aName) :
+    theName(aName), theHandle(0)
 {
     // Initialise preloaded symbol lookup table.
     LTDL_SET_PRELOADED_SYMBOLS();
@@ -26,7 +27,7 @@ LoadableModule::~LoadableModule()
 {
     if (loaded())
         unload();
-    assert(lt_dlexit() == 0); // XXX: replace with a warning
+    assert(lt_dlexit() == 0);  // XXX: replace with a warning
 }
 
 bool
@@ -77,4 +78,3 @@ LoadableModule::errorMsg()
 {
     return lt_dlerror();
 }
-

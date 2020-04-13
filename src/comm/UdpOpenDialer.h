@@ -11,16 +11,16 @@
 
 #include "ipc/StartListening.h"
 
-namespace Comm
-{
+namespace Comm {
 
 /// dials a UDP port-opened call
-class UdpOpenDialer: public CallDialer,
-    public Ipc::StartListeningCb
+class UdpOpenDialer : public CallDialer,
+                      public Ipc::StartListeningCb
 {
 public:
     typedef void (*Handler)(const Comm::ConnectionPointer &conn, int errNo);
-    UdpOpenDialer(Handler aHandler): handler(aHandler) {}
+    UdpOpenDialer(Handler aHandler) :
+        handler(aHandler) {}
 
     virtual void print(std::ostream &os) const { startPrint(os) << ')'; }
     virtual bool canDial(AsyncCall &) const { return true; }
@@ -30,7 +30,6 @@ public:
     Handler handler;
 };
 
-} // namespace Comm
+}  // namespace Comm
 
 #endif /* SQUID_COMM_UDPOPENDIALER_H */
-

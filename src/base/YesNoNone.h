@@ -9,8 +9,8 @@
 #ifndef SQUID_YESNONONE_H_
 #define SQUID_YESNONONE_H_
 
-#include "base/TextException.h"
 #include "Debug.h"
+#include "base/TextException.h"
 
 // TODO: generalize / template to non-boolean option types
 // and make YesNoNone the boolean instance of the template
@@ -27,36 +27,43 @@
  */
 class YesNoNone
 {
-    enum SetHow : uint8_t { optUnspecified = 0, optImplicitly = 1, optConfigured = 2 };
+    enum SetHow : uint8_t { optUnspecified = 0,
+                            optImplicitly = 1,
+                            optConfigured = 2 };
 
 public:
     // this constructor initializes to 'unspecified' state
-    YesNoNone():
+    YesNoNone() :
         setHow_(optUnspecified),
         option(false)
-    {}
+    {
+    }
 
     // this constructor initializes to 'implicit' state
-    explicit YesNoNone(bool beSet):
+    explicit YesNoNone(bool beSet) :
         setHow_(optImplicitly),
         option(beSet)
-    {}
+    {
+    }
 
     /// the boolean equivalent of the value stored.
     /// asserts if the value has not been set.
-    explicit operator bool() const {
+    explicit operator bool() const
+    {
         Must(setHow_ != optUnspecified);
         return option;
     }
 
     /// enables or disables the option; updating to 'configured' state
-    void configure(bool beSet) {
+    void configure(bool beSet)
+    {
         setHow_ = optConfigured;
         option = beSet;
     }
 
     /// enables or disables the option; updating to 'implicit' state
-    void defaultTo(bool beSet) {
+    void defaultTo(bool beSet)
+    {
         Must(setHow_ != optConfigured);
         setHow_ = optImplicitly;
         option = beSet;
@@ -64,12 +71,11 @@ public:
 
     /// whether the option was enabled or disabled,
     /// by squid.conf values resulting in explicit configure() usage.
-    bool configured() const {return setHow_ == optConfigured;}
+    bool configured() const { return setHow_ == optConfigured; }
 
 private:
-    SetHow setHow_; ///< how the option was set
-    bool option; ///< specified yes/no value; meaningless if optUnspecified
+    SetHow setHow_;  ///< how the option was set
+    bool option;     ///< specified yes/no value; meaningless if optUnspecified
 };
 
 #endif /* SQUID_YESNONONE_H_ */
-

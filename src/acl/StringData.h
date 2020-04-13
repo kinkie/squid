@@ -22,7 +22,7 @@ class ACLStringData : public ACLData<char const *>
 public:
     ACLStringData() {}
     ACLStringData(ACLStringData const &);
-    ACLStringData &operator= (ACLStringData const &);
+    ACLStringData &operator=(ACLStringData const &);
     virtual ~ACLStringData() {}
     /// \deprecated use match(SBuf&) instead.
     bool match(char const *);
@@ -40,4 +40,3 @@ private:
 };
 
 #endif /* SQUID_ACLSTRINGDATA_H */
-

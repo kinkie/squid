@@ -20,14 +20,14 @@ void wccp2ConnectionOpen(void);
 void wccp2ConnectionClose(void);
 void parse_wccp2_method(int *v);
 void free_wccp2_method(int *v);
-void dump_wccp2_method(StoreEntry * e, const char *label, int v);
+void dump_wccp2_method(StoreEntry *e, const char *label, int v);
 void parse_wccp2_amethod(int *v);
 void free_wccp2_amethod(int *v);
-void dump_wccp2_amethod(StoreEntry * e, const char *label, int v);
+void dump_wccp2_amethod(StoreEntry *e, const char *label, int v);
 
 void parse_wccp2_service(void *v);
 void free_wccp2_service(void *v);
-void dump_wccp2_service(StoreEntry * e, const char *label, void *v);
+void dump_wccp2_service(StoreEntry *e, const char *label, void *v);
 
 int check_null_wccp2_service(void *v);
 
@@ -35,8 +35,7 @@ void parse_wccp2_service_info(void *v);
 
 void free_wccp2_service_info(void *v);
 
-void dump_wccp2_service_info(StoreEntry * e, const char *label, void *v);
+void dump_wccp2_service_info(StoreEntry *e, const char *label, void *v);
 #endif /* USE_WCCPv2 */
 
 #endif /* WCCP2_H_ */
-

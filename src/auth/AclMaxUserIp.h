@@ -29,15 +29,15 @@ public:
     virtual SBufList dump() const;
     virtual bool empty() const;
     virtual bool valid() const;
-    virtual bool requiresRequest() const {return true;}
+    virtual bool requiresRequest() const { return true; }
 
-    int getMaximum() const {return maximum;}
+    int getMaximum() const { return maximum; }
 
 private:
     int match(Auth::UserRequest::Pointer auth_user_request, Ip::Address const &src_addr);
 
 public:
-    Acl::BooleanOptionValue beStrict; ///< Enforce "one user, one device" policy?
+    Acl::BooleanOptionValue beStrict;  ///< Enforce "one user, one device" policy?
 
 private:
     char const *class_;
@@ -46,4 +46,3 @@ private:
 
 #endif /* USE_AUTH */
 #endif /* SQUID_ACLMAXUSERIP_H */
-

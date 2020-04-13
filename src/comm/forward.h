@@ -18,8 +18,7 @@
 typedef void PF(int, void *);
 
 /// Abstraction layer for TCP, UDP, TLS, UDS and filedescriptor sockets.
-namespace Comm
-{
+namespace Comm {
 
 class Connection;
 class ConnOpener;
@@ -36,7 +35,6 @@ PF HandleWrite;
 /// Mark an FD to be watched for its IO status.
 void SetSelect(int, unsigned int, PF *, void *, time_t);
 
-}; // namespace Comm
+};  // namespace Comm
 
 #endif /* _SQUID_COMM_FORWARD_H */
-

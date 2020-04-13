@@ -16,4 +16,3 @@
 void storeReplSetup(void);
 
 #endif /* SQUID_REPL_MODULES_H_ */
-

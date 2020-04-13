@@ -8,4 +8,3 @@
 
 #include "squid.h"
 // TBD
-

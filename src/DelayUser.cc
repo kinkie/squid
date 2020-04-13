@@ -11,23 +11,23 @@
 #include "squid.h"
 
 #if USE_DELAY_POOLS && USE_AUTH
-#include "auth/User.h"
-#include "auth/UserRequest.h"
-#include "comm/Connection.h"
 #include "DelayUser.h"
 #include "NullDelayId.h"
 #include "Store.h"
+#include "auth/User.h"
+#include "auth/UserRequest.h"
+#include "comm/Connection.h"
 
 DelayUser::DelayUser()
 {
-    DelayPools::registerForUpdates (this);
+    DelayPools::registerForUpdates(this);
 }
 
 static Splay<DelayUserBucket::Pointer>::SPLAYFREE DelayUserFree;
 
 DelayUser::~DelayUser()
 {
-    DelayPools::deregisterForUpdates (this);
+    DelayPools::deregisterForUpdates(this);
     buckets.destroy(DelayUserFree);
 }
 
@@ -46,26 +46,29 @@ DelayUserCmp(DelayUserBucket::Pointer const &left, DelayUserBucket::Pointer cons
 
 void
 DelayUserFree(DelayUserBucket::Pointer &)
-{}
+{
+}
 
 void
 DelayUserStatsWalkee(DelayUserBucket::Pointer const &current, void *state)
 {
-    current->stats ((StoreEntry *)state);
+    current->stats((StoreEntry *)state);
 }
 
 struct DelayUserStatsVisitor {
     StoreEntry *se;
-    explicit DelayUserStatsVisitor(StoreEntry *s) : se(s) {}
-    void operator() (DelayUserBucket::Pointer const &current) {
+    explicit DelayUserStatsVisitor(StoreEntry *s) :
+        se(s) {}
+    void operator()(DelayUserBucket::Pointer const &current)
+    {
         current->stats(se);
     }
 };
 
 void
-DelayUser::stats(StoreEntry * sentry)
+DelayUser::stats(StoreEntry *sentry)
 {
-    spec.stats (sentry, "Per User");
+    spec.stats(sentry, "Per User");
 
     if (spec.restore_bps == -1)
         return;
@@ -73,7 +76,7 @@ DelayUser::stats(StoreEntry * sentry)
     storeAppendPrintf(sentry, "\t\tCurrent: ");
 
     if (buckets.empty()) {
-        storeAppendPrintf (sentry, "Not used yet.\n\n");
+        storeAppendPrintf(sentry, "Not used yet.\n\n");
         return;
     }
 
@@ -89,7 +92,8 @@ DelayUser::dump(StoreEntry *entry) const
 }
 
 struct DelayUserUpdater {
-    DelayUserUpdater (DelaySpec &_spec, int _incr):spec(_spec),incr(_incr) {};
+    DelayUserUpdater(DelaySpec &_spec, int _incr) :
+        spec(_spec), incr(_incr) {};
 
     DelaySpec spec;
     int incr;
@@ -105,8 +109,10 @@ DelayUserUpdateWalkee(DelayUserBucket::Pointer const &current, void *state)
 
 struct DelayUserUpdateVisitor {
     DelayUserUpdater *t;
-    DelayUserUpdateVisitor(DelayUserUpdater *updater) : t(updater) {}
-    void operator() (DelayUserBucket::Pointer const &current) {
+    DelayUserUpdateVisitor(DelayUserUpdater *updater) :
+        t(updater) {}
+    void operator()(DelayUserBucket::Pointer const &current)
+    {
         const_cast<DelayUserBucket *>(current.getRaw())->theBucket.update(t->spec, t->incr);
     }
 };
@@ -135,7 +141,8 @@ DelayUser::id(CompositePoolNode::CompositeSelectionDetails &details)
     return new Id(this, details.user->user());
 }
 
-DelayUserBucket::DelayUserBucket(Auth::User::Pointer aUser) : authUser(aUser)
+DelayUserBucket::DelayUserBucket(Auth::User::Pointer aUser) :
+    authUser(aUser)
 {
     debugs(77, 3, "DelayUserBucket::DelayUserBucket");
 }
@@ -147,13 +154,14 @@ DelayUserBucket::~DelayUserBucket()
 }
 
 void
-DelayUserBucket::stats (StoreEntry *entry) const
+DelayUserBucket::stats(StoreEntry *entry) const
 {
     storeAppendPrintf(entry, " %s:", authUser->username());
     theBucket.stats(entry);
 }
 
-DelayUser::Id::Id(DelayUser::Pointer aDelayUser, Auth::User::Pointer aUser) : theUser(aDelayUser)
+DelayUser::Id::Id(DelayUser::Pointer aDelayUser, Auth::User::Pointer aUser) :
+    theUser(aDelayUser)
 {
     theBucket = new DelayUserBucket(aUser);
     DelayUserBucket::Pointer const *existing = theUser->buckets.find(theBucket, DelayUserCmp);
@@ -164,7 +172,7 @@ DelayUser::Id::Id(DelayUser::Pointer aDelayUser, Auth::User::Pointer aUser) : th
     }
 
     theBucket->theBucket.init(theUser->spec);
-    theUser->buckets.insert (theBucket, DelayUserCmp);
+    theUser->buckets.insert(theBucket, DelayUserCmp);
 }
 
 DelayUser::Id::~Id()
@@ -173,9 +181,9 @@ DelayUser::Id::~Id()
 }
 
 int
-DelayUser::Id::bytesWanted (int min, int max) const
+DelayUser::Id::bytesWanted(int min, int max) const
 {
-    return theBucket->theBucket.bytesWanted(min,max);
+    return theBucket->theBucket.bytesWanted(min, max);
 }
 
 void
@@ -185,4 +193,3 @@ DelayUser::Id::bytesIn(int qty)
 }
 
 #endif /* USE_DELAY_POOLS && USE_AUTH */
-

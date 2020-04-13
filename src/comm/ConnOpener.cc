@@ -9,10 +9,12 @@
 /* DEBUG: section 05    Socket Connection Opener */
 
 #include "squid.h"
+#include "comm/ConnOpener.h"
 #include "CachePeer.h"
+#include "SquidConfig.h"
+#include "SquidTime.h"
 #include "comm.h"
 #include "comm/Connection.h"
-#include "comm/ConnOpener.h"
 #include "comm/Loops.h"
 #include "fd.h"
 #include "fde.h"
@@ -21,8 +23,6 @@
 #include "ip/QosConfig.h"
 #include "ip/tools.h"
 #include "ipcache.h"
-#include "SquidConfig.h"
-#include "SquidTime.h"
 
 #include <cerrno>
 
@@ -86,7 +86,7 @@ Comm::ConnOpener::swanSong()
 }
 
 void
-Comm::ConnOpener::setHost(const char * new_host)
+Comm::ConnOpener::setHost(const char *new_host)
 {
     // unset and erase if already set.
     if (host_ != NULL)
@@ -112,7 +112,7 @@ Comm::ConnOpener::sendAnswer(Comm::Flag errFlag, int xerrno, const char *why)
 {
     // only mark the address good/bad AFTER connect is finished.
     if (host_ != NULL) {
-        if (xerrno == 0) // XXX: should not we use errFlag instead?
+        if (xerrno == 0)  // XXX: should not we use errFlag instead?
             ipcacheMarkGoodAddr(host_, conn_->remote);
         else {
             ipcacheMarkBadAddr(host_, conn_->remote);
@@ -127,8 +127,7 @@ Comm::ConnOpener::sendAnswer(Comm::Flag errFlag, int xerrno, const char *why)
         // avoid scheduling cancelled callbacks, assuming they are common
         // enough to make this extra check an optimization
         if (callback_->canceled()) {
-            debugs(5, 4, conn_ << " not calling canceled " << *callback_ <<
-                   " [" << callback_->id << ']' );
+            debugs(5, 4, conn_ << " not calling canceled " << *callback_ << " [" << callback_->id << ']');
             // TODO save the pconn to the pconnPool ?
         } else {
             typedef CommConnectCbParams Params;
@@ -169,7 +168,7 @@ Comm::ConnOpener::cleanFd()
          * after deleting ptr, so that is not a problem.
          */
 
-        delete static_cast<Pointer*>(f.write_data);
+        delete static_cast<Pointer *>(f.write_data);
         f.write_data = NULL;
         f.write_handler = NULL;
     }
@@ -232,7 +231,7 @@ Comm::ConnOpener::start()
     Must(conn_ != NULL);
 
     /* outbound sockets have no need to be protocol agnostic. */
-    if (!(Ip::EnableIpv6&IPV6_SPECIAL_V4MAPPING) && conn_->remote.isIPv4()) {
+    if (!(Ip::EnableIpv6 & IPV6_SPECIAL_V4MAPPING) && conn_->remote.isIPv4()) {
         conn_->local.setIPv4();
     }
 
@@ -270,12 +269,10 @@ Comm::ConnOpener::createFd()
     }
 
     // Set TOS if needed.
-    if (conn_->tos &&
-            Ip::Qos::setSockTos(temporaryFd_, conn_->tos, conn_->remote.isIPv4() ? AF_INET : AF_INET6) < 0)
+    if (conn_->tos && Ip::Qos::setSockTos(temporaryFd_, conn_->tos, conn_->remote.isIPv4() ? AF_INET : AF_INET6) < 0)
         conn_->tos = 0;
 #if SO_MARK
-    if (conn_->nfmark &&
-            Ip::Qos::setSockNfmark(temporaryFd_, conn_->nfmark) < 0)
+    if (conn_->nfmark && Ip::Qos::setSockNfmark(temporaryFd_, conn_->nfmark) < 0)
         conn_->nfmark = 0;
 #endif
 
@@ -314,7 +311,7 @@ Comm::ConnOpener::connected()
      * based on the max-conn option.  We need to increment here,
      * even if the connection may fail.
      */
-    if (CachePeer *peer=(conn_->getPeer()))
+    if (CachePeer *peer = (conn_->getPeer()))
         ++peer->stats.conn_open;
 
     lookupLocalAddress();
@@ -337,9 +334,9 @@ Comm::ConnOpener::doConnect()
     Must(conn_ != NULL);
     Must(temporaryFd_ >= 0);
 
-    ++ totalTries_;
+    ++totalTries_;
 
-    switch (comm_connect_addr(temporaryFd_, conn_->remote) ) {
+    switch (comm_connect_addr(temporaryFd_, conn_->remote)) {
 
     case Comm::INPROGRESS:
         debugs(5, 5, HERE << conn_ << ": Comm::INPROGRESS");
@@ -355,8 +352,7 @@ Comm::ConnOpener::doConnect()
         const int xerrno = errno;
 
         ++failRetries_;
-        debugs(5, 7, conn_ << ": failure #" << failRetries_ << " <= " <<
-               Config.connect_retries << ": " << xstrerr(xerrno));
+        debugs(5, 7, conn_ << ": failure #" << failRetries_ << " <= " << Config.connect_retries << ": " << xstrerr(xerrno));
 
         if (failRetries_ < Config.connect_retries) {
             debugs(5, 5, HERE << conn_ << ": * - try again");
@@ -453,7 +449,7 @@ Comm::ConnOpener::timeout(const CommTimeoutCbParams &)
 void
 Comm::ConnOpener::InProgressConnectRetry(int, void *data)
 {
-    Pointer *ptr = static_cast<Pointer*>(data);
+    Pointer *ptr = static_cast<Pointer *>(data);
     assert(ptr);
     if (ConnOpener *cs = ptr->valid()) {
         // Ew. we are now outside the all AsyncJob protections.
@@ -471,7 +467,7 @@ Comm::ConnOpener::InProgressConnectRetry(int, void *data)
 void
 Comm::ConnOpener::DelayedConnectRetry(void *data)
 {
-    Pointer *ptr = static_cast<Pointer*>(data);
+    Pointer *ptr = static_cast<Pointer *>(data);
     assert(ptr);
     if (ConnOpener *cs = ptr->valid()) {
         // Ew. we are now outside the all AsyncJob protections.
@@ -482,4 +478,3 @@ Comm::ConnOpener::DelayedConnectRetry(void *data)
     }
     delete ptr;
 }
-

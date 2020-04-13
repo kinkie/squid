@@ -10,52 +10,54 @@
 
 #include "squid.h"
 #include "acl/CertificateData.h"
-#include "acl/Checklist.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
+#include "cache_cf.h"
 #include "wordlist.h"
 
-ACLCertificateData::ACLCertificateData(Ssl::GETX509ATTRIBUTE *sslStrategy, const char *attrs, bool optionalAttr) : validAttributesStr(attrs), attributeIsOptional(optionalAttr), attribute (NULL), values (), sslAttributeCall (sslStrategy)
+ACLCertificateData::ACLCertificateData(Ssl::GETX509ATTRIBUTE *sslStrategy, const char *attrs, bool optionalAttr) :
+    validAttributesStr(attrs), attributeIsOptional(optionalAttr), attribute(NULL), values(), sslAttributeCall(sslStrategy)
 {
     if (attrs) {
         size_t current = 0;
         size_t next = std::string::npos;
         std::string valid(attrs);
         do {
-            next = valid.find_first_of( "|", current);
-            validAttributes.push_back(valid.substr( current, (next == std::string::npos ? std::string::npos : next - current)));
+            next = valid.find_first_of("|", current);
+            validAttributes.push_back(valid.substr(current, (next == std::string::npos ? std::string::npos : next - current)));
             current = next + 1;
         } while (next != std::string::npos);
     }
 }
 
-ACLCertificateData::ACLCertificateData(ACLCertificateData const &old) : attribute (NULL), values (old.values), sslAttributeCall (old.sslAttributeCall)
+ACLCertificateData::ACLCertificateData(ACLCertificateData const &old) :
+    attribute(NULL), values(old.values), sslAttributeCall(old.sslAttributeCall)
 {
     validAttributesStr = old.validAttributesStr;
-    validAttributes.assign (old.validAttributes.begin(), old.validAttributes.end());
+    validAttributes.assign(old.validAttributes.begin(), old.validAttributes.end());
     attributeIsOptional = old.attributeIsOptional;
     if (old.attribute)
         attribute = xstrdup(old.attribute);
 }
 
-template<class T>
+template <class T>
 inline void
 xRefFree(T &thing)
 {
-    xfree (thing);
+    xfree(thing);
 }
 
 ACLCertificateData::~ACLCertificateData()
 {
-    safe_free (attribute);
+    safe_free(attribute);
 }
 
-template<class T>
+template <class T>
 inline int
-splaystrcmp (T&l, T&r)
+splaystrcmp(T &l, T &r)
 {
-    return strcmp ((char *)l,(char *)r);
+    return strcmp((char *)l, (char *)r);
 }
 
 bool
@@ -79,7 +81,7 @@ ACLCertificateData::dump() const
     if (validAttributesStr)
         sl.push_back(SBuf(attribute));
 
-    sl.splice(sl.end(),values.dump());
+    sl.splice(sl.end(), values.dump());
     return sl;
 }
 
@@ -128,14 +130,14 @@ ACLCertificateData::parse()
                     int nid = OBJ_txt2nid(newAttribute);
                     if (nid == 0) {
                         const size_t span = strspn(newAttribute, "0123456789.");
-                        if(newAttribute[span] == '\0') { // looks like a numerical OID
+                        if (newAttribute[span] == '\0') {  // looks like a numerical OID
                             // create a new object based on this attribute
 
                             // NOTE: Not a [bad] leak: If the same attribute
                             // has been added before, the OBJ_txt2nid call
                             // would return a valid nid value.
                             // TODO: call OBJ_cleanup() on reconfigure?
-                            nid = OBJ_create(newAttribute, newAttribute,  newAttribute);
+                            nid = OBJ_create(newAttribute, newAttribute, newAttribute);
                             debugs(28, 7, "New SSL certificate attribute created with name: " << newAttribute << " and nid: " << nid);
                         }
                     }
@@ -165,4 +167,3 @@ ACLCertificateData::clone() const
     /* Splay trees don't clone yet. */
     return new ACLCertificateData(*this);
 }
-

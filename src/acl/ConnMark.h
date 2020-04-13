@@ -10,8 +10,8 @@
 #define SQUID_ACLCONNMARK_H
 
 #include "acl/Acl.h"
-#include "ip/forward.h"
 #include "ip/NfMarkConfig.h"
+#include "ip/forward.h"
 #include "parser/Tokenizer.h"
 
 #include <vector>
@@ -31,10 +31,9 @@ public:
     virtual bool empty() const override;
 
 private:
-    std::vector<Ip::NfMarkConfig> marks; ///< marks/masks in configured order
+    std::vector<Ip::NfMarkConfig> marks;  ///< marks/masks in configured order
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACLCONNMARK_H */
-

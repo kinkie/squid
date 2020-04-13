@@ -9,23 +9,23 @@
 /* DEBUG: section 90    Storage Manager Client-Side Interface */
 
 #include "squid.h"
-#include "acl/FilledChecklist.h"
-#include "base/CodeContext.h"
-#include "event.h"
-#include "globals.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "MemBuf.h"
 #include "MemObject.h"
-#include "mime_header.h"
-#include "profiler/Profiler.h"
 #include "SquidConfig.h"
 #include "StatCounters.h"
 #include "Store.h"
-#include "store_swapin.h"
 #include "StoreClient.h"
 #include "StoreMeta.h"
 #include "StoreMetaUnpacker.h"
+#include "acl/FilledChecklist.h"
+#include "base/CodeContext.h"
+#include "event.h"
+#include "globals.h"
+#include "mime_header.h"
+#include "profiler/Profiler.h"
+#include "store_swapin.h"
 #if USE_DELAY_POOLS
 #include "DelayPools.h"
 #endif
@@ -40,9 +40,9 @@
  */
 static StoreIOState::STRCB storeClientReadBody;
 static StoreIOState::STRCB storeClientReadHeader;
-static void storeClientCopy2(StoreEntry * e, store_client * sc);
+static void storeClientCopy2(StoreEntry *e, store_client *sc);
 static EVH storeClientCopyEvent;
-static bool CheckQuickAbortIsReasonable(StoreEntry * entry);
+static bool CheckQuickAbortIsReasonable(StoreEntry *entry);
 
 CBDATA_CLASS_INIT(store_client);
 
@@ -66,10 +66,10 @@ bool
 StoreClient::startCollapsingOn(const StoreEntry &e, const bool doingRevalidation)
 {
     if (!e.hittingRequiresCollapsing())
-        return false; // collapsing is impossible due to the entry state
+        return false;  // collapsing is impossible due to the entry state
 
     if (!onCollapsingPath())
-        return false; // collapsing is impossible due to Squid configuration
+        return false;  // collapsing is impossible due to Squid configuration
 
     /* collapsing is possible; the caller must collapse */
 
@@ -107,7 +107,7 @@ store_client::getType() const
 
 #if STORE_CLIENT_LIST_DEBUG
 static store_client *
-storeClientListSearch(const MemObject * mem, void *data)
+storeClientListSearch(const MemObject *mem, void *data)
 {
     dlink_node *node;
     store_client *sc = NULL;
@@ -123,7 +123,7 @@ storeClientListSearch(const MemObject * mem, void *data)
 }
 
 int
-storeClientIsThisAClient(store_client * sc, void *someClient)
+storeClientIsThisAClient(store_client *sc, void *someClient)
 {
     return sc->owner == someClient;
 }
@@ -133,7 +133,7 @@ storeClientIsThisAClient(store_client * sc, void *someClient)
 
 /* add client with fd to client list */
 store_client *
-storeClientListAdd(StoreEntry * e, void *data)
+storeClientListAdd(StoreEntry *e, void *data)
 {
     MemObject *mem = e->mem_obj;
     store_client *sc;
@@ -146,7 +146,7 @@ storeClientListAdd(StoreEntry * e, void *data)
 
 #endif
 
-    sc = new store_client (e);
+    sc = new store_client(e);
 
     mem->addClient(sc);
 
@@ -161,7 +161,7 @@ store_client::callback(ssize_t sz, bool error)
     if (sz >= 0 && !error)
         bSz = sz;
 
-    StoreIOBuffer result(bSz, 0,copyInto.data);
+    StoreIOBuffer result(bSz, 0, copyInto.data);
 
     if (sz < 0 || error)
         result.flags.error = 1;
@@ -185,7 +185,7 @@ storeClientCopyEvent(void *data)
 {
     store_client *sc = (store_client *)data;
     debugs(90, 3, "storeClientCopyEvent: Running");
-    assert (sc->flags.copy_event_pending);
+    assert(sc->flags.copy_event_pending);
     sc->flags.copy_event_pending = false;
 
     if (!sc->_callback.pending())
@@ -206,7 +206,7 @@ store_client::store_client(StoreEntry *e) :
     flags.disk_io_pending = false;
     flags.store_copying = false;
     flags.copy_event_pending = false;
-    ++ entry->refcount;
+    ++entry->refcount;
 
     if (getType() == STORE_DISK_CLIENT) {
         /* assert we'll be able to get the data we want */
@@ -216,34 +216,32 @@ store_client::store_client(StoreEntry *e) :
 }
 
 store_client::~store_client()
-{}
+{
+}
 
 /* copy bytes requested by the client */
 void
-storeClientCopy(store_client * sc,
-                StoreEntry * e,
+storeClientCopy(store_client *sc,
+                StoreEntry *e,
                 StoreIOBuffer copyInto,
-                STCB * callback,
+                STCB *callback,
                 void *data)
 {
-    assert (sc != NULL);
-    sc->copy(e, copyInto,callback,data);
+    assert(sc != NULL);
+    sc->copy(e, copyInto, callback, data);
 }
 
 void
-store_client::copy(StoreEntry * anEntry,
+store_client::copy(StoreEntry *anEntry,
                    StoreIOBuffer copyRequest,
-                   STCB * callback_fn,
+                   STCB *callback_fn,
                    void *data)
 {
-    assert (anEntry == entry);
-    assert (callback_fn);
-    assert (data);
+    assert(anEntry == entry);
+    assert(callback_fn);
+    assert(data);
     assert(!EBIT_TEST(entry->flags, ENTRY_ABORTED));
-    debugs(90, 3, "store_client::copy: " << entry->getMD5Text() << ", from " <<
-           copyRequest.offset << ", for length " <<
-           (int) copyRequest.length << ", cb " << callback_fn << ", cbdata " <<
-           data);
+    debugs(90, 3, "store_client::copy: " << entry->getMD5Text() << ", from " << copyRequest.offset << ", for length " << (int)copyRequest.length << ", cb " << callback_fn << ", cbdata " << data);
 
 #if STORE_CLIENT_LIST_DEBUG
 
@@ -257,13 +255,13 @@ store_client::copy(StoreEntry * anEntry,
 #endif
     /* range requests will skip into the body */
     cmp_offset = copyRequest.offset;
-    _callback = Callback (callback_fn, cbdataReference(data));
+    _callback = Callback(callback_fn, cbdataReference(data));
     copyInto.data = copyRequest.data;
     copyInto.length = copyRequest.length;
     copyInto.offset = copyRequest.offset;
 
-    static bool copying (false);
-    assert (!copying);
+    static bool copying(false);
+    assert(!copying);
     copying = true;
     PROF_start(storeClient_kickReads);
     /* we might be blocking comm reads due to readahead limits
@@ -273,7 +271,7 @@ store_client::copy(StoreEntry * anEntry,
     PROF_stop(storeClient_kickReads);
     copying = false;
 
-    anEntry->lock("store_client::copy"); // see deletion note below
+    anEntry->lock("store_client::copy");  // see deletion note below
 
     storeClientCopy2(entry, this);
 
@@ -293,7 +291,7 @@ bool
 store_client::moreToSend() const
 {
     if (entry->store_status == STORE_PENDING)
-        return true; // there may be more coming
+        return true;  // there may be more coming
 
     /* STORE_OK, including aborted entries: no more data is coming */
 
@@ -305,20 +303,19 @@ store_client::moreToSend() const
         return canSwapIn;
 
     if (copyInto.offset >= len)
-        return false; // sent everything there is
+        return false;  // sent everything there is
 
     if (canSwapIn)
-        return true; // if we lack prefix, we can swap it in
+        return true;  // if we lack prefix, we can swap it in
 
     // If we cannot swap in, make sure we have what we want in RAM. Otherwise,
     // scheduleRead calls scheduleDiskRead which asserts without a swap file.
     const MemObject *mem = entry->mem_obj;
-    return mem &&
-           mem->inmem_lo <= copyInto.offset && copyInto.offset < mem->endOffset();
+    return mem && mem->inmem_lo <= copyInto.offset && copyInto.offset < mem->endOffset();
 }
 
 static void
-storeClientCopy2(StoreEntry * e, store_client * sc)
+storeClientCopy2(StoreEntry *e, store_client *sc)
 {
     /* reentrancy not allowed  - note this could lead to
      * dropped events
@@ -351,7 +348,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
      * freeing sc memory) so sc may become invalid from C++ p.o.v.
      */
     CbcPointer<store_client> tmpLock = sc;
-    assert (!sc->flags.store_copying);
+    assert(!sc->flags.store_copying);
     sc->doCopy(e);
     assert(!sc->flags.store_copying);
 }
@@ -359,13 +356,11 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
 void
 store_client::doCopy(StoreEntry *anEntry)
 {
-    assert (anEntry == entry);
+    assert(anEntry == entry);
     flags.store_copying = true;
     MemObject *mem = entry->mem_obj;
 
-    debugs(33, 5, "store_client::doCopy: co: " <<
-           copyInto.offset << ", hi: " <<
-           mem->endOffset());
+    debugs(33, 5, "store_client::doCopy: co: " << copyInto.offset << ", hi: " << mem->endOffset());
 
     if (!moreToSend()) {
         /* There is no more to send! */
@@ -396,7 +391,7 @@ store_client::doCopy(StoreEntry *anEntry)
 
     if (STORE_DISK_CLIENT == getType() && swapin_sio == NULL) {
         if (!startSwapin())
-            return; // failure
+            return;  // failure
     }
     scheduleRead();
 }
@@ -493,7 +488,7 @@ store_client::fileRead()
               copyInto.length,
               copyInto.offset + mem->swap_hdr_sz,
               mem->swap_hdr_sz == 0 ? storeClientReadHeader
-              : storeClientReadBody,
+                                    : storeClientReadBody,
               this);
 }
 
@@ -597,13 +592,11 @@ store_client::unpackHeader(char const *buf, ssize_t len)
 
     assert(swap_hdr_sz >= 0);
     entry->mem_obj->swap_hdr_sz = swap_hdr_sz;
-    if (entry->swap_file_sz > 0) { // collapsed hits may not know swap_file_sz
+    if (entry->swap_file_sz > 0) {  // collapsed hits may not know swap_file_sz
         assert(entry->swap_file_sz >= static_cast<uint64_t>(swap_hdr_sz));
         entry->mem_obj->object_sz = entry->swap_file_sz - swap_hdr_sz;
     }
-    debugs(90, 5, "store_client::unpackHeader: swap_file_sz=" <<
-           entry->swap_file_sz << "( " << swap_hdr_sz << " + " <<
-           entry->mem_obj->object_sz << ")");
+    debugs(90, 5, "store_client::unpackHeader: swap_file_sz=" << entry->swap_file_sz << "( " << swap_hdr_sz << " + " << entry->mem_obj->object_sz << ")");
     return true;
 }
 
@@ -655,7 +648,7 @@ store_client::readHeader(char const *buf, ssize_t len)
 }
 
 int
-storeClientCopyPending(store_client * sc, StoreEntry * e, void *data)
+storeClientCopyPending(store_client *sc, StoreEntry *e, void *data)
 {
 #if STORE_CLIENT_LIST_DEBUG
     assert(sc == storeClientListSearch(e->mem_obj, data));
@@ -684,7 +677,7 @@ storeClientCopyPending(store_client * sc, StoreEntry * e, void *data)
  * passed sc. Yet.
  */
 int
-storeUnregister(store_client * sc, StoreEntry * e, void *data)
+storeUnregister(store_client *sc, StoreEntry *e, void *data)
 {
     MemObject *mem = e->mem_obj;
 #if STORE_CLIENT_LIST_DEBUG
@@ -708,7 +701,7 @@ storeUnregister(store_client * sc, StoreEntry * e, void *data)
     }
 
     dlinkDelete(&sc->node, &mem->clients);
-    -- mem->nclients;
+    --mem->nclients;
 
     const auto swapoutFinished = e->swappedOut() || e->swapoutFailed();
     if (e->store_status == STORE_OK && !swapoutFinished)
@@ -798,7 +791,7 @@ StoreEntry::invokeHandlers()
 
 // Does not account for remote readers/clients.
 int
-storePendingNClients(const StoreEntry * e)
+storePendingNClients(const StoreEntry *e)
 {
     MemObject *mem = e->mem_obj;
     int npend = NULL == mem ? 0 : mem->nclients;
@@ -808,7 +801,7 @@ storePendingNClients(const StoreEntry * e)
 
 /* return true if the request should be aborted */
 static bool
-CheckQuickAbortIsReasonable(StoreEntry * entry)
+CheckQuickAbortIsReasonable(StoreEntry *entry)
 {
     assert(entry);
     debugs(90, 3, "entry=" << *entry);
@@ -833,7 +826,7 @@ CheckQuickAbortIsReasonable(StoreEntry * entry)
         return false;
     }
 
-    MemObject * const mem = entry->mem_obj;
+    MemObject *const mem = entry->mem_obj;
     assert(mem);
     debugs(90, 3, "mem=" << mem);
 
@@ -874,7 +867,7 @@ CheckQuickAbortIsReasonable(StoreEntry * entry)
     }
     const auto expectlen = reply.hdr_sz + reply.content_length;
 
-    int64_t curlen =  mem->endOffset();
+    int64_t curlen = mem->endOffset();
 
     if (curlen > expectlen) {
         debugs(90, 3, "quick-abort? YES bad content length (" << curlen << " of " << expectlen << " bytes received)");
@@ -907,7 +900,7 @@ CheckQuickAbortIsReasonable(StoreEntry * entry)
 }
 
 void
-store_client::dumpStats(MemBuf * output, int clientNumber) const
+store_client::dumpStats(MemBuf *output, int clientNumber) const
 {
     if (_callback.pending())
         return;
@@ -926,7 +919,7 @@ store_client::dumpStats(MemBuf * output, int clientNumber) const
     if (flags.copy_event_pending)
         output->append(" copy_event_pending", 19);
 
-    output->append("\n",1);
+    output->append("\n", 1);
 }
 
 bool
@@ -935,7 +928,7 @@ store_client::Callback::pending() const
     return callback_handler && callback_data;
 }
 
-store_client::Callback::Callback(STCB *function, void *data):
+store_client::Callback::Callback(STCB *function, void *data) :
     callback_handler(function),
     callback_data(data),
     codeContext(CodeContext::Current())
@@ -949,4 +942,3 @@ store_client::setDelayId(DelayId delay_id)
     delayId = delay_id;
 }
 #endif
-

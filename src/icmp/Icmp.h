@@ -13,17 +13,16 @@
 
 #include "ip/Address.h"
 
-#define PINGER_PAYLOAD_SZ   8192
+#define PINGER_PAYLOAD_SZ 8192
 
-#define MAX_PAYLOAD 256 // WAS: SQUIDHOSTNAMELEN
-#define MAX_PKT4_SZ (MAX_PAYLOAD + sizeof(struct timeval) + sizeof (char) + sizeof(struct icmphdr) + 1)
-#define MAX_PKT6_SZ (MAX_PAYLOAD + sizeof(struct timeval) + sizeof (char) + sizeof(struct icmp6_hdr) + 1)
+#define MAX_PAYLOAD 256  // WAS: SQUIDHOSTNAMELEN
+#define MAX_PKT4_SZ (MAX_PAYLOAD + sizeof(struct timeval) + sizeof(char) + sizeof(struct icmphdr) + 1)
+#define MAX_PKT6_SZ (MAX_PAYLOAD + sizeof(struct timeval) + sizeof(char) + sizeof(struct icmp6_hdr) + 1)
 
 #if USE_ICMP
 
 /* This is a line-data format struct. DO NOT alter. */
-struct pingerEchoData
-{
+struct pingerEchoData {
     pingerEchoData() { memset(&payload, 0, sizeof(payload)); }
     Ip::Address to;
     unsigned char opcode = '\0';
@@ -71,7 +70,7 @@ public:
     virtual ~Icmp() {}
 
     /// Start pinger helper and initiate control channel
-    virtual int Open() =0;
+    virtual int Open() = 0;
 
     /// Shutdown pinger helper and control channel
     virtual void Close();
@@ -87,10 +86,10 @@ public:
      *                Content longer than MAX_PAYLOAD will be truncated.
      \param len       Length of the payload in bytes if any is to be sent or 0.
      */
-    virtual void SendEcho(Ip::Address &to, int opcode, const char *payload=NULL, int len=0) =0;
+    virtual void SendEcho(Ip::Address &to, int opcode, const char *payload = NULL, int len = 0) = 0;
 
     /// Handle ICMP responses.
-    virtual void Recv(void) =0;
+    virtual void Recv(void) = 0;
 
 protected:
     /* shared internal methods */
@@ -115,7 +114,7 @@ protected:
     int ipHops(int ttl);
 
     /// Log the packet.
-    void Log(const Ip::Address &addr, const uint8_t type, const char* pkt_str, const int rtt, const int hops);
+    void Log(const Ip::Address &addr, const uint8_t type, const char *pkt_str, const int rtt, const int hops);
 
     /* no use wasting memory */
     int icmp_sock;
@@ -124,4 +123,3 @@ protected:
 };
 
 #endif
-

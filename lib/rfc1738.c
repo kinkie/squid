@@ -18,34 +18,34 @@
  *  any non-US-ASCII character or anything between 0x00 - 0x1F.
  */
 static char rfc1738_unsafe_chars[] = {
-    (char) 0x3C,        /* < */
-    (char) 0x3E,        /* > */
-    (char) 0x22,        /* " */
-    (char) 0x23,        /* # */
-#if 0               /* done in code */
+    (char)0x3C, /* < */
+    (char)0x3E, /* > */
+    (char)0x22, /* " */
+    (char)0x23, /* # */
+#if 0           /* done in code */
     (char) 0x20,        /* space */
     (char) 0x25,        /* % */
 #endif
-    (char) 0x7B,        /* { */
-    (char) 0x7D,        /* } */
-    (char) 0x7C,        /* | */
-    (char) 0x5C,        /* \ */
-    (char) 0x5E,        /* ^ */
-    (char) 0x7E,        /* ~ */
-    (char) 0x5B,        /* [ */
-    (char) 0x5D,        /* ] */
-    (char) 0x60,        /* ` */
-    (char) 0x27         /* ' */
+    (char)0x7B, /* { */
+    (char)0x7D, /* } */
+    (char)0x7C, /* | */
+    (char)0x5C, /* \ */
+    (char)0x5E, /* ^ */
+    (char)0x7E, /* ~ */
+    (char)0x5B, /* [ */
+    (char)0x5D, /* ] */
+    (char)0x60, /* ` */
+    (char)0x27  /* ' */
 };
 
 static char rfc1738_reserved_chars[] = {
-    (char) 0x3b,        /* ; */
-    (char) 0x2f,        /* / */
-    (char) 0x3f,        /* ? */
-    (char) 0x3a,        /* : */
-    (char) 0x40,        /* @ */
-    (char) 0x3d,        /* = */
-    (char) 0x26         /* & */
+    (char)0x3b, /* ; */
+    (char)0x2f, /* / */
+    (char)0x3f, /* ? */
+    (char)0x3a, /* : */
+    (char)0x40, /* @ */
+    (char)0x3d, /* = */
+    (char)0x26  /* & */
 };
 
 /*
@@ -64,7 +64,7 @@ rfc1738_do_escape(const char *url, int flags)
     if (buf == NULL || strlen(url) * 3 > bufsize) {
         xfree(buf);
         bufsize = strlen(url) * 3 + 1;
-        buf = (char*)xcalloc(bufsize, 1);
+        buf = (char *)xcalloc(bufsize, 1);
     }
     for (src = url, dst = buf; *src != '\0' && dst < (buf + bufsize - 1); src++, dst++) {
 
@@ -102,18 +102,18 @@ rfc1738_do_escape(const char *url, int flags)
         }
         if ((flags & RFC1738_ESCAPE_CTRLS) && do_escape == 0) {
             /* RFC 1738 says any control chars (0x00-0x1F) are encoded */
-            if ((unsigned char) *src <= (unsigned char) 0x1F)
+            if ((unsigned char)*src <= (unsigned char)0x1F)
                 do_escape = 1;
             /* RFC 1738 says 0x7f is encoded */
-            else if (*src == (char) 0x7F)
+            else if (*src == (char)0x7F)
                 do_escape = 1;
             /* RFC 1738 says any non-US-ASCII are encoded */
-            else if (((unsigned char) *src >= (unsigned char) 0x80))
+            else if (((unsigned char)*src >= (unsigned char)0x80))
                 do_escape = 1;
         }
         /* Do the triplet encoding, or just copy the char */
         if (do_escape == 1) {
-            (void) snprintf(dst, (bufsize-(dst-buf)), "%%%02X", (unsigned char) *src);
+            (void)snprintf(dst, (bufsize - (dst - buf)), "%%%02X", (unsigned char)*src);
             dst += sizeof(char) * 2;
         } else {
             *dst = *src;
@@ -145,22 +145,22 @@ fromhex(char ch)
 void
 rfc1738_unescape(char *s)
 {
-    int i, j;           /* i is write, j is read */
+    int i, j; /* i is write, j is read */
     for (i = j = 0; s[j]; i++, j++) {
         s[i] = s[j];
         if (s[j] != '%') {
             /* normal case, nothing more to do */
-        } else if (s[j + 1] == '%') {   /* %% case */
-            j++;        /* Skip % */
+        } else if (s[j + 1] == '%') { /* %% case */
+            j++;                      /* Skip % */
         } else {
             /* decode */
             int v1, v2, x;
             v1 = fromhex(s[j + 1]);
             if (v1 < 0)
-                continue;  /* non-hex or \0 */
+                continue; /* non-hex or \0 */
             v2 = fromhex(s[j + 2]);
             if (v2 < 0)
-                continue;  /* non-hex or \0 */
+                continue; /* non-hex or \0 */
             x = v1 << 4 | v2;
             if (x > 0 && x <= 255) {
                 s[i] = x;
@@ -170,4 +170,3 @@ rfc1738_unescape(char *s)
     }
     s[i] = '\0';
 }
-

@@ -9,8 +9,8 @@
 #ifndef SQUID_ESIVARSTATE_H
 #define SQUID_ESIVARSTATE_H
 
-#include "esi/Segment.h"
 #include "HttpHeader.h"
+#include "esi/Segment.h"
 #include "libTrie/Trie.h"
 
 #include <vector>
@@ -25,11 +25,13 @@ typedef enum {
     ESI_BROWSER_OTHER
 } esiBrowser_t;
 
-extern char const * esiBrowsers[];
+extern char const *esiBrowsers[];
 
 /* Recursive uses are not supported by design */
 
-struct _query_elem {char *var, *val;};
+struct _query_elem {
+    char *var, *val;
+};
 
 class ESIVarState
 {
@@ -41,12 +43,12 @@ public:
 
     ESISegment::Pointer extractList();
     char *extractChar();
-    void feedData (const char *buf, size_t len);
-    void buildVary (HttpReply *rep);
+    void feedData(const char *buf, size_t len);
+    void buildVary(HttpReply *rep);
 
     class Variable;
-    void addVariable (char const *, size_t, Variable *);
-    void removeVariable (String const &);
+    void addVariable(char const *, size_t, Variable *);
+    void removeVariable(String const &);
 
     /* For Variables */
     void cookieUsed();
@@ -63,37 +65,36 @@ private:
     HttpHeader hdr;
 
     struct {
-        int language:1;
-        int cookie:1;
-        int host:1;
-        int referer:1;
-        int useragent:1;
+        int language : 1;
+        int cookie : 1;
+        int host : 1;
+        int referer : 1;
+        int useragent : 1;
     } flags;
 
 public:
-
     class Variable
     {
 
     public:
-        Variable () {}
+        Variable() {}
 
         virtual ~Variable() {}
 
         /* prevent synthetics */
-        Variable (Variable const &) {}
+        Variable(Variable const &) {}
 
-        Variable &operator= (Variable const &);
-        virtual void eval (ESIVarState &state, char const *, char const *) const;
+        Variable &operator=(Variable const &);
+        virtual void eval(ESIVarState &state, char const *, char const *) const;
     };
 
-    Variable* GetVar(char const *s, int len);
+    Variable *GetVar(char const *s, int len);
 
 private:
-    void doIt ();
+    void doIt();
     void setupUserAgent();
     Trie variables;
-    std::vector<Variable*> variablesForCleanup;
+    std::vector<Variable *> variablesForCleanup;
     Variable *defaultVariable;
 };
 
@@ -101,21 +102,21 @@ class ESIVariableCookie : public ESIVarState::Variable
 {
 
 public:
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
 };
 
 class ESIVariableHost : public ESIVarState::Variable
 {
 
 public:
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
 };
 
 class ESIVariableLanguage : public ESIVarState::Variable
 {
 
 public:
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
 };
 
 class ESIVariableQuery : public ESIVarState::Variable
@@ -124,7 +125,7 @@ class ESIVariableQuery : public ESIVarState::Variable
 public:
     ESIVariableQuery(char const *uri);
     ~ESIVariableQuery();
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
     char const *queryString() const;
 
     struct _query_elem const *queryVector() const;
@@ -140,7 +141,7 @@ class ESIVariableReferer : public ESIVarState::Variable
 {
 
 public:
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
 };
 
 class ESIVariableUserAgent : public ESIVarState::Variable
@@ -148,11 +149,11 @@ class ESIVariableUserAgent : public ESIVarState::Variable
 
 public:
     ~ESIVariableUserAgent();
-    ESIVariableUserAgent (ESIVarState &state);
-    virtual void eval (ESIVarState &state, char const *, char const *) const;
+    ESIVariableUserAgent(ESIVarState &state);
+    virtual void eval(ESIVarState &state, char const *, char const *) const;
 
 private:
-    static char const * esiUserOs[];
+    static char const *esiUserOs[];
     enum esiUserOs_t {
         ESI_OS_WIN,
         ESI_OS_MAC,
@@ -160,13 +161,12 @@ private:
         ESI_OS_OTHER
     };
     esiUserOs_t identifyOs(char const *) const;
-    char const *browserVersion() const {return browserversion;}
+    char const *browserVersion() const { return browserversion; }
 
-    char *getProductVersion (char const *s);
+    char *getProductVersion(char const *s);
     esiUserOs_t UserOs;
     esiBrowser_t browser;
     char *browserversion;
 };
 
 #endif /* SQUID_ESIVARSTATE_H */
-

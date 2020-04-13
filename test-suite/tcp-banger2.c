@@ -101,7 +101,7 @@ static int opt_checksum = 0;
 static char *custom_header = NULL;
 FILE *trace_file = NULL;
 
-typedef void (CB) (int, void *);
+typedef void(CB)(int, void *);
 
 struct _f {
     CB *cb;
@@ -139,13 +139,13 @@ free_request(struct _request *r)
 
 #define RFC1123_STRFTIME "%a, %d %b %Y %H:%M:%S GMT"
 char *
-mkrfc1123(t)
-time_t *t;
+    mkrfc1123(t)
+        time_t *t;
 {
     static char buf[128];
     struct tm *gmt = gmtime(t);
     buf[0] = '\0';
-    (void) strftime(buf, 127, RFC1123_STRFTIME, gmt);
+    (void)strftime(buf, 127, RFC1123_STRFTIME, gmt);
     return buf;
 }
 
@@ -167,7 +167,7 @@ fd_close(int fd)
 }
 
 void
-fd_open(int fd, CB * cb, void *data, CB * ccb)
+fd_open(int fd, CB *cb, void *data, CB *ccb)
 {
     assert(fd < SQUID_MAXFD);
     FD[fd].cb = cb;
@@ -259,8 +259,10 @@ void
 reply_done(int fd, void *data)
 {
     struct _request *r = data;
-    if (opt_range);     /* skip size checks for now */
-    else if (strcmp(r->method, "HEAD") == 0);
+    if (opt_range)
+        ; /* skip size checks for now */
+    else if (strcmp(r->method, "HEAD") == 0)
+        ;
     else if (r->bodysize != r->content_length && r->content_length >= 0)
         fprintf(stderr, "ERROR: %s got %d of %d bytes\n",
                 r->url, r->bodysize, r->content_length);
@@ -288,7 +290,8 @@ reply_done(int fd, void *data)
 }
 
 struct _request *
-request(char *urlin) {
+request(char *urlin)
+{
     int s = -1, f = -1;
     char buf[4096];
     char msg[8192];
@@ -310,7 +313,7 @@ request(char *urlin) {
     S.sin_family = AF_INET;
     S.sin_port = htons(proxy_port);
     S.sin_addr.s_addr = inet_addr(proxy_addr);
-    if (connect(s, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    if (connect(s, (struct sockaddr *)&S, sizeof(S)) < 0) {
         close(s);
         perror("connect");
         return NULL;
@@ -342,7 +345,7 @@ request(char *urlin) {
     if (size && strcmp(size, "-") != 0)
         r->validsize = atoi(size);
     else
-        r->validsize = -1;  /* Unknown */
+        r->validsize = -1; /* Unknown */
     if (checksum && strcmp(checksum, "-") != 0)
         r->validsum = strtoul(checksum, NULL, 0);
     if (status)
@@ -354,17 +357,17 @@ request(char *urlin) {
     } else {
         host = NULL;
     }
-    snprintf(msg, sizeof(msg)-1, "%s %s HTTP/1.0\r\n", method, url);
+    snprintf(msg, sizeof(msg) - 1, "%s %s HTTP/1.0\r\n", method, url);
     if (host) {
         url[0] = '\0';
-        snprintf(buf, sizeof(buf)-1, "Host: %s\r\n", host);
+        snprintf(buf, sizeof(buf) - 1, "Host: %s\r\n", host);
         strcat(msg, buf);
         url[0] = '/';
     }
     strcat(msg, "Accept: */*\r\n");
     if (opt_ims && (lrand48() & 0x03) == 0) {
         w = time(NULL) - (lrand48() & 0x3FFFF);
-        snprintf(buf, sizeof(buf)-1, "If-Modified-Since: %s\r\n", mkrfc850(&w));
+        snprintf(buf, sizeof(buf) - 1, "If-Modified-Since: %s\r\n", mkrfc850(&w));
         strcat(msg, buf);
     }
     if (file && strcmp(file, "-") != 0) {
@@ -374,26 +377,26 @@ request(char *urlin) {
             exit(1);
         }
         fstat(f, &st);
-        snprintf(buf, sizeof(buf)-1, "Content-Length: %d\r\n", (int) st.st_size);
+        snprintf(buf, sizeof(buf) - 1, "Content-Length: %d\r\n", (int)st.st_size);
         strcat(msg, buf);
     }
     if (opt_range && (lrand48() & 0x03) == 0) {
         int len;
         int count = 0;
         strcat(msg, "Range: bytes=");
-        while (((len = (int) lrand48()) & 0x03) == 0 || !count) {
-            const int offset = (int) lrand48();
+        while (((len = (int)lrand48()) & 0x03) == 0 || !count) {
+            const int offset = (int)lrand48();
             if (count)
                 strcat(msg, ",");
             switch (lrand48() & 0x03) {
             case 0:
-                snprintf(buf, sizeof(buf)-1, "-%d", len);
+                snprintf(buf, sizeof(buf) - 1, "-%d", len);
                 break;
             case 1:
-                snprintf(buf, sizeof(buf)-1, "%d-", offset);
+                snprintf(buf, sizeof(buf) - 1, "%d-", offset);
                 break;
             default:
-                snprintf(buf, sizeof(buf)-1, "%d-%d", offset, offset + len);
+                snprintf(buf, sizeof(buf) - 1, "%d-%d", offset, offset + len);
                 break;
             }
             strcat(msg, buf);
@@ -471,8 +474,7 @@ usage(void)
 }
 
 int
-main(argc, argv)
-int argc;
+    main(argc, argv) int argc;
 char *argv[];
 {
     int i;
@@ -507,10 +509,10 @@ char *argv[];
             opt_ims = 1;
             break;
         case 'l':
-            lifetime = (time_t) atoi(optarg);
+            lifetime = (time_t)atoi(optarg);
             break;
         case 'L':
-            process_lifetime = (time_t) atoi(optarg);
+            process_lifetime = (time_t)atoi(optarg);
             break;
         case 'c':
             opt_checksum = 1;
@@ -576,15 +578,15 @@ char *argv[];
         }
         if (now.tv_sec > last.tv_sec) {
             last = now;
-            dt = (int) (now.tv_sec - start.tv_sec);
+            dt = (int)(now.tv_sec - start.tv_sec);
             printf("T+ %6d: %9d req (%+4d), %4d conn, %3d/sec avg, %dmb, %dkb/sec avg\n",
                    dt,
                    nrequests,
                    reqpersec,
                    nfds,
-                   (int) (nrequests / dt),
-                   (int) (total_bytes_read / 1024 / 1024),
-                   (int) (total_bytes_read / 1024 / dt));
+                   (int)(nrequests / dt),
+                   (int)(total_bytes_read / 1024 / 1024),
+                   (int)(total_bytes_read / 1024 / dt));
             reqpersec = 0;
             /*
              * if (dt > process_lifetime)
@@ -595,4 +597,3 @@ char *argv[];
     printf("Exiting normally\n");
     return 0;
 }
-

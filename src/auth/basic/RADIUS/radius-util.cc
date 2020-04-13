@@ -40,9 +40,8 @@
  *
  */
 
-char util_sccsid[] =
-    "@(#)util.c	1.5 Copyright 1992 Livingston Enterprises Inc\n"
-    "		2.1 Copyright 1997 Cistron Internet Services B.V.";
+char util_sccsid[] = "@(#)util.c	1.5 Copyright 1992 Livingston Enterprises Inc\n"
+                     "		2.1 Copyright 1997 Cistron Internet Services B.V.";
 
 #include "squid.h"
 #include "auth/basic/RADIUS/radius-util.h"
@@ -67,7 +66,8 @@ char util_sccsid[] =
 /*
  *  Check for valid IP address in standard dot notation.
  */
-static int good_ipaddr(char *addr)
+static int
+good_ipaddr(char *addr)
 {
     int dot_count;
     int digit_count;
@@ -89,9 +89,9 @@ static int good_ipaddr(char *addr)
         ++addr;
     }
     if (dot_count != 3) {
-        return(-1);
+        return (-1);
     } else {
-        return(0);
+        return (0);
     }
 }
 
@@ -99,13 +99,14 @@ static int good_ipaddr(char *addr)
  *  Return an IP address in host long notation from
  *  one supplied in standard dot notation.
  */
-static uint32_t ipstr2long(char *ip_str)
+static uint32_t
+ipstr2long(char *ip_str)
 {
-    char    buf[6];
-    char    *ptr;
+    char buf[6];
+    char *ptr;
     int i;
     int count;
-    uint32_t    ipaddr;
+    uint32_t ipaddr;
     int cur_byte;
 
     ipaddr = (uint32_t)0;
@@ -115,7 +116,7 @@ static uint32_t ipstr2long(char *ip_str)
         *ptr = '\0';
         while (*ip_str != '.' && *ip_str != '\0' && count < 4) {
             if (!isdigit(*ip_str)) {
-                return((uint32_t)0);
+                return ((uint32_t)0);
             }
             *ptr = *ip_str;
             ++ptr;
@@ -123,32 +124,32 @@ static uint32_t ipstr2long(char *ip_str)
             ++count;
         }
         if (count >= 4 || count == 0) {
-            return((uint32_t)0);
+            return ((uint32_t)0);
         }
         *ptr = '\0';
         cur_byte = atoi(buf);
         if (cur_byte < 0 || cur_byte > 255) {
-            return((uint32_t)0);
+            return ((uint32_t)0);
         }
         ++ip_str;
         ipaddr = ipaddr << 8 | (uint32_t)cur_byte;
     }
-    return(ipaddr);
+    return (ipaddr);
 }
 
 /*
  *  Return an IP address in host long notation from a host
  *  name or address in dot notation.
  */
-uint32_t get_ipaddr(char *host)
+uint32_t
+get_ipaddr(char *host)
 {
-    struct hostent  *hp;
+    struct hostent *hp;
 
     if (good_ipaddr(host) == 0) {
-        return(ipstr2long(host));
+        return (ipstr2long(host));
     } else if ((hp = gethostbyname(host)) == (struct hostent *)NULL) {
-        return((uint32_t)0);
+        return ((uint32_t)0);
     }
-    return(ntohl(*(uint32_t *)hp->h_addr));
+    return (ntohl(*(uint32_t *)hp->h_addr));
 }
-

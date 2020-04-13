@@ -22,10 +22,15 @@
 class IcmpConfig
 {
 public:
-    IcmpConfig() : enable(0) {}
+    IcmpConfig() :
+        enable(0) {}
     ~IcmpConfig() {}
 
-    void clear() {enable=0; program.clear();}
+    void clear()
+    {
+        enable = 0;
+        program.clear();
+    }
     void parse();
 
     /** pinger helper application path */
@@ -38,16 +43,16 @@ public:
 extern IcmpConfig IcmpCfg;
 
 /* wrappers for the legacy squid.conf parser */
-#define dump_icmp(e,n,v) \
-        if (!(v).program.isEmpty()) { \
-            (e)->append((n), strlen((n))); \
-            (e)->append(" ", 1); \
-            (e)->append((v).program.rawContent(), (v).program.length()); \
-            (e)->append("\n", 1); \
-        } else {}
+#define dump_icmp(e, n, v)                                           \
+    if (!(v).program.isEmpty()) {                                    \
+        (e)->append((n), strlen((n)));                               \
+        (e)->append(" ", 1);                                         \
+        (e)->append((v).program.rawContent(), (v).program.length()); \
+        (e)->append("\n", 1);                                        \
+    } else {                                                         \
+    }
 #define parse_icmp(v) (v)->parse()
 #define free_icmp(x) (x)->clear()
 
 #endif /* USE_ICMP */
 #endif /* ICMPCONFIG_H */
-

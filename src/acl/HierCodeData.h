@@ -20,7 +20,7 @@ class ACLHierCodeData : public ACLData<hier_code>
 public:
     ACLHierCodeData();
     ACLHierCodeData(ACLHierCodeData const &);
-    ACLHierCodeData &operator= (ACLHierCodeData const &);
+    ACLHierCodeData &operator=(ACLHierCodeData const &);
     virtual ~ACLHierCodeData();
     bool match(hier_code);
     virtual SBufList dump() const;
@@ -33,4 +33,3 @@ public:
 };
 
 #endif /* SQUID_ACLHIERCODEDATA_H */
-

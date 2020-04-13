@@ -12,8 +12,8 @@
 #include "mem/Pool.h"
 #include "splay.h"
 
-#define MEM_CHUNK_SIZE        4 * 4096  /* 16KB ... 4 * VM_PAGE_SZ */
-#define MEM_CHUNK_MAX_SIZE  256 * 1024  /* 2MB */
+#define MEM_CHUNK_SIZE 4 * 4096       /* 16KB ... 4 * VM_PAGE_SZ */
+#define MEM_CHUNK_MAX_SIZE 256 * 1024 /* 2MB */
 
 class MemChunk;
 
@@ -31,15 +31,17 @@ public:
      \param stats   Object to be filled with statistical data about pool.
      \retval        Number of objects in use, ie. allocated.
      */
-    virtual int getStats(MemPoolStats * stats, int accumulate);
+    virtual int getStats(MemPoolStats *stats, int accumulate);
 
     void createChunk();
     void *get();
     void push(void *obj);
     virtual int getInUseCount();
+
 protected:
     virtual void *allocate();
     virtual void deallocate(void *, bool aggressive);
+
 public:
     /**
      * Allows you tune chunk size of pooling. Objects are allocated in chunks
@@ -80,4 +82,3 @@ public:
 };
 
 #endif /* _MEM_POOL_CHUNKED_H_ */
-

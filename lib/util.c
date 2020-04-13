@@ -38,15 +38,13 @@ Tolower(char *q)
 int
 tvSubUsec(struct timeval t1, struct timeval t2)
 {
-    return (t2.tv_sec - t1.tv_sec) * 1000000 +
-           (t2.tv_usec - t1.tv_usec);
+    return (t2.tv_sec - t1.tv_sec) * 1000000 + (t2.tv_usec - t1.tv_usec);
 }
 
 double
 tvSubDsec(struct timeval t1, struct timeval t2)
 {
-    return (double) (t2.tv_sec - t1.tv_sec) +
-           (double) (t2.tv_usec - t1.tv_usec) / 1000000.0;
+    return (double)(t2.tv_sec - t1.tv_sec) + (double)(t2.tv_usec - t1.tv_usec) / 1000000.0;
 }
 
 /* somewhat safer calculation of %s */
@@ -60,10 +58,10 @@ int
 xpercentInt(double part, double whole)
 {
 #if HAVE_RINT
-    return (int) rint(xpercent(part, whole));
+    return (int)rint(xpercent(part, whole));
 #else
     /* SCO 3.2v4.2 doesn't have rint() -- mauri@mbp.ee */
-    return (int) floor(xpercent(part, whole) + 0.5);
+    return (int)floor(xpercent(part, whole) + 0.5);
 #endif
 }
 
@@ -78,7 +76,7 @@ xdiv(double nom, double denom)
 const char *
 xitoa(int num)
 {
-    static char buf[24];    /* 2^64 = 18446744073709551616 */
+    static char buf[24]; /* 2^64 = 18446744073709551616 */
     snprintf(buf, sizeof(buf), "%d", num);
     return buf;
 }
@@ -87,22 +85,22 @@ xitoa(int num)
 const char *
 xint64toa(int64_t num)
 {
-    static char buf[24];    /* 2^64 = 18446744073709551616 */
+    static char buf[24]; /* 2^64 = 18446744073709551616 */
     snprintf(buf, sizeof(buf), "%" PRId64, num);
     return buf;
 }
 
 void
-gb_flush(gb_t * g)
+gb_flush(gb_t *g)
 {
     g->gb += (g->bytes >> 30);
     g->bytes &= (1 << 30) - 1;
 }
 
 double
-gb_to_double(const gb_t * g)
+gb_to_double(const gb_t *g)
 {
-    return ((double) g->gb) * ((double) (1 << 30)) + ((double) g->bytes);
+    return ((double)g->gb) * ((double)(1 << 30)) + ((double)g->bytes);
 }
 
 const char *
@@ -121,7 +119,7 @@ double_to_str(char *buf, int buf_size, double value)
 }
 
 const char *
-gb_to_str(const gb_t * g)
+gb_to_str(const gb_t *g)
 {
     /*
      * it is often convenient to call gb_to_str several times for _one_ printf
@@ -150,8 +148,8 @@ gb_to_str(const gb_t * g)
 /**
  * rounds num to the next upper integer multiple of what
  */
-unsigned int RoundTo(const unsigned int num, const unsigned int what)
+unsigned int
+RoundTo(const unsigned int num, const unsigned int what)
 {
-    return what * ((num + what -1)/what);
+    return what * ((num + what - 1) / what);
 }
-

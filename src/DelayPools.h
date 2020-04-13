@@ -42,7 +42,7 @@ public:
     static void FreePools();
     static unsigned char *DelayClasses();
     static void registerForUpdates(Updateable *);
-    static void deregisterForUpdates (Updateable *);
+    static void deregisterForUpdates(Updateable *);
     static DelayPool *delay_data;
 
 private:
@@ -50,10 +50,9 @@ private:
     static void InitDelayData();
     static time_t LastUpdate;
     static unsigned short pools_;
-    static void FreeDelayData ();
+    static void FreeDelayData();
     static std::vector<Updateable *> toUpdate;
     static void RegisterWithCacheManager(void);
 };
 
 #endif /* SQUID_DELAYPOOLS_H */
-

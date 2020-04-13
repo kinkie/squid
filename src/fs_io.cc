@@ -9,14 +9,14 @@
 /* DEBUG: section 06    Disk I/O Routines */
 
 #include "squid.h"
+#include "fs_io.h"
+#include "MemBuf.h"
+#include "StatCounters.h"
 #include "comm/Loops.h"
 #include "fd.h"
 #include "fde.h"
-#include "fs_io.h"
 #include "globals.h"
-#include "MemBuf.h"
 #include "profiler/Profiler.h"
-#include "StatCounters.h"
 
 #include <cerrno>
 
@@ -33,7 +33,8 @@ diskWriteIsComplete(int fd)
 #endif
 
 /* hack needed on SunStudio to avoid linkage convention mismatch */
-static void cxx_xfree(void *ptr)
+static void
+cxx_xfree(void *ptr)
 {
     xfree(ptr);
 }
@@ -55,7 +56,7 @@ file_open(const char *path, int mode)
 
     fd = open(path, mode, 0644);
 
-    ++ statCounter.syscalls.disk.opens;
+    ++statCounter.syscalls.disk.opens;
 
     if (fd < 0) {
         int xerrno = errno;
@@ -100,7 +101,6 @@ file_close(int fd)
         PROF_stop(file_close);
         return;
 #endif
-
     }
 
     /*
@@ -121,7 +121,7 @@ file_close(int fd)
 
     fd_close(fd);
 
-    ++ statCounter.syscalls.disk.closes;
+    ++statCounter.syscalls.disk.closes;
 
     PROF_stop(file_close);
 }
@@ -208,9 +208,7 @@ diskHandleWrite(int fd, void *)
 
     assert(fdd->write_q->len > fdd->write_q->buf_offset);
 
-    debugs(6, 3, "diskHandleWrite: FD " << fd << " writing " <<
-           (fdd->write_q->len - fdd->write_q->buf_offset) << " bytes at " <<
-           fdd->write_q->file_offset);
+    debugs(6, 3, "diskHandleWrite: FD " << fd << " writing " << (fdd->write_q->len - fdd->write_q->buf_offset) << " bytes at " << fdd->write_q->file_offset);
 
     errno = 0;
 
@@ -229,7 +227,7 @@ diskHandleWrite(int fd, void *)
 
     debugs(6, 3, "diskHandleWrite: FD " << fd << " len = " << len);
 
-    ++ statCounter.syscalls.disk.writes;
+    ++statCounter.syscalls.disk.writes;
 
     fd_bytes(fd, len, FD_WRITE);
 
@@ -282,9 +280,7 @@ diskHandleWrite(int fd, void *)
         q->buf_offset += len;
 
         if (q->buf_offset > q->len)
-            debugs(50, DBG_IMPORTANT, "diskHandleWriteComplete: q->buf_offset > q->len (" <<
-                   q << "," << (int) q->buf_offset << ", " << q->len << ", " <<
-                   len << " FD " << fd << ")");
+            debugs(50, DBG_IMPORTANT, "diskHandleWriteComplete: q->buf_offset > q->len (" << q << "," << (int)q->buf_offset << ", " << q->len << ", " << len << " FD " << fd << ")");
 
         assert(q->buf_offset <= q->len);
 
@@ -345,9 +341,9 @@ file_write(int fd,
            off_t file_offset,
            void const *ptr_to_buf,
            int len,
-           DWCB * handle,
+           DWCB *handle,
            void *handle_data,
-           FREE * free_func)
+           FREE *free_func)
 {
     dwrite_q *wq = NULL;
     fde *F = &fd_table[fd];
@@ -392,7 +388,7 @@ file_write(int fd,
  * in a snap
  */
 void
-file_write_mbuf(int fd, off_t off, MemBuf mb, DWCB * handler, void *handler_data)
+file_write_mbuf(int fd, off_t off, MemBuf mb, DWCB *handler, void *handler_data)
 {
     file_write(fd, off, mb.buf, mb.size, handler, handler_data, mb.freeFunc());
 }
@@ -432,7 +428,7 @@ diskHandleRead(int fd, void *data)
             debugs(50, DBG_IMPORTANT, "error in seek for FD " << fd << ": " << xstrerr(xerrno));
             // XXX handle failures?
         }
-        ++ statCounter.syscalls.disk.seeks;
+        ++statCounter.syscalls.disk.seeks;
         F->disk.offset = ctrl_dat->offset;
     }
 
@@ -443,7 +439,7 @@ diskHandleRead(int fd, void *data)
     if (len > 0)
         F->disk.offset += len;
 
-    ++ statCounter.syscalls.disk.reads;
+    ++statCounter.syscalls.disk.reads;
 
     fd_bytes(fd, len, FD_READ);
 
@@ -476,7 +472,7 @@ diskHandleRead(int fd, void *data)
  * It must have at least req_len space in there.
  * call handler when a reading is complete. */
 void
-file_read(int fd, char *buf, int req_len, off_t offset, DRCB * handler, void *client_data)
+file_read(int fd, char *buf, int req_len, off_t offset, DRCB *handler, void *client_data)
 {
     dread_ctrl *ctrl_dat;
     PROF_start(file_read);
@@ -496,7 +492,7 @@ file_read(int fd, char *buf, int req_len, off_t offset, DRCB * handler, void *cl
 void
 safeunlink(const char *s, int quiet)
 {
-    ++ statCounter.syscalls.disk.unlinks;
+    ++statCounter.syscalls.disk.unlinks;
 
     if (unlink(s) < 0 && !quiet) {
         int xerrno = errno;
@@ -539,7 +535,7 @@ fsBlockSize(const char *path, int *blksize)
         return 1;
     }
 
-    *blksize = (int) sfs.f_frsize;
+    *blksize = (int)sfs.f_frsize;
 
     // Sanity check; make sure we have a meaningful value.
     if (*blksize < 512)
@@ -549,8 +545,7 @@ fsBlockSize(const char *path, int *blksize)
 }
 
 #define fsbtoblk(num, fsbs, bs) \
-    (((fsbs) != 0 && (fsbs) < (bs)) ? \
-            (num) / ((bs) / (fsbs)) : (num) * ((fsbs) / (bs)))
+    (((fsbs) != 0 && (fsbs) < (bs)) ? (num) / ((bs) / (fsbs)) : (num) * ((fsbs) / (bs)))
 int
 fsStats(const char *path, int *totl_kb, int *free_kb, int *totl_in, int *free_in)
 {
@@ -562,10 +557,9 @@ fsStats(const char *path, int *totl_kb, int *free_kb, int *totl_in, int *free_in
         return 1;
     }
 
-    *totl_kb = (int) fsbtoblk(sfs.f_blocks, sfs.f_frsize, 1024);
-    *free_kb = (int) fsbtoblk(sfs.f_bfree, sfs.f_frsize, 1024);
-    *totl_in = (int) sfs.f_files;
-    *free_in = (int) sfs.f_ffree;
+    *totl_kb = (int)fsbtoblk(sfs.f_blocks, sfs.f_frsize, 1024);
+    *free_kb = (int)fsbtoblk(sfs.f_bfree, sfs.f_frsize, 1024);
+    *totl_in = (int)sfs.f_files;
+    *free_in = (int)sfs.f_ffree;
     return 0;
 }
-

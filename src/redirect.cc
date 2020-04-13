@@ -9,6 +9,10 @@
 /* DEBUG: section 61    Redirector */
 
 #include "squid.h"
+#include "redirect.h"
+#include "HttpRequest.h"
+#include "SquidConfig.h"
+#include "Store.h"
 #include "acl/Checklist.h"
 #include "cache_cf.h"
 #include "client_side.h"
@@ -21,13 +25,9 @@
 #include "helper.h"
 #include "helper/Reply.h"
 #include "http/Stream.h"
-#include "HttpRequest.h"
 #include "mgr/Registration.h"
-#include "redirect.h"
 #include "rfc1738.h"
 #include "sbuf/SBuf.h"
-#include "SquidConfig.h"
-#include "Store.h"
 #if USE_AUTH
 #include "auth/UserRequest.h"
 #endif
@@ -95,12 +95,11 @@ redirectHandleReply(void *data, const Helper::Reply &reply)
         // * warn once every 50 responses that this will stop being fixed-up soon.
         //
         if (reply.other().hasContent()) {
-            const char * res = reply.other().content();
+            const char *res = reply.other().content();
             size_t replySize = 0;
             if (const char *t = strchr(res, ' ')) {
                 static int warn = 0;
-                debugs(61, (!(warn++%50)? DBG_CRITICAL:2), "UPGRADE WARNING: URL rewriter reponded with garbage '" << t <<
-                       "'. Future Squid will treat this as part of the URL.");
+                debugs(61, (!(warn++ % 50) ? DBG_CRITICAL : 2), "UPGRADE WARNING: URL rewriter reponded with garbage '" << t << "'. Future Squid will treat this as part of the URL.");
                 replySize = t - res;
             } else
                 replySize = reply.other().contentSize();
@@ -111,7 +110,7 @@ redirectHandleReply(void *data, const Helper::Reply &reply)
                 MemBuf replyBuffer;
                 replyBuffer.init(replySize, replySize);
                 replyBuffer.append(reply.other().content(), reply.other().contentSize());
-                char * result = replyBuffer.content();
+                char *result = replyBuffer.content();
 
                 Helper::Reply newReply;
                 // BACKWARD COMPATIBILITY 2012-06-15:
@@ -126,9 +125,9 @@ redirectHandleReply(void *data, const Helper::Reply &reply)
                     static int urlgroupWarning = 0;
                     if (!urlgroupWarning++)
                         debugs(85, DBG_IMPORTANT, "UPGRADE WARNING: URL rewriter using obsolete Squid-2 urlgroup feature needs updating.");
-                    if (char *t = strchr(result+1, '!')) {
+                    if (char *t = strchr(result + 1, '!')) {
                         *t = '\0';
-                        newReply.notes.add("urlgroup", result+1);
+                        newReply.notes.add("urlgroup", result + 1);
                         result = t + 1;
                     }
                 }
@@ -136,14 +135,14 @@ redirectHandleReply(void *data, const Helper::Reply &reply)
                 const Http::StatusCode status = static_cast<Http::StatusCode>(atoi(result));
 
                 if (status == Http::scMovedPermanently
-                        || status == Http::scFound
-                        || status == Http::scSeeOther
-                        || status == Http::scPermanentRedirect
-                        || status == Http::scTemporaryRedirect) {
+                    || status == Http::scFound
+                    || status == Http::scSeeOther
+                    || status == Http::scPermanentRedirect
+                    || status == Http::scTemporaryRedirect) {
 
                     if (const char *t = strchr(result, ':')) {
                         char statusBuf[4];
-                        snprintf(statusBuf, sizeof(statusBuf),"%3u",status);
+                        snprintf(statusBuf, sizeof(statusBuf), "%3u", status);
                         newReply.notes.add("status", statusBuf);
                         ++t;
                         // TODO: validate the URL produced here is RFC 2616 compliant URI
@@ -180,7 +179,7 @@ static void
 storeIdHandleReply(void *data, const Helper::Reply &reply)
 {
     RedirectStateData *r = static_cast<RedirectStateData *>(data);
-    debugs(61, 5,"StoreId helper: reply=" << reply);
+    debugs(61, 5, "StoreId helper: reply=" << reply);
 
     // XXX: This function is now kept only to check for and display the garbage use-case
     // and to map the old helper response format(s) into new format result code and key=value pairs
@@ -193,7 +192,7 @@ storeIdHandleReply(void *data, const Helper::Reply &reply)
 }
 
 static void
-redirectStats(StoreEntry * sentry)
+redirectStats(StoreEntry *sentry)
 {
     if (redirectors == NULL) {
         storeAppendPrintf(sentry, "No redirectors defined\n");
@@ -204,11 +203,12 @@ redirectStats(StoreEntry * sentry)
 
     if (Config.onoff.redirector_bypass)
         storeAppendPrintf(sentry, "\nNumber of requests bypassed "
-                          "because all redirectors were busy: %d\n", redirectorBypassed);
+                                  "because all redirectors were busy: %d\n",
+                          redirectorBypassed);
 }
 
 static void
-storeIdStats(StoreEntry * sentry)
+storeIdStats(StoreEntry *sentry)
 {
     if (storeIds == NULL) {
         storeAppendPrintf(sentry, "No StoreId helpers defined\n");
@@ -219,11 +219,12 @@ storeIdStats(StoreEntry * sentry)
 
     if (Config.onoff.store_id_bypass)
         storeAppendPrintf(sentry, "\nNumber of requests bypassed "
-                          "because all StoreId helpers were busy: %d\n", storeIdBypassed);
+                                  "because all StoreId helpers were busy: %d\n",
+                          storeIdBypassed);
 }
 
 static void
-constructHelperQuery(const char *name, helper *hlp, HLPCB *replyHandler, ClientHttpRequest * http, HLPCB *handler, void *data, Format::Format *requestExtrasFmt)
+constructHelperQuery(const char *name, helper *hlp, HLPCB *replyHandler, ClientHttpRequest *http, HLPCB *handler, void *data, Format::Format *requestExtrasFmt)
 {
     char buf[MAX_REDIRECTOR_REQUEST_STRLEN];
     int sz;
@@ -246,8 +247,8 @@ constructHelperQuery(const char *name, helper *hlp, HLPCB *replyHandler, ClientH
                   requestExtras.hasContent() ? " " : "",
                   requestExtras.hasContent() ? requestExtras.content() : "");
 
-    if ((sz<=0) || (sz>=MAX_REDIRECTOR_REQUEST_STRLEN)) {
-        if (sz<=0) {
+    if ((sz <= 0) || (sz >= MAX_REDIRECTOR_REQUEST_STRLEN)) {
+        if (sz <= 0) {
             status = Http::scInternalServerError;
             debugs(61, DBG_CRITICAL, "ERROR: Gateway Failure. Can not build request to be passed to " << name << ". Request ABORTED.");
         } else {
@@ -257,18 +258,16 @@ constructHelperQuery(const char *name, helper *hlp, HLPCB *replyHandler, ClientH
 
         clientStreamNode *node = (clientStreamNode *)http->client_stream.tail->prev->data;
         clientReplyContext *repContext = dynamic_cast<clientReplyContext *>(node->data.getRaw());
-        assert (repContext);
+        assert(repContext);
         Ip::Address tmpnoaddr;
         tmpnoaddr.setNoAddr();
         repContext->setReplyToError(ERR_GATEWAY_FAILURE, status,
                                     http->request->method, NULL,
-                                    http->getConn() != NULL && http->getConn()->clientConnection != NULL ?
-                                    http->getConn()->clientConnection->remote : tmpnoaddr,
+                                    http->getConn() != NULL && http->getConn()->clientConnection != NULL ? http->getConn()->clientConnection->remote : tmpnoaddr,
                                     http->request,
                                     NULL,
 #if USE_AUTH
-                                    http->getConn() != NULL && http->getConn()->getAuth() != NULL ?
-                                    http->getConn()->getAuth() : http->request->auth_user_request);
+                                    http->getConn() != NULL && http->getConn()->getAuth() != NULL ? http->getConn()->getAuth() : http->request->auth_user_request);
 #else
                                     NULL);
 #endif
@@ -278,14 +277,14 @@ constructHelperQuery(const char *name, helper *hlp, HLPCB *replyHandler, ClientH
         return;
     }
 
-    debugs(61,6, HERE << "sending '" << buf << "' to the " << name << " helper");
+    debugs(61, 6, HERE << "sending '" << buf << "' to the " << name << " helper");
     helperSubmit(hlp, buf, replyHandler, r);
 }
 
 /**** PUBLIC FUNCTIONS ****/
 
 void
-redirectStart(ClientHttpRequest * http, HLPCB * handler, void *data)
+redirectStart(ClientHttpRequest *http, HLPCB *handler, void *data)
 {
     assert(http);
     assert(handler);
@@ -298,7 +297,7 @@ redirectStart(ClientHttpRequest * http, HLPCB * handler, void *data)
         ++redirectorBypassed;
         Helper::Reply bypassReply;
         bypassReply.result = Helper::Okay;
-        bypassReply.notes.add("message","URL rewrite/redirect queue too long. Bypassed.");
+        bypassReply.notes.add("message", "URL rewrite/redirect queue too long. Bypassed.");
         handler(data, bypassReply);
         return;
     }
@@ -311,7 +310,7 @@ redirectStart(ClientHttpRequest * http, HLPCB * handler, void *data)
  * For now it cannot be done using the redirectStart method.
  */
 void
-storeIdStart(ClientHttpRequest * http, HLPCB * handler, void *data)
+storeIdStart(ClientHttpRequest *http, HLPCB *handler, void *data)
 {
     assert(http);
     assert(handler);
@@ -324,7 +323,7 @@ storeIdStart(ClientHttpRequest * http, HLPCB * handler, void *data)
 
         bypassReply.result = Helper::Okay;
 
-        bypassReply.notes.add("message","StoreId helper queue too long. Bypassed.");
+        bypassReply.notes.add("message", "StoreId helper queue too long. Bypassed.");
         handler(data, bypassReply);
         return;
     }
@@ -361,7 +360,7 @@ redirectInit(void)
         redirectors->timeout = Config.Timeout.urlRewrite;
 
         redirectors->retryTimedOut = (Config.onUrlRewriteTimeout.action == toutActRetry);
-        redirectors->retryBrokenHelper = true; // XXX: make this configurable ?
+        redirectors->retryBrokenHelper = true;  // XXX: make this configurable ?
         redirectors->onTimedOutResponse.clear();
         if (Config.onUrlRewriteTimeout.action == toutActUseConfiguredResponse)
             redirectors->onTimedOutResponse.assign(Config.onUrlRewriteTimeout.response);
@@ -385,7 +384,7 @@ redirectInit(void)
 
         storeIds->ipc_type = IPC_STREAM;
 
-        storeIds->retryBrokenHelper = true; // XXX: make this configurable ?
+        storeIds->retryBrokenHelper = true;  // XXX: make this configurable ?
 
         helperOpenServers(storeIds);
     }
@@ -440,4 +439,3 @@ redirectReconfigure()
     redirectShutdown();
     redirectInit();
 }
-

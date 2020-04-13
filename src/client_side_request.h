@@ -10,17 +10,17 @@
 #define SQUID_CLIENTSIDEREQUEST_H
 
 #include "AccessLogEntry.h"
-#include "acl/forward.h"
-#include "client_side.h"
-#include "clientStream.h"
-#include "http/forward.h"
 #include "HttpHeaderRange.h"
 #include "LogTags.h"
 #include "Store.h"
+#include "acl/forward.h"
+#include "clientStream.h"
+#include "client_side.h"
+#include "http/forward.h"
 
 #if USE_ADAPTATION
-#include "adaptation/forward.h"
 #include "adaptation/Initiator.h"
+#include "adaptation/forward.h"
 #endif
 
 class ClientRequestContext;
@@ -28,12 +28,12 @@ class ConnStateData;
 class MemObject;
 
 /* client_side_request.c - client side request related routines (pure logic) */
-int clientBeginRequest(const HttpRequestMethod&, char const *, CSCB *, CSD *, ClientStreamData, HttpHeader const *, char *, size_t, const MasterXactionPointer &);
+int clientBeginRequest(const HttpRequestMethod &, char const *, CSCB *, CSD *, ClientStreamData, HttpHeader const *, char *, size_t, const MasterXactionPointer &);
 
 class ClientHttpRequest
 #if USE_ADAPTATION
-    : public Adaptation::Initiator, // to start adaptation transactions
-      public BodyConsumer     // to receive reply bodies in request satisf. mode
+    : public Adaptation::Initiator,  // to start adaptation transactions
+      public BodyConsumer            // to receive reply bodies in request satisf. mode
 #endif
 {
     CBDATA_CLASS(ClientHttpRequest);
@@ -43,29 +43,32 @@ public:
     ~ClientHttpRequest();
     /* Not implemented - present to prevent synthetic operations */
     ClientHttpRequest(ClientHttpRequest const &);
-    ClientHttpRequest& operator=(ClientHttpRequest const &);
+    ClientHttpRequest &operator=(ClientHttpRequest const &);
 
     String rangeBoundaryStr() const;
     void freeResources();
     void updateCounters();
     void logRequest();
-    MemObject * memObject() const {
+    MemObject *memObject() const
+    {
         return (storeEntry() ? storeEntry()->mem_obj : nullptr);
     }
     bool multipartRangeRequest() const;
     void processRequest();
     void httpStart();
-    bool onlyIfCached()const;
+    bool onlyIfCached() const;
     bool gotEnough() const;
     StoreEntry *storeEntry() const { return entry_; }
     void storeEntry(StoreEntry *);
     StoreEntry *loggingEntry() const { return loggingEntry_; }
     void loggingEntry(StoreEntry *);
 
-    ConnStateData * getConn() const {
+    ConnStateData *getConn() const
+    {
         return (cbdataReferenceValid(conn_) ? conn_ : nullptr);
     }
-    void setConn(ConnStateData *aConn) {
+    void setConn(ConnStateData *aConn)
+    {
         if (conn_ != aConn) {
             cbdataReferenceDone(conn_);
             conn_ = cbdataReference(aConn);
@@ -91,7 +94,7 @@ public:
     /// Usually remains nil until the virgin request header is parsed or faked.
     /// Starts as a virgin request; see initRequest().
     /// Adaptation and redirections replace it; see resetRequest().
-    HttpRequest * const request;
+    HttpRequest *const request;
 
     /// Usually starts as a URI received from the client, with scheme and host
     /// added if needed. Is used to create the virgin request for initRequest().
@@ -102,12 +105,13 @@ public:
     /// Cleaned up URI of the current (virgin or adapted/redirected) request,
     /// computed URI of an internally-generated requests, or
     /// one of the hard-coded "error:..." URIs.
-    char * const log_uri;
+    char *const log_uri;
 
     String store_id; /* StoreID for transactions where the request member is nil */
 
     struct Out {
-        Out() : offset(0), size(0), headers_sz(0) {}
+        Out() :
+            offset(0), size(0), headers_sz(0) {}
 
         /// Roughly speaking, this offset points to the next body byte we want
         /// to receive from Store. Without Ranges (and I/O errors), we should
@@ -122,17 +126,18 @@ public:
         size_t headers_sz;
     } out;
 
-    HttpHdrRangeIter range_iter;    /* data for iterating thru range specs */
-    size_t req_sz;      /* raw request size on input, not current request size */
+    HttpHdrRangeIter range_iter; /* data for iterating thru range specs */
+    size_t req_sz;               /* raw request size on input, not current request size */
 
     /// the processing tags associated with this request transaction.
     // NP: still an enum so each stage altering it must take care when replacing it.
     LogTags logType;
 
-    AccessLogEntry::Pointer al; ///< access.log entry
+    AccessLogEntry::Pointer al;  ///< access.log entry
 
     struct Flags {
-        Flags() : accel(false), internal(false), done_copying(false), purging(false) {}
+        Flags() :
+            accel(false), internal(false), done_copying(false), purging(false) {}
 
         bool accel;
         bool internal;
@@ -141,7 +146,8 @@ public:
     } flags;
 
     struct Redirect {
-        Redirect() : status(Http::scNone), location(NULL) {}
+        Redirect() :
+            status(Http::scNone), location(NULL) {}
 
         Http::StatusCode status;
         char *location;
@@ -171,9 +177,9 @@ public:
 
 #if USE_ADAPTATION
     // AsyncJob virtual methods
-    virtual bool doneAll() const {
-        return Initiator::doneAll() &&
-               BodyConsumer::doneAll() && false;
+    virtual bool doneAll() const
+    {
+        return Initiator::doneAll() && BodyConsumer::doneAll() && false;
     }
     virtual void callException(const std::exception &ex);
 #endif
@@ -190,7 +196,7 @@ private:
     int64_t maxReplyBodySize_;
     StoreEntry *entry_;
     StoreEntry *loggingEntry_;
-    ConnStateData * conn_;
+    ConnStateData *conn_;
 
 #if USE_OPENSSL
     /// whether (and how) the request needs to be bumped
@@ -245,7 +251,7 @@ private:
 /* client http based routines */
 char *clientConstructTraceEcho(ClientHttpRequest *);
 
-ACLFilledChecklist *clientAclChecklistCreate(const acl_access * acl,ClientHttpRequest * http);
+ACLFilledChecklist *clientAclChecklistCreate(const acl_access *acl, ClientHttpRequest *http);
 void clientAclChecklistFill(ACLFilledChecklist &, ClientHttpRequest *);
 int clientHttpRequestStatus(int fd, ClientHttpRequest const *http);
 void clientAccessCheck(ClientHttpRequest *);
@@ -254,4 +260,3 @@ void clientAccessCheck(ClientHttpRequest *);
 void tunnelStart(ClientHttpRequest *);
 
 #endif /* SQUID_CLIENTSIDEREQUEST_H */
-

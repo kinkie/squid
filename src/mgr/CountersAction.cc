@@ -9,24 +9,24 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
-#include "base/TextException.h"
-#include "ipc/Messages.h"
-#include "ipc/TypedMsgHdr.h"
 #include "mgr/CountersAction.h"
 #include "SquidTime.h"
 #include "Store.h"
+#include "base/TextException.h"
+#include "ipc/Messages.h"
+#include "ipc/TypedMsgHdr.h"
 #include "tools.h"
 
-void GetCountersStats(Mgr::CountersActionData& stats);
-void DumpCountersStats(Mgr::CountersActionData& stats, StoreEntry* sentry);
+void GetCountersStats(Mgr::CountersActionData &stats);
+void DumpCountersStats(Mgr::CountersActionData &stats, StoreEntry *sentry);
 
 Mgr::CountersActionData::CountersActionData()
 {
     memset(this, 0, sizeof(*this));
 }
 
-Mgr::CountersActionData&
-Mgr::CountersActionData::operator += (const CountersActionData& stats)
+Mgr::CountersActionData &
+Mgr::CountersActionData::operator+=(const CountersActionData &stats)
 {
     if (timercmp(&sample_time, &stats.sample_time, <))
         sample_time = stats.sample_time;
@@ -100,17 +100,17 @@ Mgr::CountersAction::Create(const CommandPointer &cmd)
     return new CountersAction(cmd);
 }
 
-Mgr::CountersAction::CountersAction(const CommandPointer &aCmd):
+Mgr::CountersAction::CountersAction(const CommandPointer &aCmd) :
     Action(aCmd), data()
 {
     debugs(16, 5, HERE);
 }
 
 void
-Mgr::CountersAction::add(const Action& action)
+Mgr::CountersAction::add(const Action &action)
 {
     debugs(16, 5, HERE);
-    data += dynamic_cast<const CountersAction&>(action).data;
+    data += dynamic_cast<const CountersAction &>(action).data;
 }
 
 void
@@ -121,7 +121,7 @@ Mgr::CountersAction::collect()
 }
 
 void
-Mgr::CountersAction::dump(StoreEntry* entry)
+Mgr::CountersAction::dump(StoreEntry *entry)
 {
     debugs(16, 5, HERE);
     Must(entry != NULL);
@@ -129,16 +129,15 @@ Mgr::CountersAction::dump(StoreEntry* entry)
 }
 
 void
-Mgr::CountersAction::pack(Ipc::TypedMsgHdr& msg) const
+Mgr::CountersAction::pack(Ipc::TypedMsgHdr &msg) const
 {
     msg.setType(Ipc::mtCacheMgrResponse);
     msg.putPod(data);
 }
 
 void
-Mgr::CountersAction::unpack(const Ipc::TypedMsgHdr& msg)
+Mgr::CountersAction::unpack(const Ipc::TypedMsgHdr &msg)
 {
     msg.checkType(Ipc::mtCacheMgrResponse);
     msg.getPod(data);
 }
-

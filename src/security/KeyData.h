@@ -13,8 +13,7 @@
 #include "sbuf/SBuf.h"
 #include "security/forward.h"
 
-namespace Security
-{
+namespace Security {
 
 /// TLS certificate and private key details from squid.conf
 class KeyData
@@ -24,8 +23,8 @@ public:
     void loadFromFiles(const AnyP::PortCfg &, const char *portType);
 
 public:
-    SBuf certFile;       ///< path of file containing PEM format X.509 certificate
-    SBuf privateKeyFile; ///< path of file containing private key in PEM format
+    SBuf certFile;        ///< path of file containing PEM format X.509 certificate
+    SBuf privateKeyFile;  ///< path of file containing private key in PEM format
 
     /// public X.509 certificate from certFile
     Security::CertPointer cert;
@@ -40,7 +39,6 @@ private:
     bool loadX509PrivateKeyFromFile();
 };
 
-} // namespace Security
+}  // namespace Security
 
 #endif /* SQUID_SRC_SECURITY_KEYDATA_H */
-

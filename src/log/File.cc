@@ -9,9 +9,9 @@
 /* DEBUG: section 50    Log file handling */
 
 #include "squid.h"
+#include "log/File.h"
 #include "fatal.h"
 #include "fde.h"
-#include "log/File.h"
 #include "log/ModDaemon.h"
 #include "log/ModStdio.h"
 #include "log/ModSyslog.h"
@@ -88,7 +88,7 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 }
 
 void
-logfileClose(Logfile * lf)
+logfileClose(Logfile *lf)
 {
     debugs(50, DBG_IMPORTANT, "Logfile: closing log " << lf->path);
     lf->f_flush(lf);
@@ -97,46 +97,45 @@ logfileClose(Logfile * lf)
 }
 
 void
-logfileRotate(Logfile * lf, int16_t rotateCount)
+logfileRotate(Logfile *lf, int16_t rotateCount)
 {
     debugs(50, DBG_IMPORTANT, "logfileRotate: " << lf->path);
     lf->f_rotate(lf, rotateCount);
 }
 
 void
-logfileWrite(Logfile * lf, const char *buf, size_t len)
+logfileWrite(Logfile *lf, const char *buf, size_t len)
 {
     lf->f_linewrite(lf, buf, len);
 }
 
 void
-logfilePrintf(Logfile * lf, const char *fmt,...)
+logfilePrintf(Logfile *lf, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     static SBuf sbuf;
     sbuf.clear();
-    sbuf.vappendf(fmt, args); // Throws on overflow. TODO: handle that better
+    sbuf.vappendf(fmt, args);  // Throws on overflow. TODO: handle that better
     logfileWrite(lf, sbuf.c_str(), sbuf.length());
     va_end(args);
 }
 
 void
-logfileLineStart(Logfile * lf)
+logfileLineStart(Logfile *lf)
 {
     lf->f_linestart(lf);
 }
 
 void
-logfileLineEnd(Logfile * lf)
+logfileLineEnd(Logfile *lf)
 {
     lf->f_lineend(lf);
-    ++ lf->sequence_number;
+    ++lf->sequence_number;
 }
 
 void
-logfileFlush(Logfile * lf)
+logfileFlush(Logfile *lf)
 {
     lf->f_flush(lf);
 }
-

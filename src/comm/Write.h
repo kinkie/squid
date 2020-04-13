@@ -14,8 +14,7 @@
 #include "mem/forward.h"
 
 class MemBuf;
-namespace Comm
-{
+namespace Comm {
 
 /**
  * Queue a write. callback is scheduled when the write
@@ -34,7 +33,6 @@ void Write(const Comm::ConnectionPointer &conn, MemBuf *mb, AsyncCall::Pointer &
 /// Cancel the write pending on FD. No action if none pending.
 void WriteCancel(const Comm::ConnectionPointer &conn, const char *reason);
 
-} // namespace Comm
+}  // namespace Comm
 
 #endif /* _SQUID_COMM_IOWRITE_H */
-

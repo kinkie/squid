@@ -12,6 +12,6 @@
 #include "tests/STUB.h"
 
 #include "gopher.h"
-void gopherStart(FwdState *) STUB
-int gopherCachable(const HttpRequest *) STUB
-
+void
+gopherStart(FwdState *) STUB
+    int gopherCachable(const HttpRequest *) STUB

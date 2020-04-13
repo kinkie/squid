@@ -57,8 +57,8 @@
 #elif HAVE_WINSOCK_H
 #include <winsock.h>
 #endif
-#include <process.h>
 #include "fde.h"
+#include <process.h>
 
 #define PINGER_TIMEOUT 5
 
@@ -69,7 +69,7 @@
 // to just link to win32.cc where it is normally defined.
 
 int
-Win32__WSAFDIsSet(int fd, fd_set FAR * set)
+Win32__WSAFDIsSet(int fd, fd_set FAR *set)
 {
     fde *F = &fd_table[fd];
     SOCKET s = F->win32.handle;
@@ -82,9 +82,9 @@ Win32__WSAFDIsSet(int fd, fd_set FAR * set)
 #define PINGER_TIMEOUT 10
 
 /* non-windows use STDOUT for feedback to squid */
-#define LINK_TO_SQUID   1
+#define LINK_TO_SQUID 1
 
-#endif  /* _SQUID_WINDOWS_ */
+#endif /* _SQUID_WINDOWS_ */
 
 // ICMP Engines are declared global here so they can call each other easily.
 IcmpPinger control;
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 
 #if USE_IPV6
     icmp6_worker = icmp6.Open();
-    if (icmp6_worker <0 ) {
+    if (icmp6_worker < 0) {
         debugs(42, DBG_CRITICAL, "pinger: Unable to start ICMPv6 pinger.");
     }
     max_fd = max(max_fd, icmp6_worker);
@@ -153,11 +153,11 @@ main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if ( (squid_link = control.Open()) < 0) {
+    if ((squid_link = control.Open()) < 0) {
         debugs(42, DBG_CRITICAL, "FATAL: pinger: Unable to setup Pinger control sockets.");
         icmp4.Close();
         icmp6.Close();
-        exit(EXIT_FAILURE); // fatal error if the control channel fails.
+        exit(EXIT_FAILURE);  // fatal error if the control channel fails.
     }
     max_fd = max(max_fd, squid_link);
 
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
         }
 
         FD_SET(squid_link, &R);
-        x = select(max_fd+1, &R, NULL, NULL, &tv);
+        x = select(max_fd + 1, &R, NULL, NULL, &tv);
         getCurrentTime();
 
         if (x < 0) {
@@ -263,4 +263,3 @@ main(int argc, char *argv[])
 }
 
 #endif /* USE_ICMP */
-

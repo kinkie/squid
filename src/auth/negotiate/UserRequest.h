@@ -12,59 +12,57 @@
 #if HAVE_AUTH_MODULE_NEGOTIATE
 
 #include "auth/UserRequest.h"
-#include "helper/forward.h"
 #include "helper/ReservationId.h"
+#include "helper/forward.h"
 
 class ConnStateData;
 class HttpReply;
 class HttpRequest;
 
-namespace Auth
-{
-namespace Negotiate
-{
+namespace Auth {
+namespace Negotiate {
 
-class UserRequest : public Auth::UserRequest
-{
-    MEMPROXY_CLASS(Auth::Negotiate::UserRequest);
+    class UserRequest : public Auth::UserRequest
+    {
+        MEMPROXY_CLASS(Auth::Negotiate::UserRequest);
 
-public:
-    UserRequest();
-    virtual ~UserRequest();
-    virtual int authenticated() const;
-    virtual void authenticate(HttpRequest * request, ConnStateData * conn, Http::HdrType type);
-    virtual Direction module_direction();
-    virtual void startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *, void *);
-    virtual const char *credentialsStr();
+    public:
+        UserRequest();
+        virtual ~UserRequest();
+        virtual int authenticated() const;
+        virtual void authenticate(HttpRequest *request, ConnStateData *conn, Http::HdrType type);
+        virtual Direction module_direction();
+        virtual void startHelperLookup(HttpRequest *request, AccessLogEntry::Pointer &al, AUTHCB *, void *);
+        virtual const char *credentialsStr();
 
-    virtual const char * connLastHeader();
+        virtual const char *connLastHeader();
 
-    void releaseAuthServer(void); ///< Release the authserver helper server properly.
+        void releaseAuthServer(void);  ///< Release the authserver helper server properly.
 
-    /* what connection is this associated with */
-    /* ConnStateData * conn;*/
+        /* what connection is this associated with */
+        /* ConnStateData * conn;*/
 
-    /* our current blob to pass to the client */
-    char *server_blob;
-    /* our current blob to pass to the server */
-    char *client_blob;
+        /* our current blob to pass to the client */
+        char *server_blob;
+        /* our current blob to pass to the server */
+        char *client_blob;
 
-    /* currently waiting for helper response */
-    unsigned char waiting;
+        /* currently waiting for helper response */
+        unsigned char waiting;
 
-    /* need access to the request flags to mess around on pconn failure */
-    HttpRequest *request;
+        /* need access to the request flags to mess around on pconn failure */
+        HttpRequest *request;
 
-    /// a helper-issued reservation locking the helper state between
-    /// HTTP requests
-    Helper::ReservationId reservationId;
-private:
-    static HLPCB HandleReply;
-};
+        /// a helper-issued reservation locking the helper state between
+        /// HTTP requests
+        Helper::ReservationId reservationId;
 
-} // namespace Negotiate
-} // namespace Auth
+    private:
+        static HLPCB HandleReply;
+    };
+
+}  // namespace Negotiate
+}  // namespace Auth
 
 #endif /* HAVE_AUTH_MODULE_NEGOTIATE */
 #endif /* _SQUID_SRC_AUTH_NEGOTIATE_USERREQUEST_H */
-

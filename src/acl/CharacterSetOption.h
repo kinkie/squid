@@ -20,31 +20,29 @@ typedef OptionValue<CharacterSet> CharacterSetOptionValue;
 /* TypedOption<CharacterSetOptionValue> specializations */
 
 template <>
-inline
-void
+inline void
 TypedOption<CharacterSetOptionValue>::import(const SBuf &rawValue) const
 {
-    SBuf chars = rawValue; // because c_str() is not constant
+    SBuf chars = rawValue;  // because c_str() is not constant
     recipient_->value = CharacterSet(__FILE__, chars.c_str());
 }
 
 template <>
-inline
-void
+inline void
 TypedOption<CharacterSetOptionValue>::print(std::ostream &os) const
 {
-    recipient_->value.printChars(os); // TODO: Quote if needed.
+    recipient_->value.printChars(os);  // TODO: Quote if needed.
 }
 
 /// option value to configure one or more characters (e.g., -m=",;")
-class CharacterSetOption: public TypedOption<CharacterSetOptionValue>
+class CharacterSetOption : public TypedOption<CharacterSetOptionValue>
 {
 public:
     typedef TypedOption<CharacterSetOptionValue> Parent;
-    CharacterSetOption(): Parent(valueOptional) {}
+    CharacterSetOption() :
+        Parent(valueOptional) {}
 };
 
-} // namespace Acl
+}  // namespace Acl
 
 #endif /* SQUID_ACL_CHARACTER_SET_OPTION_H */
-

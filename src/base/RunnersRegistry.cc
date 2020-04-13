@@ -8,12 +8,12 @@
 
 #include "squid.h"
 #include "base/RunnersRegistry.h"
-#include "base/TextException.h"
 #include "Debug.h"
+#include "base/TextException.h"
 #include <set>
 
 /// a collection of unique runners, in no particular order
-typedef std::set<RegisteredRunner*> Runners;
+typedef std::set<RegisteredRunner *> Runners;
 /// all known runners
 static Runners *TheRunners = NULL;
 /// used to avoid re-creating deleted TheRunners after shutdown finished.
@@ -32,7 +32,7 @@ FindRunners()
 static inline void
 GetRidOfRunner(RegisteredRunner *rr)
 {
-    if (!dynamic_cast<IndependentRunner*>(rr))
+    if (!dynamic_cast<IndependentRunner *>(rr))
         delete rr;
     // else ignore; IndependentRunner
 }
@@ -48,7 +48,7 @@ RegisterRunner_(RegisteredRunner *rr)
 bool
 RegisterRunner(RegisteredRunner *rr)
 {
-    Must(!dynamic_cast<IndependentRunner*>(rr));
+    Must(!dynamic_cast<IndependentRunner *>(rr));
 
     if (FindRunners()) {
         RegisterRunner_(rr);
@@ -70,8 +70,8 @@ RunRegistered(const RegisteredRunner::Method &event)
         // simplifies overall RR logic as it guarantees that registering a
         // runner during event X loop does not execute runner::X().
         Runners oldRunners(*runners);
-        for (auto runner: oldRunners) {
-            if (runners->find(runner) != runners->end()) // still registered
+        for (auto runner : oldRunners) {
+            if (runners->find(runner) != runners->end())  // still registered
                 (runner->*event)();
         }
     }
@@ -84,8 +84,8 @@ RunRegistered(const RegisteredRunner::Method &event)
         RunnersGone = true;
         TheRunners = nullptr;
         // from now on, no runners can be registered or unregistered
-        for (auto runner: *runners)
-            GetRidOfRunner(runner); // leaves a dangling pointer in runners
+        for (auto runner : *runners)
+            GetRidOfRunner(runner);  // leaves a dangling pointer in runners
         delete runners;
     }
 }
@@ -113,4 +113,3 @@ UseThisStatic(const void *)
 {
     return true;
 }
-

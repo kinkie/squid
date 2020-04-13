@@ -37,13 +37,29 @@ typedef struct {
 
 /* gb_type operations */
 #define gb_flush_limit (0x3FFFFFFF)
-#define gb_inc(gb, delta) { if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) gb_flush(gb); (gb)->bytes += delta; (gb)->count++; }
-#define gb_incb(gb, delta) { if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) gb_flush(gb); (gb)->bytes += delta; }
-#define gb_incc(gb, delta) { if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) gb_flush(gb); (gb)->count+= delta; }
+#define gb_inc(gb, delta)                                           \
+    {                                                               \
+        if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) \
+            gb_flush(gb);                                           \
+        (gb)->bytes += delta;                                       \
+        (gb)->count++;                                              \
+    }
+#define gb_incb(gb, delta)                                          \
+    {                                                               \
+        if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) \
+            gb_flush(gb);                                           \
+        (gb)->bytes += delta;                                       \
+    }
+#define gb_incc(gb, delta)                                          \
+    {                                                               \
+        if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) \
+            gb_flush(gb);                                           \
+        (gb)->count += delta;                                       \
+    }
 extern double gb_to_double(const gb_t *);
 SQUIDCEXTERN const char *double_to_str(char *buf, int buf_size, double value);
 extern const char *gb_to_str(const gb_t *);
-extern void gb_flush(gb_t *);  /* internal, do not use this */
+extern void gb_flush(gb_t *); /* internal, do not use this */
 
 /*
  * Returns the amount of known allocated memory
@@ -53,4 +69,3 @@ int statMemoryAccounted(void);
 SQUIDCEXTERN unsigned int RoundTo(const unsigned int num, const unsigned int what);
 
 #endif /* SQUID_UTIL_H */
-

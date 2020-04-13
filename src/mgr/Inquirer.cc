@@ -9,30 +9,30 @@
 /* DEBUG: section 16    Cache Manager API */
 
 #include "squid.h"
+#include "mgr/Inquirer.h"
 #include "AccessLogEntry.h"
+#include "CommCalls.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "SquidTime.h"
 #include "base/TextException.h"
 #include "comm.h"
 #include "comm/Connection.h"
 #include "comm/Write.h"
-#include "CommCalls.h"
 #include "errorpage.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 #include "ipc/UdsOp.h"
 #include "mgr/ActionWriter.h"
 #include "mgr/Command.h"
-#include "mgr/Inquirer.h"
 #include "mgr/IntParam.h"
 #include "mgr/Request.h"
 #include "mgr/Response.h"
-#include "SquidTime.h"
-#include <memory>
 #include <algorithm>
+#include <memory>
 
 CBDATA_NAMESPACED_CLASS_INIT(Mgr, Inquirer);
 
 Mgr::Inquirer::Inquirer(Action::Pointer anAction,
-                        const Request &aCause, const Ipc::StrandCoords &coords):
+                        const Request &aCause, const Ipc::StrandCoords &coords) :
     Ipc::Inquirer(aCause.clone(), applyQueryParams(coords, aCause.params.queryParams), anAction->atomic() ? 10 : 100),
     aggrAction(anAction)
 {
@@ -84,7 +84,7 @@ Mgr::Inquirer::start()
     } else {
         std::unique_ptr<HttpReply> reply(new HttpReply);
         reply->setHeaders(Http::scOkay, NULL, "text/plain", -1, squid_curtime, squid_curtime);
-        reply->header.putStr(Http::HdrType::CONNECTION, "close"); // until we chunk response
+        reply->header.putStr(Http::HdrType::CONNECTION, "close");  // until we chunk response
         replyBuf.reset(reply->pack());
     }
     writer = asyncCall(16, 5, "Mgr::Inquirer::noteWroteHeader",
@@ -94,7 +94,7 @@ Mgr::Inquirer::start()
 
 /// called when we wrote the response header
 void
-Mgr::Inquirer::noteWroteHeader(const CommIoCbParams& params)
+Mgr::Inquirer::noteWroteHeader(const CommIoCbParams &params)
 {
     debugs(16, 5, HERE);
     writer = NULL;
@@ -107,7 +107,7 @@ Mgr::Inquirer::noteWroteHeader(const CommIoCbParams& params)
 
 /// called when the HTTP client or some external force closed our socket
 void
-Mgr::Inquirer::noteCommClosed(const CommCloseCbParams& params)
+Mgr::Inquirer::noteCommClosed(const CommCloseCbParams &params)
 {
     debugs(16, 5, HERE);
     Must(!Comm::IsConnOpen(conn) && params.conn.getRaw() == conn.getRaw());
@@ -118,7 +118,7 @@ Mgr::Inquirer::noteCommClosed(const CommCloseCbParams& params)
 bool
 Mgr::Inquirer::aggregate(Ipc::Response::Pointer aResponse)
 {
-    Mgr::Response& response = static_cast<Response&>(*aResponse);
+    Mgr::Response &response = static_cast<Response &>(*aResponse);
     if (response.hasAction())
         aggrAction->add(response.getAction());
     return true;
@@ -130,7 +130,7 @@ Mgr::Inquirer::sendResponse()
     if (!strands.empty() && aggrAction->aggregatable()) {
         removeCloseHandler();
         AsyncJob::Start(new ActionWriter(aggrAction, conn));
-        conn = NULL; // should not close because we passed it to ActionWriter
+        conn = NULL;  // should not close because we passed it to ActionWriter
     }
 }
 
@@ -141,7 +141,7 @@ Mgr::Inquirer::doneAll() const
 }
 
 Ipc::StrandCoords
-Mgr::Inquirer::applyQueryParams(const Ipc::StrandCoords& aStrands, const QueryParams& aParams)
+Mgr::Inquirer::applyQueryParams(const Ipc::StrandCoords &aStrands, const QueryParams &aParams)
 {
     Ipc::StrandCoords sc;
 
@@ -150,19 +150,19 @@ Mgr::Inquirer::applyQueryParams(const Ipc::StrandCoords& aStrands, const QueryPa
 
     if (processesParam == NULL || workersParam == NULL) {
         if (processesParam != NULL) {
-            IntParam* param = dynamic_cast<IntParam*>(processesParam.getRaw());
+            IntParam *param = dynamic_cast<IntParam *>(processesParam.getRaw());
             if (param != NULL && param->type == QueryParam::ptInt) {
-                const std::vector<int>& processes = param->value();
+                const std::vector<int> &processes = param->value();
                 for (Ipc::StrandCoords::const_iterator iter = aStrands.begin();
-                        iter != aStrands.end(); ++iter) {
+                     iter != aStrands.end(); ++iter) {
                     if (std::find(processes.begin(), processes.end(), iter->kidId) != processes.end())
                         sc.push_back(*iter);
                 }
             }
         } else if (workersParam != NULL) {
-            IntParam* param = dynamic_cast<IntParam*>(workersParam.getRaw());
+            IntParam *param = dynamic_cast<IntParam *>(workersParam.getRaw());
             if (param != NULL && param->type == QueryParam::ptInt) {
-                const std::vector<int>& workers = param->value();
+                const std::vector<int> &workers = param->value();
                 for (int i = 0; i < (int)aStrands.size(); ++i) {
                     if (std::find(workers.begin(), workers.end(), i + 1) != workers.end())
                         sc.push_back(aStrands[i]);
@@ -180,4 +180,3 @@ Mgr::Inquirer::applyQueryParams(const Ipc::StrandCoords& aStrands, const QueryPa
 
     return sc;
 }
-

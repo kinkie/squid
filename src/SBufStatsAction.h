@@ -9,14 +9,14 @@
 #ifndef SQUID_SBUFEXTRAS_H
 #define SQUID_SBUFEXTRAS_H
 
+#include "StatHist.h"
 #include "mgr/Action.h"
 #include "sbuf/SBuf.h"
-#include "StatHist.h"
 
 class StoreEntry;
 
 /// SBuf stats for cachemgr
-class SBufStatsAction: public Mgr::Action
+class SBufStatsAction : public Mgr::Action
 {
 public:
     /// Mgr::ClassActionCreationHandler for Mgr::RegisterAction()
@@ -27,13 +27,13 @@ protected:
     explicit SBufStatsAction(const Mgr::CommandPointer &cmd);
     /* Mgr::Action API */
     virtual void collect();
-    virtual void dump(StoreEntry* entry);
+    virtual void dump(StoreEntry *entry);
 
 private:
     /* Mgr::Action API */
-    virtual void add(const Mgr::Action& action);
-    virtual void pack(Ipc::TypedMsgHdr& msg) const;
-    virtual void unpack(const Ipc::TypedMsgHdr& msg);
+    virtual void add(const Mgr::Action &action);
+    virtual void pack(Ipc::TypedMsgHdr &msg) const;
+    virtual void unpack(const Ipc::TypedMsgHdr &msg);
 
     SBufStats sbdata;
     MemBlobStats mbdata;
@@ -42,4 +42,3 @@ private:
 };
 
 #endif /* SQUID_SBUFSTATSACTION_H */
-

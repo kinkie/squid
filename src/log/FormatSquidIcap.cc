@@ -13,22 +13,22 @@
 #if ICAP_CLIENT
 
 #include "AccessLogEntry.h"
-#include "format/Quoting.h"
-#include "fqdncache.h"
 #include "HttpRequest.h"
-#include "log/File.h"
-#include "log/Formats.h"
 #include "SquidConfig.h"
 #include "SquidTime.h"
+#include "format/Quoting.h"
+#include "fqdncache.h"
+#include "log/File.h"
+#include "log/Formats.h"
 
 void
-Log::Format::SquidIcap(const AccessLogEntry::Pointer &al, Logfile * logfile)
+Log::Format::SquidIcap(const AccessLogEntry::Pointer &al, Logfile *logfile)
 {
     const char *client = NULL;
     const char *user = NULL;
     char tmp[MAX_IPSTRLEN], clientbuf[MAX_IPSTRLEN];
 
-    if (al->cache.caddr.isAnyAddr()) { // ICAP OPTIONS xactions lack client
+    if (al->cache.caddr.isAnyAddr()) {  // ICAP OPTIONS xactions lack client
         client = "-";
     } else {
         if (Config.onoff.log_fqdn)
@@ -57,8 +57,8 @@ Log::Format::SquidIcap(const AccessLogEntry::Pointer &al, Logfile * logfile)
         safe_free(user);
 
     logfilePrintf(logfile, "%9ld.%03d %6ld %s %s/%03d %" PRId64 " %s %s %s -/%s -\n",
-                  (long int) current_time.tv_sec,
-                  (int) current_time.tv_usec / 1000,
+                  (long int)current_time.tv_sec,
+                  (int)current_time.tv_usec / 1000,
                   tvToMsec(al->icap.trTime),
                   client,
                   al->icap.outcome,
@@ -71,4 +71,3 @@ Log::Format::SquidIcap(const AccessLogEntry::Pointer &al, Logfile * logfile)
     safe_free(user);
 }
 #endif
-

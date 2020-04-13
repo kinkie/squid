@@ -14,21 +14,25 @@
 #include <list>
 #include <map>
 
-template <class Key, class EntryValue, size_t EntryCost = sizeof(EntryValue)> class LruMap
+template <class Key, class EntryValue, size_t EntryCost = sizeof(EntryValue)>
+class LruMap
 {
 public:
     class Entry
     {
     public:
-        Entry(const Key &aKey, EntryValue *t): key(aKey), value(t), date(squid_curtime) {}
-        ~Entry() {delete value;}
+        Entry(const Key &aKey, EntryValue *t) :
+            key(aKey), value(t), date(squid_curtime) {}
+        ~Entry() { delete value; }
+
     private:
         Entry(Entry &);
-        Entry & operator = (Entry &);
+        Entry &operator=(Entry &);
+
     public:
-        Key key; ///< the key of entry
-        EntryValue *value; ///< A pointer to the stored value
-        time_t date; ///< The date the entry created
+        Key key;            ///< the key of entry
+        EntryValue *value;  ///< A pointer to the stored value
+        time_t date;        ///< The date the entry created
     };
     typedef std::list<Entry *> Queue;
     typedef typename std::list<Entry *>::iterator QueueIterator;
@@ -49,16 +53,17 @@ public:
     /// (Re-)set the maximum size for this map
     void setMemLimit(size_t aSize);
     /// The available size for the map
-    size_t memLimit() const {return memLimit_;}
+    size_t memLimit() const { return memLimit_; }
     /// The free space of the map
-    size_t freeMem() const { return (memLimit() > size() ? memLimit() - size() : 0);}
+    size_t freeMem() const { return (memLimit() > size() ? memLimit() - size() : 0); }
     /// The current size of the map
-    size_t size() const {return (entries_ * EntryCost);}
+    size_t size() const { return (entries_ * EntryCost); }
     /// The number of stored entries
-    int entries() const {return entries_;}
+    int entries() const { return entries_; }
+
 private:
     LruMap(LruMap const &);
-    LruMap & operator = (LruMap const &);
+    LruMap &operator=(LruMap const &);
 
     bool expired(const Entry &e) const;
     void trim();
@@ -66,15 +71,16 @@ private:
     bool del(const MapIterator &i);
     void findEntry(const Key &key, LruMap::MapIterator &i);
 
-    Map storage; ///< The Key/value * pairs
-    Queue index; ///< LRU cache index
-    int ttl;///< >0 ttl for caching, == 0 cache is disabled, < 0 store for ever
-    size_t memLimit_; ///< The maximum memory to use
-    int entries_; ///< The stored entries
+    Map storage;       ///< The Key/value * pairs
+    Queue index;       ///< LRU cache index
+    int ttl;           ///< >0 ttl for caching, == 0 cache is disabled, < 0 store for ever
+    size_t memLimit_;  ///< The maximum memory to use
+    int entries_;      ///< The stored entries
 };
 
 template <class Key, class EntryValue, size_t EntryCost>
-LruMap<Key, EntryValue, EntryCost>::LruMap(int aTtl, size_t aSize): entries_(0)
+LruMap<Key, EntryValue, EntryCost>::LruMap(int aTtl, size_t aSize) :
+    entries_(0)
 {
     ttl = aTtl;
 
@@ -216,4 +222,3 @@ LruMap<Key, EntryValue, EntryCost>::touch(LruMap::MapIterator const &i)
 }
 
 #endif
-

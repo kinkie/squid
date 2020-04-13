@@ -12,10 +12,10 @@
 #include "HttpHdrScTarget.h"
 #include "StatHist.h"
 
-http_hdr_sc_type &operator++ (http_hdr_sc_type &aHeader);
+http_hdr_sc_type &operator++(http_hdr_sc_type &aHeader);
 /* copies non-extant fields from new_sc to this sc */
 void
-HttpHdrScTarget::mergeWith(const HttpHdrScTarget * new_sc)
+HttpHdrScTarget::mergeWith(const HttpHdrScTarget *new_sc)
 {
     assert(new_sc);
     /* Don't touch the target - this is used to get the operations for a
@@ -35,11 +35,10 @@ HttpHdrScTarget::mergeWith(const HttpHdrScTarget * new_sc)
 
     if (new_sc->hasContent() && !hasContent())
         Content(new_sc->content());
-
 }
 
 void
-HttpHdrScTarget::updateStats(StatHist * hist) const
+HttpHdrScTarget::updateStats(StatHist *hist) const
 {
     http_hdr_sc_type c;
 
@@ -47,4 +46,3 @@ HttpHdrScTarget::updateStats(StatHist * hist) const
         if (isSet(c))
             hist->count(c);
 }
-

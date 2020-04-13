@@ -62,12 +62,12 @@ extern "C" {
 /**
  * Size of the ASCII representation of an EUI-64.
  */
-#define EUI64_SIZ       24
+#define EUI64_SIZ 24
 
 /**
  * The number of bytes in an EUI-64.
  */
-#define EUI64_LEN       8
+#define EUI64_LEN 8
 
 /**
  * Structure of an IEEE EUI-64.
@@ -84,4 +84,3 @@ int eui64_aton(const char *a, struct eui64 *e);
 #endif /* !_SYS_EUI64_H */
 #endif /* HAVE_SYS_EUI64_H */
 #endif /* SQUID_COMPAT_EUI64_ATON_H */
-

@@ -9,45 +9,47 @@
 /* DEBUG: section 93    eCAP Interface */
 
 #include "squid.h"
-#include <libecap/common/area.h>
-#include <libecap/common/delay.h>
-#include <libecap/common/named_values.h>
-#include <libecap/common/names.h>
-#include <libecap/adapter/xaction.h>
-#include "adaptation/Answer.h"
-#include "adaptation/ecap/Config.h"
 #include "adaptation/ecap/XactionRep.h"
-#include "adaptation/Initiator.h"
-#include "base/AsyncJobCalls.h"
-#include "base/TextException.h"
-#include "format/Format.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "MasterXaction.h"
 #include "SquidTime.h"
+#include "adaptation/Answer.h"
+#include "adaptation/Initiator.h"
+#include "adaptation/ecap/Config.h"
+#include "base/AsyncJobCalls.h"
+#include "base/TextException.h"
+#include "format/Format.h"
+#include <libecap/adapter/xaction.h>
+#include <libecap/common/area.h>
+#include <libecap/common/delay.h>
+#include <libecap/common/named_values.h>
+#include <libecap/common/names.h>
 
 CBDATA_NAMESPACED_CLASS_INIT(Adaptation::Ecap::XactionRep, XactionRep);
 
 /// a libecap Visitor for converting adapter transaction options to HttpHeader
-class OptionsExtractor: public libecap::NamedValueVisitor
+class OptionsExtractor : public libecap::NamedValueVisitor
 {
 public:
     typedef libecap::Name Name;
     typedef libecap::Area Area;
 
-    OptionsExtractor(HttpHeader &aMeta): meta(aMeta) {}
+    OptionsExtractor(HttpHeader &aMeta) :
+        meta(aMeta) {}
 
     // libecap::NamedValueVisitor API
-    virtual void visit(const Name &name, const Area &value) {
+    virtual void visit(const Name &name, const Area &value)
+    {
         meta.putExt(name.image().c_str(), value.toString().c_str());
     }
 
-    HttpHeader &meta; ///< where to put extracted options
+    HttpHeader &meta;  ///< where to put extracted options
 };
 
 Adaptation::Ecap::XactionRep::XactionRep(
     Http::Message *virginHeader, HttpRequest *virginCause, AccessLogEntry::Pointer &alp,
-    const Adaptation::ServicePointer &aService):
+    const Adaptation::ServicePointer &aService) :
     AsyncJob("Adaptation::Ecap::XactionRep"),
     Adaptation::Initiate("Adaptation::Ecap::XactionRep"),
     theService(aService),
@@ -122,8 +124,7 @@ Adaptation::Ecap::XactionRep::visitEachOption(libecap::NamedValueVisitor &visito
 const libecap::Area
 Adaptation::Ecap::XactionRep::clientIpValue() const
 {
-    const HttpRequest *request = dynamic_cast<const HttpRequest*>(theCauseRep ?
-                                 theCauseRep->raw().header : theVirginRep.raw().header);
+    const HttpRequest *request = dynamic_cast<const HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
     // TODO: move this logic into HttpRequest::clientIp(bool) and
     // HttpRequest::clientIpString(bool) and reuse everywhere
@@ -137,7 +138,7 @@ Adaptation::Ecap::XactionRep::clientIpValue() const
             client_addr = request->client_addr;
         if (!client_addr.isAnyAddr() && !client_addr.isNoAddr()) {
             char ntoabuf[MAX_IPSTRLEN] = "";
-            client_addr.toStr(ntoabuf,MAX_IPSTRLEN);
+            client_addr.toStr(ntoabuf, MAX_IPSTRLEN);
             return libecap::Area::FromTempBuffer(ntoabuf, strlen(ntoabuf));
         }
     }
@@ -148,8 +149,7 @@ const libecap::Area
 Adaptation::Ecap::XactionRep::usernameValue() const
 {
 #if USE_AUTH
-    const HttpRequest *request = dynamic_cast<const HttpRequest*>(theCauseRep ?
-                                 theCauseRep->raw().header : theVirginRep.raw().header);
+    const HttpRequest *request = dynamic_cast<const HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
     if (request->auth_user_request != NULL) {
         if (char const *name = request->auth_user_request->username())
@@ -165,10 +165,9 @@ Adaptation::Ecap::XactionRep::usernameValue() const
 const libecap::Area
 Adaptation::Ecap::XactionRep::masterxSharedValue(const libecap::Name &name) const
 {
-    const HttpRequest *request = dynamic_cast<const HttpRequest*>(theCauseRep ?
-                                 theCauseRep->raw().header : theVirginRep.raw().header);
+    const HttpRequest *request = dynamic_cast<const HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
-    if (name.known()) { // must check to avoid empty names matching unset cfg
+    if (name.known()) {  // must check to avoid empty names matching unset cfg
         Adaptation::History::Pointer ah = request->adaptHistory(false);
         if (ah != NULL) {
             String name, value;
@@ -182,14 +181,13 @@ Adaptation::Ecap::XactionRep::masterxSharedValue(const libecap::Name &name) cons
 const libecap::Area
 Adaptation::Ecap::XactionRep::metaValue(const libecap::Name &name) const
 {
-    HttpRequest *request = dynamic_cast<HttpRequest*>(theCauseRep ?
-                           theCauseRep->raw().header : theVirginRep.raw().header);
+    HttpRequest *request = dynamic_cast<HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
-    HttpReply *reply = dynamic_cast<HttpReply*>(theVirginRep.raw().header);
+    HttpReply *reply = dynamic_cast<HttpReply *>(theVirginRep.raw().header);
 
-    if (name.known()) { // must check to avoid empty names matching unset cfg
+    if (name.known()) {  // must check to avoid empty names matching unset cfg
         typedef Notes::iterator ACAMLI;
-        for (auto h: Adaptation::Config::metaHeaders) {
+        for (auto h : Adaptation::Config::metaHeaders) {
             if (name == h->key().toStdString()) {
                 SBuf matched;
                 if (h->match(request, reply, al, matched))
@@ -206,12 +204,11 @@ Adaptation::Ecap::XactionRep::metaValue(const libecap::Name &name) const
 void
 Adaptation::Ecap::XactionRep::visitEachMetaHeader(libecap::NamedValueVisitor &visitor) const
 {
-    HttpRequest *request = dynamic_cast<HttpRequest*>(theCauseRep ?
-                           theCauseRep->raw().header : theVirginRep.raw().header);
+    HttpRequest *request = dynamic_cast<HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
-    HttpReply *reply = dynamic_cast<HttpReply*>(theVirginRep.raw().header);
+    HttpReply *reply = dynamic_cast<HttpReply *>(theVirginRep.raw().header);
 
-    for (auto h: Adaptation::Config::metaHeaders) {
+    for (auto h : Adaptation::Config::metaHeaders) {
         SBuf matched;
         if (h->match(request, reply, al, matched)) {
             const libecap::Name name(h->key().toStdString());
@@ -227,20 +224,19 @@ Adaptation::Ecap::XactionRep::start()
     Must(theMaster);
 
     if (!theVirginRep.raw().body_pipe)
-        makingVb = opNever; // there is nothing to deliver
+        makingVb = opNever;  // there is nothing to deliver
 
-    HttpRequest *request = dynamic_cast<HttpRequest*> (theCauseRep ?
-                           theCauseRep->raw().header : theVirginRep.raw().header);
+    HttpRequest *request = dynamic_cast<HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
 
-    HttpReply *reply = dynamic_cast<HttpReply*>(theVirginRep.raw().header);
+    HttpReply *reply = dynamic_cast<HttpReply *>(theVirginRep.raw().header);
 
     Adaptation::History::Pointer ah = request->adaptLogHistory();
     if (ah != NULL) {
         // retrying=false because ecap never retries transactions
         adaptHistoryId = ah->recordXactStart(service().cfg().key, current_time, false);
         SBuf matched;
-        for (auto h: Adaptation::Config::metaHeaders) {
+        for (auto h : Adaptation::Config::metaHeaders) {
             if (h->match(request, reply, al, matched)) {
                 if (ah->metaHeaders == NULL)
                     ah->metaHeaders = new NotePairs();
@@ -273,8 +269,7 @@ Adaptation::Ecap::XactionRep::swanSong()
 
     terminateMaster();
 
-    const HttpRequest *request = dynamic_cast<const HttpRequest*>(theCauseRep ?
-                                 theCauseRep->raw().header : theVirginRep.raw().header);
+    const HttpRequest *request = dynamic_cast<const HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
     Adaptation::History::Pointer ah = request->adaptLogHistory();
     if (ah != NULL && adaptHistoryId >= 0)
@@ -325,7 +320,7 @@ Adaptation::Ecap::XactionRep::adapted()
 Adaptation::Message &
 Adaptation::Ecap::XactionRep::answer()
 {
-    MessageRep *rep = dynamic_cast<MessageRep*>(theAnswerRep.get());
+    MessageRep *rep = dynamic_cast<MessageRep *>(theAnswerRep.get());
     Must(rep);
     return rep->raw();
 }
@@ -343,15 +338,14 @@ Adaptation::Ecap::XactionRep::terminateMaster()
 bool
 Adaptation::Ecap::XactionRep::doneAll() const
 {
-    return makingVb >= opComplete && proxyingAb >= opComplete &&
-           Adaptation::Initiate::doneAll();
+    return makingVb >= opComplete && proxyingAb >= opComplete && Adaptation::Initiate::doneAll();
 }
 
 // stops receiving virgin and enables auto-consumption, dropping any vb bytes
 void
 Adaptation::Ecap::XactionRep::sinkVb(const char *reason)
 {
-    debugs(93,4, HERE << "sink for " << reason << "; status:" << status());
+    debugs(93, 4, HERE << "sink for " << reason << "; status:" << status());
 
     // we reset raw().body_pipe when we are done, so use this one for checking
     const BodyPipePointer &permPipe = theVirginRep.raw().header->body_pipe;
@@ -365,7 +359,7 @@ Adaptation::Ecap::XactionRep::sinkVb(const char *reason)
 void
 Adaptation::Ecap::XactionRep::preserveVb(const char *reason)
 {
-    debugs(93,4, HERE << "preserve for " << reason << "; status:" << status());
+    debugs(93, 4, HERE << "preserve for " << reason << "; status:" << status());
 
     // we reset raw().body_pipe when we are done, so use this one for checking
     const BodyPipePointer &permPipe = theVirginRep.raw().header->body_pipe;
@@ -381,7 +375,7 @@ Adaptation::Ecap::XactionRep::preserveVb(const char *reason)
 void
 Adaptation::Ecap::XactionRep::forgetVb(const char *reason)
 {
-    debugs(93,9, HERE << "forget vb " << reason << "; status:" << status());
+    debugs(93, 9, HERE << "forget vb " << reason << "; status:" << status());
 
     BodyPipePointer &p = theVirginRep.raw().body_pipe;
     if (p != NULL && p->stillConsuming(this))
@@ -396,7 +390,7 @@ Adaptation::Ecap::XactionRep::forgetVb(const char *reason)
 void
 Adaptation::Ecap::XactionRep::useVirgin()
 {
-    debugs(93,3, HERE << status());
+    debugs(93, 3, HERE << status());
     Must(proxyingAb == opUndecided);
     proxyingAb = opNever;
 
@@ -414,37 +408,37 @@ Adaptation::Ecap::XactionRep::useVirgin()
 void
 Adaptation::Ecap::XactionRep::useAdapted(const libecap::shared_ptr<libecap::Message> &m)
 {
-    debugs(93,3, HERE << status());
+    debugs(93, 3, HERE << status());
     Must(m);
     theAnswerRep = m;
     Must(proxyingAb == opUndecided);
 
     Http::Message *msg = answer().header;
     updateSources(msg);
-    if (!theAnswerRep->body()) { // final, bodyless answer
+    if (!theAnswerRep->body()) {  // final, bodyless answer
         proxyingAb = opNever;
         updateHistory(msg);
         sendAnswer(Answer::Forward(msg));
-    } else { // got answer headers but need to handle body
+    } else {  // got answer headers but need to handle body
         proxyingAb = opOn;
-        Must(!msg->body_pipe); // only host can set body pipes
-        MessageRep *rep = dynamic_cast<MessageRep*>(theAnswerRep.get());
+        Must(!msg->body_pipe);  // only host can set body pipes
+        MessageRep *rep = dynamic_cast<MessageRep *>(theAnswerRep.get());
         Must(rep);
-        rep->tieBody(this); // sets us as a producer
-        Must(msg->body_pipe != NULL); // check tieBody
+        rep->tieBody(this);            // sets us as a producer
+        Must(msg->body_pipe != NULL);  // check tieBody
 
         updateHistory(msg);
         sendAnswer(Answer::Forward(msg));
 
-        debugs(93,4, HERE << "adapter will produce body" << status());
-        theMaster->abMake(); // libecap will produce
+        debugs(93, 4, HERE << "adapter will produce body" << status());
+        theMaster->abMake();  // libecap will produce
     }
 }
 
 void
 Adaptation::Ecap::XactionRep::blockVirgin()
 {
-    debugs(93,3, HERE << status());
+    debugs(93, 3, HERE << status());
     Must(proxyingAb == opUndecided);
     proxyingAb = opNever;
 
@@ -460,11 +454,10 @@ Adaptation::Ecap::XactionRep::blockVirgin()
 void
 Adaptation::Ecap::XactionRep::updateHistory(Http::Message *adapted)
 {
-    if (!theMaster) // all updates rely on being able to query the adapter
+    if (!theMaster)  // all updates rely on being able to query the adapter
         return;
 
-    const HttpRequest *request = dynamic_cast<const HttpRequest*>(theCauseRep ?
-                                 theCauseRep->raw().header : theVirginRep.raw().header);
+    const HttpRequest *request = dynamic_cast<const HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
     Must(request);
 
     // TODO: move common ICAP/eCAP logic to Adaptation::Xaction or similar
@@ -474,7 +467,7 @@ Adaptation::Ecap::XactionRep::updateHistory(Http::Message *adapted)
     if (const char *xxNameStr = Adaptation::Config::masterx_shared_name) {
         Adaptation::History::Pointer ah = request->adaptHistory(true);
         if (ah != NULL) {
-            libecap::Name xxName(xxNameStr); // TODO: optimize?
+            libecap::Name xxName(xxNameStr);  // TODO: optimize?
             if (const libecap::Area val = theMaster->option(xxName))
                 ah->updateXxRecord(xxNameStr, val.toString().c_str());
         }
@@ -488,7 +481,7 @@ Adaptation::Ecap::XactionRep::updateHistory(Http::Message *adapted)
             if (ah != NULL)
                 ah->updateNextServices(services.toString().c_str());
         }
-    } // TODO: else warn (occasionally!) if we got libecap::metaNextServices
+    }  // TODO: else warn (occasionally!) if we got libecap::metaNextServices
 
     // Store received meta headers for adapt::<last_h logformat code use.
     // If we already have stored headers from a previous adaptation transaction
@@ -502,7 +495,7 @@ Adaptation::Ecap::XactionRep::updateHistory(Http::Message *adapted)
     }
 
     // Add just-created history to the adapted/cloned request that lacks it.
-    if (HttpRequest *adaptedReq = dynamic_cast<HttpRequest*>(adapted))
+    if (HttpRequest *adaptedReq = dynamic_cast<HttpRequest *>(adapted))
         adaptedReq->adaptHistoryImport(*request);
 }
 
@@ -521,7 +514,7 @@ Adaptation::Ecap::XactionRep::vbMake()
     Must(makingVb == opUndecided);
     BodyPipePointer &p = theVirginRep.raw().body_pipe;
     Must(p != NULL);
-    Must(p->setConsumerIfNotLate(this)); // to deliver vb, we must receive vb
+    Must(p->setConsumerIfNotLate(this));  // to deliver vb, we must receive vb
     makingVb = opOn;
 }
 
@@ -537,11 +530,11 @@ Adaptation::Ecap::XactionRep::vbStopMaking()
 void
 Adaptation::Ecap::XactionRep::vbMakeMore()
 {
-    Must(makingVb == opOn); // cannot make more if done proxying
+    Must(makingVb == opOn);  // cannot make more if done proxying
     // we cannot guarantee more vb, but we can check that there is a chance
     const BodyPipePointer &p = theVirginRep.raw().body_pipe;
-    Must(p != NULL && p->stillConsuming(this)); // we are plugged in
-    Must(!p->productionEnded() && p->mayNeedMoreData()); // and may get more
+    Must(p != NULL && p->stillConsuming(this));           // we are plugged in
+    Must(!p->productionEnded() && p->mayNeedMoreData());  // and may get more
 }
 
 libecap::Area
@@ -557,11 +550,10 @@ Adaptation::Ecap::XactionRep::vbContent(libecap::size_type o, libecap::size_type
 
     // convert to Squid types; XXX: check for overflow
     const uint64_t offset = static_cast<uint64_t>(o);
-    Must(offset <= haveSize); // equal iff at the end of content
+    Must(offset <= haveSize);  // equal iff at the end of content
 
     // nsize means no size limit: all content starting from offset
-    const size_t size = s == libecap::nsize ?
-                        haveSize - offset : static_cast<size_t>(s);
+    const size_t size = s == libecap::nsize ? haveSize - offset : static_cast<size_t>(s);
 
     // XXX: optimize by making theBody a shared_ptr (see Area::FromTemp*() src)
     return libecap::Area::FromTempBuffer(p->buf().content() + offset,
@@ -577,8 +569,8 @@ Adaptation::Ecap::XactionRep::vbContentShift(libecap::size_type n)
 
     BodyPipePointer &p = theVirginRep.raw().body_pipe;
     Must(p != NULL);
-    const size_t size = static_cast<size_t>(n); // XXX: check for overflow
-    const size_t haveSize = static_cast<size_t>(p->buf().contentSize()); // TODO: make MemBuf use size_t?
+    const size_t size = static_cast<size_t>(n);                           // XXX: check for overflow
+    const size_t haveSize = static_cast<size_t>(p->buf().contentSize());  // TODO: make MemBuf use size_t?
     p->consume(min(size, haveSize));
 }
 
@@ -587,8 +579,8 @@ Adaptation::Ecap::XactionRep::noteAbContentDone(bool atEnd)
 {
     Must(proxyingAb == opOn && !abProductionFinished);
     abProductionFinished = true;
-    abProductionAtEnd = atEnd; // store until ready to stop producing ourselves
-    debugs(93,5, HERE << "adapted body production ended");
+    abProductionAtEnd = atEnd;  // store until ready to stop producing ourselves
+    debugs(93, 5, HERE << "adapted body production ended");
     moveAbContent();
 }
 
@@ -613,15 +605,14 @@ Adaptation::Ecap::XactionRep::setAdaptedBodySize(const libecap::BodySize &size)
 void
 Adaptation::Ecap::XactionRep::adaptationDelayed(const libecap::Delay &d)
 {
-    debugs(93,3, HERE << "adapter needs time: " <<
-           d.state << '/' << d.progress);
+    debugs(93, 3, HERE << "adapter needs time: " << d.state << '/' << d.progress);
     // XXX: set timeout?
 }
 
 void
 Adaptation::Ecap::XactionRep::adaptationAborted()
 {
-    tellQueryAborted(true); // should eCAP support retries?
+    tellQueryAborted(true);  // should eCAP support retries?
     mustStop("adaptationAborted");
 }
 
@@ -645,7 +636,7 @@ Adaptation::Ecap::XactionRep::noteBodyConsumerAborted(RefCount<BodyPipe> bp)
 void
 Adaptation::Ecap::XactionRep::noteMoreBodyDataAvailable(RefCount<BodyPipe> bp)
 {
-    Must(makingVb == opOn); // or we would not be registered as a consumer
+    Must(makingVb == opOn);  // or we would not be registered as a consumer
     Must(theMaster);
     theMaster->noteVbContentAvailable();
 }
@@ -653,7 +644,7 @@ Adaptation::Ecap::XactionRep::noteMoreBodyDataAvailable(RefCount<BodyPipe> bp)
 void
 Adaptation::Ecap::XactionRep::noteBodyProductionEnded(RefCount<BodyPipe> bp)
 {
-    Must(makingVb == opOn); // or we would not be registered as a consumer
+    Must(makingVb == opOn);  // or we would not be registered as a consumer
     Must(theMaster);
     theMaster->noteVbContentDone(true);
     vbProductionFinished = true;
@@ -662,7 +653,7 @@ Adaptation::Ecap::XactionRep::noteBodyProductionEnded(RefCount<BodyPipe> bp)
 void
 Adaptation::Ecap::XactionRep::noteBodyProducerAborted(RefCount<BodyPipe> bp)
 {
-    Must(makingVb == opOn); // or we would not be registered as a consumer
+    Must(makingVb == opOn);  // or we would not be registered as a consumer
     Must(theMaster);
     theMaster->noteVbContentDone(false);
     vbProductionFinished = true;
@@ -680,11 +671,11 @@ Adaptation::Ecap::XactionRep::moveAbContent()
 {
     Must(proxyingAb == opOn);
     const libecap::Area c = theMaster->abContent(0, libecap::nsize);
-    debugs(93,5, HERE << "up to " << c.size << " bytes");
-    if (c.size == 0 && abProductionFinished) { // no ab now and in the future
+    debugs(93, 5, HERE << "up to " << c.size << " bytes");
+    if (c.size == 0 && abProductionFinished) {  // no ab now and in the future
         stopProducingFor(answer().body_pipe, abProductionAtEnd);
         proxyingAb = opComplete;
-        debugs(93,5, HERE << "last adapted body data retrieved");
+        debugs(93, 5, HERE << "last adapted body data retrieved");
     } else if (c.size > 0) {
         if (const size_t used = answer().body_pipe->putMoreData(c.start, c.size))
             theMaster->abContentShift(used);
@@ -705,7 +696,7 @@ Adaptation::Ecap::XactionRep::status() const
     const BodyPipePointer &vp = theVirginRep.raw().body_pipe;
     if (!vp)
         buf.append(" !V", 3);
-    else if (vp->stillConsuming(const_cast<XactionRep*>(this)))
+    else if (vp->stillConsuming(const_cast<XactionRep *>(this)))
         buf.append(" Vc", 3);
     else
         buf.append(" V?", 3);
@@ -716,12 +707,12 @@ Adaptation::Ecap::XactionRep::status() const
     buf.appendf(" A%d", static_cast<int>(proxyingAb));
 
     if (proxyingAb == opOn) {
-        MessageRep *rep = dynamic_cast<MessageRep*>(theAnswerRep.get());
+        MessageRep *rep = dynamic_cast<MessageRep *>(theAnswerRep.get());
         Must(rep);
         const BodyPipePointer &ap = rep->raw().body_pipe;
         if (!ap)
             buf.append(" !A", 3);
-        else if (ap->stillProducing(const_cast<XactionRep*>(this)))
+        else if (ap->stillProducing(const_cast<XactionRep *>(this)))
             buf.append(" Ap", 3);
         else
             buf.append(" A?", 3);
@@ -740,11 +731,9 @@ Adaptation::Ecap::XactionRep::updateSources(Http::Message *adapted)
     adapted->sources |= service().cfg().connectionEncryption ? Http::Message::srcEcaps : Http::Message::srcEcap;
 
     // Update masterXaction object for adapted HTTP requests.
-    if (HttpRequest *adaptedReq = dynamic_cast<HttpRequest*>(adapted)) {
-        HttpRequest *request = dynamic_cast<HttpRequest*> (theCauseRep ?
-                               theCauseRep->raw().header : theVirginRep.raw().header);
+    if (HttpRequest *adaptedReq = dynamic_cast<HttpRequest *>(adapted)) {
+        HttpRequest *request = dynamic_cast<HttpRequest *>(theCauseRep ? theCauseRep->raw().header : theVirginRep.raw().header);
         Must(request);
         adaptedReq->masterXaction = request->masterXaction;
     }
 }
-

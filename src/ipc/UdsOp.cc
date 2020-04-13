@@ -9,14 +9,14 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "ipc/UdsOp.h"
+#include "CommCalls.h"
 #include "base/TextException.h"
 #include "comm.h"
 #include "comm/Connection.h"
 #include "comm/Write.h"
-#include "CommCalls.h"
-#include "ipc/UdsOp.h"
 
-Ipc::UdsOp::UdsOp(const String& pathAddr):
+Ipc::UdsOp::UdsOp(const String &pathAddr) :
     AsyncJob("Ipc::UdsOp"),
     address(PathToAddress(pathAddr)),
     options(COMM_NONBLOCKING)
@@ -32,7 +32,8 @@ Ipc::UdsOp::~UdsOp()
     conn_ = NULL;
 }
 
-void Ipc::UdsOp::setOptions(int newOptions)
+void
+Ipc::UdsOp::setOptions(int newOptions)
 {
     options = newOptions;
 }
@@ -51,26 +52,30 @@ Ipc::UdsOp::conn()
     return conn_;
 }
 
-void Ipc::UdsOp::setTimeout(int seconds, const char *handlerName)
+void
+Ipc::UdsOp::setTimeout(int seconds, const char *handlerName)
 {
     typedef CommCbMemFunT<UdsOp, CommTimeoutCbParams> Dialer;
-    AsyncCall::Pointer handler = asyncCall(54,5, handlerName,
+    AsyncCall::Pointer handler = asyncCall(54, 5, handlerName,
                                            Dialer(CbcPointer<UdsOp>(this), &UdsOp::noteTimeout));
     commSetConnTimeout(conn(), seconds, handler);
 }
 
-void Ipc::UdsOp::clearTimeout()
+void
+Ipc::UdsOp::clearTimeout()
 {
     commUnsetConnTimeout(conn());
 }
 
-void Ipc::UdsOp::noteTimeout(const CommTimeoutCbParams &)
+void
+Ipc::UdsOp::noteTimeout(const CommTimeoutCbParams &)
 {
-    timedout(); // our kid handles communication timeout
+    timedout();  // our kid handles communication timeout
 }
 
 struct sockaddr_un
-Ipc::PathToAddress(const String& pathAddr) {
+Ipc::PathToAddress(const String &pathAddr)
+{
     assert(pathAddr.size() != 0);
     struct sockaddr_un unixAddr;
     memset(&unixAddr, 0, sizeof(unixAddr));
@@ -81,18 +86,19 @@ Ipc::PathToAddress(const String& pathAddr) {
 
 CBDATA_NAMESPACED_CLASS_INIT(Ipc, UdsSender);
 
-Ipc::UdsSender::UdsSender(const String& pathAddr, const TypedMsgHdr& aMessage):
+Ipc::UdsSender::UdsSender(const String &pathAddr, const TypedMsgHdr &aMessage) :
     UdsOp(pathAddr),
     message(aMessage),
-    retries(10), // TODO: make configurable?
-    timeout(10), // TODO: make configurable?
+    retries(10),  // TODO: make configurable?
+    timeout(10),  // TODO: make configurable?
     sleeping(false),
     writing(false)
 {
     message.address(address);
 }
 
-void Ipc::UdsSender::swanSong()
+void
+Ipc::UdsSender::swanSong()
 {
     // did we abort while waiting between retries?
     if (sleeping)
@@ -101,7 +107,8 @@ void Ipc::UdsSender::swanSong()
     UdsOp::swanSong();
 }
 
-void Ipc::UdsSender::start()
+void
+Ipc::UdsSender::start()
 {
     UdsOp::start();
     write();
@@ -109,22 +116,25 @@ void Ipc::UdsSender::start()
         setTimeout(timeout, "Ipc::UdsSender::noteTimeout");
 }
 
-bool Ipc::UdsSender::doneAll() const
+bool
+Ipc::UdsSender::doneAll() const
 {
     return !writing && !sleeping && UdsOp::doneAll();
 }
 
-void Ipc::UdsSender::write()
+void
+Ipc::UdsSender::write()
 {
     debugs(54, 5, HERE);
     typedef CommCbMemFunT<UdsSender, CommIoCbParams> Dialer;
     AsyncCall::Pointer writeHandler = JobCallback(54, 5,
-                                      Dialer, this, UdsSender::wrote);
+                                                  Dialer, this, UdsSender::wrote);
     Comm::Write(conn(), message.raw(), message.size(), writeHandler, NULL);
     writing = true;
 }
 
-void Ipc::UdsSender::wrote(const CommIoCbParams& params)
+void
+Ipc::UdsSender::wrote(const CommIoCbParams &params)
 {
     debugs(54, 5, HERE << params.conn << " flag " << params.flag << " retries " << retries << " [" << this << ']');
     writing = false;
@@ -136,17 +146,19 @@ void Ipc::UdsSender::wrote(const CommIoCbParams& params)
 }
 
 /// pause for a while before resending the message
-void Ipc::UdsSender::startSleep()
+void
+Ipc::UdsSender::startSleep()
 {
     Must(!sleeping);
     sleeping = true;
     eventAdd("Ipc::UdsSender::DelayedRetry",
              Ipc::UdsSender::DelayedRetry,
-             new Pointer(this), 1, 0, false); // TODO: Use Fibonacci increments
+             new Pointer(this), 1, 0, false);  // TODO: Use Fibonacci increments
 }
 
 /// stop sleeping (or do nothing if we were not)
-void Ipc::UdsSender::cancelSleep()
+void
+Ipc::UdsSender::cancelSleep()
 {
     if (sleeping) {
         // Why not delete the event? See Comm::ConnOpener::cancelSleep().
@@ -156,11 +168,12 @@ void Ipc::UdsSender::cancelSleep()
 }
 
 /// legacy wrapper for Ipc::UdsSender::delayedRetry()
-void Ipc::UdsSender::DelayedRetry(void *data)
+void
+Ipc::UdsSender::DelayedRetry(void *data)
 {
-    Pointer *ptr = static_cast<Pointer*>(data);
+    Pointer *ptr = static_cast<Pointer *>(data);
     assert(ptr);
-    if (UdsSender *us = dynamic_cast<UdsSender*>(ptr->valid())) {
+    if (UdsSender *us = dynamic_cast<UdsSender *>(ptr->valid())) {
         // get back inside AsyncJob protection by scheduling an async job call
         typedef NullaryMemFunT<Ipc::UdsSender> Dialer;
         AsyncCall::Pointer call = JobCallback(54, 4, Dialer, us, Ipc::UdsSender::delayedRetry);
@@ -170,22 +183,25 @@ void Ipc::UdsSender::DelayedRetry(void *data)
 }
 
 /// make another sending attempt after a pause
-void Ipc::UdsSender::delayedRetry()
+void
+Ipc::UdsSender::delayedRetry()
 {
     debugs(54, 5, HERE << sleeping);
     if (sleeping) {
         sleeping = false;
-        write(); // reopens the connection if needed
+        write();  // reopens the connection if needed
     }
 }
 
-void Ipc::UdsSender::timedout()
+void
+Ipc::UdsSender::timedout()
 {
     debugs(54, 5, HERE);
     mustStop("timedout");
 }
 
-void Ipc::SendMessage(const String& toAddress, const TypedMsgHdr &message)
+void
+Ipc::SendMessage(const String &toAddress, const TypedMsgHdr &message)
 {
     AsyncJob::Start(new UdsSender(toAddress, message));
 }
@@ -195,9 +211,9 @@ Ipc::ImportFdIntoComm(const Comm::ConnectionPointer &conn, int socktype, int pro
 {
     struct sockaddr_storage addr;
     socklen_t len = sizeof(addr);
-    if (getsockname(conn->fd, reinterpret_cast<sockaddr*>(&addr), &len) == 0) {
+    if (getsockname(conn->fd, reinterpret_cast<sockaddr *>(&addr), &len) == 0) {
         conn->remote = addr;
-        struct addrinfo* addr_info = NULL;
+        struct addrinfo *addr_info = NULL;
         conn->remote.getAddrInfo(addr_info);
         addr_info->ai_socktype = socktype;
         addr_info->ai_protocol = protocol;
@@ -210,4 +226,3 @@ Ipc::ImportFdIntoComm(const Comm::ConnectionPointer &conn, int socktype, int pro
     }
     return conn;
 }
-

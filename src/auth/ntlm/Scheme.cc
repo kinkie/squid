@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "auth/ntlm/Config.h"
 #include "auth/ntlm/Scheme.h"
 #include "Debug.h"
+#include "auth/ntlm/Config.h"
 #include "helper.h"
 
 Auth::Scheme::Pointer Auth::Ntlm::Scheme::_instance = NULL;
@@ -44,6 +44,5 @@ Auth::SchemeConfig *
 Auth::Ntlm::Scheme::createConfig()
 {
     Auth::Ntlm::Config *ntlmCfg = new Auth::Ntlm::Config;
-    return dynamic_cast<Auth::SchemeConfig*>(ntlmCfg);
+    return dynamic_cast<Auth::SchemeConfig *>(ntlmCfg);
 }
-

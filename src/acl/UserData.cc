@@ -9,10 +9,10 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/UserData.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
 #include "globals.h"
 #include "sbuf/Algorithms.h"
 #include "util.h"
@@ -20,7 +20,7 @@
 const Acl::ParameterFlags &
 ACLUserData::supportedFlags() const
 {
-    static const Acl::ParameterFlags flagNames = { "-i", "+i" };
+    static const Acl::ParameterFlags flagNames = {"-i", "+i"};
     return flagNames;
 }
 
@@ -57,9 +57,7 @@ ACLUserData::dump() const
 
     sl.insert(sl.end(), userDataNames.begin(), userDataNames.end());
 
-    debugs(28,5, "ACLUserData dump output: " <<
-           JoinContainerToSBuf(userDataNames.begin(), userDataNames.end(),
-                               SBuf(" ")));
+    debugs(28, 5, "ACLUserData dump output: " << JoinContainerToSBuf(userDataNames.begin(), userDataNames.end(), SBuf(" ")));
     return sl;
 }
 
@@ -92,14 +90,14 @@ ACLUserData::parse()
         SBuf s(t);
         debugs(28, 5, "first token is " << s);
 
-        if (s.cmp("-i",2) == 0) {
+        if (s.cmp("-i", 2) == 0) {
             debugs(28, 5, "Going case-insensitive");
             flags.case_insensitive = true;
             // due to how the std::set API work, if we want to change
             // the comparison function we have to create a new std::set
             UserDataNames_t newUdn(CaseInsensitveSBufCompare);
             newUdn.insert(userDataNames.begin(), userDataNames.end());
-            swap(userDataNames,newUdn);
+            swap(userDataNames, newUdn);
         } else if (s.cmp("REQUIRED") == 0) {
             debugs(28, 5, "REQUIRED-type enabled");
             flags.required = true;
@@ -133,13 +131,13 @@ ACLUserData::parse()
         userDataNames.clear();
     }
 
-    debugs(28,4, "ACL contains " << userDataNames.size() << " users");
+    debugs(28, 4, "ACL contains " << userDataNames.size() << " users");
 }
 
 bool
 ACLUserData::empty() const
 {
-    debugs(28,6,"required: " << flags.required << ", number of users: " << userDataNames.size());
+    debugs(28, 6, "required: " << flags.required << ", number of users: " << userDataNames.size());
     if (flags.required)
         return false;
     return userDataNames.empty();
@@ -150,4 +148,3 @@ ACLUserData::clone() const
 {
     return new ACLUserData;
 }
-

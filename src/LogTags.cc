@@ -7,11 +7,11 @@
  */
 
 #include "squid.h"
-#include "Debug.h"
 #include "LogTags.h"
+#include "Debug.h"
 
 // old deprecated tag strings
-const char * LogTags::Str_[] = {
+const char *LogTags::Str_[] = {
     "TAG_NONE",
     "TCP_HIT",
     "TCP_MISS",
@@ -37,8 +37,7 @@ const char * LogTags::Str_[] = {
     "UDP_INVALID",
     "UDP_MISS_NOFETCH",
     "ICP_QUERY",
-    "TYPE_MAX"
-};
+    "TYPE_MAX"};
 
 void
 LogTags::update(const LogTags_ot t)
@@ -65,8 +64,7 @@ LogTags::c_str() const
         assert(Str_[oldType][protoLen] == '_');
         snprintf(buf, protoLen + 1, "%s", Str_[oldType]);
         pos += protoLen;
-    }
-    else
+    } else
         pos += snprintf(buf, sizeof(buf), "NONE");
 
     if (collapsingHistory.collapsed())
@@ -76,13 +74,13 @@ LogTags::c_str() const
     pos += snprintf(buf + pos, sizeof(buf) - pos, "%s", tag);
 
     if (err.ignored)
-        pos += snprintf(buf+pos,sizeof(buf)-pos, "_IGNORED");
+        pos += snprintf(buf + pos, sizeof(buf) - pos, "_IGNORED");
 
     // error tags
     if (err.timedout)
-        pos += snprintf(buf+pos,sizeof(buf)-pos, "_TIMEDOUT");
+        pos += snprintf(buf + pos, sizeof(buf) - pos, "_TIMEDOUT");
     if (err.aborted)
-        pos += snprintf(buf+pos,sizeof(buf)-pos, "_ABORTED");
+        pos += snprintf(buf + pos, sizeof(buf) - pos, "_ABORTED");
 
     return buf;
 }
@@ -90,14 +88,5 @@ LogTags::c_str() const
 bool
 LogTags::isTcpHit() const
 {
-    return
-        (oldType == LOG_TCP_HIT) ||
-        (oldType == LOG_TCP_IMS_HIT) ||
-        (oldType == LOG_TCP_INM_HIT) ||
-        (oldType == LOG_TCP_REFRESH_FAIL_OLD) ||
-        (oldType == LOG_TCP_REFRESH_UNMODIFIED) ||
-        (oldType == LOG_TCP_NEGATIVE_HIT) ||
-        (oldType == LOG_TCP_MEM_HIT) ||
-        (oldType == LOG_TCP_OFFLINE_HIT);
+    return (oldType == LOG_TCP_HIT) || (oldType == LOG_TCP_IMS_HIT) || (oldType == LOG_TCP_INM_HIT) || (oldType == LOG_TCP_REFRESH_FAIL_OLD) || (oldType == LOG_TCP_REFRESH_UNMODIFIED) || (oldType == LOG_TCP_NEGATIVE_HIT) || (oldType == LOG_TCP_MEM_HIT) || (oldType == LOG_TCP_OFFLINE_HIT);
 }
-

@@ -29,4 +29,3 @@ Acl::AnyOf::parse()
 {
     lineParse();
 }
-

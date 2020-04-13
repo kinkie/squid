@@ -7,9 +7,9 @@
  */
 
 #include "squid.h"
-#include "auth/digest/Config.h"
 #include "auth/digest/Scheme.h"
 #include "Debug.h"
+#include "auth/digest/Config.h"
 #include "globals.h"
 #include "helper.h"
 
@@ -47,6 +47,5 @@ Auth::SchemeConfig *
 Auth::Digest::Scheme::createConfig()
 {
     Auth::Digest::Config *digestCfg = new Auth::Digest::Config;
-    return dynamic_cast<Auth::SchemeConfig*>(digestCfg);
+    return dynamic_cast<Auth::SchemeConfig *>(digestCfg);
 }
-

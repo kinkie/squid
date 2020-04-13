@@ -8,14 +8,14 @@
 
 #include "squid.h"
 #include "acl/FilledChecklist.h"
-#include "client_side.h"
-#include "comm/Connection.h"
-#include "comm/forward.h"
 #include "ExternalACLEntry.h"
-#include "http/Stream.h"
 #include "HttpReply.h"
 #include "HttpRequest.h"
 #include "SquidConfig.h"
+#include "client_side.h"
+#include "comm/Connection.h"
+#include "comm/forward.h"
+#include "http/Stream.h"
 #if USE_AUTH
 #include "auth/AclProxyAuth.h"
 #include "auth/UserRequest.h"
@@ -25,10 +25,10 @@ CBDATA_CLASS_INIT(ACLFilledChecklist);
 
 ACLFilledChecklist::ACLFilledChecklist() :
     dst_rdns(NULL),
-    request (NULL),
-    reply (NULL),
+    request(NULL),
+    reply(NULL),
 #if USE_AUTH
-    auth_user_request (NULL),
+    auth_user_request(NULL),
 #endif
 #if SQUID_SNMP
     snmp_community(NULL),
@@ -50,9 +50,9 @@ ACLFilledChecklist::ACLFilledChecklist() :
 
 ACLFilledChecklist::~ACLFilledChecklist()
 {
-    assert (!asyncInProgress());
+    assert(!asyncInProgress());
 
-    safe_free(dst_rdns); // created by xstrdup().
+    safe_free(dst_rdns);  // created by xstrdup().
 
     HTTPMSGUNLOCK(request);
 
@@ -150,7 +150,7 @@ ACLFilledChecklist::conn(ConnStateData *aConn)
 {
     if (conn() == aConn)
         return;
-    assert (conn() == NULL);
+    assert(conn() == NULL);
     conn_ = cbdataReference(aConn);
 }
 
@@ -178,7 +178,7 @@ ACLFilledChecklist::destinationDomainChecked() const
 void
 ACLFilledChecklist::markDestinationDomainChecked()
 {
-    assert (!finished() && !destinationDomainChecked());
+    assert(!finished() && !destinationDomainChecked());
     destinationDomainChecked_ = true;
 }
 
@@ -191,7 +191,7 @@ ACLFilledChecklist::sourceDomainChecked() const
 void
 ACLFilledChecklist::markSourceDomainChecked()
 {
-    assert (!finished() && !sourceDomainChecked());
+    assert(!finished() && !sourceDomainChecked());
     sourceDomainChecked_ = true;
 }
 
@@ -209,7 +209,7 @@ ACLFilledChecklist::markSourceDomainChecked()
  *    *not* delete the list.  After the callback function returns,
  *    checkCallback() will delete the list (i.e., self).
  */
-ACLFilledChecklist::ACLFilledChecklist(const acl_access *A, HttpRequest *http_request, const char *ident):
+ACLFilledChecklist::ACLFilledChecklist(const acl_access *A, HttpRequest *http_request, const char *ident) :
     dst_rdns(NULL),
     request(NULL),
     reply(NULL),
@@ -238,7 +238,8 @@ ACLFilledChecklist::ACLFilledChecklist(const acl_access *A, HttpRequest *http_re
     setIdent(ident);
 }
 
-void ACLFilledChecklist::setRequest(HttpRequest *httpRequest)
+void
+ACLFilledChecklist::setRequest(HttpRequest *httpRequest)
 {
     assert(!request);
     if (httpRequest) {
@@ -266,4 +267,3 @@ ACLFilledChecklist::setIdent(const char *ident)
         xstrncpy(rfc931, ident, USER_IDENT_SZ);
 #endif
 }
-

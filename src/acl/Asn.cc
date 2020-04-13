@@ -9,27 +9,27 @@
 /* DEBUG: section 53    AS Number handling */
 
 #include "squid.h"
-#include "acl/Acl.h"
 #include "acl/Asn.h"
+#include "FwdState.h"
+#include "HttpReply.h"
+#include "HttpRequest.h"
+#include "MasterXaction.h"
+#include "RequestFlags.h"
+#include "SquidConfig.h"
+#include "Store.h"
+#include "StoreClient.h"
+#include "acl/Acl.h"
 #include "acl/Checklist.h"
 #include "acl/DestinationAsn.h"
 #include "acl/DestinationIp.h"
 #include "acl/SourceAsn.h"
 #include "acl/Strategised.h"
-#include "FwdState.h"
-#include "HttpReply.h"
-#include "HttpRequest.h"
 #include "ipcache.h"
-#include "MasterXaction.h"
 #include "mgr/Registration.h"
 #include "radix.h"
-#include "RequestFlags.h"
-#include "SquidConfig.h"
-#include "Store.h"
-#include "StoreClient.h"
 
 #ifndef AS_REQBUF_SZ
-#define AS_REQBUF_SZ    4096
+#define AS_REQBUF_SZ 4096
 #endif
 
 /* BEGIN of definitions for radix tree entries */
@@ -41,7 +41,8 @@ public:
     uint8_t len;
     Ip::Address addr;
 
-    m_ADDR() : len(sizeof(Ip::Address)) {};
+    m_ADDR() :
+        len(sizeof(Ip::Address)) {};
 };
 
 /* END of definitions for radix tree entries */
@@ -63,7 +64,7 @@ template cbdata_type CbDataList<int>::CBDATA_CbDataList;
  */
 struct as_info {
     CbDataList<int> *as_number;
-    time_t expires;     /* NOTUSED */
+    time_t expires; /* NOTUSED */
 };
 
 class ASState
@@ -71,10 +72,12 @@ class ASState
     CBDATA_CLASS(ASState);
 
 public:
-    ASState() {
+    ASState()
+    {
         memset(reqbuf, 0, sizeof(reqbuf));
     }
-    ~ASState() {
+    ~ASState()
+    {
         if (entry) {
             debugs(53, 3, entry->url());
             storeUnregister(sc, entry, this);
@@ -120,7 +123,7 @@ static int printRadixNode(struct squid_radix_node *rn, void *sentry);
 }
 #endif
 
-void asnAclInitialize(ACL * acls);
+void asnAclInitialize(ACL *acls);
 
 static void destroyRadixNodeInfo(as_info *);
 
@@ -137,7 +140,7 @@ asnMatchIp(CbDataList<int> *data, Ip::Address &addr)
     CbDataList<int> *a = NULL;
     CbDataList<int> *b = NULL;
 
-    debugs(53, 3, "asnMatchIp: Called for " << addr );
+    debugs(53, 3, "asnMatchIp: Called for " << addr);
 
     if (AS_tree_head == NULL)
         return 0;
@@ -158,7 +161,7 @@ asnMatchIp(CbDataList<int> *data, Ip::Address &addr)
     }
 
     debugs(53, 3, "asnMatchIp: Found in db!");
-    e = ((rtentry_t *) rn)->e_info;
+    e = ((rtentry_t *)rn)->e_info;
     assert(e);
 
     for (a = data; a; a = a->next)
@@ -175,8 +178,7 @@ asnMatchIp(CbDataList<int> *data, Ip::Address &addr)
 void
 ACLASN::prepareForUse()
 {
-    for (CbDataList<int> *i = data; i; i = i->
-                                           next)
+    for (CbDataList<int> *i = data; i; i = i->next)
         asnCacheStart(i->element);
 }
 
@@ -188,7 +190,7 @@ asnRegisterWithCacheManager(void)
 
 /* initialize the radix tree structure */
 
-SQUIDCEXTERN int squid_max_keylen;  /* yuck.. this is in lib/radix.c */
+SQUIDCEXTERN int squid_max_keylen; /* yuck.. this is in lib/radix.c */
 
 void
 asnInit(void)
@@ -211,11 +213,11 @@ asnFreeMemory(void)
 {
     squid_rn_walktree(AS_tree_head, destroyRadixNode, AS_tree_head);
 
-    destroyRadixNode((struct squid_radix_node *) 0, (void *) AS_tree_head);
+    destroyRadixNode((struct squid_radix_node *)0, (void *)AS_tree_head);
 }
 
 static void
-asnStats(StoreEntry * sentry)
+asnStats(StoreEntry *sentry)
 {
     storeAppendPrintf(sentry, "Address    \tAS Numbers\n");
     squid_rn_walktree(AS_tree_head, printRadixNode, sentry);
@@ -258,7 +260,7 @@ asnCacheStart(int as)
     xfree(asres);
 
     asState->entry = e;
-    StoreIOBuffer readBuffer (AS_REQBUF_SZ, asState->offset, asState->reqbuf);
+    StoreIOBuffer readBuffer(AS_REQBUF_SZ, asState->offset, asState->reqbuf);
     storeClientCopy(asState->sc, e, readBuffer, asHandleReply, asState);
 }
 
@@ -287,7 +289,7 @@ asHandleReply(void *data, StoreIOBuffer result)
         delete asState;
         return;
     } else if (result.flags.error) {
-        debugs(53, DBG_IMPORTANT, "asHandleReply: Called with Error set and size=" << (unsigned int) result.length);
+        debugs(53, DBG_IMPORTANT, "asHandleReply: Called with Error set and size=" << (unsigned int)result.length);
         delete asState;
         return;
     } else if (e->mem().baseReply().sline.status() != Http::scOkay) {
@@ -348,10 +350,10 @@ asHandleReply(void *data, StoreIOBuffer result)
     debugs(53, 3, "asState->offset = " << asState->offset);
 
     if (e->store_status == STORE_PENDING) {
-        debugs(53, 3, "asHandleReply: store_status == STORE_PENDING: " << e->url()  );
-        StoreIOBuffer tempBuffer (AS_REQBUF_SZ - asState->reqofs,
-                                  asState->offset,
-                                  asState->reqbuf + asState->reqofs);
+        debugs(53, 3, "asHandleReply: store_status == STORE_PENDING: " << e->url());
+        StoreIOBuffer tempBuffer(AS_REQBUF_SZ - asState->reqofs,
+                                 asState->offset,
+                                 asState->reqbuf + asState->reqofs);
         storeClientCopy(asState->sc,
                         e,
                         tempBuffer,
@@ -359,7 +361,7 @@ asHandleReply(void *data, StoreIOBuffer result)
                         asState);
     } else {
         StoreIOBuffer tempBuffer;
-        debugs(53, 3, "asHandleReply: store complete, but data received " << e->url()  );
+        debugs(53, 3, "asHandleReply: store complete, but data received " << e->url());
         tempBuffer.offset = asState->offset;
         tempBuffer.length = AS_REQBUF_SZ - asState->reqofs;
         tempBuffer.data = asState->reqbuf + asState->reqofs;
@@ -406,9 +408,9 @@ asnAddNet(char *as_string, int as_number)
 
     // generate Netbits Format Mask
     mask.setNoAddr();
-    mask.applyMask(bitl, (t!=NULL?AF_INET:AF_INET6) );
+    mask.applyMask(bitl, (t != NULL ? AF_INET : AF_INET6));
 
-    debugs(53, 3, "asnAddNet: called for " << addr << "/" << mask );
+    debugs(53, 3, "asnAddNet: called for " << addr << "/" << mask);
 
     rtentry_t *e = (rtentry_t *)xcalloc(1, sizeof(rtentry_t));
 
@@ -419,22 +421,23 @@ asnAddNet(char *as_string, int as_number)
     rn = squid_rn_lookup(&e->e_addr, &e->e_mask, AS_tree_head);
 
     if (rn != NULL) {
-        asinfo = ((rtentry_t *) rn)->e_info;
+        asinfo = ((rtentry_t *)rn)->e_info;
 
         if (asinfo->as_number->find(as_number)) {
             debugs(53, 3, "asnAddNet: Ignoring repeated network '" << addr << "/" << bitl << "' for AS " << as_number);
         } else {
             debugs(53, 3, "asnAddNet: Warning: Found a network with multiple AS numbers!");
 
-            for (Tail = &asinfo->as_number; *Tail; Tail = &(*Tail)->next);
-            q = new CbDataList<int> (as_number);
+            for (Tail = &asinfo->as_number; *Tail; Tail = &(*Tail)->next)
+                ;
+            q = new CbDataList<int>(as_number);
 
             *(Tail) = q;
 
             e->e_info = asinfo;
         }
     } else {
-        q = new CbDataList<int> (as_number);
+        q = new CbDataList<int>(as_number);
         asinfo = (as_info *)xmalloc(sizeof(as_info));
         asinfo->as_number = q;
         squid_rn_addroute(&e->e_addr, &e->e_mask, AS_tree_head, e->e_nodes);
@@ -443,7 +446,7 @@ asnAddNet(char *as_string, int as_number)
         e->e_info = asinfo;
     }
 
-    if (rn == 0) {      /* assert might expand to nothing */
+    if (rn == 0) { /* assert might expand to nothing */
         xfree(asinfo);
         delete q;
         xfree(e);
@@ -459,10 +462,10 @@ static int
 destroyRadixNode(struct squid_radix_node *rn, void *w)
 {
 
-    struct squid_radix_node_head *rnh = (struct squid_radix_node_head *) w;
+    struct squid_radix_node_head *rnh = (struct squid_radix_node_head *)w;
 
     if (rn && !(rn->rn_flags & RNF_ROOT)) {
-        rtentry_t *e = (rtentry_t *) rn;
+        rtentry_t *e = (rtentry_t *)rn;
         rn = squid_rn_delete(rn->rn_key, rn->rn_mask, rnh);
 
         if (rn == 0)
@@ -477,7 +480,7 @@ destroyRadixNode(struct squid_radix_node *rn, void *w)
 }
 
 static void
-destroyRadixNodeInfo(as_info * e_info)
+destroyRadixNodeInfo(as_info *e_info)
 {
     CbDataList<int> *prev = NULL;
     CbDataList<int> *data = e_info->as_number;
@@ -493,7 +496,7 @@ static int
 printRadixNode(struct squid_radix_node *rn, void *_sentry)
 {
     StoreEntry *sentry = (StoreEntry *)_sentry;
-    rtentry_t *e = (rtentry_t *) rn;
+    rtentry_t *e = (rtentry_t *)rn;
     CbDataList<int> *q;
     as_info *asinfo;
     char buf[MAX_IPSTRLEN];
@@ -506,7 +509,7 @@ printRadixNode(struct squid_radix_node *rn, void *_sentry)
     mask = e->e_mask.addr;
     storeAppendPrintf(sentry, "%s/%d\t",
                       addr.toStr(buf, MAX_IPSTRLEN),
-                      mask.cidr() );
+                      mask.cidr());
     asinfo = e->e_info;
     assert(asinfo->as_number);
 
@@ -549,7 +552,7 @@ ACLASN::dump() const
 }
 
 bool
-ACLASN::empty () const
+ACLASN::empty() const
 {
     return data == NULL;
 }
@@ -562,9 +565,10 @@ ACLASN::parse()
     CbDataList<int> *q = NULL;
     char *t = NULL;
 
-    for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
+    for (Tail = curlist; *Tail; Tail = &((*Tail)->next))
+        ;
     while ((t = ConfigParser::strtokFile())) {
-        q = new CbDataList<int> (atoi(t));
+        q = new CbDataList<int>(atoi(t));
         *(Tail) = q;
         Tail = &q->next;
     }
@@ -574,7 +578,7 @@ ACLData<Ip::Address> *
 ACLASN::clone() const
 {
     if (data)
-        fatal ("cloning of ACLASN not implemented");
+        fatal("cloning of ACLASN not implemented");
 
     return new ACLASN(*this);
 }
@@ -584,18 +588,18 @@ ACLASN::clone() const
 template class ACLStrategised<Ip::Address>;
 
 int
-ACLSourceASNStrategy::match (ACLData<Ip::Address> * &data, ACLFilledChecklist *checklist)
+ACLSourceASNStrategy::match(ACLData<Ip::Address> *&data, ACLFilledChecklist *checklist)
 {
     return data->match(checklist->src_addr);
 }
 
 int
-ACLDestinationASNStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist *checklist)
+ACLDestinationASNStrategy::match(ACLData<MatchType> *&data, ACLFilledChecklist *checklist)
 {
     const ipcache_addrs *ia = ipcache_gethostbyname(checklist->request->url.host(), IP_LOOKUP_IF_MISS);
 
     if (ia) {
-        for (const auto ip: ia->goodAndBad()) {
+        for (const auto ip : ia->goodAndBad()) {
             if (data->match(ip))
                 return 1;
         }
@@ -613,4 +617,3 @@ ACLDestinationASNStrategy::match (ACLData<MatchType> * &data, ACLFilledChecklist
     noaddr.setNoAddr();
     return data->match(noaddr);
 }
-

@@ -53,7 +53,7 @@ typedef struct _user_data {
 static void
 my_free(void *p)
 {
-    user_data *u = static_cast<user_data*>(p);
+    user_data *u = static_cast<user_data *>(p);
     xfree(u->hash.key);
     xfree(u->passwd);
     xfree(u);
@@ -73,7 +73,7 @@ read_passwd_file(const char *passwordFile, int isHa1Mode)
         hashFreeItems(hash, my_free);
     }
     /* initial setup */
-    hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+    hash = hash_create((HASHCMP *)strcmp, 7921, hash_string);
     if (NULL == hash) {
         fprintf(stderr, "digest_file_auth: cannot create hash table\n");
         exit(EXIT_FAILURE);
@@ -87,8 +87,7 @@ read_passwd_file(const char *passwordFile, int isHa1Mode)
     unsigned int lineCount = 0;
     while (fgets(buf, sizeof(buf), f) != NULL) {
         ++lineCount;
-        if ((buf[0] == '#') || (buf[0] == ' ') || (buf[0] == '\t') ||
-                (buf[0] == '\n'))
+        if ((buf[0] == '#') || (buf[0] == ' ') || (buf[0] == '\t') || (buf[0] == '\n'))
             continue;
         user = strtok(buf, ":\n");
         if (!user) {
@@ -116,11 +115,11 @@ read_passwd_file(const char *passwordFile, int isHa1Mode)
                 fprintf(stderr, "digest_file_auth: ignoring invalid password for %s\n", user);
                 continue;
             }
-            u = static_cast<user_data*>(xcalloc(1, sizeof(*u)));
+            u = static_cast<user_data *>(xcalloc(1, sizeof(*u)));
             if (realm) {
                 int len = strlen(user) + strlen(realm) + 2;
                 u->hash.key = xmalloc(len);
-                snprintf(static_cast<char*>(u->hash.key), len, "%s:%s", user, realm);
+                snprintf(static_cast<char *>(u->hash.key), len, "%s:%s", user, realm);
             } else {
                 u->hash.key = xstrdup(user);
             }
@@ -157,7 +156,7 @@ TextArguments(int argc, char **argv)
 }
 
 static const user_data *
-GetPassword(RequestData * requestData)
+GetPassword(RequestData *requestData)
 {
     user_data *u;
     struct stat sb;
@@ -174,15 +173,15 @@ GetPassword(RequestData * requestData)
     len = snprintf(buf, sizeof(buf), "%s:%s", requestData->user, requestData->realm);
     if (len >= static_cast<int>(sizeof(buf)))
         return NULL;
-    u = (user_data*)hash_lookup(hash, buf);
+    u = (user_data *)hash_lookup(hash, buf);
     if (u)
         return u;
-    u = (user_data*)hash_lookup(hash, requestData->user);
+    u = (user_data *)hash_lookup(hash, requestData->user);
     return u;
 }
 
 void
-TextHHA1(RequestData * requestData)
+TextHHA1(RequestData *requestData)
 {
     const user_data *u = GetPassword(requestData);
     if (!u) {
@@ -196,4 +195,3 @@ TextHHA1(RequestData * requestData)
         DigestCalcHA1("md5", requestData->user, requestData->realm, u->passwd, NULL, NULL, HA1, requestData->HHA1);
     }
 }
-

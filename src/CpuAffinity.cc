@@ -9,13 +9,13 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
-#include "base/TextException.h"
 #include "CpuAffinity.h"
 #include "CpuAffinityMap.h"
 #include "CpuAffinitySet.h"
 #include "Debug.h"
-#include "globals.h"
 #include "SquidConfig.h"
+#include "base/TextException.h"
+#include "globals.h"
 #include "tools.h"
 
 #include <algorithm>
@@ -50,17 +50,15 @@ CpuAffinityCheck()
 {
     if (Config.cpuAffinityMap) {
         Must(!Config.cpuAffinityMap->processes().empty());
-        const int maxProcess =
-            *std::max_element(Config.cpuAffinityMap->processes().begin(),
-                              Config.cpuAffinityMap->processes().end());
+        const int maxProcess = *std::max_element(Config.cpuAffinityMap->processes().begin(),
+                                                 Config.cpuAffinityMap->processes().end());
 
         // in no-deamon mode, there is one process regardless of squid.conf
         const int numberOfProcesses = InDaemonMode() ? NumberOfKids() : 1;
 
         if (maxProcess > numberOfProcesses) {
             debugs(54, DBG_IMPORTANT, "WARNING: 'cpu_affinity_map' has "
-                   "non-existing process number(s)");
+                                      "non-existing process number(s)");
         }
     }
 }
-

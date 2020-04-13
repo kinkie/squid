@@ -79,9 +79,9 @@
 #include "sspwin32.h"
 #include "util.h"
 
-#include <windows.h>
-#include <sspi.h>
 #include <security.h>
+#include <sspi.h>
+#include <windows.h>
 #if HAVE_CTYPE_H
 #include <ctype.h>
 #endif
@@ -93,8 +93,8 @@
 
 int NTLM_packet_debug_enabled = 0;
 static int have_challenge;
-char * NTAllowedGroup;
-char * NTDisAllowedGroup;
+char *NTAllowedGroup;
+char *NTDisAllowedGroup;
 int UseDisallowedGroup = 0;
 int UseAllowedGroup = 0;
 
@@ -107,8 +107,8 @@ int
 Valid_Group(char *UserName, char *Group)
 {
     int result = FALSE;
-    WCHAR wszUserName[UNLEN+1]; // Unicode user name
-    WCHAR wszGroup[GNLEN+1];    // Unicode Group
+    WCHAR wszUserName[UNLEN + 1];  // Unicode user name
+    WCHAR wszGroup[GNLEN + 1];     // Unicode Group
 
     LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
@@ -141,7 +141,7 @@ Valid_Group(char *UserName, char *Group)
                                     wszUserName,
                                     dwLevel,
                                     dwFlags,
-                                    (LPBYTE *) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
+                                    (LPBYTE *)&pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
     /*
      * If the call succeeds,
      */
@@ -170,12 +170,13 @@ Valid_Group(char *UserName, char *Group)
     return result;
 }
 
-char * AllocStrFromLSAStr(LSA_UNICODE_STRING LsaStr)
+char *
+AllocStrFromLSAStr(LSA_UNICODE_STRING LsaStr)
 {
     size_t len;
-    static char * target;
+    static char *target;
 
-    len = LsaStr.Length/sizeof(WCHAR) + 1;
+    len = LsaStr.Length / sizeof(WCHAR) + 1;
 
     /* allocate buffer for str + null termination */
     safe_free(target);
@@ -184,14 +185,15 @@ char * AllocStrFromLSAStr(LSA_UNICODE_STRING LsaStr)
         return NULL;
 
     /* copy unicode buffer */
-    WideCharToMultiByte(CP_ACP, 0, LsaStr.Buffer, LsaStr.Length, target, len, NULL, NULL );
+    WideCharToMultiByte(CP_ACP, 0, LsaStr.Buffer, LsaStr.Length, target, len, NULL, NULL);
 
     /* add null termination */
-    target[len-1] = '\0';
+    target[len - 1] = '\0';
     return target;
 }
 
-char * GetDomainName(void)
+char *
+GetDomainName(void)
 
 {
     LSA_HANDLE PolicyHandle;
@@ -200,7 +202,7 @@ char * GetDomainName(void)
     PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo;
     PWKSTA_INFO_100 pwkiWorkstationInfo;
     DWORD netret;
-    char * DomainName = NULL;
+    char *DomainName = NULL;
 
     /*
      * Always initialize the object attributes to all zeroes.
@@ -224,11 +226,10 @@ char * GetDomainName(void)
          * the LsaOpenPolicy function.
          */
         status = LsaOpenPolicy(
-                     NULL,
-                     &ObjectAttributes,
-                     GENERIC_READ | POLICY_VIEW_LOCAL_INFORMATION,
-                     &PolicyHandle
-                 );
+            NULL,
+            &ObjectAttributes,
+            GENERIC_READ | POLICY_VIEW_LOCAL_INFORMATION,
+            &PolicyHandle);
 
         /*
          * Error checking.
@@ -246,7 +247,7 @@ char * GetDomainName(void)
                                                (void **)&ppdiDomainInfo);
             if (status) {
                 debug("LsaQueryInformationPolicy Error: %ld\n", status);
-            } else  {
+            } else {
 
                 /* Get name in usable format */
                 DomainName = AllocStrFromLSAStr(ppdiDomainInfo->Name);
@@ -261,7 +262,7 @@ char * GetDomainName(void)
                     /*
                      * Member of a domain. Display it in debug mode.
                      */
-                    debug("Member of Domain %s\n",DomainName);
+                    debug("Member of Domain %s\n", DomainName);
                 } else {
                     DomainName = NULL;
                 }
@@ -286,11 +287,11 @@ char * GetDomainName(void)
  * codes defined in libntlmauth/ntlmauth.h
  */
 int
-ntlm_check_auth(ntlm_authenticate * auth, char *user, char *domain, int auth_length)
+ntlm_check_auth(ntlm_authenticate *auth, char *user, char *domain, int auth_length)
 {
     int x;
     int rv;
-    char credentials[DNLEN+UNLEN+2];    /* we can afford to waste */
+    char credentials[DNLEN + UNLEN + 2]; /* we can afford to waste */
 
     if (!NTLM_LocalCall) {
 
@@ -314,13 +315,13 @@ ntlm_check_auth(ntlm_authenticate * auth, char *user, char *domain, int auth_len
     } else
         debug("checking local user\n");
 
-    snprintf(credentials, DNLEN+UNLEN+2, "%s\\%s", domain, user);
+    snprintf(credentials, DNLEN + UNLEN + 2, "%s\\%s", domain, user);
 
     rv = SSP_ValidateNTLMCredentials(auth, auth_length, credentials);
 
     debug("Login attempt had result %d\n", rv);
 
-    if (!rv) {          /* failed */
+    if (!rv) { /* failed */
         return NTLM_SSPI_ERROR;
     }
 
@@ -345,7 +346,7 @@ void
 helperfail(const char *reason)
 {
 #if FAIL_DEBUG
-    fail_debug_enabled =1;
+    fail_debug_enabled = 1;
 #endif
     SEND_BH(reason);
 }
@@ -377,17 +378,17 @@ process_options(int argc, char *argv[])
 {
     int opt, had_error = 0;
 
-    opterr =0;
+    opterr = 0;
     while (-1 != (opt = getopt(argc, argv, "hdvA:D:"))) {
         switch (opt) {
         case 'A':
             safe_free(NTAllowedGroup);
-            NTAllowedGroup=xstrdup(optarg);
+            NTAllowedGroup = xstrdup(optarg);
             UseAllowedGroup = 1;
             break;
         case 'D':
             safe_free(NTDisAllowedGroup);
-            NTDisAllowedGroup=xstrdup(optarg);
+            NTDisAllowedGroup = xstrdup(optarg);
             UseDisallowedGroup = 1;
             break;
         case 'd':
@@ -418,8 +419,7 @@ token_decode(size_t *decodedLen, uint8_t decoded[], const char *buf)
 {
     struct base64_decode_ctx ctx;
     base64_decode_init(&ctx);
-    if (!base64_decode_update(&ctx, decodedLen, decoded, strlen(buf), buf) ||
-            !base64_decode_final(&ctx)) {
+    if (!base64_decode_update(&ctx, decodedLen, decoded, strlen(buf), buf) || !base64_decode_final(&ctx)) {
         SEND_BH("message=\"base64 decode failed\"");
         fprintf(stderr, "ERROR: base64 decoding failed for: '%s'\n", buf);
         return false;
@@ -436,28 +436,25 @@ manage_request()
     size_t decodedLen = 0;
     char helper_command[3];
     int oversized = 0;
-    char * ErrorMessage;
+    char *ErrorMessage;
     static ntlm_negotiate local_nego;
-    char domain[DNLEN+1];
-    char user[UNLEN+1];
+    char domain[DNLEN + 1];
+    char user[UNLEN + 1];
 
     /* NP: for some reason this helper sometimes needs to accept
      * from clients that send no negotiate packet. */
     if (memcpy(local_nego.hdr.signature, "NTLMSSP", 8) != 0) {
         memset(&local_nego, 0, sizeof(ntlm_negotiate)); /* reset */
-        memcpy(local_nego.hdr.signature, "NTLMSSP", 8);     /* set the signature */
-        local_nego.hdr.type = le32toh(NTLM_NEGOTIATE);      /* this is a challenge */
-        local_nego.flags = le32toh(NTLM_NEGOTIATE_ALWAYS_SIGN |
-                                   NTLM_NEGOTIATE_USE_NTLM |
-                                   NTLM_NEGOTIATE_USE_LM |
-                                   NTLM_NEGOTIATE_ASCII );
+        memcpy(local_nego.hdr.signature, "NTLMSSP", 8); /* set the signature */
+        local_nego.hdr.type = le32toh(NTLM_NEGOTIATE);  /* this is a challenge */
+        local_nego.flags = le32toh(NTLM_NEGOTIATE_ALWAYS_SIGN | NTLM_NEGOTIATE_USE_NTLM | NTLM_NEGOTIATE_USE_LM | NTLM_NEGOTIATE_ASCII);
     }
 
     do {
         if (fgets(buf, sizeof(buf), stdin) == NULL)
             return 0;
 
-        char *c = static_cast<char*>(memchr(buf, '\n', sizeof(buf)));
+        char *c = static_cast<char *>(memchr(buf, '\n', sizeof(buf)));
         if (c) {
             if (oversized) {
                 helperfail("message=\"illegal request received\"");
@@ -473,29 +470,29 @@ manage_request()
     } while (false);
 
     if ((strlen(buf) > 3) && NTLM_packet_debug_enabled) {
-        if (!token_decode(&decodedLen, decoded, buf+3))
+        if (!token_decode(&decodedLen, decoded, buf + 3))
             return 1;
         strncpy(helper_command, buf, 2);
         debug("Got '%s' from Squid with data:\n", helper_command);
-        hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+        hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
     } else
         debug("Got '%s' from Squid\n", buf);
-    if (memcmp(buf, "YR", 2) == 0) {    /* refresh-request */
+    if (memcmp(buf, "YR", 2) == 0) { /* refresh-request */
         /* figure out what we got */
         if (strlen(buf) > 3) {
-            if (!decodedLen /* already decoded*/ && !token_decode(&decodedLen, decoded, buf+3))
+            if (!decodedLen /* already decoded*/ && !token_decode(&decodedLen, decoded, buf + 3))
                 return 1;
         } else {
             debug("Negotiate packet not supplied - self generated\n");
             memcpy(decoded, &local_nego, sizeof(local_nego));
             decodedLen = sizeof(local_nego);
         }
-        if ((size_t)decodedLen < sizeof(ntlmhdr)) {     /* decoding failure, return error */
+        if ((size_t)decodedLen < sizeof(ntlmhdr)) { /* decoding failure, return error */
             SEND_ERR("message=\"Packet format error\"");
             return 1;
         }
         /* fast-track-decode request type. */
-        fast_header = (struct _ntlmhdr *) decoded;
+        fast_header = (struct _ntlmhdr *)decoded;
 
         /* sanity-check: it IS a NTLMSSP packet, isn't it? */
         if (ntlm_validate_packet(fast_header, NTLM_ANY) != NTLM_ERR_NONE) {
@@ -506,14 +503,14 @@ manage_request()
         case NTLM_NEGOTIATE: {
             /* Obtain challenge against SSPI */
             debug("attempting SSPI challenge retrieval\n");
-            char *c = (char *) SSP_MakeChallenge((ntlm_negotiate *) decoded, decodedLen);
+            char *c = (char *)SSP_MakeChallenge((ntlm_negotiate *)decoded, decodedLen);
             if (c) {
                 SEND_TT(c);
                 if (NTLM_packet_debug_enabled) {
                     if (!token_decode(&decodedLen, decoded, c))
                         return 1;
                     debug("send 'TT' to squid with data:\n");
-                    hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
+                    hex_dump(reinterpret_cast<unsigned char *>(decoded), decodedLen);
                     if (NTLM_LocalCall) {
                         debug("NTLM Local Call detected\n");
                     }
@@ -539,21 +536,21 @@ manage_request()
         }
         return 1;
     }
-    if (memcmp(buf, "KK ", 3) == 0) {   /* authenticate-request */
+    if (memcmp(buf, "KK ", 3) == 0) { /* authenticate-request */
         if (!have_challenge) {
             helperfail("message=\"invalid challenge\"");
             return 1;
         }
         /* figure out what we got */
-        if (!decodedLen /* already decoded*/ && !token_decode(&decodedLen, decoded, buf+3))
+        if (!decodedLen /* already decoded*/ && !token_decode(&decodedLen, decoded, buf + 3))
             return 1;
 
-        if ((size_t)decodedLen < sizeof(ntlmhdr)) {     /* decoding failure, return error */
+        if ((size_t)decodedLen < sizeof(ntlmhdr)) { /* decoding failure, return error */
             SEND_ERR("message=\"Packet format error\"");
             return 1;
         }
         /* fast-track-decode request type. */
-        fast_header = (struct _ntlmhdr *) decoded;
+        fast_header = (struct _ntlmhdr *)decoded;
 
         /* sanity-check: it IS a NTLMSSP packet, isn't it? */
         if (ntlm_validate_packet(fast_header, NTLM_ANY) != NTLM_ERR_NONE) {
@@ -571,11 +568,11 @@ manage_request()
         /* notreached */
         case NTLM_AUTHENTICATE: {
             /* check against SSPI */
-            int err = ntlm_check_auth((ntlm_authenticate *) decoded, user, domain, decodedLen);
+            int err = ntlm_check_auth((ntlm_authenticate *)decoded, user, domain, decodedLen);
             have_challenge = 0;
             if (err != NTLM_ERR_NONE) {
 #if FAIL_DEBUG
-                fail_debug_enabled =1;
+                fail_debug_enabled = 1;
 #endif
                 switch (err) {
                 case NTLM_ERR_NONE:
@@ -588,20 +585,18 @@ manage_request()
                     return 1;
                 case NTLM_SSPI_ERROR:
                     FormatMessage(
-                        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                        FORMAT_MESSAGE_FROM_SYSTEM |
-                        FORMAT_MESSAGE_IGNORE_INSERTS,
+                        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                         NULL,
                         GetLastError(),
-                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                        (LPTSTR) &ErrorMessage,
+                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // Default language
+                        (LPTSTR)&ErrorMessage,
                         0,
                         NULL);
                     if (ErrorMessage[strlen(ErrorMessage) - 1] == '\n')
                         ErrorMessage[strlen(ErrorMessage) - 1] = '\0';
                     if (ErrorMessage[strlen(ErrorMessage) - 1] == '\r')
                         ErrorMessage[strlen(ErrorMessage) - 1] = '\0';
-                    SEND_ERR(ErrorMessage); // TODO update to new syntax
+                    SEND_ERR(ErrorMessage);  // TODO update to new syntax
                     LocalFree(ErrorMessage);
                     return 1;
                 default:
@@ -620,7 +615,7 @@ manage_request()
             return 1;
         }
         return 1;
-    } else {    /* not an auth-request */
+    } else { /* not an auth-request */
         helperfail("message=\"illegal request received\"");
         fprintf(stderr, "Illegal request received: '%s'\n", buf);
         return 1;
@@ -656,4 +651,3 @@ main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
-

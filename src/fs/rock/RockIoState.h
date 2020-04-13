@@ -9,20 +9,19 @@
 #ifndef SQUID_FS_ROCK_IO_STATE_H
 #define SQUID_FS_ROCK_IO_STATE_H
 
-#include "fs/rock/forward.h"
 #include "fs/rock/RockSwapDir.h"
+#include "fs/rock/forward.h"
 #include "sbuf/MemBlob.h"
 
 class DiskFile;
 
-namespace Rock
-{
+namespace Rock {
 
 class DbCellHeader;
 class SwapDir;
 
 /// \ingroup Rock
-class IoState: public ::StoreIOState
+class IoState : public ::StoreIOState
 {
     MEMPROXY_CLASS(IoState);
 
@@ -35,8 +34,8 @@ public:
     void file(const RefCount<DiskFile> &aFile);
 
     // ::StoreIOState API
-    virtual void read_(char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data);
-    virtual bool write(char const *buf, size_t size, off_t offset, FREE * free_func);
+    virtual void read_(char *buf, size_t size, off_t offset, STRCB *callback, void *callback_data);
+    virtual bool write(char const *buf, size_t size, off_t offset, FREE *free_func);
     virtual void close(int how);
 
     /// whether we are still waiting for the I/O results (i.e., not closed)
@@ -53,8 +52,8 @@ public:
     bool expectedReply(const IoXactionId receivedId);
 
     /* one and only one of these will be set and locked; access via *Anchor() */
-    const Ipc::StoreMapAnchor *readableAnchor_; ///< starting point for reading
-    Ipc::StoreMapAnchor *writeableAnchor_; ///< starting point for writing
+    const Ipc::StoreMapAnchor *readableAnchor_;  ///< starting point for reading
+    Ipc::StoreMapAnchor *writeableAnchor_;       ///< starting point for writing
 
     /// the last db slot successfully read or written
     SlotId splicingPoint;
@@ -74,9 +73,9 @@ private:
     void callReaderBack(const char *buf, int rlen);
     void callBack(int errflag);
 
-    Rock::SwapDir::Pointer dir; ///< swap dir that initiated I/O
-    const size_t slotSize; ///< db cell size
-    int64_t objOffset; ///< object offset for current db slot
+    Rock::SwapDir::Pointer dir;  ///< swap dir that initiated I/O
+    const size_t slotSize;       ///< db cell size
+    int64_t objOffset;           ///< object offset for current db slot
 
     /// The very first entry slot. Usually the same as anchor.first,
     /// but writers set anchor.first only after the first write is done.
@@ -100,11 +99,10 @@ private:
     /// the number of successful responses we received from theFile
     uint64_t repliesReceived;
 
-    RefCount<DiskFile> theFile; // "file" responsible for this I/O
-    MemBlob theBuf; // use for write content accumulation only
+    RefCount<DiskFile> theFile;  // "file" responsible for this I/O
+    MemBlob theBuf;              // use for write content accumulation only
 };
 
-} // namespace Rock
+}  // namespace Rock
 
 #endif /* SQUID_FS_ROCK_IO_STATE_H */
-

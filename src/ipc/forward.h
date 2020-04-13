@@ -11,8 +11,7 @@
 #ifndef SQUID_IPC_FORWARD_H
 #define SQUID_IPC_FORWARD_H
 
-namespace Ipc
-{
+namespace Ipc {
 
 class TypedMsgHdr;
 class StrandCoord;
@@ -23,7 +22,6 @@ class Inquirer;
 class Request;
 class Response;
 
-} // namespace Ipc
+}  // namespace Ipc
 
 #endif /* SQUID_IPC_FORWARD_H */
-

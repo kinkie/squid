@@ -12,19 +12,19 @@
 
 #if USE_AUTH
 
-#include "auth/UserRequest.h"
 #include "CachePeer.h"
-#include "globals.h"
 #include "HttpRequest.h"
-#include "mgr/Registration.h"
-#include "neighbors.h"
 #include "PeerSelectState.h"
 #include "SquidConfig.h"
 #include "Store.h"
+#include "auth/UserRequest.h"
+#include "globals.h"
+#include "mgr/Registration.h"
+#include "neighbors.h"
 
 #include <cmath>
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
 static int n_userhash_peers = 0;
 static CachePeer **userhash_peers = NULL;
@@ -92,14 +92,14 @@ peerUserHashInit(void)
         p->userhash.hash = 0;
 
         for (t = p->name; *t != 0; ++t)
-            p->userhash.hash += ROTATE_LEFT(p->userhash.hash, 19) + (unsigned int) *t;
+            p->userhash.hash += ROTATE_LEFT(p->userhash.hash, 19) + (unsigned int)*t;
 
         p->userhash.hash += p->userhash.hash * 0x62531965;
 
         p->userhash.hash = ROTATE_LEFT(p->userhash.hash, 21);
 
         /* and load factor */
-        p->userhash.load_factor = ((double) p->weight) / (double) W;
+        p->userhash.load_factor = ((double)p->weight) / (double)W;
 
         if (floor(p->userhash.load_factor * 1000.0) == 0.0)
             p->userhash.load_factor = 0.0;
@@ -121,14 +121,14 @@ peerUserHashInit(void)
      */
     K = n_userhash_peers;
 
-    P_last = 0.0;       /* Empty P_0 */
+    P_last = 0.0; /* Empty P_0 */
 
-    Xn = 1.0;           /* Empty starting point of X_1 * X_2 * ... * X_{x-1} */
+    Xn = 1.0; /* Empty starting point of X_1 * X_2 * ... * X_{x-1} */
 
-    X_last = 0.0;       /* Empty X_0, nullifies the first pow statement */
+    X_last = 0.0; /* Empty X_0, nullifies the first pow statement */
 
     for (k = 1; k <= K; ++k) {
-        double Kk1 = (double) (K - k + 1);
+        double Kk1 = (double)(K - k + 1);
         p = userhash_peers[k - 1];
         p->userhash.load_multiplier = (Kk1 * (p->userhash.load_factor - P_last)) / Xn;
         p->userhash.load_multiplier += pow(X_last, Kk1);
@@ -184,8 +184,7 @@ peerUserHashSelectParent(PeerSelector *ps)
         combined_hash += combined_hash * 0x62531965;
         combined_hash = ROTATE_LEFT(combined_hash, 21);
         score = combined_hash * tp->userhash.load_multiplier;
-        debugs(39, 3, "peerUserHashSelectParent: " << tp->name << " combined_hash " << combined_hash  <<
-               " score " << std::setprecision(0) << score);
+        debugs(39, 3, "peerUserHashSelectParent: " << tp->name << " combined_hash " << combined_hash << " score " << std::setprecision(0) << score);
 
         if ((score > high_score) && peerHTTPOkay(tp, ps)) {
             p = tp;
@@ -200,7 +199,7 @@ peerUserHashSelectParent(PeerSelector *ps)
 }
 
 static void
-peerUserHashCachemgr(StoreEntry * sentry)
+peerUserHashCachemgr(StoreEntry *sentry)
 {
     CachePeer *p;
     int sumfetches = 0;
@@ -219,9 +218,8 @@ peerUserHashCachemgr(StoreEntry * sentry)
                           p->name, p->userhash.hash,
                           p->userhash.load_multiplier,
                           p->userhash.load_factor,
-                          sumfetches ? (double) p->stats.fetches / sumfetches : -1.0);
+                          sumfetches ? (double)p->stats.fetches / sumfetches : -1.0);
     }
 }
 
 #endif /* USE_AUTH */
-

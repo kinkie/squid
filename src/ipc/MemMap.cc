@@ -18,15 +18,14 @@ Ipc::MemMap::MemMap(const char *const aPath) :
     path(aPath),
     shared(shm_old(Shared)(aPath))
 {
-    assert(shared->limit > 0); // we should not be created otherwise
-    debugs(54, 5, "attached map [" << path << "] created: " <<
-           shared->limit);
+    assert(shared->limit > 0);  // we should not be created otherwise
+    debugs(54, 5, "attached map [" << path << "] created: " << shared->limit);
 }
 
 Ipc::MemMap::Owner *
 Ipc::MemMap::Init(const char *const path, const int limit, const size_t extrasSize)
 {
-    assert(limit > 0); // we should not be created otherwise
+    assert(limit > 0);  // we should not be created otherwise
     Owner *const owner = shm_new(Shared)(path, limit, extrasSize);
     debugs(54, 5, "new map [" << path << "] created: " << limit);
     return owner;
@@ -41,8 +40,7 @@ Ipc::MemMap::Init(const char *const path, const int limit)
 Ipc::MemMap::Slot *
 Ipc::MemMap::openForWriting(const cache_key *const key, sfileno &fileno)
 {
-    debugs(54, 5, "trying to open slot for key " << storeKeyText(key)
-           << " for writing in map [" << path << ']');
+    debugs(54, 5, "trying to open slot for key " << storeKeyText(key) << " for writing in map [" << path << ']');
     const int idx = slotIndexByKey(key);
 
     if (Slot *slot = openForWritingAt(idx)) {
@@ -65,8 +63,7 @@ Ipc::MemMap::openForWritingAt(const sfileno fileno, bool overwriteExisting)
         // bail if we cannot empty this position
         if (!s.waitingToBeFreed && !s.empty() && !overwriteExisting) {
             lock.unlockExclusive();
-            debugs(54, 5, "cannot open existing entry " << fileno <<
-                   " for writing " << path);
+            debugs(54, 5, "cannot open existing entry " << fileno << " for writing " << path);
             return NULL;
         }
 
@@ -77,21 +74,18 @@ Ipc::MemMap::openForWritingAt(const sfileno fileno, bool overwriteExisting)
         assert(s.empty());
         ++shared->count;
 
-        debugs(54, 5, "opened slot at " << fileno <<
-               " for writing in map [" << path << ']');
-        return &s; // and keep the entry locked
+        debugs(54, 5, "opened slot at " << fileno << " for writing in map [" << path << ']');
+        return &s;  // and keep the entry locked
     }
 
-    debugs(54, 5, "failed to open slot at " << fileno <<
-           " for writing in map [" << path << ']');
+    debugs(54, 5, "failed to open slot at " << fileno << " for writing in map [" << path << ']');
     return NULL;
 }
 
 void
 Ipc::MemMap::closeForWriting(const sfileno fileno)
 {
-    debugs(54, 5, "stop writing slot at " << fileno <<
-           " in map [" << path << ']');
+    debugs(54, 5, "stop writing slot at " << fileno << " in map [" << path << ']');
     assert(valid(fileno));
     Slot &s = shared->slots[fileno];
     assert(s.writing());
@@ -101,8 +95,7 @@ Ipc::MemMap::closeForWriting(const sfileno fileno)
 void
 Ipc::MemMap::switchWritingToReading(const sfileno fileno)
 {
-    debugs(54, 5, "switching writing slot at " << fileno <<
-           " to reading in map [" << path << ']');
+    debugs(54, 5, "switching writing slot at " << fileno << " to reading in map [" << path << ']');
     assert(valid(fileno));
     Slot &s = shared->slots[fileno];
     assert(s.writing());
@@ -113,8 +106,7 @@ Ipc::MemMap::switchWritingToReading(const sfileno fileno)
 void
 Ipc::MemMap::abortWriting(const sfileno fileno)
 {
-    debugs(54, 5, "abort writing slot at " << fileno <<
-           " in map [" << path << ']');
+    debugs(54, 5, "abort writing slot at " << fileno << " in map [" << path << ']');
     assert(valid(fileno));
     Slot &s = shared->slots[fileno];
     assert(s.writing());
@@ -127,10 +119,10 @@ Ipc::MemMap::peekAtReader(const sfileno fileno) const
     assert(valid(fileno));
     const Slot &s = shared->slots[fileno];
     if (s.reading())
-        return &s; // immediate access by lock holder so no locking
+        return &s;  // immediate access by lock holder so no locking
     if (s.writing())
-        return NULL; // cannot read the slot when it is being written
-    assert(false); // must be locked for reading or writing
+        return NULL;  // cannot read the slot when it is being written
+    assert(false);    // must be locked for reading or writing
     return NULL;
 }
 
@@ -138,7 +130,8 @@ void
 Ipc::MemMap::free(const sfileno fileno)
 {
     debugs(54, 5, "marking slot at " << fileno << " to be freed in"
-           " map [" << path << ']');
+                                                  " map ["
+                                     << path << ']');
 
     assert(valid(fileno));
     Slot &s = shared->slots[fileno];
@@ -146,27 +139,23 @@ Ipc::MemMap::free(const sfileno fileno)
     if (s.lock.lockExclusive())
         freeLocked(s, false);
     else
-        s.waitingToBeFreed = true; // mark to free it later
+        s.waitingToBeFreed = true;  // mark to free it later
 }
 
 const Ipc::MemMap::Slot *
 Ipc::MemMap::openForReading(const cache_key *const key, sfileno &fileno)
 {
-    debugs(54, 5, "trying to open slot for key " << storeKeyText(key)
-           << " for reading in map [" << path << ']');
+    debugs(54, 5, "trying to open slot for key " << storeKeyText(key) << " for reading in map [" << path << ']');
     const int idx = slotIndexByKey(key);
     if (const Slot *slot = openForReadingAt(idx)) {
         if (slot->sameKey(key)) {
             fileno = idx;
-            debugs(54, 5, "opened slot at " << fileno << " for key "
-                   << storeKeyText(key) << " for reading in map [" << path <<
-                   ']');
-            return slot; // locked for reading
+            debugs(54, 5, "opened slot at " << fileno << " for key " << storeKeyText(key) << " for reading in map [" << path << ']');
+            return slot;  // locked for reading
         }
         slot->lock.unlockShared();
     }
-    debugs(54, 5, "failed to open slot for key " << storeKeyText(key)
-           << " for reading in map [" << path << ']');
+    debugs(54, 5, "failed to open slot for key " << storeKeyText(key) << " for reading in map [" << path << ']');
     return NULL;
 }
 
@@ -174,32 +163,37 @@ const Ipc::MemMap::Slot *
 Ipc::MemMap::openForReadingAt(const sfileno fileno)
 {
     debugs(54, 5, "trying to open slot at " << fileno << " for "
-           "reading in map [" << path << ']');
+                                                         "reading in map ["
+                                            << path << ']');
     assert(valid(fileno));
     Slot &s = shared->slots[fileno];
 
     if (!s.lock.lockShared()) {
         debugs(54, 5, "failed to lock slot at " << fileno << " for "
-               "reading in map [" << path << ']');
+                                                             "reading in map ["
+                                                << path << ']');
         return NULL;
     }
 
     if (s.empty()) {
         s.lock.unlockShared();
         debugs(54, 7, "empty slot at " << fileno << " for "
-               "reading in map [" << path << ']');
+                                                    "reading in map ["
+                                       << path << ']');
         return NULL;
     }
 
     if (s.waitingToBeFreed) {
         s.lock.unlockShared();
         debugs(54, 7, "dirty slot at " << fileno << " for "
-               "reading in map [" << path << ']');
+                                                    "reading in map ["
+                                       << path << ']');
         return NULL;
     }
 
     debugs(54, 5, "opened slot at " << fileno << " for reading in"
-           " map [" << path << ']');
+                                                 " map ["
+                                    << path << ']');
     return &s;
 }
 
@@ -207,7 +201,8 @@ void
 Ipc::MemMap::closeForReading(const sfileno fileno)
 {
     debugs(54, 5, "closing slot at " << fileno << " for reading in "
-           "map [" << path << ']');
+                                                  "map ["
+                                     << path << ']');
     assert(valid(fileno));
     Slot &s = shared->slots[fileno];
     assert(s.reading());
@@ -245,13 +240,12 @@ Ipc::MemMap::valid(const int pos) const
     return 0 <= pos && pos < entryLimit();
 }
 
-static
-unsigned int
+static unsigned int
 hash_key(const unsigned char *data, unsigned int len, unsigned int hashSize)
 {
     unsigned int n;
     unsigned int j;
-    for (j = 0, n = 0; j < len; j++ ) {
+    for (j = 0, n = 0; j < len; j++) {
         n ^= 271 * *data;
         ++data;
     }
@@ -283,8 +277,7 @@ Ipc::MemMap::freeLocked(Slot &s, bool keepLocked)
     if (!keepLocked)
         s.lock.unlockExclusive();
     --shared->count;
-    debugs(54, 5, "freed slot at " << (&s - shared->slots.raw()) <<
-           " in map [" << path << ']');
+    debugs(54, 5, "freed slot at " << (&s - shared->slots.raw()) << " in map [" << path << ']');
 }
 
 /* Ipc::MemMapSlot */
@@ -315,7 +308,7 @@ Ipc::MemMapSlot::sameKey(const cache_key *const aKey) const
 bool
 Ipc::MemMapSlot::empty() const
 {
-    for (unsigned char const*u = key; u < key + sizeof(key); ++u) {
+    for (unsigned char const *u = key; u < key + sizeof(key); ++u) {
         if (*u)
             return false;
     }
@@ -324,7 +317,7 @@ Ipc::MemMapSlot::empty() const
 
 /* Ipc::MemMap::Shared */
 
-Ipc::MemMap::Shared::Shared(const int aLimit, const size_t anExtrasSize):
+Ipc::MemMap::Shared::Shared(const int aLimit, const size_t anExtrasSize) :
     limit(aLimit), extrasSize(anExtrasSize), count(0), slots(aLimit)
 {
 }
@@ -344,4 +337,3 @@ Ipc::MemMap::Shared::SharedMemorySize(const int limit, const size_t extrasSize)
 {
     return sizeof(Shared) + limit * (sizeof(Slot) + extrasSize);
 }
-

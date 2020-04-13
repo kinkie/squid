@@ -7,15 +7,15 @@
  */
 
 #include "squid.h"
+#include "security/BlindPeerConnector.h"
 #include "CachePeer.h"
+#include "HttpRequest.h"
+#include "SquidConfig.h"
 #include "comm/Connection.h"
 #include "errorpage.h"
 #include "fde.h"
-#include "HttpRequest.h"
 #include "neighbors.h"
-#include "security/BlindPeerConnector.h"
 #include "security/NegotiationHistory.h"
-#include "SquidConfig.h"
 
 CBDATA_NAMESPACED_CLASS_INIT(Security, BlindPeerConnector);
 
@@ -53,7 +53,7 @@ Security::BlindPeerConnector::initialize(Security::SessionPointer &serverSession
         Security::SetSessionResumeData(serverSession, peer->sslSession);
     } else {
         SBuf *hostName = new SBuf(request->url.host());
-        SSL_set_ex_data(serverSession.get(), ssl_ex_index_server, (void*)hostName);
+        SSL_set_ex_data(serverSession.get(), ssl_ex_index_server, (void *)hostName);
         Ssl::setClientSNI(serverSession.get(), hostName->c_str());
 #endif
     }
@@ -68,7 +68,7 @@ Security::BlindPeerConnector::noteNegotiationDone(ErrorState *error)
     auto *peer = serverConnection()->getPeer();
 
     if (error) {
-        debugs(83, 5, "error=" << (void*)error);
+        debugs(83, 5, "error=" << (void *)error);
         // XXX: forward.cc calls peerConnectSucceeded() after an OK TCP connect but
         // we call peerConnectFailed() if SSL failed afterwards. Is that OK?
         // It is not clear whether we should call peerConnectSucceeded/Failed()
@@ -84,4 +84,3 @@ Security::BlindPeerConnector::noteNegotiationDone(ErrorState *error)
         Security::MaybeGetSessionResumeData(fd_table[fd].ssl, peer->sslSession);
     }
 }
-

@@ -33,7 +33,7 @@ BuildPrefixLength()
 
 /// \returns filename portion without the build prefix
 static const char *
-SkipBuildPrefix(const char* path)
+SkipBuildPrefix(const char *path)
 {
     static const size_t ToSkip = BuildPrefixLength();
     return path + ToSkip;
@@ -47,7 +47,7 @@ FileNameHash(const char *path)
 
     const char *name = strrchr(path, '/');
     if (name)
-        ++name; // skip '/'
+        ++name;  // skip '/'
     else
         name = path;
 
@@ -90,4 +90,3 @@ SourceLocation::print(std::ostream &os) const
     }
     return os;
 }
-

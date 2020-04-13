@@ -88,7 +88,6 @@ public:
 
     /// a pointer to one of the above notification methods
     typedef void (RegisteredRunner::*Method)();
-
 };
 
 /// registers a given runner with the given registry and returns true on success
@@ -99,19 +98,19 @@ bool RegisterRunner(RegisteredRunner *rr);
 void RunRegistered(const RegisteredRunner::Method &m);
 
 /// A RegisteredRunner with lifetime determined by forces outside the Registry.
-class IndependentRunner: public RegisteredRunner
+class IndependentRunner : public RegisteredRunner
 {
 public:
     virtual ~IndependentRunner() { unregisterRunner(); }
 
 protected:
     void registerRunner();
-    void unregisterRunner(); ///< unregisters self; safe to call multiple times
+    void unregisterRunner();  ///< unregisters self; safe to call multiple times
 };
 
 /// convenience macro to describe/debug the caller and the method being called
-#define RunRegisteredHere(m) \
-    debugs(1, 2, "running " # m); \
+#define RunRegisteredHere(m)     \
+    debugs(1, 2, "running " #m); \
     RunRegistered(&m)
 
 /// convenience function to "use" an otherwise unreferenced static variable
@@ -119,9 +118,6 @@ bool UseThisStatic(const void *);
 
 /// convenience macro: register one RegisteredRunner kid as early as possible
 #define RunnerRegistrationEntry(Who) \
-    static const bool Who ## _Registered_ = \
-        RegisterRunner(new Who) > 0 && \
-        UseThisStatic(& Who ## _Registered_);
+    static const bool Who##_Registered_ = RegisterRunner(new Who) > 0 && UseThisStatic(&Who##_Registered_);
 
 #endif /* SQUID_BASE_RUNNERSREGISTRY_H */
-

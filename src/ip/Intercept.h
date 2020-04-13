@@ -14,8 +14,7 @@
 /* for time_t */
 #include "SquidTime.h"
 
-namespace Ip
-{
+namespace Ip {
 
 class Address;
 
@@ -30,7 +29,8 @@ class Address;
 class Intercept
 {
 public:
-    Intercept() : transparentActive_(0), interceptActive_(0), lastReported_(0) {};
+    Intercept() :
+        transparentActive_(0), interceptActive_(0), lastReported_(0) {};
     ~Intercept() {};
 
     /** Perform NAT lookups */
@@ -58,7 +58,7 @@ public:
      * This function should be called during parsing of the squid.conf
      * When any option requiring full-transparency is encountered.
      */
-    inline void StartTransparency() { transparentActive_=1; };
+    inline void StartTransparency() { transparentActive_ = 1; };
 
     /** \par
      * Turn off fully Transparent-Proxy activities on all new connections.
@@ -79,7 +79,7 @@ public:
      * This function should be called during parsing of the squid.conf
      * When any option requiring interception / NAT handling is encountered.
      */
-    inline void StartInterception() { interceptActive_=1; };
+    inline void StartInterception() { interceptActive_ = 1; };
 
     /** \par
      * Turn off IP-Interception-Proxy activities on all new connections.
@@ -90,7 +90,6 @@ public:
     inline void StopInterception(const char *str);
 
 private:
-
     /**
      * perform Lookups on fully-transparent interception targets (TPROXY).
      * Supports Netfilter, PF and IPFW.
@@ -153,7 +152,6 @@ private:
  */
 extern Intercept Interceptor;
 
-} // namespace Ip
+}  // namespace Ip
 
 #endif /* SQUID_IP_IPINTERCEPT_H */
-

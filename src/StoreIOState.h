@@ -51,27 +51,27 @@ public:
     typedef void STIOCB(void *their_data, int errflag, StoreIOState::Pointer self);
 
     /* StoreIOState does not get mempooled - it's children do */
-    void *operator new (size_t amount);
-    void operator delete (void *address);
+    void *operator new(size_t amount);
+    void operator delete(void *address);
 
     StoreIOState(StoreIOState::STFNCB *cbFile, StoreIOState::STIOCB *cbIo, void *data);
     virtual ~StoreIOState();
 
-    off_t offset() const {return offset_;}
+    off_t offset() const { return offset_; }
 
-    virtual void read_(char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data) = 0;
+    virtual void read_(char *buf, size_t size, off_t offset, STRCB *callback, void *callback_data) = 0;
     /** write the given buffer and free it when it is no longer needed
      *  \param offset zero for the very first write and -1 for all other writes
      *  \retval false if write failed (callback has been or will be called)
      */
-    virtual bool write(char const *buf, size_t size, off_t offset, FREE * free_func) = 0;
+    virtual bool write(char const *buf, size_t size, off_t offset, FREE *free_func) = 0;
 
     typedef enum {
-        wroteAll, ///< success: caller supplied all data it wanted to swap out
-        writerGone, ///< failure: caller left before swapping out everything
-        readerDone ///< success or failure: either way, stop swapping in
+        wroteAll,    ///< success: caller supplied all data it wanted to swap out
+        writerGone,  ///< failure: caller left before swapping out everything
+        readerDone   ///< success or failure: either way, stop swapping in
     } CloseHow;
-    virtual void close(int how) = 0; ///< finish or abort swapping per CloseHow
+    virtual void close(int how) = 0;  ///< finish or abort swapping per CloseHow
 
     // Tests whether we are working with the primary/public StoreEntry chain.
     // Reads start reading the primary chain, but it may become secondary.
@@ -82,9 +82,9 @@ public:
 
     sdirno swap_dirn;
     sfileno swap_filen;
-    StoreEntry *e;      /* Need this so the FS layers can play god */
+    StoreEntry *e; /* Need this so the FS layers can play god */
     mode_t mode;
-    off_t offset_; ///< number of bytes written or read for this entry so far
+    off_t offset_;          ///< number of bytes written or read for this entry so far
     STFNCB *file_callback;  // XXX: Unused. TODO: Remove.
     STIOCB *callback;
     void *callback_data;
@@ -95,7 +95,7 @@ public:
     } read;
 
     struct {
-        bool closing;   /* debugging aid */
+        bool closing; /* debugging aid */
     } flags;
 };
 
@@ -106,4 +106,3 @@ void storeRead(StoreIOState::Pointer, char *, size_t, off_t, StoreIOState::STRCB
 void storeIOWrite(StoreIOState::Pointer, char const *, size_t, off_t, FREE *);
 
 #endif /* SQUID_STOREIOSTATE_H */
-

@@ -9,22 +9,24 @@
 /* DEBUG: section 28    Access Control */
 
 #include "squid.h"
-#include "acl/Checklist.h"
 #include "acl/TimeData.h"
-#include "cache_cf.h"
 #include "ConfigParser.h"
 #include "Debug.h"
+#include "acl/Checklist.h"
+#include "cache_cf.h"
 #include "wordlist.h"
 
-ACLTimeData::ACLTimeData () : weekbits (0), start (0), stop (0), next (NULL) {}
+ACLTimeData::ACLTimeData() :
+    weekbits(0), start(0), stop(0), next(NULL) {}
 
-ACLTimeData::ACLTimeData(ACLTimeData const &old) : weekbits(old.weekbits), start (old.start), stop (old.stop), next (NULL)
+ACLTimeData::ACLTimeData(ACLTimeData const &old) :
+    weekbits(old.weekbits), start(old.start), stop(old.stop), next(NULL)
 {
     if (old.next)
         next = (ACLTimeData *)old.next->clone();
 }
 
-ACLTimeData&
+ACLTimeData &
 ACLTimeData::operator=(ACLTimeData const &old)
 {
     weekbits = old.weekbits;
@@ -57,13 +59,11 @@ ACLTimeData::match(time_t when)
         memcpy(&tm, localtime(&when), sizeof(struct tm));
     }
 
-    t = (time_t) (tm.tm_hour * 60 + tm.tm_min);
+    t = (time_t)(tm.tm_hour * 60 + tm.tm_min);
     ACLTimeData *data = this;
 
     while (data) {
-        debugs(28, 3, "aclMatchTime: checking " << t  << " in " <<
-               data->start  << "-" << data->stop  << ", weekbits=" <<
-               std::hex << data->weekbits);
+        debugs(28, 3, "aclMatchTime: checking " << t << " in " << data->start << "-" << data->stop << ", weekbits=" << std::hex << data->weekbits);
 
         if (t >= data->start && t <= data->stop && (data->weekbits & (1 << tm.tm_wday)))
             return 1;
@@ -104,7 +104,8 @@ ACLTimeData::parse()
     ACLTimeData **Tail;
     long parsed_weekbits = 0;
 
-    for (Tail = &next; *Tail; Tail = &((*Tail)->next));
+    for (Tail = &next; *Tail; Tail = &((*Tail)->next))
+        ;
     ACLTimeData *q = NULL;
 
     int h1, m1, h2, m2;
@@ -153,9 +154,8 @@ ACLTimeData::parse()
                     break;
 
                 default:
-                    debugs(28, DBG_CRITICAL, "" << cfg_filename << " line " << config_lineno <<
-                           ": " << config_input_line);
-                    debugs(28, DBG_CRITICAL, "aclParseTimeSpec: Bad Day '" << *t << "'" );
+                    debugs(28, DBG_CRITICAL, "" << cfg_filename << " line " << config_lineno << ": " << config_input_line);
+                    debugs(28, DBG_CRITICAL, "aclParseTimeSpec: Bad Day '" << *t << "'");
                     break;
                 }
             }
@@ -211,7 +211,7 @@ ACLTimeData::parse()
 
         q->start = 0 * 60 + 0;
 
-        q->stop =  24 * 60 + 0;
+        q->stop = 24 * 60 + 0;
 
         q->weekbits = parsed_weekbits;
 
@@ -231,4 +231,3 @@ ACLTimeData::clone() const
 {
     return new ACLTimeData(*this);
 }
-

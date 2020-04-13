@@ -14,16 +14,21 @@
 #define STUB_API "cache_manager.cc"
 #include "tests/STUB.h"
 
-Mgr::Action::Pointer CacheManager::createNamedAction(char const* action) STUB_RETVAL(NULL)
-void CacheManager::start(const Comm::ConnectionPointer &, HttpRequest *, StoreEntry *, const AccessLogEntryPointer &)
+Mgr::Action::Pointer
+CacheManager::createNamedAction(char const *action) STUB_RETVAL(NULL) void CacheManager::start(const Comm::ConnectionPointer &, HttpRequest *, StoreEntry *, const AccessLogEntryPointer &)
 {
     std::cerr << HERE << "\n";
     STUB
 }
-static CacheManager* instance = nullptr;
-CacheManager* CacheManager::GetInstance() STUB_RETVAL(instance)
-void Mgr::RegisterAction(char const*, char const*, OBJH, int, int) {}
-void Mgr::RegisterAction(char const *, char const *, Mgr::ClassActionCreationHandler *, int, int) {}
+static CacheManager *instance = nullptr;
+CacheManager *
+CacheManager::GetInstance() STUB_RETVAL(instance) void Mgr::RegisterAction(char const *, char const *, OBJH, int, int)
+{
+}
+void
+Mgr::RegisterAction(char const *, char const *, Mgr::ClassActionCreationHandler *, int, int)
+{
+}
 
-Mgr::Action::Pointer CacheManager::createRequestedAction(const Mgr::ActionParams &) STUB_RETVAL(NULL)
-
+Mgr::Action::Pointer
+CacheManager::createRequestedAction(const Mgr::ActionParams &) STUB_RETVAL(NULL)

@@ -19,14 +19,14 @@ public:
     ACLRandom(char const *);
     ACLRandom(ACLRandom const &);
     ~ACLRandom();
-    ACLRandom&operator=(ACLRandom const &);
+    ACLRandom &operator=(ACLRandom const &);
 
-    virtual ACL *clone()const;
+    virtual ACL *clone() const;
     virtual char const *typeString() const;
     virtual void parse();
     virtual int match(ACLChecklist *checklist);
     virtual SBufList dump() const;
-    virtual bool empty () const;
+    virtual bool empty() const;
     virtual bool valid() const;
 
 protected:
@@ -36,4 +36,3 @@ protected:
 };
 
 #endif /* SQUID_ACL_RANDOM_H */
-

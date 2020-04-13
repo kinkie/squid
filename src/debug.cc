@@ -10,9 +10,9 @@
 
 #include "squid.h"
 #include "Debug.h"
+#include "SquidTime.h"
 #include "fd.h"
 #include "ipc/Kids.h"
-#include "SquidTime.h"
 #include "util.h"
 
 #include <algorithm>
@@ -42,7 +42,7 @@ static void _db_print_file(const char *format, va_list args);
 
 #if _SQUID_WINDOWS_
 extern LPCRITICAL_SECTION dbg_mutex;
-typedef BOOL (WINAPI * PFInitializeCriticalSectionAndSpinCount) (LPCRITICAL_SECTION, DWORD);
+typedef BOOL(WINAPI *PFInitializeCriticalSectionAndSpinCount)(LPCRITICAL_SECTION, DWORD);
 #endif
 
 /// a (FILE*, file name) pair that uses stderr FILE as the last resort
@@ -51,7 +51,7 @@ class DebugFile
 public:
     DebugFile() {}
     ~DebugFile() { clear(); }
-    DebugFile(DebugFile &&) = delete; // no copying or moving of any kind
+    DebugFile(DebugFile &&) = delete;  // no copying or moving of any kind
 
     /// switches to the new pair, absorbing FILE and duping the name
     void reset(FILE *newFile, const char *newName);
@@ -67,7 +67,7 @@ public:
 private:
     friend void ResyncDebugLog(FILE *newFile);
 
-    FILE *file_ = nullptr; ///< opened "real" file or nil; never stderr
+    FILE *file_ = nullptr;  ///< opened "real" file or nil; never stderr
 };
 
 /// configured cache.log file or stderr
@@ -75,7 +75,8 @@ private:
 static DebugFile TheLog;
 
 FILE *
-DebugStream() {
+DebugStream()
+{
     return TheLog.file();
 }
 
@@ -101,7 +102,7 @@ DebugFile::reset(FILE *newFile, const char *newName)
         fd_close(fileno(file_));
         fclose(file_);
     }
-    file_ = newFile; // may be nil
+    file_ = newFile;  // may be nil
 
     if (file_)
         fd_open(fileno(file_), FD_LOG, Debug::cache_log);
@@ -114,12 +115,11 @@ DebugFile::reset(FILE *newFile, const char *newName)
     assert(!file_ == !name);
 }
 
-static
-void
-_db_print(const bool forceAlert, const char *format,...)
+static void
+_db_print(const bool forceAlert, const char *format, ...)
 {
     char f[BUFSIZ];
-    f[0]='\0';
+    f[0] = '\0';
     va_list args1;
     va_list args2;
     va_list args3;
@@ -132,11 +132,10 @@ _db_print(const bool forceAlert, const char *format,...)
         PFInitializeCriticalSectionAndSpinCount InitializeCriticalSectionAndSpinCount = NULL;
 
         if (krnl_lib)
-            InitializeCriticalSectionAndSpinCount =
-                (PFInitializeCriticalSectionAndSpinCount) GetProcAddress(krnl_lib,
-                        "InitializeCriticalSectionAndSpinCount");
+            InitializeCriticalSectionAndSpinCount = (PFInitializeCriticalSectionAndSpinCount)GetProcAddress(krnl_lib,
+                                                                                                            "InitializeCriticalSectionAndSpinCount");
 
-        dbg_mutex = static_cast<CRITICAL_SECTION*>(xcalloc(1, sizeof(CRITICAL_SECTION)));
+        dbg_mutex = static_cast<CRITICAL_SECTION *>(xcalloc(1, sizeof(CRITICAL_SECTION)));
 
         if (InitializeCriticalSectionAndSpinCount) {
             /* let multiprocessor systems EnterCriticalSection() fast */
@@ -253,14 +252,15 @@ debugArg(const char *arg)
         arg += 4;
     } else {
         s = atoi(arg);
-        while (*arg && *arg++ != ',');
+        while (*arg && *arg++ != ',')
+            ;
     }
 
     l = atoi(arg);
     assert(s >= -1);
 
     if (s >= MAX_DEBUG_SECTIONS)
-        s = MAX_DEBUG_SECTIONS-1;
+        s = MAX_DEBUG_SECTIONS - 1;
 
     if (l < 0)
         l = 0;
@@ -287,7 +287,7 @@ debugOpenLog(const char *logfile)
 
     // Bug 4423: ignore the stdio: logging module name if present
     const char *logfilename;
-    if (strncmp(logfile, "stdio:",6) == 0)
+    if (strncmp(logfile, "stdio:", 6) == 0)
         logfilename = logfile + 6;
     else
         logfilename = logfile;
@@ -314,112 +314,70 @@ static struct syslog_facility_name {
     int facility;
 }
 
-syslog_facility_names[] = {
+syslog_facility_names[]
+    = {
 
 #ifdef LOG_AUTH
-    {
-        "auth", LOG_AUTH
-    },
+        {"auth", LOG_AUTH},
 #endif
 #ifdef LOG_AUTHPRIV
-    {
-        "authpriv", LOG_AUTHPRIV
-    },
+        {"authpriv", LOG_AUTHPRIV},
 #endif
 #ifdef LOG_CRON
-    {
-        "cron", LOG_CRON
-    },
+        {"cron", LOG_CRON},
 #endif
 #ifdef LOG_DAEMON
-    {
-        "daemon", LOG_DAEMON
-    },
+        {"daemon", LOG_DAEMON},
 #endif
 #ifdef LOG_FTP
-    {
-        "ftp", LOG_FTP
-    },
+        {"ftp", LOG_FTP},
 #endif
 #ifdef LOG_KERN
-    {
-        "kern", LOG_KERN
-    },
+        {"kern", LOG_KERN},
 #endif
 #ifdef LOG_LPR
-    {
-        "lpr", LOG_LPR
-    },
+        {"lpr", LOG_LPR},
 #endif
 #ifdef LOG_MAIL
-    {
-        "mail", LOG_MAIL
-    },
+        {"mail", LOG_MAIL},
 #endif
 #ifdef LOG_NEWS
-    {
-        "news", LOG_NEWS
-    },
+        {"news", LOG_NEWS},
 #endif
 #ifdef LOG_SYSLOG
-    {
-        "syslog", LOG_SYSLOG
-    },
+        {"syslog", LOG_SYSLOG},
 #endif
 #ifdef LOG_USER
-    {
-        "user", LOG_USER
-    },
+        {"user", LOG_USER},
 #endif
 #ifdef LOG_UUCP
-    {
-        "uucp", LOG_UUCP
-    },
+        {"uucp", LOG_UUCP},
 #endif
 #ifdef LOG_LOCAL0
-    {
-        "local0", LOG_LOCAL0
-    },
+        {"local0", LOG_LOCAL0},
 #endif
 #ifdef LOG_LOCAL1
-    {
-        "local1", LOG_LOCAL1
-    },
+        {"local1", LOG_LOCAL1},
 #endif
 #ifdef LOG_LOCAL2
-    {
-        "local2", LOG_LOCAL2
-    },
+        {"local2", LOG_LOCAL2},
 #endif
 #ifdef LOG_LOCAL3
-    {
-        "local3", LOG_LOCAL3
-    },
+        {"local3", LOG_LOCAL3},
 #endif
 #ifdef LOG_LOCAL4
-    {
-        "local4", LOG_LOCAL4
-    },
+        {"local4", LOG_LOCAL4},
 #endif
 #ifdef LOG_LOCAL5
-    {
-        "local5", LOG_LOCAL5
-    },
+        {"local5", LOG_LOCAL5},
 #endif
 #ifdef LOG_LOCAL6
-    {
-        "local6", LOG_LOCAL6
-    },
+        {"local6", LOG_LOCAL6},
 #endif
 #ifdef LOG_LOCAL7
-    {
-        "local7", LOG_LOCAL7
-    },
+        {"local7", LOG_LOCAL7},
 #endif
-    {
-        NULL, 0
-    }
-};
+        {NULL, 0}};
 
 #endif
 
@@ -534,8 +492,7 @@ _db_rotate_log(void)
         snprintf(from, MAXPATHLEN, "%s.%d", TheLog.name, i - 1);
         snprintf(to, MAXPATHLEN, "%s.%d", TheLog.name, i);
 #if _SQUID_WINDOWS_
-        remove
-        (to);
+        remove(to);
 #endif
         errno = 0;
         if (rename(from, to) == -1) {
@@ -556,13 +513,12 @@ _db_rotate_log(void)
             const auto saved_errno = errno;
             debugs(0, DBG_IMPORTANT, "removal of log file " << to << " failed: " << xstrerr(saved_errno));
         }
-        TheLog.clear(); // Windows cannot rename() open files
+        TheLog.clear();  // Windows cannot rename() open files
 #endif
         errno = 0;
         if (rename(from, to) == -1) {
             const auto saved_errno = errno;
-            debugs(0, DBG_IMPORTANT, "renaming file " << from << " to "
-                   << to << "failed: " << xstrerr(saved_errno));
+            debugs(0, DBG_IMPORTANT, "renaming file " << from << " to " << to << "failed: " << xstrerr(saved_errno));
         }
     }
 
@@ -578,16 +534,16 @@ debugLogTime(void)
     time_t t = getCurrentTime();
 
     struct tm *tm;
-    static char buf[128]; // arbitrary size, big enough for the below timestamp strings.
+    static char buf[128];  // arbitrary size, big enough for the below timestamp strings.
     static time_t last_t = 0;
 
     if (Debug::Level() > 1) {
         // 4 bytes smaller than buf to ensure .NNN catenation by snprintf()
         // is safe and works even if strftime() fills its buffer.
-        char buf2[sizeof(buf)-4];
+        char buf2[sizeof(buf) - 4];
         tm = localtime(&t);
         strftime(buf2, sizeof(buf2), "%Y/%m/%d %H:%M:%S", tm);
-        buf2[sizeof(buf2)-1] = '\0';
+        buf2[sizeof(buf2) - 1] = '\0';
         const int sz = snprintf(buf, sizeof(buf), "%s.%03d", buf2, static_cast<int>(current_time.tv_usec / 1000));
         assert(0 < sz && sz < static_cast<int>(sizeof(buf)));
         last_t = t;
@@ -598,7 +554,7 @@ debugLogTime(void)
         last_t = t;
     }
 
-    buf[sizeof(buf)-1] = '\0';
+    buf[sizeof(buf) - 1] = '\0';
     return buf;
 }
 
@@ -607,7 +563,7 @@ debugLogKid(void)
 {
     if (KidIdentifier != 0) {
         static char buf[16];
-        if (!*buf) // optimization: fill only once after KidIdentifier is set
+        if (!*buf)  // optimization: fill only once after KidIdentifier is set
             snprintf(buf, sizeof(buf), " kid%d", KidIdentifier);
         return buf;
     }
@@ -789,7 +745,7 @@ ctx_get_descr(Ctx ctx)
 
 Debug::Context *Debug::Current = nullptr;
 
-Debug::Context::Context(const int aSection, const int aLevel):
+Debug::Context::Context(const int aSection, const int aLevel) :
     level(aLevel),
     sectionLevel(Levels[aSection]),
     upper(Current),
@@ -850,7 +806,7 @@ void
 Debug::Finish()
 {
     // TODO: #include "base/CodeContext.h" instead if doing so works well.
-    extern std::ostream &CurrentCodeContextDetail(std::ostream &os);
+    extern std::ostream &CurrentCodeContextDetail(std::ostream & os);
     if (Current->level <= DBG_IMPORTANT)
         Current->buf << CurrentCodeContextDetail;
 
@@ -873,8 +829,8 @@ Debug::ForceAlert()
         Current->forceAlert = true;
 }
 
-std::ostream&
-ForceAlert(std::ostream& s)
+std::ostream &
+ForceAlert(std::ostream &s)
 {
     Debug::ForceAlert();
     return s;
@@ -885,10 +841,10 @@ void
 Raw::printHex(std::ostream &os) const
 {
     const auto savedFill = os.fill('0');
-    const auto savedFlags = os.flags(); // std::ios_base::fmtflags
+    const auto savedFlags = os.flags();  // std::ios_base::fmtflags
     os << std::hex;
     std::for_each(data_, data_ + size_,
-    [&os](const char &c) { os << std::setw(2) << static_cast<uint8_t>(c); });
+                  [&os](const char &c) { os << std::setw(2) << static_cast<uint8_t>(c); });
     os.flags(savedFlags);
     os.fill(savedFill);
 }
@@ -903,8 +859,7 @@ Raw::print(std::ostream &os) const
         return os;
 
     // finalize debugging level if no level was set explicitly via minLevel()
-    const int finalLevel = (level >= 0) ? level :
-                           (size_ > 40 ? DBG_DATA : Debug::SectionLevel());
+    const int finalLevel = (level >= 0) ? level : (size_ > 40 ? DBG_DATA : Debug::SectionLevel());
     if (finalLevel <= Debug::SectionLevel()) {
         if (label_)
             os << '=';
@@ -922,4 +877,3 @@ Raw::print(std::ostream &os) const
 
     return os;
 }
-

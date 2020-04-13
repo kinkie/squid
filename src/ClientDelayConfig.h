@@ -25,13 +25,13 @@ class ClientDelayPool : public RefCountable
 public:
     typedef RefCount<ClientDelayPool> Pointer;
 
-    ClientDelayPool()
-        :   access(nullptr), rate(0), highwatermark(0) {}
+    ClientDelayPool() :
+        access(nullptr), rate(0), highwatermark(0) {}
     ~ClientDelayPool();
     ClientDelayPool(const ClientDelayPool &) = delete;
     ClientDelayPool &operator=(const ClientDelayPool &) = delete;
 
-    void dump (StoreEntry * entry, unsigned int poolNumberMinusOne) const;
+    void dump(StoreEntry *entry, unsigned int poolNumberMinusOne) const;
     acl_access *access;
     int rate;
     int64_t highwatermark;
@@ -45,6 +45,7 @@ public:
     static ClientDelayPools *Instance();
 
     std::vector<ClientDelayPool::Pointer> pools;
+
 private:
     ClientDelayPools() {}
     ~ClientDelayPools();
@@ -54,13 +55,13 @@ private:
 class ClientDelayConfig
 {
 public:
-    ClientDelayConfig()
-        :   initial(50) {}
+    ClientDelayConfig() :
+        initial(50) {}
     ClientDelayConfig(const ClientDelayConfig &) = delete;
     ClientDelayConfig &operator=(const ClientDelayConfig &) = delete;
 
     void freePools();
-    void dumpPoolCount(StoreEntry * entry, const char *name) const;
+    void dumpPoolCount(StoreEntry *entry, const char *name) const;
     /* parsing of client_delay_pools - number of pools */
     void parsePoolCount();
     /* parsing of client_delay_parameters lines */
@@ -68,7 +69,7 @@ public:
     /* parsing client_delay_access lines */
     void parsePoolAccess(ConfigParser &parser);
 
-    void finalize(); ///< checks pools configuration
+    void finalize();  ///< checks pools configuration
 
     /* initial bucket level, how fill bucket at startup */
     unsigned short initial;
@@ -79,5 +80,4 @@ private:
     ClientDelayPool &pool(const int i) { return *(ClientDelayPools::Instance()->pools.at(i)); }
 };
 
-#endif // SQUID_CLIENTDELAYCONFIG_H
-
+#endif  // SQUID_CLIENTDELAYCONFIG_H

@@ -7,8 +7,8 @@
  */
 
 #include "squid.h"
-#include "MemBuf.h"
 #include "security/NegotiationHistory.h"
+#include "MemBuf.h"
 #include "SquidConfig.h"
 #if USE_OPENSSL
 #include "ssl/bio.h"
@@ -17,7 +17,8 @@
 
 Security::NegotiationHistory::NegotiationHistory()
 #if USE_OPENSSL
-    : cipher(nullptr)
+    :
+    cipher(nullptr)
 #endif
 {
 }
@@ -37,7 +38,7 @@ Security::NegotiationHistory::printTlsVersion(AnyP::ProtocolVersion const &v) co
 static AnyP::ProtocolVersion
 toProtocolVersion(const int v)
 {
-    switch(v) {
+    switch (v) {
 #if defined(TLS1_2_VERSION)
     case TLS1_2_VERSION:
         return AnyP::ProtocolVersion(AnyP::PROTO_TLS, 1, 2);
@@ -78,9 +79,7 @@ Security::NegotiationHistory::retrieveNegotiatedInfo(const Security::SessionPoin
     if (Debug::Enabled(83, 5)) {
         BIO *b = SSL_get_rbio(session.get());
         Ssl::Bio *bio = static_cast<Ssl::Bio *>(BIO_get_data(b));
-        debugs(83, 5, "SSL connection info on FD " << bio->fd() <<
-               " SSL version " << version_ <<
-               " negotiated cipher " << cipherName());
+        debugs(83, 5, "SSL connection info on FD " << bio->fd() << " SSL version " << version_ << " negotiated cipher " << cipherName());
     }
 #endif
 }
@@ -106,4 +105,3 @@ Security::NegotiationHistory::cipherName() const
     return nullptr;
 #endif
 }
-

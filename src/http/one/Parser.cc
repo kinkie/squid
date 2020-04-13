@@ -7,17 +7,18 @@
  */
 
 #include "squid.h"
-#include "base/CharacterSet.h"
-#include "Debug.h"
 #include "http/one/Parser.h"
+#include "Debug.h"
+#include "SquidConfig.h"
+#include "base/CharacterSet.h"
 #include "mime_header.h"
 #include "parser/Tokenizer.h"
-#include "SquidConfig.h"
 
 /// RFC 7230 section 2.6 - 7 magic octets
 const SBuf Http::One::Parser::Http1magic("HTTP/1.");
 
-const SBuf &Http::One::CrLf()
+const SBuf &
+Http::One::CrLf()
 {
     static const SBuf crlf("\r\n");
     return crlf;
@@ -39,11 +40,7 @@ RelaxedDelimiterCharacters()
     // RFC 7230 section 3.5
     // tolerant parser MAY accept any of SP, HTAB, VT (%x0B), FF (%x0C),
     // or bare CR as whitespace between request-line fields
-    static const CharacterSet RelaxedDels =
-        (CharacterSet::SP +
-         CharacterSet::HTAB +
-         CharacterSet("VT,FF","\x0B\x0C") +
-         CharacterSet::CR).rename("relaxed-WSP");
+    static const CharacterSet RelaxedDels = (CharacterSet::SP + CharacterSet::HTAB + CharacterSet("VT,FF", "\x0B\x0C") + CharacterSet::CR).rename("relaxed-WSP");
 
     return RelaxedDels;
 }
@@ -51,15 +48,13 @@ RelaxedDelimiterCharacters()
 const CharacterSet &
 Http::One::Parser::WhitespaceCharacters()
 {
-    return Config.onoff.relaxed_header_parser ?
-           RelaxedDelimiterCharacters() : CharacterSet::WSP;
+    return Config.onoff.relaxed_header_parser ? RelaxedDelimiterCharacters() : CharacterSet::WSP;
 }
 
 const CharacterSet &
 Http::One::Parser::DelimiterCharacters()
 {
-    return Config.onoff.relaxed_header_parser ?
-           RelaxedDelimiterCharacters() : CharacterSet::SP;
+    return Config.onoff.relaxed_header_parser ? RelaxedDelimiterCharacters() : CharacterSet::SP;
 }
 
 void
@@ -104,7 +99,7 @@ Http::One::Parser::cleanMimePrefix()
 {
     Tokenizer tok(mimeHeaderBlock_);
     while (tok.skipOne(RelaxedDelimiterCharacters())) {
-        (void)tok.skipAll(LineCharacters()); // optional line content
+        (void)tok.skipAll(LineCharacters());  // optional line content
         // LF terminator is required.
         // trust headersEnd() to ensure that we have at least one LF
         (void)tok.skipOne(CharacterSet::LF);
@@ -147,13 +142,13 @@ Http::One::Parser::unfoldMime()
 
     while (!tok.atEnd()) {
         const SBuf all(tok.remaining());
-        const auto blobLen = tok.skipAll(nonCRLF); // may not be there
-        const auto crLen = tok.skipAll(CharacterSet::CR); // may not be there
-        const auto lfLen = tok.skipOne(CharacterSet::LF); // may not be there
+        const auto blobLen = tok.skipAll(nonCRLF);         // may not be there
+        const auto crLen = tok.skipAll(CharacterSet::CR);  // may not be there
+        const auto lfLen = tok.skipOne(CharacterSet::LF);  // may not be there
 
-        if (lfLen && tok.skipAll(CharacterSet::WSP)) { // obs-fold!
+        if (lfLen && tok.skipAll(CharacterSet::WSP)) {  // obs-fold!
             mimeHeaderBlock_.append(all.substr(0, blobLen));
-            mimeHeaderBlock_.append(' '); // replace one obs-fold with one SP
+            mimeHeaderBlock_.append(' ');  // replace one obs-fold with one SP
         } else
             mimeHeaderBlock_.append(all.substr(0, blobLen + crLen + lfLen));
     }
@@ -163,9 +158,7 @@ bool
 Http::One::Parser::grabMimeBlock(const char *which, const size_t limit)
 {
     // MIME headers block exist in (only) HTTP/1.x and ICY
-    const bool expectMime = (msgProtocol_.protocol == AnyP::PROTO_HTTP && msgProtocol_.major == 1) ||
-                            msgProtocol_.protocol == AnyP::PROTO_ICY ||
-                            hackExpectsMime_;
+    const bool expectMime = (msgProtocol_.protocol == AnyP::PROTO_HTTP && msgProtocol_.major == 1) || msgProtocol_.protocol == AnyP::PROTO_ICY || hackExpectsMime_;
 
     if (expectMime) {
         /* NOTE: HTTP/0.9 messages do not have a mime header block.
@@ -191,8 +184,8 @@ Http::One::Parser::grabMimeBlock(const char *which, const size_t limit)
 
             debugs(74, 5, "mime header (0-" << mimeHeaderBytes << ") {" << mimeHeaderBlock_ << "}");
 
-        } else { // headersEnd() == 0
-            if (buf_.length()+firstLineSize() >= limit) {
+        } else {  // headersEnd() == 0
+            if (buf_.length() + firstLineSize() >= limit) {
                 debugs(33, 5, "Too large " << which);
                 parseStatusCode = Http::scHeaderTooLarge;
                 parsingStage_ = HTTP_PARSE_DONE;
@@ -211,7 +204,7 @@ Http::One::Parser::grabMimeBlock(const char *which, const size_t limit)
 }
 
 // arbitrary maximum-length for headers which can be found by Http1Parser::getHostHeaderField()
-#define GET_HDR_SZ  1024
+#define GET_HDR_SZ 1024
 
 // BUG: returns only the first header line with given name,
 //      ignores multi-line headers and obs-fold headers
@@ -232,8 +225,8 @@ Http::One::Parser::getHostHeaderField()
     SBuf p;
 
     while (tok.prefix(p, LineCharacters())) {
-        if (!tok.skipOne(CharacterSet::LF)) // move tokenizer past the LF
-            break; // error. reached invalid octet or end of buffer instead of an LF ??
+        if (!tok.skipOne(CharacterSet::LF))  // move tokenizer past the LF
+            break;                           // error. reached invalid octet or end of buffer instead of an LF ??
 
         // header lines must start with the name (case insensitive)
         if (p.substr(0, namelen).caseCmp(name, namelen))
@@ -255,12 +248,12 @@ Http::One::Parser::getHostHeaderField()
         p = t.remaining();
 
         // prevent buffer overrun on char header[];
-        p.chop(0, sizeof(header)-1);
+        p.chop(0, sizeof(header) - 1);
 
         // currently only used for pre-parse Host header, ensure valid domain[:port] or ip[:port]
-        static const auto hostChars = CharacterSet("host",":[].-_") + CharacterSet::ALPHA + CharacterSet::DIGIT;
+        static const auto hostChars = CharacterSet("host", ":[].-_") + CharacterSet::ALPHA + CharacterSet::DIGIT;
         if (p.findFirstNotOf(hostChars) != SBuf::npos)
-            break; // error. line contains character not accepted in Host header
+            break;  // error. line contains character not accepted in Host header
 
         // return the header field-value
         SBufToCstring(header, p);
@@ -284,7 +277,7 @@ Http::One::ParseBws(Parser::Tokenizer &tok)
     const auto count = tok.skipAll(Parser::WhitespaceCharacters());
 
     if (tok.atEnd())
-        throw InsufficientInput(); // even if count is positive
+        throw InsufficientInput();  // even if count is positive
 
     if (count) {
         // Generating BWS is a MUST-level violation so warn about it as needed.
@@ -296,4 +289,3 @@ Http::One::ParseBws(Parser::Tokenizer &tok)
 
     // success: no more BWS characters expected
 }
-

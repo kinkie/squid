@@ -14,7 +14,7 @@
 
 // dialer to run cbdata callback functions as Async Calls
 // to ease the transition of these cbdata objects to full Jobs
-template<class Argument1>
+template <class Argument1>
 class UnaryCbdataDialer : public CallDialer
 {
 public:
@@ -23,11 +23,12 @@ public:
     UnaryCbdataDialer(Handler *aHandler, Argument1 *aArg) :
         arg1(aArg),
         handler(aHandler)
-    {}
+    {
+    }
 
     virtual bool canDial(AsyncCall &) { return arg1.valid(); }
     void dial(AsyncCall &) { handler(arg1.get()); }
-    virtual void print(std::ostream &os) const {  os << '(' << arg1 << ')'; }
+    virtual void print(std::ostream &os) const { os << '(' << arg1 << ')'; }
 
 public:
     CbcPointer<Argument1> arg1;
@@ -43,4 +44,3 @@ cbdataDialer(typename UnaryCbdataDialer<Argument1>::Handler *handler, Argument1 
 }
 
 #endif
-

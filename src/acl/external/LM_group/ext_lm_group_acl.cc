@@ -92,9 +92,9 @@ int _wcsicmp(const wchar_t *, const wchar_t *);
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#include <windows.h>
 #include <lm.h>
 #include <ntsecapi.h>
+#include <windows.h>
 
 int use_global = 0;
 int use_PDC_only = 0;
@@ -115,7 +115,7 @@ AllocStrFromLSAStr(LSA_UNICODE_STRING LsaStr)
 
     /* allocate buffer for str + null termination */
     safe_free(target);
-    target = (char *) xmalloc(len);
+    target = (char *)xmalloc(len);
     if (target == NULL)
         return NULL;
 
@@ -150,7 +150,7 @@ GetDomainName(void)
      * The wki100_computername field contains a pointer to a UNICODE
      * string containing the local computer name.
      */
-    netret = NetWkstaGetInfo(NULL, 100, (LPBYTE *) & pwkiWorkstationInfo);
+    netret = NetWkstaGetInfo(NULL, 100, (LPBYTE *)&pwkiWorkstationInfo);
     if (netret == NERR_Success) {
         /*
          * We have the workstation name in:
@@ -160,11 +160,10 @@ GetDomainName(void)
          * the LsaOpenPolicy function.
          */
         status = LsaOpenPolicy(
-                     NULL,
-                     &ObjectAttributes,
-                     GENERIC_READ | POLICY_VIEW_LOCAL_INFORMATION,
-                     &PolicyHandle
-                 );
+            NULL,
+            &ObjectAttributes,
+            GENERIC_READ | POLICY_VIEW_LOCAL_INFORMATION,
+            &PolicyHandle);
 
         /*
          * Error checking.
@@ -179,7 +178,7 @@ GetDomainName(void)
              */
             status = LsaQueryInformationPolicy(PolicyHandle,
                                                PolicyPrimaryDomainInformation,
-                                               (PVOID *) & ppdiDomainInfo);
+                                               (PVOID *)&ppdiDomainInfo);
             if (status) {
                 debug("LsaQueryInformationPolicy Error: %ld\n", status);
             } else {
@@ -209,7 +208,7 @@ GetDomainName(void)
          * Net* APIs.
          */
         NetApiBufferFree(pwkiWorkstationInfo);
-        LsaFreeMemory((LPVOID) ppdiDomainInfo);
+        LsaFreeMemory((LPVOID)ppdiDomainInfo);
     } else
         debug("NetWkstaGetInfo Error: %ld\n", netret);
     return DomainName;
@@ -217,7 +216,7 @@ GetDomainName(void)
 
 /* returns 0 on match, -1 if no match */
 static int
-wcstrcmparray(const wchar_t * str, const char **array)
+wcstrcmparray(const wchar_t *str, const char **array)
 {
     WCHAR wszGroup[GNLEN + 1];  // Unicode Group
 
@@ -238,7 +237,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
 {
     int result = 0;
     char *Domain_Separator;
-    WCHAR wszUserName[UNLEN + 1];   // Unicode user name
+    WCHAR wszUserName[UNLEN + 1];  // Unicode user name
 
     LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
@@ -270,14 +269,14 @@ Valid_Local_Groups(char *UserName, const char **Groups)
      * groups in which the user is indirectly a member.
      */
     nStatus = NetUserGetLocalGroups(
-                  NULL,
-                  wszUserName,
-                  dwLevel,
-                  dwFlags,
-                  (LPBYTE *) & pBuf,
-                  dwPrefMaxLen,
-                  &dwEntriesRead,
-                  &dwTotalEntries);
+        NULL,
+        wszUserName,
+        dwLevel,
+        dwFlags,
+        (LPBYTE *)&pBuf,
+        dwPrefMaxLen,
+        &dwEntriesRead,
+        &dwTotalEntries);
     /*
      * If the call succeeds,
      */
@@ -312,11 +311,11 @@ int
 Valid_Global_Groups(char *UserName, const char **Groups)
 {
     int result = 0;
-    WCHAR wszUserName[UNLEN + 1];   // Unicode user name
+    WCHAR wszUserName[UNLEN + 1];  // Unicode user name
 
-    WCHAR wszLocalDomain[DNLEN + 1];    // Unicode Local Domain
+    WCHAR wszLocalDomain[DNLEN + 1];  // Unicode Local Domain
 
-    WCHAR wszUserDomain[DNLEN + 1]; // Unicode User Domain
+    WCHAR wszUserDomain[DNLEN + 1];  // Unicode User Domain
 
     char NTDomain[DNLEN + UNLEN + 2];
     char *domain_qualify;
@@ -363,16 +362,15 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
     /* Call the NetServerGetInfo function for local computer, specifying level 101. */
     dwLevel = 101;
-    nStatus = NetServerGetInfo(NULL, dwLevel, (LPBYTE *) & pSrvBuf);
+    nStatus = NetServerGetInfo(NULL, dwLevel, (LPBYTE *)&pSrvBuf);
 
     if (nStatus == NERR_Success) {
         /* Check if we are running on a Domain Controller */
-        if ((pSrvBuf->sv101_type & SV_TYPE_DOMAIN_CTRL) ||
-                (pSrvBuf->sv101_type & SV_TYPE_DOMAIN_BAKCTRL)) {
+        if ((pSrvBuf->sv101_type & SV_TYPE_DOMAIN_CTRL) || (pSrvBuf->sv101_type & SV_TYPE_DOMAIN_BAKCTRL)) {
             LclDCptr = NULL;
             debug("Running on a DC.\n");
         } else
-            nStatus = (use_PDC_only ? NetGetDCName(NULL, wszLocalDomain, (LPBYTE *) & LclDCptr) : NetGetAnyDCName(NULL, wszLocalDomain, (LPBYTE *) & LclDCptr));
+            nStatus = (use_PDC_only ? NetGetDCName(NULL, wszLocalDomain, (LPBYTE *)&LclDCptr) : NetGetAnyDCName(NULL, wszLocalDomain, (LPBYTE *)&LclDCptr));
     } else {
         fprintf(stderr, "%s: ERROR: NetServerGetInfo() failed.'\n", program_name);
         if (pSrvBuf != NULL)
@@ -386,15 +384,15 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         if (strcmp(NTDomain, machinedomain) != 0) {
             MultiByteToWideChar(CP_ACP, 0, NTDomain,
                                 strlen(NTDomain) + 1, wszUserDomain, sizeof(wszUserDomain) / sizeof(wszUserDomain[0]));
-            nStatus = (use_PDC_only ? NetGetDCName(LclDCptr, wszUserDomain, (LPBYTE *) & UsrDCptr) : NetGetAnyDCName(LclDCptr, wszUserDomain, (LPBYTE *) & UsrDCptr));
+            nStatus = (use_PDC_only ? NetGetDCName(LclDCptr, wszUserDomain, (LPBYTE *)&UsrDCptr) : NetGetAnyDCName(LclDCptr, wszUserDomain, (LPBYTE *)&UsrDCptr));
             if (nStatus != NERR_Success) {
                 fprintf(stderr, "%s: ERROR: Can't find DC for user's domain '%s'\n", program_name, NTDomain);
                 if (pSrvBuf != NULL)
                     NetApiBufferFree(pSrvBuf);
                 if (LclDCptr != NULL)
-                    NetApiBufferFree((LPVOID) LclDCptr);
+                    NetApiBufferFree((LPVOID)LclDCptr);
                 if (UsrDCptr != NULL)
-                    NetApiBufferFree((LPVOID) UsrDCptr);
+                    NetApiBufferFree((LPVOID)UsrDCptr);
                 return result;
             }
         } else
@@ -409,7 +407,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         nStatus = NetUserGetGroups(UsrDCptr,
                                    wszUserName,
                                    dwLevel,
-                                   (LPBYTE *) & pUsrBuf,
+                                   (LPBYTE *)&pUsrBuf,
                                    dwPrefMaxLen,
                                    &dwEntriesRead,
                                    &dwTotalEntries);
@@ -447,9 +445,9 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     if (pUsrBuf != NULL)
         NetApiBufferFree(pUsrBuf);
     if ((UsrDCptr != NULL) && (UsrDCptr != LclDCptr))
-        NetApiBufferFree((LPVOID) UsrDCptr);
+        NetApiBufferFree((LPVOID)UsrDCptr);
     if (LclDCptr != NULL)
-        NetApiBufferFree((LPVOID) LclDCptr);
+        NetApiBufferFree((LPVOID)LclDCptr);
     return result;
 }
 
@@ -457,12 +455,12 @@ static void
 usage(const char *program)
 {
     fprintf(stderr, "Usage: %s [-D domain][-G][-P][-c][-d][-h]\n"
-            " -D    default user Domain\n"
-            " -G    enable Domain Global group mode\n"
-            " -P    use ONLY PDCs for group validation\n"
-            " -c    use case insensitive compare\n"
-            " -d    enable debugging\n"
-            " -h    this message\n",
+                    " -D    default user Domain\n"
+                    " -G    enable Domain Global group mode\n"
+                    " -P    use ONLY PDCs for group validation\n"
+                    " -c    use case insensitive compare\n"
+                    " -d    enable debugging\n"
+                    " -h    this message\n",
             program);
 }
 
@@ -500,7 +498,7 @@ process_options(int argc, char *argv[])
             fprintf(stderr, "%s: FATAL: Unknown option: -%c. Exiting\n", program_name, opt);
             usage(argv[0]);
             exit(EXIT_FAILURE);
-            break;      /* not reached */
+            break; /* not reached */
         }
     }
     return;
@@ -516,7 +514,7 @@ main(int argc, char *argv[])
     const char *groups[512];
     int n;
 
-    if (argc > 0) {     /* should always be true */
+    if (argc > 0) { /* should always be true */
         program_name = strrchr(argv[0], '/');
         if (program_name == NULL)
             program_name = argv[0];
@@ -565,9 +563,9 @@ main(int argc, char *argv[])
             continue;
         }
         if ((p = strchr(buf, '\n')) != NULL)
-            *p = '\0';      /* strip \n */
+            *p = '\0'; /* strip \n */
         if ((p = strchr(buf, '\r')) != NULL)
-            *p = '\0';      /* strip \r */
+            *p = '\0'; /* strip \r */
 
         debug("Got '%s' from Squid (length: %d).\n", buf, strlen(buf));
 
@@ -596,4 +594,3 @@ main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
-

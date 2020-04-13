@@ -18,7 +18,7 @@
 #include <cassert>
 #include <cstring>
 
-#define FLUSH_LIMIT 1000    /* Flush memPool counters to memMeters after flush limit calls */
+#define FLUSH_LIMIT 1000 /* Flush memPool counters to memMeters after flush limit calls */
 
 extern time_t squid_curtime;
 
@@ -44,7 +44,7 @@ memPoolIterate(void)
 }
 
 void
-memPoolIterateDone(MemPoolIterator ** iter)
+memPoolIterateDone(MemPoolIterator **iter)
 {
     assert(iter != NULL);
     Iterator.pool = NULL;
@@ -52,7 +52,7 @@ memPoolIterateDone(MemPoolIterator ** iter)
 }
 
 MemImplementingAllocator *
-memPoolIterateNext(MemPoolIterator * iter)
+memPoolIterateNext(MemPoolIterator *iter)
 {
     MemImplementingAllocator *pool;
     assert(iter != NULL);
@@ -92,9 +92,9 @@ MemPools::create(const char *label, size_t obj_size)
 {
     ++poolCount;
     if (defaultIsChunked)
-        return new MemPoolChunked (label, obj_size);
+        return new MemPoolChunked(label, obj_size);
     else
-        return new MemPoolMalloc (label, obj_size);
+        return new MemPoolMalloc(label, obj_size);
 }
 
 void
@@ -206,7 +206,7 @@ void
 MemImplementingAllocator::freeOne(void *obj)
 {
     assert(obj != NULL);
-    (void) VALGRIND_CHECK_MEM_IS_ADDRESSABLE(obj, obj_size);
+    (void)VALGRIND_CHECK_MEM_IS_ADDRESSABLE(obj, obj_size);
     deallocate(obj, MemPools::GetInstance().mem_idle_limit == 0);
     ++free_calls;
 }
@@ -224,7 +224,7 @@ void
 MemPools::clean(time_t maxage)
 {
     flushMeters();
-    if (mem_idle_limit < 0) // no limit to enforce
+    if (mem_idle_limit < 0)  // no limit to enforce
         return;
 
     int shift = 1;
@@ -247,7 +247,7 @@ static MemPoolStats pp_stats;
  * Totals statistics is returned
  */
 int
-memPoolGetGlobalStats(MemPoolGlobalStats * stats)
+memPoolGetGlobalStats(MemPoolGlobalStats *stats)
 {
     int pools_inuse = 0;
     MemAllocator *pool;
@@ -286,13 +286,15 @@ memPoolGetGlobalStats(MemPoolGlobalStats * stats)
     return pools_inuse;
 }
 
-MemAllocator::MemAllocator(char const *aLabel) : doZero(true), label(aLabel)
+MemAllocator::MemAllocator(char const *aLabel) :
+    doZero(true), label(aLabel)
 {
 }
 
-size_t MemAllocator::RoundedSize(size_t s)
+size_t
+MemAllocator::RoundedSize(size_t s)
 {
-    return ((s + sizeof(void*) - 1) / sizeof(void*)) * sizeof(void*);
+    return ((s + sizeof(void *) - 1) / sizeof(void *)) * sizeof(void *);
 }
 
 int
@@ -303,7 +305,8 @@ memPoolsTotalAllocated(void)
     return stats.TheMeter->alloc.currentLevel();
 }
 
-MemImplementingAllocator::MemImplementingAllocator(char const *aLabel, size_t aSize) : MemAllocator(aLabel),
+MemImplementingAllocator::MemImplementingAllocator(char const *aLabel, size_t aSize) :
+    MemAllocator(aLabel),
     next(NULL),
     alloc_calls(0),
     free_calls(0),
@@ -329,7 +332,7 @@ MemImplementingAllocator::~MemImplementingAllocator()
     MemImplementingAllocator *find_pool, *prev_pool;
 
     /* Abort if the associated pool doesn't exist */
-    assert(MemPools::GetInstance().pools != NULL );
+    assert(MemPools::GetInstance().pools != NULL);
 
     /* Pool clean, remove it from List and free */
     for (find_pool = MemPools::GetInstance().pools, prev_pool = NULL; (find_pool && this != find_pool); find_pool = find_pool->next)
@@ -362,4 +365,3 @@ MemImplementingAllocator::objectSize() const
 {
     return obj_size;
 }
-

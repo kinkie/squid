@@ -30,8 +30,8 @@
  */
 
 #include "squid.h"
-#include <string.h>
 #include "smblib/md4.h"
+#include <string.h>
 
 /* NOTE: This code makes no attempt to be fast!
  *
@@ -67,13 +67,13 @@ lshift(uint32 x, int s)
     return ((x << s) & 0xFFFFFFFF) | (x >> (32 - s));
 }
 
-#define ROUND1(a,b,c,d,k,s) a = lshift(a + F(b,c,d) + X[k], s)
-#define ROUND2(a,b,c,d,k,s) a = lshift(a + G(b,c,d) + X[k] + (uint32)0x5A827999,s)
-#define ROUND3(a,b,c,d,k,s) a = lshift(a + H(b,c,d) + X[k] + (uint32)0x6ED9EBA1,s)
+#define ROUND1(a, b, c, d, k, s) a = lshift(a + F(b, c, d) + X[k], s)
+#define ROUND2(a, b, c, d, k, s) a = lshift(a + G(b, c, d) + X[k] + (uint32)0x5A827999, s)
+#define ROUND3(a, b, c, d, k, s) a = lshift(a + H(b, c, d) + X[k] + (uint32)0x6ED9EBA1, s)
 
 /* this applies md4 to 64 byte chunks */
 static void
-mdfour64(uint32 * M)
+mdfour64(uint32 *M)
 {
     int j;
     uint32 AA, BB, CC, DD;
@@ -153,13 +153,12 @@ mdfour64(uint32 * M)
 }
 
 static void
-copy64(uint32 * M, unsigned char *in)
+copy64(uint32 *M, unsigned char *in)
 {
     int i;
 
     for (i = 0; i < 16; i++)
-        M[i] = (in[i * 4 + 3] << 24) | (in[i * 4 + 2] << 16) |
-               (in[i * 4 + 1] << 8) | (in[i * 4 + 0] << 0);
+        M[i] = (in[i * 4 + 3] << 24) | (in[i * 4 + 2] << 16) | (in[i * 4 + 1] << 8) | (in[i * 4 + 0] << 0);
 }
 
 static void
@@ -220,4 +219,3 @@ mdfour(unsigned char *out, unsigned char *in, int n)
 
     A = B = C = D = 0;
 }
-

@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef   LIBTRIE_TRIECHARTRANSFORM_H
-#define   LIBTRIE_TRIECHARTRANSFORM_H
+#ifndef LIBTRIE_TRIECHARTRANSFORM_H
+#define LIBTRIE_TRIECHARTRANSFORM_H
 
 /* This is an internal header for libTrie.
  * libTrie provides both limited C and full C++
@@ -17,13 +17,13 @@
  */
 
 /* C bindings */
-#ifndef   __cplusplus
+#ifndef __cplusplus
 
 /* C++ bindings */
 #else
+#include <ctype.h>
 #include <sys/types.h>
 #include <utility>
-#include <ctype.h>
 
 /* TODO: parameterize this to be more generic -
 * i.e. M-ary internal node sizes etc
@@ -35,15 +35,14 @@ class TrieCharTransform
 public:
     virtual ~TrieCharTransform() {}
 
-    virtual char operator () (char const) const = 0;
+    virtual char operator()(char const) const = 0;
 };
 
 class TrieCaseless : public TrieCharTransform
 {
-    virtual char operator () (char const aChar) const {return tolower(aChar);}
+    virtual char operator()(char const aChar) const { return tolower(aChar); }
 };
 
 #endif /* __cplusplus */
 
 #endif /* LIBTRIE_TRIECHARTRANSFORM_H */
-

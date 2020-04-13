@@ -58,11 +58,10 @@ read_passwd_file(const char *passwdfile)
         exit(EXIT_FAILURE);
     }
     unsigned int lineCount = 0;
-    buf[HELPER_INPUT_BUFFER-1] = '\0';
-    while (fgets(buf, sizeof(buf)-1, f) != NULL) {
+    buf[HELPER_INPUT_BUFFER - 1] = '\0';
+    while (fgets(buf, sizeof(buf) - 1, f) != NULL) {
         ++lineCount;
-        if ((buf[0] == '#') || (buf[0] == ' ') || (buf[0] == '\t') ||
-                (buf[0] == '\n'))
+        if ((buf[0] == '#') || (buf[0] == ' ') || (buf[0] == '\t') || (buf[0] == '\n'))
             continue;
         user = strtok(buf, ":\n\r");
         if (user == NULL) {
@@ -95,7 +94,7 @@ main(int argc, char **argv)
     }
     while (fgets(buf, HELPER_INPUT_BUFFER, stdin) != NULL) {
         if ((p = strchr(buf, '\n')) != NULL)
-            *p = '\0';      /* strip \n */
+            *p = '\0'; /* strip \n */
         if (stat(argv[1], &sb) == 0) {
             if (sb.st_mtime != change_time) {
                 read_passwd_file(argv[1]);
@@ -118,15 +117,14 @@ main(int argc, char **argv)
             continue;
         }
         std::string stored_pass = userpassIterator->second;
-        const char *salted = stored_pass.c_str(); // locally stored version contains salt etc.
+        const char *salted = stored_pass.c_str();  // locally stored version contains salt etc.
 
         char *crypted = NULL;
 #if HAVE_CRYPT
         size_t passwordLength = strlen(passwd);
         // Bug 3831: given algorithms more secure than DES crypt() does not truncate, so we can ignore the bug 3107 length checks below
         // '$1$' = MD5, '$2a$' = Blowfish, '$5$' = SHA256 (Linux), '$6$' = SHA256 (BSD) and SHA512
-        if (passwordLength > 1 && salted[0] == '$' &&
-                (crypted = crypt(passwd, salted)) && stored_pass == crypted) {
+        if (passwordLength > 1 && salted[0] == '$' && (crypted = crypt(passwd, salted)) && stored_pass == crypted) {
             SEND_OK("");
             continue;
         }
@@ -142,11 +140,11 @@ main(int argc, char **argv)
         }
 
 #endif
-        if ( (crypted = crypt_md5(passwd, salted)) && stored_pass == crypted) {
+        if ((crypted = crypt_md5(passwd, salted)) && stored_pass == crypted) {
             SEND_OK("");
             continue;
         }
-        if ( (crypted = md5sum(passwd)) && stored_pass == crypted) {
+        if ((crypted = md5sum(passwd)) && stored_pass == crypted) {
             SEND_OK("");
             continue;
         }
@@ -154,4 +152,3 @@ main(int argc, char **argv)
     }
     return EXIT_SUCCESS;
 }
-

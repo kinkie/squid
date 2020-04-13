@@ -9,18 +9,17 @@
 #ifndef SQUID_ADAPT_HISTORY_H
 #define SQUID_ADAPT_HISTORY_H
 
-#include "adaptation/DynamicGroupCfg.h"
-#include "base/RefCount.h"
 #include "HttpHeader.h"
 #include "Notes.h"
-#include "sbuf/SBuf.h"
 #include "SquidString.h"
+#include "adaptation/DynamicGroupCfg.h"
+#include "base/RefCount.h"
+#include "sbuf/SBuf.h"
 
-namespace Adaptation
-{
+namespace Adaptation {
 
 /// collects information about adaptations related to a master transaction
-class History: public RefCountable
+class History : public RefCountable
 {
 public:
     typedef RefCount<Adaptation::History> Pointer;
@@ -55,6 +54,7 @@ public:
     void recordMeta(const HttpHeader *lm);
 
     void recordAdaptationService(SBuf &srvId);
+
 public:
     /// Last received meta header (REQMOD or RESPMOD, whichever comes last).
     HttpHeader lastMeta;
@@ -65,7 +65,7 @@ public:
     NotePairs::Pointer metaHeaders;
 
     typedef std::vector<SBuf> AdaptationServices;
-    AdaptationServices theAdaptationServices; ///< The service groups used
+    AdaptationServices theAdaptationServices;  ///< The service groups used
 
     /// sets future services for the Adaptation::AccessCheck to notice
     void setFutureServices(const DynamicGroupCfg &services);
@@ -79,33 +79,32 @@ private:
     {
     public:
         Entry(const String &serviceId, const timeval &when);
-        Entry(); // required by Vector<>
+        Entry();  // required by Vector<>
 
-        void stop(); ///< updates stats on transaction end
-        int rptm(); ///< returns response time [msec], calculates it if needed
+        void stop();  ///< updates stats on transaction end
+        int rptm();   ///< returns response time [msec], calculates it if needed
 
-        String service; ///< adaptation service ID
-        timeval start; ///< when the xaction was started
+        String service;  ///< adaptation service ID
+        timeval start;   ///< when the xaction was started
 
     private:
-        int theRptm; ///< calculated and cached response time value in msec
+        int theRptm;  ///< calculated and cached response time value in msec
 
     public:
-        bool retried; ///< whether the xaction was replaced by another
+        bool retried;  ///< whether the xaction was replaced by another
     };
 
     typedef std::vector<Entry> Entries;
-    Entries theEntries; ///< historical record, in the order of xact starts
+    Entries theEntries;  ///< historical record, in the order of xact starts
 
     // theXx* will become a map<string,string>, but we only support one record
-    String theXxName; ///< name part of the cross-transactional database record
-    String theXxValue; ///< value part of the cross-xactional database record
+    String theXxName;   ///< name part of the cross-transactional database record
+    String theXxValue;  ///< value part of the cross-xactional database record
 
-    String theNextServices; ///< services Adaptation::Iterator must use next
-    DynamicGroupCfg theFutureServices; ///< services AccessCheck must use
+    String theNextServices;             ///< services Adaptation::Iterator must use next
+    DynamicGroupCfg theFutureServices;  ///< services AccessCheck must use
 };
 
-} // namespace Adaptation
+}  // namespace Adaptation
 
 #endif
-
