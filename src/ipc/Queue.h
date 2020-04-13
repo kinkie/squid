@@ -427,7 +427,7 @@ OneToOneUniQueue::push(const Value &value, QueueReader *const reader)
 // OneToOneUniQueues
 
 inline OneToOneUniQueue &
-    OneToOneUniQueues::operator[](const int index)
+OneToOneUniQueues::operator[](const int index)
 {
     return const_cast<OneToOneUniQueue &>((*const_cast<const OneToOneUniQueues *>(this))[index]);
 }

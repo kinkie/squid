@@ -3193,7 +3193,7 @@ int stop;
             register unsigned char c;
             boolean not = (re_opcode_t) * (p - 1) == charset_not;
 
-            DEBUG_PRINT2("EXECUTING charset%s.\n", not? "_not" : "");
+            DEBUG_PRINT2("EXECUTING charset%s.\n", not ? "_not" : "");
 
             PREFETCH();
             c = TRANSLATE(*d); /* The character to match.  */
@@ -3202,11 +3202,11 @@ int stop;
              * bit list is a full 32 bytes long.  */
             if (c < (unsigned)(*p * BYTEWIDTH)
                 && p[1 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
-                not = !not;
+                not = !not ;
 
             p += 1 + *p;
 
-            if (!not)
+            if (!not )
                 goto fail;
 
             SET_REGS_MATCHED();
@@ -3614,11 +3614,11 @@ int stop;
 
                         if (c < (unsigned char)(p1[4] * BYTEWIDTH)
                             && p1[5 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
-                            not = !not;
+                            not = !not ;
 
                         /* `not' is equal to 1 if c would match, which means
                          * that we can't change to pop_failure_jump.  */
-                        if (!not) {
+                        if (!not ) {
                             p[-3] = (unsigned char)pop_failure_jump;
                             DEBUG_PRINT1("  No match => pop_failure_jump.\n");
                         }

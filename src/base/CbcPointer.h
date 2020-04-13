@@ -175,7 +175,7 @@ CbcPointer<Cbc>::get() const
 
 template <class Cbc>
 Cbc &
-    CbcPointer<Cbc>::operator*() const
+CbcPointer<Cbc>::operator*() const
 {
     Cbc *c = get();
     assert(c);
@@ -184,7 +184,7 @@ Cbc &
 
 template <class Cbc>
 Cbc *
-    CbcPointer<Cbc>::operator->() const
+CbcPointer<Cbc>::operator->() const
 {
     Cbc *c = get();
     assert(c);

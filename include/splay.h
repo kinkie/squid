@@ -487,7 +487,7 @@ SplayConstIterator<V>::init(SplayNode<V> *head)
 
 template <class V>
 V const &
-    SplayConstIterator<V>::operator*() const
+SplayConstIterator<V>::operator*() const
 {
     /* can't dereference when past the end */
 

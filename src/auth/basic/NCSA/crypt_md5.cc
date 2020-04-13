@@ -106,7 +106,7 @@ crypt_md5(const char *pw, const char *salt)
     SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
     SquidMD5Final(final, &ctx1);
     for (pl = strlen(pw); pl > 0; pl -= 16)
-        SquidMD5Update(&ctx, (unsigned const char *)final, pl > 16 ? 16 : pl);
+        SquidMD5Update(&ctx, (unsigned const char *) final, pl > 16 ? 16 : pl);
 
     /* Don't leave anything around in vm they could use. */
     memset(final, 0, sizeof final);
@@ -114,7 +114,7 @@ crypt_md5(const char *pw, const char *salt)
     /* Then something really weird... */
     for (j = 0, i = strlen(pw); i; i >>= 1)
         if (i & 1)
-            SquidMD5Update(&ctx, (unsigned const char *)final + j, 1);
+            SquidMD5Update(&ctx, (unsigned const char *) final + j, 1);
         else
             SquidMD5Update(&ctx, (unsigned const char *)pw + j, 1);
 
@@ -136,7 +136,7 @@ crypt_md5(const char *pw, const char *salt)
         if (i & 1)
             SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
         else
-            SquidMD5Update(&ctx1, (unsigned const char *)final, 16);
+            SquidMD5Update(&ctx1, (unsigned const char *) final, 16);
 
         if (i % 3)
             SquidMD5Update(&ctx1, (unsigned const char *)sp, sl);
@@ -145,7 +145,7 @@ crypt_md5(const char *pw, const char *salt)
             SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
 
         if (i & 1)
-            SquidMD5Update(&ctx1, (unsigned const char *)final, 16);
+            SquidMD5Update(&ctx1, (unsigned const char *) final, 16);
         else
             SquidMD5Update(&ctx1, (unsigned const char *)pw, strlen(pw));
         SquidMD5Final(final, &ctx1);

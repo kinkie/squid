@@ -121,7 +121,7 @@ Ipc::OneToOneUniQueues::SharedMemorySize(const int capacity, const unsigned int 
 }
 
 const Ipc::OneToOneUniQueue &
-    Ipc::OneToOneUniQueues::operator[](const int index) const
+Ipc::OneToOneUniQueues::operator[](const int index) const
 {
     Must(0 <= index && index < theCapacity);
     const size_t queueSize = index ? front().sharedMemorySize() : 0;
