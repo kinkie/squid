@@ -39,10 +39,10 @@ bool Comm::ConnOpener::doneAll() const STUB_RETVAL(false) void Comm::ConnOpener:
     * Comm::ConnOpener::getHost() const STUB_RETVAL(NULL)
 
 #include "comm/forward.h"
-          bool Comm::IsConnOpen(const Comm::ConnectionPointer &) STUB_RETVAL(false)
+        bool Comm::IsConnOpen(const Comm::ConnectionPointer &) STUB_RETVAL(false)
 
 #include "comm/IoCallback.h"
-              void Comm::IoCallback::setCallback(iocb_type, AsyncCall::Pointer &, char *, FREE *, int) STUB
+            void Comm::IoCallback::setCallback(iocb_type, AsyncCall::Pointer &, char *, FREE *, int) STUB
     void Comm::IoCallback::selectOrQueueWrite() STUB
     void Comm::IoCallback::cancel(const char *reason) STUB
     void Comm::IoCallback::finish(Comm::Flag code, int xerrn) STUB
