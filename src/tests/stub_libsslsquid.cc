@@ -23,7 +23,7 @@ Ssl::Config::Config():
 #if USE_SSL_CRTD
     ssl_crtd(NULL),
 #endif
-    ssl_crt_validator(NULL)
+    ssl_crt_validator(nullptr)
 {
     ssl_crt_validator_Children.concurrency = 1;
     STUB_NOP
@@ -57,9 +57,9 @@ bool InitClientContext(Security::ContextPointer &, Security::PeerOptions &, cons
 void SetupVerifyCallback(Security::ContextPointer &) STUB
 void MaybeSetupRsaCallback(Security::ContextPointer &) STUB
 } // namespace Ssl
-const char *sslGetUserEmail(SSL *ssl) STUB_RETVAL(NULL)
-const char *sslGetUserAttribute(SSL *ssl, const char *attribute_name) STUB_RETVAL(NULL)
-const char *sslGetCAAttribute(SSL *ssl, const char *attribute_name) STUB_RETVAL(NULL)
+const char *sslGetUserEmail(SSL *ssl) STUB_RETVAL(nullptr)
+const char *sslGetUserAttribute(SSL *ssl, const char *attribute_name) STUB_RETVAL(nullptr)
+const char *sslGetCAAttribute(SSL *ssl, const char *attribute_name) STUB_RETVAL(nullptr)
 SBuf sslGetUserCertificatePEM(SSL *ssl) STUB_RETVAL(SBuf())
 SBuf sslGetUserCertificateChainPEM(SSL *ssl) STUB_RETVAL(SBuf())
 namespace Ssl

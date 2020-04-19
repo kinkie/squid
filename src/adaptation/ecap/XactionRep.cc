@@ -51,7 +51,7 @@ Adaptation::Ecap::XactionRep::XactionRep(
     AsyncJob("Adaptation::Ecap::XactionRep"),
     Adaptation::Initiate("Adaptation::Ecap::XactionRep"),
     theService(aService),
-    theVirginRep(virginHeader), theCauseRep(NULL),
+    theVirginRep(virginHeader), theCauseRep(nullptr),
     makingVb(opUndecided), proxyingAb(opUndecided),
     adaptHistoryId(-1),
     vbProductionFinished(false),
@@ -311,7 +311,7 @@ Adaptation::Ecap::XactionRep::virgin()
 const libecap::Message &
 Adaptation::Ecap::XactionRep::cause()
 {
-    Must(theCauseRep != NULL);
+    Must(theCauseRep != nullptr);
     return *theCauseRep;
 }
 
@@ -450,7 +450,7 @@ Adaptation::Ecap::XactionRep::blockVirgin()
 
     sinkVb("blockVirgin");
 
-    updateHistory(NULL);
+    updateHistory(nullptr);
     sendAnswer(Answer::Block(service().cfg().key));
     Must(done());
 }

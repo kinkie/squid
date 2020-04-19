@@ -61,7 +61,7 @@ main(int, char *argv[])
     sasl_conn_t *conn = NULL;
 
     /* make standard output line buffered */
-    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stdout, nullptr, _IOLBF, 0);
 
     rc = sasl_server_init( NULL, APP_NAME_SASL );
 

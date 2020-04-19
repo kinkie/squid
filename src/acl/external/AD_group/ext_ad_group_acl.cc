@@ -102,11 +102,11 @@ char *program_name;
 pid_t mypid;
 char *machinedomain;
 int use_case_insensitive_compare = 0;
-char *DefaultDomain = NULL;
+char *DefaultDomain = nullptr;
 const char NTV_VALID_DOMAIN_SEPARATOR[] = "\\/";
 int numberofgroups = 0;
 int WIN32_COM_initialized = 0;
-char *WIN32_ErrorMessage = NULL;
+char *WIN32_ErrorMessage = nullptr;
 wchar_t **User_Groups;
 int User_Groups_Count = 0;
 
@@ -157,7 +157,7 @@ Get_primaryGroup(IADs * pUser)
     VARIANT var;
     unsigned User_primaryGroupID;
     char tmpSID[SECURITY_MAX_SID_SIZE * 2];
-    wchar_t *wc = NULL, *result = NULL;
+    wchar_t *wc = nullptr, *result = nullptr;
     int wcsize;
 
     VariantInit(&var);
@@ -178,7 +178,7 @@ Get_primaryGroup(IADs * pUser)
     if (SUCCEEDED(hr)) {
         PSID pObjectSID;
         LPBYTE pByte = NULL;
-        char *szSID = NULL;
+        char *szSID = nullptr;
         hr = GetLPBYTEtoOctetString(&var, &pByte);
 
         pObjectSID = (PSID) pByte;
@@ -198,7 +198,7 @@ Get_primaryGroup(IADs * pUser)
         result = My_NameTranslate(wc, ADS_NAME_TYPE_SID_OR_SID_HISTORY_NAME, ADS_NAME_TYPE_1779);
         safe_free(wc);
 
-        if (result == NULL)
+        if (result == nullptr)
             debug("Get_primaryGroup: cannot get DN for %s.\n", tmpSID);
         else
             debug("Get_primaryGroup: Primary group DN: %S.\n", result);
@@ -260,13 +260,13 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
     if (FAILED(hr)) {
         debug("My_NameTranslate: cannot set translate of %S, ERROR: %s\n", name, Get_WIN32_ErrorMessage(hr));
         pNto->lpVtbl->Release(pNto);
-        return NULL;
+        return nullptr;
     }
     hr = pNto->lpVtbl->Get(pNto, out_format, &bstr);
     if (FAILED(hr)) {
         debug("My_NameTranslate: cannot get translate of %S, ERROR: %s\n", name, Get_WIN32_ErrorMessage(hr));
         pNto->lpVtbl->Release(pNto);
-        return NULL;
+        return nullptr;
     }
     debug("My_NameTranslate: %S translated to %S\n", name, bstr);
 
@@ -296,7 +296,7 @@ GetLDAPPath(wchar_t * Base_DN, int query_mode)
 char *
 GetDomainName(void)
 {
-    static char *DomainName = NULL;
+    static char *DomainName = nullptr;
     PDSROLE_PRIMARY_DOMAIN_INFO_BASIC pDSRoleInfo;
     DWORD netret;
 
@@ -350,7 +350,7 @@ add_User_Group(wchar_t * Group)
 
     if (User_Groups_Count == 0) {
         User_Groups = (wchar_t **) xmalloc(sizeof(wchar_t *));
-        *User_Groups = NULL;
+        *User_Groups = nullptr;
         ++User_Groups_Count;
     }
     array = User_Groups;
@@ -360,7 +360,7 @@ add_User_Group(wchar_t * Group)
         ++array;
     }
     User_Groups = (wchar_t **) xrealloc(User_Groups, sizeof(wchar_t *) * (User_Groups_Count + 1));
-    User_Groups[User_Groups_Count] = NULL;
+    User_Groups[User_Groups_Count] = nullptr;
     User_Groups[User_Groups_Count - 1] = (wchar_t *) xmalloc((wcslen(Group) + 1) * sizeof(wchar_t));
     wcscpy(User_Groups[User_Groups_Count - 1], Group);
     ++User_Groups_Count;
@@ -480,7 +480,7 @@ Recursive_Memberof(IADs * pObj)
 static wchar_t **
 build_groups_DN_array(const char **array, char *userdomain)
 {
-    wchar_t *wc = NULL;
+    wchar_t *wc = nullptr;
     int wcsize;
     int source_group_format;
     char Group[GNLEN + 1];
@@ -490,12 +490,12 @@ build_groups_DN_array(const char **array, char *userdomain)
     entry = wc_array = (wchar_t **) xmalloc((numberofgroups + 1) * sizeof(wchar_t *));
 
     while (*array) {
-        if (strchr(*array, '/') != NULL) {
+        if (strchr(*array, '/') != nullptr) {
             strncpy(Group, *array, GNLEN);
             source_group_format = ADS_NAME_TYPE_CANONICAL;
         } else {
             source_group_format = ADS_NAME_TYPE_NT4;
-            if (strchr(*array, '\\') == NULL) {
+            if (strchr(*array, '\\') == nullptr) {
                 strcpy(Group, userdomain);
                 strcat(Group, "\\");
                 strncat(Group, *array, GNLEN - sizeof(userdomain) - 1);
@@ -509,13 +509,13 @@ build_groups_DN_array(const char **array, char *userdomain)
         *entry = My_NameTranslate(wc, source_group_format, ADS_NAME_TYPE_1779);
         safe_free(wc);
         ++array;
-        if (*entry == NULL) {
+        if (*entry == nullptr) {
             debug("build_groups_DN_array: cannot get DN for '%s'.\n", Group);
             continue;
         }
         ++entry;
     }
-    *entry = NULL;
+    *entry = nullptr;
     return wc_array;
 }
 
@@ -539,7 +539,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
     DWORD dwTotalCount = 0;
     LPBYTE pBufTmp = NULL;
 
-    if ((Domain_Separator = strchr(UserName, '/')) != NULL)
+    if ((Domain_Separator = strchr(UserName, '/')) != nullptr)
         *Domain_Separator = '\\';
 
     debug("Valid_Local_Groups: checking group membership of '%s'.\n", UserName);
@@ -605,7 +605,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     WCHAR wszUser[DNLEN + UNLEN + 2];   /* Unicode user name */
     char NTDomain[DNLEN + UNLEN + 2];
 
-    char *domain_qualify = NULL;
+    char *domain_qualify = nullptr;
     char User[DNLEN + UNLEN + 2];
     size_t j;
 
@@ -620,7 +620,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[j])) != NULL)
             break;
     }
-    if (domain_qualify == NULL) {
+    if (domain_qualify == nullptr) {
         strncpy(User, DefaultDomain, DNLEN);
         strcat(User, "\\");
         strncat(User, UserName, UNLEN);
@@ -654,7 +654,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         IADs *pGrp;
 
         User_PrimaryGroup = Get_primaryGroup(pUser);
-        if (User_PrimaryGroup == NULL)
+        if (User_PrimaryGroup == nullptr)
             debug("Valid_Global_Groups: cannot get Primary Group for '%s'.\n", User);
         else {
             add_User_Group(User_PrimaryGroup);
@@ -778,21 +778,21 @@ main(int argc, char *argv[])
 
     if (argc > 0) {     /* should always be true */
         program_name = strrchr(argv[0], '/');
-        if (program_name == NULL)
+        if (program_name == nullptr)
             program_name = argv[0];
     } else {
         program_name = "(unknown)";
     }
     mypid = getpid();
 
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
 
     /* Check Command Line */
     process_options(argc, argv);
 
     if (use_global) {
-        if ((machinedomain = GetDomainName()) == NULL) {
+        if ((machinedomain = GetDomainName()) == nullptr) {
             fprintf(stderr, "%s: FATAL: Can't read machine domain\n", program_name);
             exit(EXIT_FAILURE);
         }
@@ -810,20 +810,20 @@ main(int argc, char *argv[])
 
     /* Main Loop */
     while (fgets(buf, HELPER_INPUT_BUFFER, stdin)) {
-        if (NULL == strchr(buf, '\n')) {
+        if (nullptr == strchr(buf, '\n')) {
             /* too large message received.. skip and deny */
             fprintf(stderr, "%s: ERROR: Too large: %s\n", argv[0], buf);
             while (fgets(buf, HELPER_INPUT_BUFFER, stdin)) {
                 fprintf(stderr, "%s: ERROR: Too large..: %s\n", argv[0], buf);
-                if (strchr(buf, '\n') != NULL)
+                if (strchr(buf, '\n') != nullptr)
                     break;
             }
             SEND_BH(HLP_MSG("Invalid Request. Too Long."));
             continue;
         }
-        if ((p = strchr(buf, '\n')) != NULL)
+        if ((p = strchr(buf, '\n')) != nullptr)
             *p = '\0';      /* strip \n */
-        if ((p = strchr(buf, '\r')) != NULL)
+        if ((p = strchr(buf, '\r')) != nullptr)
             *p = '\0';      /* strip \r */
 
         debug("Got '%s' from Squid (length: %d).\n", buf, strlen(buf));
@@ -833,14 +833,14 @@ main(int argc, char *argv[])
             continue;
         }
         username = strtok(buf, " ");
-        for (n = 0; (group = strtok(NULL, " ")) != NULL; ++n) {
+        for (n = 0; (group = strtok(nullptr, " ")) != nullptr; ++n) {
             rfc1738_unescape(group);
             groups[n] = group;
         }
-        groups[n] = NULL;
+        groups[n] = nullptr;
         numberofgroups = n;
 
-        if (NULL == username) {
+        if (nullptr == username) {
             SEND_BH(HLP_MSG("Invalid Request. No Username."));
             continue;
         }

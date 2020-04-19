@@ -102,7 +102,7 @@ const char *program_name;
 pid_t mypid;
 char *machinedomain;
 int use_case_insensitive_compare = 0;
-char *DefaultDomain = NULL;
+char *DefaultDomain = nullptr;
 const char NTV_VALID_DOMAIN_SEPARATOR[] = "\\/";
 
 char *
@@ -116,8 +116,8 @@ AllocStrFromLSAStr(LSA_UNICODE_STRING LsaStr)
     /* allocate buffer for str + null termination */
     safe_free(target);
     target = (char *) xmalloc(len);
-    if (target == NULL)
-        return NULL;
+    if (target == nullptr)
+        return nullptr;
 
     /* copy unicode buffer */
     WideCharToMultiByte(CP_ACP, 0, LsaStr.Buffer, LsaStr.Length, target, len, NULL, NULL);
@@ -136,7 +136,7 @@ GetDomainName(void)
     PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo;
     PWKSTA_INFO_100 pwkiWorkstationInfo;
     DWORD netret;
-    char *DomainName = NULL;
+    char *DomainName = nullptr;
 
     /*
      * Always initialize the object attributes to all zeroes.
@@ -199,7 +199,7 @@ GetDomainName(void)
                      */
                     debug("Member of Domain %s\n", DomainName);
                 } else {
-                    DomainName = NULL;
+                    DomainName = nullptr;
                 }
             }
         }
@@ -251,7 +251,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
     DWORD i;
     DWORD dwTotalCount = 0;
 
-    if ((Domain_Separator = strchr(UserName, '/')) != NULL)
+    if ((Domain_Separator = strchr(UserName, '/')) != nullptr)
         *Domain_Separator = '\\';
 
     debug("Valid_Local_Groups: checking group membership of '%s'.\n", UserName);
@@ -342,7 +342,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[j])) != NULL)
             break;
     }
-    if (domain_qualify == NULL) {
+    if (domain_qualify == nullptr) {
         xstrncpy(User, NTDomain, sizeof(User));
         xstrncpy(NTDomain, DefaultDomain, sizeof(NTDomain));
     } else {
@@ -518,21 +518,21 @@ main(int argc, char *argv[])
 
     if (argc > 0) {     /* should always be true */
         program_name = strrchr(argv[0], '/');
-        if (program_name == NULL)
+        if (program_name == nullptr)
             program_name = argv[0];
     } else {
         program_name = "(unknown)";
     }
     mypid = getpid();
 
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
 
     /* Check Command Line */
     process_options(argc, argv);
 
     if (use_global) {
-        if ((machinedomain = GetDomainName()) == NULL) {
+        if ((machinedomain = GetDomainName()) == nullptr) {
             fprintf(stderr, "%s: FATAL: Can't read machine domain\n", program_name);
             exit(EXIT_FAILURE);
         }
@@ -553,20 +553,20 @@ main(int argc, char *argv[])
 
     /* Main Loop */
     while (fgets(buf, HELPER_INPUT_BUFFER, stdin)) {
-        if (NULL == strchr(buf, '\n')) {
+        if (nullptr == strchr(buf, '\n')) {
             /* too large message received.. skip and deny */
             debug("%s: ERROR: Too large: %s\n", argv[0], buf);
             while (fgets(buf, HELPER_INPUT_BUFFER, stdin)) {
                 debug("%s: ERROR: Too large..: %s\n", argv[0], buf);
-                if (strchr(buf, '\n') != NULL)
+                if (strchr(buf, '\n') != nullptr)
                     break;
             }
             SEND_BH(HLP_MSG("Input Too Long."));
             continue;
         }
-        if ((p = strchr(buf, '\n')) != NULL)
+        if ((p = strchr(buf, '\n')) != nullptr)
             *p = '\0';      /* strip \n */
-        if ((p = strchr(buf, '\r')) != NULL)
+        if ((p = strchr(buf, '\r')) != nullptr)
             *p = '\0';      /* strip \r */
 
         debug("Got '%s' from Squid (length: %d).\n", buf, strlen(buf));
@@ -576,13 +576,13 @@ main(int argc, char *argv[])
             continue;
         }
         username = strtok(buf, " ");
-        for (n = 0; (group = strtok(NULL, " ")) != NULL; ++n) {
+        for (n = 0; (group = strtok(nullptr, " ")) != nullptr; ++n) {
             rfc1738_unescape(group);
             groups[n] = group;
         }
-        groups[n] = NULL;
+        groups[n] = nullptr;
 
-        if (NULL == username) {
+        if (nullptr == username) {
             SEND_BH(HLP_MSG("Invalid Request. No Username."));
             continue;
         }

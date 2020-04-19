@@ -23,7 +23,7 @@ void httpHeaderPutStr(HttpHeader * hdr, Http::HdrType type, const char *str)
 HttpHeaderEntry *httpHeaderGetEntry(const HttpHeader * hdr, HttpHeaderPos * pos)
 {
     fatal ("dummy function\n");
-    return NULL;
+    return nullptr;
 }
 
 String httpHeaderGetList(const HttpHeader * hdr, Http::HdrType id)

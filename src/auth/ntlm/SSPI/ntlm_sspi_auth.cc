@@ -180,8 +180,8 @@ char * AllocStrFromLSAStr(LSA_UNICODE_STRING LsaStr)
     /* allocate buffer for str + null termination */
     safe_free(target);
     target = (char *)xmalloc(len);
-    if (target == NULL)
-        return NULL;
+    if (target == nullptr)
+        return nullptr;
 
     /* copy unicode buffer */
     WideCharToMultiByte(CP_ACP, 0, LsaStr.Buffer, LsaStr.Length, target, len, NULL, NULL );
@@ -200,7 +200,7 @@ char * GetDomainName(void)
     PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo;
     PWKSTA_INFO_100 pwkiWorkstationInfo;
     DWORD netret;
-    char * DomainName = NULL;
+    char * DomainName = nullptr;
 
     /*
      * Always initialize the object attributes to all zeroes.
@@ -263,7 +263,7 @@ char * GetDomainName(void)
                      */
                     debug("Member of Domain %s\n",DomainName);
                 } else {
-                    DomainName = NULL;
+                    DomainName = nullptr;
                 }
             }
         }
@@ -357,7 +357,7 @@ helperfail(const char *reason)
   -A can specify a Windows Local Group name allowed to authenticate.
   -D can specify a Windows Local Group name not allowed to authenticate.
  */
-char *my_program_name = NULL;
+char *my_program_name = nullptr;
 
 void
 usage()
@@ -443,7 +443,7 @@ manage_request()
 
     /* NP: for some reason this helper sometimes needs to accept
      * from clients that send no negotiate packet. */
-    if (memcpy(local_nego.hdr.signature, "NTLMSSP", 8) != 0) {
+    if (memcpy(local_nego.hdr.signature, "NTLMSSP", 8) != nullptr) {
         memset(&local_nego, 0, sizeof(ntlm_negotiate)); /* reset */
         memcpy(local_nego.hdr.signature, "NTLMSSP", 8);     /* set the signature */
         local_nego.hdr.type = le32toh(NTLM_NEGOTIATE);      /* this is a challenge */
@@ -454,7 +454,7 @@ manage_request()
     }
 
     do {
-        if (fgets(buf, sizeof(buf), stdin) == NULL)
+        if (fgets(buf, sizeof(buf), stdin) == nullptr)
             return 0;
 
         char *c = static_cast<char*>(memchr(buf, '\n', sizeof(buf)));
@@ -648,8 +648,8 @@ main(int argc, char *argv[])
     atexit(UnloadSecurityDll);
 
     /* initialize FDescs */
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
 
     while (manage_request()) {
         /* everything is done within manage_request */

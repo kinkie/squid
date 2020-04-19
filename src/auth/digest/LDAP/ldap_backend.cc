@@ -55,13 +55,13 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 /* Globals */
 
 static LDAP *ld = NULL;
-static const char *passattr = NULL;
-static char *ldapServer = NULL;
-static const char *userbasedn = NULL;
-static const char *userdnattr = NULL;
-static const char *usersearchfilter = NULL;
-static const char *binddn = NULL;
-static const char *bindpasswd = NULL;
+static const char *passattr = nullptr;
+static char *ldapServer = nullptr;
+static const char *userbasedn = nullptr;
+static const char *userdnattr = nullptr;
+static const char *usersearchfilter = nullptr;
+static const char *binddn = nullptr;
+static const char *bindpasswd = nullptr;
 static const char *delimiter = ":";
 static const char *frealm = "";
 static int encrpass = 0;
@@ -200,9 +200,9 @@ getpassword(char *login, char *realm)
 {
     LDAPMessage *res = NULL;
     LDAPMessage *entry;
-    char **values = NULL;
-    char **value = NULL;
-    char *password = NULL;
+    char **values = nullptr;
+    char **value = nullptr;
+    char *password = nullptr;
     int retry = 0;
     char filter[8192];
     char searchbase[8192];
@@ -242,7 +242,7 @@ retrysrch:
                         ldapconnect();
                         goto retrysrch;
                     }
-                    return NULL;
+                    return nullptr;
 
                 }
             }
@@ -259,19 +259,19 @@ retrydnattr:
                 values = ldap_get_values(ld, entry, passattr);
             else {
                 ldap_msgfree(res);
-                return NULL;
+                return nullptr;
             }
             if (!values) {
                 debug("No attribute value found\n");
                 ldap_msgfree(res);
-                return NULL;
+                return nullptr;
             }
             value = values;
             while (*value) {
                 if (encrpass && *delimiter ) {
                     const char *t = strtok(*value, delimiter);
                     if (t && strcmp(t, realm) == 0) {
-                        password = strtok(NULL, delimiter);
+                        password = strtok(nullptr, delimiter);
                         break;
                     }
                 } else {
@@ -296,10 +296,10 @@ retrydnattr:
                 ldapconnect();
                 goto retrydnattr;
             }
-            return NULL;
+            return nullptr;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 static void
@@ -398,7 +398,7 @@ ldapconnect(void)
 int
 LDAPArguments(int argc, char **argv)
 {
-    setbuf(stdout, NULL);
+    setbuf(stdout, nullptr);
 
     while (argc > 1 && argv[1][0] == '-') {
         const char *value = "";
@@ -619,7 +619,7 @@ static int
 readSecret(const char *filename)
 {
     char buf[BUFSIZ];
-    char *e = 0;
+    char *e = nullptr;
     FILE *f;
 
     if (!(f = fopen(filename, "r"))) {
@@ -649,7 +649,7 @@ readSecret(const char *filename)
 void
 LDAPHHA1(RequestData * requestData)
 {
-    char *password = NULL;
+    char *password = nullptr;
     ldapconnect();
 
     // use the -l delimiter to find realm, or
@@ -660,12 +660,12 @@ LDAPHHA1(RequestData * requestData)
     if (lookup)
         password = getpassword(requestData->user, requestData->realm);
 
-    if (password != NULL) {
+    if (password != nullptr) {
         if (encrpass)
             xstrncpy(requestData->HHA1, password, sizeof(requestData->HHA1));
         else {
             HASH HA1;
-            DigestCalcHA1("md5", requestData->user, requestData->realm, password, NULL, NULL, HA1, requestData->HHA1);
+            DigestCalcHA1("md5", requestData->user, requestData->realm, password, nullptr, nullptr, HA1, requestData->HHA1);
         }
         free(password);
     } else {

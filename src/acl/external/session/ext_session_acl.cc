@@ -60,7 +60,7 @@
 
 static int session_ttl = 3600;
 static int fixed_timeout = 0;
-char *db_path = NULL;
+char *db_path = nullptr;
 const char *program_name;
 
 #if USE_BERKLEYDB
@@ -93,7 +93,7 @@ shutdown_db()
         }
 #endif
     }
-    xfree(db_path);
+    free(db_path);
 }
 
 static void init_db(void)
@@ -209,7 +209,7 @@ static int session_active(const char *details, size_t len)
             return 0;
         }
         copyValue(&timestamp, &data, sizeof(timestamp));
-        if (timestamp + session_ttl >= time(NULL))
+        if (timestamp + session_ttl >= time(nullptr))
             return 1;
     }
     return 0;
@@ -220,7 +220,7 @@ session_login(/*const*/ char *details, size_t len)
 {
     DB_ENTRY key = {0};
     DB_ENTRY data = {0};
-    time_t now = time(0);
+    time_t now = time(nullptr);
 #if USE_BERKLEYDB
     key.data = static_cast<decltype(key.data)>(details);
     key.size = len;
@@ -286,15 +286,15 @@ int main(int argc, char **argv)
         }
     }
 
-    setbuf(stdout, NULL);
+    setbuf(stdout, nullptr);
 
     init_db();
 
     while (fgets(request, HELPER_INPUT_BUFFER, stdin)) {
         int action = 0;
         const char *channel_id = strtok(request, " ");
-        char *detail = strtok(NULL, "\n");
-        if (detail == NULL) {
+        char *detail = strtok(nullptr, "\n");
+        if (detail == nullptr) {
             // Only 1 parameter supplied. We are expecting at least 2 (including the channel ID)
             fprintf(stderr, "FATAL: %s is concurrent and requires the concurrency option to be specified.\n", program_name);
             shutdown_db();

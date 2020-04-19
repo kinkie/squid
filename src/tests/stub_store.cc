@@ -18,12 +18,12 @@ const char *memStatusStr[] = { };
 const char *swapStatusStr[] = { };
 
 #include "RemovalPolicy.h"
-RemovalPolicy * createRemovalPolicy(RemovalPolicySettings * settings) STUB_RETVAL(NULL)
+RemovalPolicy * createRemovalPolicy(RemovalPolicySettings * settings) STUB_RETVAL(nullptr)
 
 #include "Store.h"
 StoreIoStats store_io_stats;
 bool StoreEntry::checkDeferRead(int fd) const STUB_RETVAL(false)
-const char *StoreEntry::getMD5Text() const STUB_RETVAL(NULL)
+const char *StoreEntry::getMD5Text() const STUB_RETVAL(nullptr)
 StoreEntry::StoreEntry() STUB
 StoreEntry::~StoreEntry() STUB
 void StoreEntry::write(StoreIOBuffer) STUB
@@ -31,7 +31,7 @@ bool StoreEntry::isAccepting() const STUB_RETVAL(false)
 size_t StoreEntry::bytesWanted(Range<size_t> const, bool) const STUB_RETVAL(0)
 void StoreEntry::complete() STUB
 store_client_t StoreEntry::storeClientType() const STUB_RETVAL(STORE_NON_CLIENT)
-char const *StoreEntry::getSerialisedMetaData(size_t &length) const STUB_RETVAL(NULL)
+char const *StoreEntry::getSerialisedMetaData(size_t &length) const STUB_RETVAL(nullptr)
 void StoreEntry::replaceHttpReply(const HttpReplyPointer &, bool andStartWriting) STUB
 bool StoreEntry::mayStartSwapOut() STUB_RETVAL(false)
 void StoreEntry::trimMemory(const bool preserveSwappable) STUB
@@ -46,7 +46,7 @@ void StoreEntry::negativeCache() STUB
 bool StoreEntry::cacheNegatively() STUB
 void StoreEntry::swapOut() STUB
 void StoreEntry::swapOutFileClose(int how) STUB
-const char *StoreEntry::url() const STUB_RETVAL(NULL)
+const char *StoreEntry::url() const STUB_RETVAL(nullptr)
 bool StoreEntry::checkCachable() STUB_RETVAL(false)
 int StoreEntry::checkNegativeHit() const STUB_RETVAL(0)
 int StoreEntry::validToSend() const STUB_RETVAL(0)
@@ -103,10 +103,10 @@ std::ostream &operator <<(std::ostream &os, const StoreEntry &)
 
 size_t storeEntryInUse() STUB_RETVAL(0)
 void storeEntryReplaceObject(StoreEntry *, HttpReply *) STUB
-StoreEntry *storeGetPublic(const char *uri, const HttpRequestMethod& method) STUB_RETVAL(NULL)
-StoreEntry *storeGetPublicByRequest(HttpRequest * request, const KeyScope scope) STUB_RETVAL(NULL)
-StoreEntry *storeGetPublicByRequestMethod(HttpRequest * request, const HttpRequestMethod& method, const KeyScope scope) STUB_RETVAL(NULL)
-StoreEntry *storeCreateEntry(const char *, const char *, const RequestFlags &, const HttpRequestMethod&) STUB_RETVAL(NULL)
+StoreEntry *storeGetPublic(const char *uri, const HttpRequestMethod& method) STUB_RETVAL(nullptr)
+StoreEntry *storeGetPublicByRequest(HttpRequest * request, const KeyScope scope) STUB_RETVAL(nullptr)
+StoreEntry *storeGetPublicByRequestMethod(HttpRequest * request, const HttpRequestMethod& method, const KeyScope scope) STUB_RETVAL(nullptr)
+StoreEntry *storeCreateEntry(const char *, const char *, const RequestFlags &, const HttpRequestMethod&) STUB_RETVAL(nullptr)
 StoreEntry *storeCreatePureEntry(const char *storeId, const char *logUrl, const HttpRequestMethod&) STUB_RETVAL(nullptr)
 void storeConfigure(void) STUB
 int expiresMoreThan(time_t, time_t) STUB_RETVAL(0)

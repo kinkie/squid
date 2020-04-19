@@ -15,7 +15,7 @@ Ssl::Config::Config():
 #if USE_SSL_CRTD
     ssl_crtd(NULL),
 #endif
-    ssl_crt_validator(NULL)
+    ssl_crt_validator(nullptr)
 {
     ssl_crt_validator_Children.concurrency = 1;
 }

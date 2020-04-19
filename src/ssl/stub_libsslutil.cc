@@ -38,6 +38,6 @@ bool Ssl::sslDateIsInTheFuture(char const *) STUB_RETVAL(false)
 
 #include "ssl/helper.h"
 void Ssl::Helper::Init() STUB
-void Ssl::Helper::Shutdown() STUB
-void Ssl::Helper::Submit(Ssl::CrtdMessage const & message, HLPCB * callback, void *data) STUB
+void Helper::Shutdown() STUB
+void Helper::Submit(Ssl::CrtdMessage const & message, HLPCB * callback, void *data) STUB
 

@@ -14,5 +14,5 @@
 #include "tests/STUB.h"
 
 class StoreEntry;
-const char *storeEntryFlags(const StoreEntry *) STUB_RETVAL(NULL)
+const char *storeEntryFlags(const StoreEntry *) STUB_RETVAL(nullptr)
 

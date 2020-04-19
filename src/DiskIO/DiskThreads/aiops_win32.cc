@@ -81,7 +81,7 @@ struct squidaio_thread_t {
 
 static void squidaio_queue_request(squidaio_request_t *);
 static void squidaio_cleanup_request(squidaio_request_t *);
-static DWORD WINAPI squidaio_thread_loop( LPVOID lpParam );
+static DWORD WINAPI; squidaio_thread_loop( LPVOID lpParam );
 static void squidaio_do_open(squidaio_request_t *);
 static void squidaio_do_read(squidaio_request_t *);
 static void squidaio_do_write(squidaio_request_t *);
@@ -94,7 +94,7 @@ static void *squidaio_do_opendir(squidaio_request_t *);
 static void squidaio_debug(squidaio_request_t *);
 static void squidaio_poll_queues(void);
 
-static squidaio_thread_t *threads = NULL;
+static squidaio_thread_t *threads = nullptr;
 static int squidaio_initialised = 0;
 
 #define AIO_LARGE_BUFS  16384
@@ -103,15 +103,15 @@ static int squidaio_initialised = 0;
 #define AIO_TINY_BUFS   AIO_LARGE_BUFS >> 3
 #define AIO_MICRO_BUFS  128
 
-static MemAllocator *squidaio_large_bufs = NULL;    /* 16K */
-static MemAllocator *squidaio_medium_bufs = NULL;   /* 8K */
-static MemAllocator *squidaio_small_bufs = NULL;    /* 4K */
-static MemAllocator *squidaio_tiny_bufs = NULL; /* 2K */
-static MemAllocator *squidaio_micro_bufs = NULL;    /* 128K */
+static MemAllocator *squidaio_large_bufs = nullptr;    /* 16K */
+static MemAllocator *squidaio_medium_bufs = nullptr;   /* 8K */
+static MemAllocator *squidaio_small_bufs = nullptr;    /* 4K */
+static MemAllocator *squidaio_tiny_bufs = nullptr; /* 2K */
+static MemAllocator *squidaio_micro_bufs = nullptr;    /* 128K */
 
 static int request_queue_len = 0;
-static MemAllocator *squidaio_request_pool = NULL;
-static MemAllocator *squidaio_thread_pool = NULL;
+static MemAllocator *squidaio_request_pool = nullptr;
+static MemAllocator *squidaio_thread_pool = nullptr;
 static squidaio_request_queue_t request_queue;
 
 static struct {
@@ -120,7 +120,7 @@ static struct {
 
 request_queue2 = {
 
-    NULL, &request_queue2.head
+    nullptr, &request_queue2.head
 };
 static squidaio_request_queue_t done_queue;
 
@@ -130,7 +130,7 @@ static struct {
 
 done_requests = {
 
-    NULL, &done_requests.head
+    nullptr, &done_requests.head
 };
 
 static HANDLE main_thread;
@@ -151,7 +151,7 @@ squidaio_get_pool(int size)
             return squidaio_large_bufs;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void *
@@ -160,7 +160,7 @@ squidaio_xmalloc(int size)
     void *p;
     MemAllocator *pool;
 
-    if ((pool = squidaio_get_pool(size)) != NULL) {
+    if ((pool = squidaio_get_pool(size)) != nullptr) {
         p = pool->alloc();
     } else
         p = xmalloc(size);
@@ -185,7 +185,7 @@ squidaio_xfree(void *p, int size)
 {
     MemAllocator *pool;
 
-    if ((pool = squidaio_get_pool(size)) != NULL) {
+    if ((pool = squidaio_get_pool(size)) != nullptr) {
         pool->freeOne(p);
     } else
         xfree(p);
@@ -197,7 +197,7 @@ squidaio_xstrfree(char *str)
     MemAllocator *pool;
     int len = strlen(str) + 1;
 
-    if ((pool = squidaio_get_pool(len)) != NULL) {
+    if ((pool = squidaio_get_pool(len)) != nullptr) {
         pool->freeOne(str);
     } else
         xfree(str);
@@ -213,7 +213,7 @@ squidaio_init(void)
         return;
 
     if (!DuplicateHandle(GetCurrentProcess(), /* pseudo handle, don't close */
-                         GetCurrentThread(),  /* pseudo handle to copy */
+                         getCurrentTime(),  /* pseudo handle to copy */
                          GetCurrentProcess(), /* pseudo handle, don't close */
                          &main_thread,
                          0,                   /* required access */
@@ -239,7 +239,7 @@ squidaio_init(void)
         fatal("Failed to create condition variable");
     }
 
-    request_queue.head = NULL;
+    request_queue.head = nullptr;
 
     request_queue.tailp = &request_queue.head;
 
@@ -264,7 +264,7 @@ squidaio_init(void)
         fatal("Failed to create condition variable");
     }
 
-    done_queue.head = NULL;
+    done_queue.head = nullptr;
 
     done_queue.tailp = &done_queue.head;
 
@@ -284,14 +284,14 @@ squidaio_init(void)
     for (i = 0; i < NUMTHREADS; ++i) {
         threadp = (squidaio_thread_t *)squidaio_thread_pool->alloc();
         threadp->status = _THREAD_STARTING;
-        threadp->current_req = NULL;
+        threadp->current_req = nullptr;
         threadp->requests = 0;
         threadp->next = threads;
         threads = threadp;
 
         if ((threadp->thread = CreateThread(NULL,                   /* no security attributes */
                                             0,                      /* use default stack size */
-                                            squidaio_thread_loop,   /* thread function */
+                                            squidaio_thread_pool,   /* thread function */
                                             threadp,                /* argument to thread function */
                                             0,                      /* use default creation flags */
                                             &(threadp->dwThreadId)) /* returns the thread identifier */

@@ -59,7 +59,7 @@ main()
     int tlu = 0;
 
     /* make standard output line buffered */
-    if (setvbuf(stdout, NULL, _IOLBF, 0) != 0)
+    if (setvbuf(stdout, nullptr, _IOLBF, 0) != 0)
         exit(EXIT_FAILURE);
 
     /* speed up the access() calls below */
@@ -67,9 +67,9 @@ main()
         exit(EXIT_FAILURE);
 
     /* scan standard input */
-    while (fgets(buf, BUFFER_SIZE, stdin) != NULL) {
+    while (fgets(buf, BUFFER_SIZE, stdin) != nullptr) {
         /* check for too long urls */
-        if (strchr(buf, '\n') == NULL) {
+        if (strchr(buf, '\n') == nullptr) {
             tlu = 1;
             continue;
         }
@@ -77,12 +77,12 @@ main()
             goto dont_redirect;
 
         /* determine end of url */
-        if ((s = strchr(buf, ' ')) == NULL)
+        if ((s = strchr(buf, ' ')) == nullptr)
             goto dont_redirect;
         *s = '\0';
 
         /* determine first character of filename */
-        if ((s = strrchr(buf, '/')) == NULL)
+        if ((s = strrchr(buf, '/')) == nullptr)
             goto dont_redirect;
         s++;
 

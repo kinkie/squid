@@ -22,7 +22,7 @@ void helperShutdown(helper * hlp) STUB
 void helperStatefulShutdown(statefulhelper * hlp) STUB
 void helperOpenServers(helper * hlp) STUB
 void helperStatefulOpenServers(statefulhelper * hlp) STUB
-helper_stateful_server *helperStatefulDefer(statefulhelper * hlp) STUB_RETVAL(NULL)
+helper_stateful_server *helperStatefulDefer(statefulhelper * hlp) STUB_RETVAL(nullptr)
 void helperStatefulReleaseServer(helper_stateful_server * srv) STUB
 CBDATA_CLASS_INIT(statefulhelper);
 

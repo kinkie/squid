@@ -79,7 +79,7 @@ static int tq_debug_enabled = false;
 static void open_log(const char *logfilename)
 {
     logfile = fopen(logfilename, "a");
-    if ( logfile == NULL ) {
+    if ( logfile == nullptr ) {
         perror(logfilename);
         logfile = stderr;
     }
@@ -87,7 +87,7 @@ static void open_log(const char *logfilename)
 
 static void vlog(const char *level, const char *format, va_list args)
 {
-    time_t now = time(NULL);
+    time_t now = time(nullptr);
 
     fprintf(logfile, "%ld %s| %s: ", static_cast<long int>(now),
             program_name, level);
@@ -217,7 +217,7 @@ static void parseTime(const char *s, time_t *secs, time_t *start)
     int periodLength = 3600;
 
     *secs = 0;
-    *start = time(NULL);
+    *start = time(nullptr);
     ltime = localtime(start);
 
     sscanf(s, " %lf %c", &value, &unit);
@@ -279,19 +279,19 @@ static void readConfig(const char *filename)
             if (line[0] == '#') {
                 continue;
             }
-            if ((cp = strchr (line, '\n')) != NULL) {
+            if ((cp = strchr (line, '\n')) != nullptr) {
                 /* chop \n characters */
                 *cp = '\0';
             }
             log_debug("read config line %u: \"%s\".\n", lineCount, line);
-            if ((username = strtok(line, "\t ")) != NULL) {
+            if ((username = strtok(line, "\t ")) != nullptr) {
 
                 /* get the time budget */
-                if ((budget = strtok(NULL, "/")) == NULL) {
+                if ((budget = strtok(nullptr, "/")) == nullptr) {
                     fprintf(stderr, "ERROR: missing 'budget' field on line %u of '%s'.\n", lineCount, filename);
                     continue;
                 }
-                if ((period = strtok(NULL, "/")) == NULL) {
+                if ((period = strtok(nullptr, "/")) == nullptr) {
                     fprintf(stderr, "ERROR: missing 'period' field on line %u of '%s'.\n", lineCount, filename);
                     continue;
                 }
@@ -317,7 +317,7 @@ static void readConfig(const char *filename)
 
 static void processActivity(const char *user_key)
 {
-    time_t now = time(NULL);
+    time_t now = time(nullptr);
     time_t lastActivity;
     time_t activityLength;
     time_t periodStart;
@@ -438,7 +438,7 @@ int main(int argc, char **argv)
     }
 
     log_info("Starting %s\n", __FILE__);
-    setbuf(stdout, NULL);
+    setbuf(stdout, nullptr);
 
     init_db();
 

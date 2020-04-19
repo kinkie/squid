@@ -491,11 +491,11 @@ strup(char *s)
 int
 main(int argc, char *const argv[])
 {
-    setbuf(stdout, NULL);
-    setbuf(stdin, NULL);
+    setbuf(stdout, nullptr);
+    setbuf(stdin, nullptr);
     char buf[6400];
     while (1) {
-        if (fgets(buf, sizeof(buf) - 1, stdin) == NULL) {
+        if (fgets(buf, sizeof(buf) - 1, stdin) == nullptr) {
         }
         fprintf(stdout, "ERR\n");
         fprintf(stderr, "LDAP group authorisation not supported\n");

@@ -37,12 +37,12 @@ void SwapDir::logEntry(const StoreEntry &, int) const STUB
 char const * SwapDir::type() const STUB_RETVAL("stub")
 bool SwapDir::active() const STUB_RETVAL(false)
 bool SwapDir::needsDiskStrand() const STUB_RETVAL(false)
-ConfigOption * SwapDir::getOptionTree() const STUB_RETVAL(NULL)
+ConfigOption * SwapDir::getOptionTree() const STUB_RETVAL(nullptr)
 void SwapDir::parseOptions(int) STUB
 void SwapDir::dumpOptions(StoreEntry *) const STUB
 bool SwapDir::optionReadOnlyParse(char const *, const char *, int) STUB_RETVAL(false)
 void SwapDir::optionReadOnlyDump(StoreEntry *) const STUB
 bool SwapDir::optionObjectSizeParse(char const *, const char *, int) STUB_RETVAL(false)
 void SwapDir::optionObjectSizeDump(StoreEntry *) const STUB
-StoreEntry * SwapDir::get(const cache_key *) STUB_RETVAL(NULL)
+StoreEntry * SwapDir::get(const cache_key *) STUB_RETVAL(nullptr)
 

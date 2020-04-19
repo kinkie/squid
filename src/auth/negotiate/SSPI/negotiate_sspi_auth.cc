@@ -82,7 +82,7 @@ char *negotiate_check_auth(SSP_blobP auth, int auth_length);
  * -d enable debugging.
  * -v enable verbose Negotiate packet debugging.
  */
-char *my_program_name = NULL;
+char *my_program_name = nullptr;
 
 void
 usage()
@@ -201,7 +201,7 @@ manage_request()
                     if (!token_decode(&decodedLen, decoded, c))
                         return 1;
                     debug("sending 'AF' %s to squid with data:\n", cred);
-                    if (c != NULL)
+                    if (c != nullptr)
                         hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
                     else
                         fprintf(stderr, "No data available.\n");
@@ -264,7 +264,7 @@ manage_request()
                 if (!token_decode(&decodedLen, decoded, c))
                     return 1;
                 debug("sending 'AF' %s to squid with data:\n", cred);
-                if (c != NULL)
+                if (c != nullptr)
                     hex_dump(reinterpret_cast<unsigned char*>(decoded), decodedLen);
                 else
                     fprintf(stderr, "No data available.\n");
@@ -313,8 +313,8 @@ main(int argc, char *argv[])
     atexit(UnloadSecurityDll);
 
     /* initialize FDescs */
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
 
     while (manage_request()) {
         /* everything is done within manage_request */

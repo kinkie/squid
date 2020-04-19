@@ -14,7 +14,7 @@
 
 void ipcache_purgelru(void *) STUB
 void ipcache_nbgethostbyname(const char *name, IPH * handler, void *handlerData) STUB
-const ipcache_addrs *ipcache_gethostbyname(const char *, int flags) STUB_RETVAL(NULL)
+const ipcache_addrs *ipcache_gethostbyname(const char *, int flags) STUB_RETVAL(nullptr)
 void ipcacheInvalidate(const char *) STUB
 void ipcacheInvalidateNegative(const char *) STUB
 void ipcache_init(void) STUB

@@ -130,7 +130,7 @@ Valid_User(char *UserName, char *Password, char *Group)
     int result = NTV_SERVER_ERROR;
     size_t i;
     char NTDomain[256];
-    char *domain_qualify = NULL;
+    char *domain_qualify = nullptr;
     char DomainUser[256];
     char User[256];
 
@@ -138,10 +138,10 @@ Valid_User(char *UserName, char *Password, char *Group)
     strncpy(NTDomain, UserName, sizeof(NTDomain));
 
     for (i=0; i < strlen(NTV_VALID_DOMAIN_SEPARATOR); ++i) {
-        if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[i])) != NULL)
+        if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[i])) != nullptr)
             break;
     }
-    if (domain_qualify == NULL) {
+    if (domain_qualify == nullptr) {
         strcpy(User, NTDomain);
         strcpy(NTDomain, Default_NTDomain);
     } else {

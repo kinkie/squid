@@ -132,12 +132,12 @@ main(int argc, char **argv)
     atexit(UnloadSecurityDll);
 
     /* initialize FDescs */
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
 
-    while (fgets(wstr, HELPER_INPUT_BUFFER, stdin) != NULL) {
+    while (fgets(wstr, HELPER_INPUT_BUFFER, stdin) != nullptr) {
 
-        if (NULL == strchr(wstr, '\n')) {
+        if (nullptr == strchr(wstr, '\n')) {
             err = 1;
             continue;
         }
@@ -148,9 +148,9 @@ main(int argc, char **argv)
             continue;
         }
 
-        if ((p = strchr(wstr, '\n')) != NULL)
+        if ((p = strchr(wstr, '\n')) != nullptr)
             *p = '\0';      /* strip \n */
-        if ((p = strchr(wstr, '\r')) != NULL)
+        if ((p = strchr(wstr, '\r')) != nullptr)
             *p = '\0';      /* strip \r */
         /* Clear any current settings */
         username[0] = '\0';

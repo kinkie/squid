@@ -61,7 +61,7 @@ find_proxy_auth(char const *type)
             return proxy_auths[count][1];
     }
 
-    return NULL;
+    return nullptr;
 }
 
 static
@@ -76,8 +76,8 @@ getConfig(char const *type_str)
         /* Create a configuration */
         Auth::Scheme::Pointer theScheme = Auth::Scheme::Find(type_str);
 
-        if (theScheme == NULL) {
-            return NULL;
+        if (theScheme == nullptr) {
+            return nullptr;
             //fatalf("Unknown authentication scheme '%s'.\n", type_str);
         }
 
@@ -98,7 +98,7 @@ setup_scheme(Auth::Config *scheme, char const **params, unsigned param_count)
     for (unsigned position=0; position < param_count; ++position) {
         char *param_str=xstrdup(params[position]);
         strtok(param_str, w_space);
-        ConfigParser::SetCfgLine(strtok(NULL, ""));
+        ConfigParser::SetCfgLine(strtok(nullptr, ""));
         scheme->parse(scheme, config.size(), param_str);
     }
 }
@@ -143,7 +143,7 @@ fake_auth_setup()
     for (unsigned scheme=0; scheme < 4; ++scheme) {
         Auth::Config *schemeConfig;
         schemeConfig = getConfig(params[scheme].name);
-        if (schemeConfig != NULL)
+        if (schemeConfig != nullptr)
             setup_scheme(schemeConfig, params[scheme].params,
                          params[scheme].paramlength);
         else
@@ -166,7 +166,7 @@ testAuthConfig::create()
     fake_auth_setup();
 
     for (Auth::Scheme::iterator i = Auth::Scheme::GetSchemes().begin(); i != Auth::Scheme::GetSchemes().end(); ++i) {
-        AuthUserRequest::Pointer authRequest = Auth::Config::CreateAuthUser(find_proxy_auth((*i)->type()));
+        testAuthUserRequest::Pointer authRequest = Auth::Config::CreateAuthUser(find_proxy_auth((*i)->type()));
         CPPUNIT_ASSERT(authRequest != NULL);
     }
 }
@@ -185,7 +185,7 @@ testAuthUserRequest::scheme()
     for (Auth::Scheme::iterator i = Auth::Scheme::GetSchemes().begin(); i != Auth::Scheme::GetSchemes().end(); ++i) {
         // create a user request
         // check its scheme matches *i
-        AuthUserRequest::Pointer authRequest = Auth::Config::CreateAuthUser(find_proxy_auth((*i)->type()));
+        testAuthUserRequest::Pointer authRequest = Auth::Config::CreateAuthUser(find_proxy_auth((*i)->type()));
         CPPUNIT_ASSERT_EQUAL(authRequest->scheme(), *i);
     }
 }
@@ -198,15 +198,15 @@ testAuthUserRequest::scheme()
 void
 testAuthBasicUserRequest::construction()
 {
-    AuthBasicUserRequest();
-    AuthBasicUserRequest *temp=new AuthBasicUserRequest();
+    testAuthBasicUserRequest();
+    testAuthBasicUserRequest *temp=new testAuthBasicUserRequest();
     delete temp;
 }
 
 void
 testAuthBasicUserRequest::username()
 {
-    AuthUserRequest::Pointer temp = new AuthBasicUserRequest();
+    testAuthUserRequest::Pointer temp = new testAuthBasicUserRequest();
     Auth::Basic::User *basic_auth=new Auth::Basic::User(Auth::Config::Find("basic"));
     basic_auth->username("John");
     temp->user(basic_auth);

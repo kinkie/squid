@@ -96,7 +96,7 @@ methodStrToId(const char *s)
         return METHOD_PURGE;
     }
 
-    return METHOD_NONE;
+    return MEM_NONE;
 }
 
 /* FileIterator */
@@ -114,7 +114,7 @@ fileIteratorCreate(const char *fname, FI_READER reader)
 
     if (!fi->file) {
         fprintf(stderr, "cannot open %s: %s\n", fname, strerror(errno));
-        return NULL;
+        return nullptr;
     } else
         fprintf(stderr, "opened %s\n", fname);
 
@@ -218,7 +218,7 @@ cacheCreate(const char *name)
 static void
 cacheDestroy(Cache * cache)
 {
-    CacheEntry *e = NULL;
+    CacheEntry *e = nullptr;
     hash_table *hash;
     assert(cache);
     hash = cache->hash;
@@ -241,7 +241,7 @@ cacheDestroy(Cache * cache)
 static void
 cacheResetDigest(Cache * cache)
 {
-    CacheEntry *e = NULL;
+    CacheEntry *e = nullptr;
     hash_table *hash;
 
     struct timeval t_start, t_end;
@@ -257,7 +257,7 @@ cacheResetDigest(Cache * cache)
     if (!cache->count)
         return;
 
-    gettimeofday(&t_start, NULL);
+    gettimeofday(&t_start, nullptr);
 
     hash_first(hash);
 
@@ -265,21 +265,21 @@ cacheResetDigest(Cache * cache)
         cache->digest->add(e->key);
     }
 
-    gettimeofday(&t_end, NULL);
+    gettimeofday(&t_end, nullptr);
     assert(cache->digest->count == cache->count);
-    fprintf(stderr, "%s: init-ed  digest with %d entries\n",
+    fprintf(stderr, "%s: init-ed  digest with %lu entries\n",
             cache->name, cache->digest->count);
     fprintf(stderr, "%s: init took: %f sec, %f sec/M\n",
             cache->name,
             tvSubDsec(t_start, t_end),
             (double) 1e6 * tvSubDsec(t_start, t_end) / cache->count);
     /* check how long it takes to traverse the hash */
-    gettimeofday(&t_start, NULL);
+    gettimeofday(&t_start, nullptr);
     hash_first(hash);
 
     for (e = (CacheEntry *)hash_next(hash); e; e = (CacheEntry *)hash_next(hash)) {}
 
-    gettimeofday(&t_end, NULL);
+    gettimeofday(&t_end, nullptr);
     fprintf(stderr, "%s: hash scan took: %f sec, %f sec/M\n",
             cache->name,
             tvSubDsec(t_start, t_end),
@@ -289,7 +289,7 @@ cacheResetDigest(Cache * cache)
 static void
 cacheQueryPeer(Cache * cache, const cache_key * key)
 {
-    const int peer_has_it = hash_lookup(cache->peer->hash, key) != NULL;
+    const int peer_has_it = hash_lookup(cache->peer->hash, key) != nullptr;
     const int we_think_we_have_it = cache->digest->test(key);
 
     ++ cache->qstats.query_count;
@@ -380,7 +380,7 @@ accessLogReader(FileIterator * fi)
     char *url;
     char *method;
     HttpRequestMethod method_id = METHOD_NONE;
-    char *hier = NULL;
+    char *hier = nullptr;
 
     assert(fi);
 
@@ -398,7 +398,7 @@ accessLogReader(FileIterator * fi)
 
     url = strstr(buf, "://");
 
-    hier = url ? strstr(url, " - ") : NULL;
+    hier = url ? strstr(url, " - ") : nullptr;
 
     if (!url || !hier) {
         /*fprintf(stderr, "%s:%d: strange access log entry '%s'\n",
@@ -524,7 +524,7 @@ usage(const char *prg_name)
 int
 main(int argc, char *argv[])
 {
-    FileIterator **fis = NULL;
+    FileIterator **fis = nullptr;
     const int fi_count = argc - 1;
     int active_fi_count = 0;
     time_t ready_time;

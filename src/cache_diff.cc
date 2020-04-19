@@ -58,7 +58,7 @@ cacheIndexCreate(const char *name)
     CacheIndex *idx;
 
     if (!name || !strlen(name))
-        return NULL;
+        return nullptr;
 
     idx = xcalloc(1, sizeof(CacheIndex));
 
@@ -232,7 +232,7 @@ int
 main(int argc, char *argv[])
 {
     CacheIndex *CacheIdx[2];
-    CacheIndex *idx = NULL;
+    CacheIndex *idx = nullptr;
     int idxCount = 0;
     int i;
 

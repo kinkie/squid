@@ -140,11 +140,11 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 
 /* Global options */
 static const char *basedn;
-static const char *searchfilter = NULL;
-static const char *binddn = NULL;
-static const char *bindpasswd = NULL;
+static const char *searchfilter = nullptr;
+static const char *binddn = nullptr;
+static const char *bindpasswd = nullptr;
 static const char *userattr = "uid";
-static const char *passwdattr = NULL;
+static const char *passwdattr = nullptr;
 static int searchscope = LDAP_SCOPE_SUBTREE;
 static int persistent = 0;
 static int bind_once = 0;
@@ -354,12 +354,12 @@ main(int argc, char **argv)
 {
     char buf[1024];
     char *user, *passwd;
-    char *ldapServer = NULL;
+    char *ldapServer = nullptr;
     LDAP *ld = NULL;
     int tryagain;
     int port = LDAP_PORT;
 
-    setbuf(stdout, NULL);
+    setbuf(stdout, nullptr);
 
     while (argc > 1 && argv[1][0] == '-') {
         const char *value = "";
@@ -576,9 +576,9 @@ main(int argc, char **argv)
     }
 #endif
 
-    while (fgets(buf, sizeof(buf), stdin) != NULL) {
+    while (fgets(buf, sizeof(buf), stdin) != nullptr) {
         user = strtok(buf, " \r\n");
-        passwd = strtok(NULL, "\r\n");
+        passwd = strtok(nullptr, "\r\n");
 
         if (!user) {
             SEND_ERR(HLP_MSG("Missing username"));
@@ -677,7 +677,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
         char escaped_login[1024];
         LDAPMessage *res = NULL;
         LDAPMessage *entry;
-        char *searchattr[] = {(char *)LDAP_NO_ATTRS, NULL};
+        char *searchattr[] = {(char *)LDAP_NO_ATTRS, nullptr};
         char *userdn;
         int rc;
         LDAP *search_ld = persistent_ld;
@@ -772,9 +772,9 @@ int
 readSecret(const char *filename)
 {
     char buf[BUFSIZ];
-    char *e = NULL;
+    char *e = nullptr;
     FILE *f;
-    char *passwd = NULL;
+    char *passwd = nullptr;
 
     if (!(f = fopen(filename, "r"))) {
         fprintf(stderr, PROGRAM_NAME " ERROR: Can not read secret file %s\n", filename);

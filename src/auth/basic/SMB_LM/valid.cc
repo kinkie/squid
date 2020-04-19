@@ -32,20 +32,20 @@ Valid_User(char *USERNAME, char *PASSWORD, const char *SERVER, char *, const cha
                                        "Samba",
                                        "NT LM 0.12",
                                        "NT LANMAN 1.0",
-                                       NULL
+                                       nullptr
                                       };
     SMB_Handle_Type con;
 
     SMB_Init();
-    con = SMB_Connect_Server(NULL, SERVER, DOMAIN);
-    if (con == NULL) {
+    con = SMB_Connect_Server(nullptr, SERVER, DOMAIN);
+    if (con == nullptr) {
         return (NTV_SERVER_ERROR);
     }
     if (SMB_Negotiate(con, supportedDialects) < 0) {    /* An error */
         SMB_Discon(con, 0);
         return (NTV_PROTOCOL_ERROR);
     }
-    if (SMB_Logon_Server(con, USERNAME, PASSWORD, NULL, 0) < 0) {
+    if (SMB_Logon_Server(con, USERNAME, PASSWORD, nullptr, 0) < 0) {
         SMB_Discon(con, 0);
         return (NTV_LOGON_ERROR);
     }

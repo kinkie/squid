@@ -172,7 +172,7 @@ main(int argc, char *argv[])
     int no_realm = 0;
 
     /* make standard output line buffered */
-    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stdout, nullptr, _IOLBF, 0);
 
     while (1) {
         int ch = getopt(argc, argv, "1n:t:or");
@@ -266,7 +266,7 @@ start:
                 debug("ERROR: failed to create PAM authenticator\n");
                 goto error;
             }
-            pamh_created = time(NULL);
+            pamh_created = time(nullptr);
         }
         /* Authentication */
         retval = PAM_SUCCESS;

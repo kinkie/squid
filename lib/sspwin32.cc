@@ -31,8 +31,8 @@ static char * SSP_Package_InUse;
 SECURITY_STATUS SecurityStatus = SEC_E_OK;
 
 static DWORD cbMaxToken = 0;
-static uint8_t * pClientBuf = NULL;
-static uint8_t * pServerBuf = NULL;
+static uint8_t * pClientBuf = nullptr;
+static uint8_t * pServerBuf = nullptr;
 
 static AUTH_SEQ NTLM_asServer = {0};
 

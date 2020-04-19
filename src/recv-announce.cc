@@ -60,7 +60,7 @@ main(int argc, char *argv[])
     struct sockaddr_in R;
     socklen_t len;
 
-    struct hostent *hp = NULL;
+    struct hostent *hp = nullptr;
     const char *logfile;
     char ip[4];
 
@@ -84,7 +84,7 @@ main(int argc, char *argv[])
     dup(1);
 
     IPAddress ipa;
-    chat tmp[MAX_HOSTNAMELEN];
+    char tmp[MAX_HOSTNAMELEN];
     for (;;) {
         memset(buf, '\0', RECV_BUF_SIZE);
         memset(&R, '\0', len = sizeof(R));

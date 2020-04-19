@@ -28,10 +28,10 @@ void Mgr::Action::add(const Action &action) STUB
 void Mgr::Action::respond(const Request &request) STUB
 void Mgr::Action::sendResponse(unsigned int requestId) STUB
 bool Mgr::Action::atomic() const STUB_RETVAL(false)
-const char * Mgr::Action::name() const STUB_RETVAL(NULL)
+const char * Mgr::Action::name() const STUB_RETVAL(nullptr)
 static Mgr::Command static_Command;
 const Mgr::Command & Mgr::Action::command() const STUB_RETVAL(static_Command)
-StoreEntry * Mgr::Action::createStoreEntry() const STUB_RETVAL(NULL)
+StoreEntry * Mgr::Action::createStoreEntry() const STUB_RETVAL(nullptr)
 static Mgr::Action::Pointer dummyAction;
 
 #include "mgr/ActionParams.h"
@@ -171,13 +171,13 @@ void Mgr::IoAction::dump(StoreEntry* entry) STUB
 //void Mgr::QueryParam::unpackValue(const Ipc::TypedMsgHdr& msg) = 0;
 
 #include "mgr/QueryParams.h"
-Mgr::QueryParam::Pointer Mgr::QueryParams::get(const String& name) const STUB_RETVAL(Mgr::QueryParam::Pointer(NULL))
+Mgr::QueryParam::Pointer Mgr::QueryParams::get(const String& name) const STUB_RETVAL(Mgr::QueryParam::Pointer(nullptr))
 void Mgr::QueryParams::pack(Ipc::TypedMsgHdr& msg) const STUB
 void Mgr::QueryParams::unpack(const Ipc::TypedMsgHdr& msg) STUB
 bool Mgr::QueryParams::Parse(const String& aParamsStr, QueryParams& aParams) STUB_RETVAL(false)
 //private:
 //Params::const_iterator Mgr::QueryParams::find(const String& name) const STUB_RETVAL(new Mgr::Params::const_iterator(*this))
-Mgr::QueryParam::Pointer Mgr::QueryParams::CreateParam(QueryParam::Type aType) STUB_RETVAL(Mgr::QueryParam::Pointer(NULL))
+Mgr::QueryParam::Pointer Mgr::QueryParams::CreateParam(QueryParam::Type aType) STUB_RETVAL(Mgr::QueryParam::Pointer(nullptr))
 bool Mgr::QueryParams::ParseParam(const String& paramStr, Param& param) STUB_RETVAL(false)
 
 #include "mgr/Registration.h"
@@ -195,7 +195,7 @@ Ipc::Request::Pointer Mgr::Request::clone() const STUB_RETVAL(const_cast<Mgr::Re
 //Mgr::Response::Response(const Ipc::TypedMsgHdr& msg) STUB
 void Mgr::Response::pack(Ipc::TypedMsgHdr& msg) const STUB
 static Ipc::Response::Pointer ipr_static;
-Ipc::Response::Pointer Mgr::Response::clone() const STUB_RETVAL(Ipc::Response::Pointer(NULL))
+Ipc::Response::Pointer Mgr::Response::clone() const STUB_RETVAL(Ipc::Response::Pointer(nullptr))
 bool Mgr::Response::hasAction() const STUB_RETVAL(false)
 //static Mgr::Action mgraction_static;
 //const Mgr::Action& Mgr::Response::getAction() const STUB_RETVAL(mgraction_static)
@@ -204,7 +204,7 @@ bool Mgr::Response::hasAction() const STUB_RETVAL(false)
 //Mgr::ServiceTimesActionData::ServiceTimesActionData() STUB
 Mgr::ServiceTimesActionData& Mgr::ServiceTimesActionData::operator +=(const Mgr::ServiceTimesActionData& stats) STUB_RETVAL(*this)
 
-Mgr::Action::Pointer Mgr::ServiceTimesAction::Create(const Mgr::CommandPointer &cmd) STUB_RETVAL(Mgr::Action::Pointer(NULL))
+Mgr::Action::Pointer Mgr::ServiceTimesAction::Create(const Mgr::CommandPointer &cmd) STUB_RETVAL(Mgr::Action::Pointer(nullptr))
 void Mgr::ServiceTimesAction::add(const Action& action) STUB
 void Mgr::ServiceTimesAction::pack(Ipc::TypedMsgHdr& msg) const STUB
 void Mgr::ServiceTimesAction::unpack(const Ipc::TypedMsgHdr& msg) STUB
@@ -217,7 +217,7 @@ void Mgr::ServiceTimesAction::dump(StoreEntry* entry) STUB
 //Mgr::StoreIoActionData::StoreIoActionData() STUB
 Mgr::StoreIoActionData & Mgr::StoreIoActionData::operator +=(const StoreIoActionData& stats) STUB_RETVAL(*this)
 //Mgr::StoreIoAction::StoreIoAction(const CommandPointer &cmd) STUB
-Mgr::Action::Pointer Mgr::StoreIoAction::Create(const CommandPointer &cmd) STUB_RETVAL(Mgr::Action::Pointer(NULL))
+Mgr::Action::Pointer Mgr::StoreIoAction::Create(const CommandPointer &cmd) STUB_RETVAL(Mgr::Action::Pointer(nullptr))
 void Mgr::StoreIoAction::add(const Action& action) STUB
 void Mgr::StoreIoAction::pack(Ipc::TypedMsgHdr& msg) const STUB
 void Mgr::StoreIoAction::unpack(const Ipc::TypedMsgHdr& msg) STUB

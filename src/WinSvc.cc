@@ -30,8 +30,8 @@
 static void WIN32_Exit(void);
 static unsigned int GetOSVersion();
 void WIN32_svcstatusupdate(DWORD, DWORD);
-void WINAPI WIN32_svcHandler(DWORD);
-extern "C" void WINAPI SquidWinSvcMain(DWORD, char **);
+void WINAPI; WIN32_svcHandler(DWORD);
+extern "C" void WINAPI; SquidWinSvcMain(DWORD, char **);
 
 #if USE_WIN32_SERVICE
 static void WIN32_Abort(int);

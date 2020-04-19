@@ -29,7 +29,7 @@ Comm::ConnectionPointer icpIncomingConn;
 Comm::ConnectionPointer icpOutgoingConn;
 Ip::Address theIcpPublicHostID;
 
-HttpRequest* icpGetRequest(char *url, int reqnum, int fd, Ip::Address &from) STUB_RETVAL(NULL)
+HttpRequest* icpGetRequest(char *url, int reqnum, int fd, Ip::Address &from) STUB_RETVAL(nullptr)
 bool icpAccessAllowed(Ip::Address &from, HttpRequest * icp_request) STUB_RETVAL(false)
 void icpCreateAndSend(icp_opcode, int flags, char const *url, int reqnum, int pad, int fd, const Ip::Address &from, AccessLogEntryPointer) STUB
 icp_opcode icpGetCommonOpcode() STUB_RETVAL(ICP_INVALID)
@@ -39,7 +39,7 @@ void icpConnectionsOpen(void) STUB
 void icpConnectionShutdown(void) STUB
 void icpConnectionClose(void) STUB
 int icpSetCacheKey(const cache_key * key) STUB_RETVAL(0)
-const cache_key *icpGetCacheKey(const char *url, int reqnum) STUB_RETVAL(NULL)
+const cache_key *icpGetCacheKey(const char *url, int reqnum) STUB_RETVAL(nullptr)
 
 #include "icp_opcode.h"
 // dynamically generated

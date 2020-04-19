@@ -31,7 +31,7 @@ eventAdd(const char *name, EVH * func, void *arg, double when, int, bool cbdata)
 
 // required by storeKeyPublicByRequest*
 // XXX: what pulls in storeKeyPublicByRequest?
-const char *urlCanonical(HttpRequest *) { assert(false); return NULL; }
+const char *urlCanonical(HttpRequest *) { assert(false); return nullptr; }
 
 void
 storeAppendPrintf(StoreEntry * e, const char *fmt,...)
@@ -125,7 +125,7 @@ int
 main(int argc, char *argv[])
 {
     int fd = -1;
-    StoreMeta *metadata = NULL;
+    StoreMeta *metadata = nullptr;
 
     try {
         if (argc != 2)
