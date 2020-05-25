@@ -53,10 +53,11 @@ Ipc::StartListening(int sock_type, int proto, const Comm::ConnectionPointer &lis
         return; // wait for the call back
     }
 
-    enter_suid();
-    comm_open_listener(sock_type, proto, cbd->conn, FdNote(fdNote));
-    cbd->errNo = Comm::IsConnOpen(cbd->conn) ? 0 : errno;
-    leave_suid();
+    {
+        SuidSection go_suid;
+        comm_open_listener(sock_type, proto, cbd->conn, FdNote(fdNote));
+        cbd->errNo = Comm::IsConnOpen(cbd->conn) ? 0 : errno;
+    }
 
     debugs(54, 3, HERE << "opened listen " << cbd->conn);
     ScheduleCallHere(callback);

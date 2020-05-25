@@ -34,6 +34,8 @@ const char * uniqueHostname(void) STUB_RETVAL(NULL)
 void leave_suid(void) STUB_NOP
 void enter_suid(void) STUB
 void no_suid(void) STUB
+SuidSection::SuidSection() STUB
+SuidSection::~SuidSection() STUB
 
 bool
 IamMasterProcess()

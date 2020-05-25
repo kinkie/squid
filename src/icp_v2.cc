@@ -748,9 +748,10 @@ icpOpenPorts(void)
             icpOutgoingConn->local.setIPv4();
         }
 
-        enter_suid();
-        comm_open_listener(SOCK_DGRAM, IPPROTO_UDP, icpOutgoingConn, "Outgoing ICP Port");
-        leave_suid();
+        {
+            SuidSection go_suid;
+            comm_open_listener(SOCK_DGRAM, IPPROTO_UDP, icpOutgoingConn, "Outgoing ICP Port");
+        }
 
         if (!Comm::IsConnOpen(icpOutgoingConn))
             fatal("Cannot open Outgoing ICP Port");

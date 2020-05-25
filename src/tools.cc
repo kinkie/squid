@@ -78,6 +78,21 @@ SQUIDCEXTERN int setresuid(uid_t, uid_t, uid_t);
 
 #endif /* _SQUID_LINUX */
 
+int SuidSection::SuidReentranceLevel = 0;
+SuidSection::SuidSection()
+{
+    assert(SuidReentranceLevel == 0);
+    ++SuidReentranceLevel;
+    enter_suid();
+}
+
+SuidSection::~SuidSection()
+{
+    assert(SuidReentranceLevel > 0);
+    --SuidReentranceLevel;
+    leave_suid();
+}
+
 void
 releaseServerSockets(void)
 {

@@ -296,13 +296,11 @@ comm_set_transparent(int fd)
 # define soLevel SOL_SOCKET
 # define soFlag  SO_BINDANY
     SuidSection go_suid;
-    enter_suid();
 
 #elif defined(IP_BINDANY) // FreeBSD with IPFW
 # define soLevel IPPROTO_IP
 # define soFlag  IP_BINDANY
     SuidSection go_suid;
-    enter_suid();
 
 #else
     debugs(50, DBG_CRITICAL, "WARNING: comm_open: setsockopt(TPROXY) not supported on this platform");

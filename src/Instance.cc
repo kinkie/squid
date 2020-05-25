@@ -165,9 +165,10 @@ RemoveInstance()
 
     debugs(50, DBG_IMPORTANT, "Removing " << PidFileDescription(ThePidFileToRemove));
     const char *filename = ThePidFileToRemove.c_str(); // avoid complex operations inside enter_suid()
-    enter_suid();
-    safeunlink(filename, 0);
-    leave_suid();
+    {
+        SuidSection go_suid;
+        safeunlink(filename, 0);
+    }
 
     ThePidFileToRemove.clear();
 }

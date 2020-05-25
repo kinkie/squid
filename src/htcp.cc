@@ -1484,9 +1484,10 @@ htcpOpenPorts(void)
             htcpOutgoingConn->local.setIPv4();
         }
 
-        enter_suid();
-        comm_open_listener(SOCK_DGRAM, IPPROTO_UDP, htcpOutgoingConn, "Outgoing HTCP Socket");
-        leave_suid();
+        {
+            SuidSection go_suid;
+                comm_open_listener(SOCK_DGRAM, IPPROTO_UDP, htcpOutgoingConn, "Outgoing HTCP Socket");
+        }
 
         if (!Comm::IsConnOpen(htcpOutgoingConn))
             fatal("Cannot open Outgoing HTCP Socket");

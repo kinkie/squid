@@ -51,9 +51,11 @@ void no_suid(void);
 /// handle privilege escalation as a RAII handle
 class SuidSection
 {
+    private:
+    static int SuidReentranceLevel;
     public:
-    SuidSection() { enter_suid(); }
-    ~SuidSection() { leave_suid(); }
+    SuidSection();
+    ~SuidSection();
 };
 void setMaxFD(void);
 void setSystemLimits(void);
