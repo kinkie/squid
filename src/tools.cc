@@ -500,10 +500,16 @@ uniqueHostname(void)
  * and leave_suid()
  * To give upp all posibilites to gain privilegies use no_suid()
  */
+
+static bool can_setuid = false;
+
 void
 leave_suid(void)
 {
-    debugs(21, 3, "leave_suid: PID " << getpid() << " called");
+    if (!can_setuid)
+        return;
+
+    debugs(21, 3, "PID " << getpid() << " dropping privileges");
 
     if (Config.effectiveGroup) {
 #if HAVE_SETGROUPS
@@ -513,6 +519,7 @@ leave_suid(void)
         if (setgid(Config2.effectiveGroupID) < 0) {
             int xerrno = errno;
             debugs(50, DBG_CRITICAL, "ALERT: setgid: " << xstrerr(xerrno));
+            can_setuid = false;
         }
     }
 
@@ -520,10 +527,10 @@ leave_suid(void)
         return;
 
     /* Started as a root, check suid option */
-    if (Config.effectiveUser == NULL)
+    if (! Config.effectiveUser)
         return;
 
-    debugs(21, 3, "leave_suid: PID " << getpid() << " giving up root, becoming '" << Config.effectiveUser << "'");
+    debugs(21, 3, "PID " << getpid() << " giving up root, becoming '" << Config.effectiveUser << "'");
 
     if (!Config.effectiveGroup) {
 
@@ -574,16 +581,21 @@ leave_suid(void)
 void
 enter_suid(void)
 {
-    debugs(21, 3, "enter_suid: PID " << getpid() << " taking root privileges");
+    if (!can_setuid)
+        return;
+    debugs(21, 3, "PID " << getpid() << " taking root privileges");
 #if HAVE_SETRESUID
     if (setresuid((uid_t)-1, 0, (uid_t)-1) < 0) {
         const auto xerrno = errno;
-        debugs (21, 3, "enter_suid: setresuid failed: " << xstrerr(xerrno));
+        debugs (21, 3, "setresuid failed: " << xstrerr(xerrno));
+        can_setuid = false;
     }
 #else
-
-    setuid(0);
-#endif
+    if (setuid(0) < 0) {
+        debugs(21, 3, "setuid failed" << xstrerr(xerrno));
+        can_setuid = false;
+    }
+#endif /* HAVE_SETRESUID */
 #if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
     /* Set Linux DUMPABLE flag */
 
@@ -591,7 +603,7 @@ enter_suid(void)
         int xerrno = errno;
         debugs(50, 2, "ALERT: prctl: " << xstrerr(xerrno));
     }
-#endif
+#endif /* HAVE_PRCTL && defined(PR_SET_DUMPABLE) */
 }
 
 /* Give up the possibility to gain privilegies.

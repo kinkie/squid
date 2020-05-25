@@ -48,6 +48,13 @@ void sig_shutdown(int sig); ///< handles shutdown notifications from kids
 void leave_suid(void);
 void enter_suid(void);
 void no_suid(void);
+/// handle privilege escalation as a RAII handle
+class SuidSection
+{
+    public:
+    SuidSection() { enter_suid(); }
+    ~SuidSection() { leave_suid(); }
+};
 void setMaxFD(void);
 void setSystemLimits(void);
 void squid_signal(int sig, SIGHDLR *, int flags);
