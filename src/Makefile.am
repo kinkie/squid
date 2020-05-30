@@ -915,6 +915,21 @@ tests_testMem_LDADD = \
 	$(XTRA_LIBS)
 tests_testMem_LDFLAGS = $(LIBADD_DL)
 
+check_PROGRAMS += tests/testMemGtest
+tests_testMemGtest_SOURCES = \
+	tests/testMemGtest.cc
+# nodist_tests_testMemGtest_SOURCES = \
+# 	tests/stub_time.cc
+tests_testMemGtest_LDADD = \
+	mem/libmem.la \
+	$(top_builddir)/lib/libmiscutil.la \
+	-lgtest -lgtest_main -lpthread \
+	$(COMPAT_LIB) \
+	$(XTRA_LIBS)
+tests_testMemGtest_LDFLAGS = $(LIBADD_DL)
+
+
+
 ## Tests of base/*
 
 check_PROGRAMS += tests/testCharacterSet
