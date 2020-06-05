@@ -1036,6 +1036,40 @@ tests_testURL_LDADD = \
 	$(XTRA_LIBS)
 tests_testURL_LDFLAGS = $(LIBADD_DL)
 
+check_PROGRAMS += tests/testURLGtest
+tests_testURLGtest_SOURCES = \
+	tests/testURLGtest.cc \
+	tests/mockStatHist.h
+nodist_tests_testURLGtest_SOURCES = \
+	anyp/Uri.h \
+	anyp/UriScheme.h \
+	String.cc \
+	tests/mockDebug.h \
+	tests/stub_access_log.cc \
+	tests/stub_cbdata.cc \
+	tests/stub_debug.cc \
+	tests/stub_HelperChildConfig.cc \
+	tests/stub_HttpHeader.cc \
+	tests/stub_HttpRequest.cc \
+	tests/stub_libhttp.cc \
+	tests/stub_libmem.cc
+tests_testURLGtest_LDADD = \
+	libsquid.la \
+	proxyp/libproxyp.la \
+	anyp/libanyp.la \
+	parser/libparser.la \
+	base/libbase.la \
+	ip/libip.la \
+	sbuf/libsbuf.la \
+	$(top_builddir)/lib/libmiscencoding.la \
+	$(LIBCPPUNIT_LIBS) \
+	-lgtest -lgtest_main -lpthread \
+	$(COMPAT_LIB) \
+	$(XTRA_LIBS)
+tests_testURLGtest_LDFLAGS = $(LIBADD_DL)
+# tests/testUriScheme.cc \
+# tests/testUriScheme.h
+
 ## Tests of dns/*
 
 check_PROGRAMS += tests/testDns
