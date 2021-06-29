@@ -1151,28 +1151,21 @@ if test "x${enable_eui:=yes}" = "xyes" ; then
       ;;
   esac
   # iphlpapi.h check delayed after winsock2.h
-  AC_CHECK_HEADERS( \
-    windows.h \
-    sys/sockio.h \
-    sys/param.h,
+  AC_CHECK_HEADERS([windows.h sys/sockio.h sys/param.h],
   [], [], [[
 #if HAVE_WINDOWS_H
 include <windows.h>
 #endif
 ]]
   )
-  AC_CHECK_HEADERS( \
-    net/if_arp.h \
-    net/route.h, 
+  AC_CHECK_HEADERS([net/if_arp.h net/route.h],
   [], [], [[
 #include <sys/types.h>
 #include <sys/socket.h>
 ]])
 
   # OpenBSD, FreeBSD and NetBSD requires sys/param.h to be included before sysctl.h and net/if_dl.h
-  AC_CHECK_HEADERS( \
-    net/if_dl.h \
-    sys/sysctl.h,
+  AC_CHECK_HEADERS([net/if_dl.h sys/sysctl.h],
   [], [], [[
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -1285,24 +1278,7 @@ AH_TEMPLATE(USE_OPENSSL,[OpenSSL support is available])
 ## OpenSSL is default disable due to licensing issues on some OS
 if test "x$with_openssl" = "xyes"; then
   CPPFLAGS="$LIBOPENSSL_CFLAGS $CPPFLAGS"
-  AC_CHECK_HEADERS( \
-    openssl/asn1.h \
-    openssl/bio.h \
-    openssl/bn.h \
-    openssl/crypto.h \
-    openssl/dh.h \
-    openssl/err.h \
-    openssl/evp.h \
-    openssl/lhash.h \
-    openssl/md5.h \
-    openssl/opensslv.h \
-    openssl/rsa.h \
-    openssl/ssl.h \
-    openssl/x509.h \
-    openssl/x509v3.h \
-    openssl/engine.h \
-    openssl/txt_db.h \
-  )
+  AC_CHECK_HEADERS([openssl/asn1.h openssl/bio.h openssl/bn.h openssl/crypto.h openssl/dh.h openssl/err.h openssl/evp.h openssl/lhash.h openssl/md5.h openssl/opensslv.h openssl/rsa.h openssl/ssl.h openssl/x509.h openssl/x509v3.h openssl/engine.h openssl/txt_db.h])
 
   # User may have provided a custom location for OpenSSL. Otherwise...
   SQUID_STATE_SAVE(squid_openssl_state)
