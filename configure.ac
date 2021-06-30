@@ -1255,7 +1255,7 @@ if test "x$with_gnutls" != "xno"; then
     ## by testing for a 3.4.0+ function which we use
     AC_CHECK_LIB(gnutls,gnutls_pcert_export_x509,[LIBGNUTLS_LIBS="-lgnutls"])
   ])
-  AC_CHECK_HEADERS(gnutls/gnutls.h gnutls/x509.h gnutls/abstract.h)
+  AC_CHECK_HEADERS([gnutls/gnutls.h gnutls/x509.h gnutls/abstract.h)]
 
   SQUID_STATE_ROLLBACK(squid_gnutls_state) #de-pollute LIBS
 
