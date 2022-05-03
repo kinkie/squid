@@ -197,15 +197,15 @@ ldap_escape_value(char *escaped, int size, const char *src)
 static char *
 getpassword(char *login, char *realm)
 {
-    LDAPMessage *res = NULL;
-    LDAPMessage *entry;
-    char **values = NULL;
-    char **value = NULL;
-    char *password = NULL;
+    LDAPMessage *res = nullptr;
+    LDAPMessage *entry = nullptr;
+    char **values = nullptr;
+    char **value = nullptr;
+    char *password = nullptr;
     int retry = 0;
-    char filter[8192];
-    char searchbase[8192];
-    char *universal_password = NULL;
+    char filter[8192] = {};
+    char searchbase[8192] = {};
+    char *universal_password = nullptr;
     size_t universal_password_len = 256;
     int nmas_res = 0;
     int rc = -1;
