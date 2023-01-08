@@ -291,7 +291,7 @@ IpCacheLookupForwarder::forwardLookup(const char *error)
 }
 
 /// \ingroup IPCacheInternal
-inline int ipcacheCount() { return ip_table ? ip_table->count : 0; }
+inline int ipcacheCount() { return ipTable.size(); }
 
 /**
  \ingroup IPCacheInternal
@@ -328,9 +328,10 @@ ipcache_get(const char *name)
         auto rv1 = (ipcache_entry *) hash_lookup(ip_table, name);
         auto rv2 = ipTable.find(SBuf(name));
         if (rv1)
-            assert(rv2 != ipTable.end());
-        assert(rv1 == rv2->second);
-        return rv1;
+            assert(rv1 == rv2->second);
+        else
+            assert(rv2 == ipTable.end());
+        return rv2 == ipTable.end()? nullptr: rv2->second;
     } else {
         return nullptr;
     }
@@ -824,8 +825,8 @@ stat_ipcache_get(StoreEntry * sentry)
     dlink_node *m;
     assert(ip_table != nullptr);
     storeAppendPrintf(sentry, "IP Cache Statistics:\n");
-    storeAppendPrintf(sentry, "IPcache Entries Cached:  %d\n",
-                      ipcacheCount());
+    storeAppendPrintf(sentry, "IPcache Entries Cached:  %d / %lu\n",
+                      ipcacheCount(), ipTable.size());
     storeAppendPrintf(sentry, "IPcache Requests: %d\n",
                       IpcacheStats.requests);
     storeAppendPrintf(sentry, "IPcache Hits:            %d\n",
