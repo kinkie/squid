@@ -31,6 +31,8 @@
 #include "snmp_core.h"
 #endif
 
+#include <unordered_map>
+
 /**
  \defgroup IPCacheAPI IP Cache API
  \ingroup Components
@@ -204,6 +206,7 @@ static void ipcache_nbgethostbyname_(const char *name, IpCacheLookupForwarder ha
 
 /// \ingroup IPCacheInternal
 static hash_table *ip_table = nullptr;
+static std::unordered_map<SBuf, ipcache_entry *> ipTable;
 
 /// \ingroup IPCacheInternal
 static long ipcache_low = 180;
@@ -310,6 +313,7 @@ ipcacheRelease(ipcache_entry * i, bool dofree)
 
     debugs(14, 3, "ipcacheRelease: Releasing entry for '" << (const char *) i->hash.key << "'");
 
+    ipTable.erase(SBuf(i->name()));
     hash_remove_link(ip_table, (hash_link *) i);
     dlinkDelete(&i->lru, &lru_list);
     if (dofree)
@@ -320,10 +324,16 @@ ipcacheRelease(ipcache_entry * i, bool dofree)
 static ipcache_entry *
 ipcache_get(const char *name)
 {
-    if (ip_table != nullptr)
-        return (ipcache_entry *) hash_lookup(ip_table, name);
-    else
+    if (ip_table != nullptr) {
+        auto rv1 = (ipcache_entry *) hash_lookup(ip_table, name);
+        auto rv2 = ipTable.find(SBuf(name));
+        if (rv1)
+            assert(rv2 != ipTable.end());
+        assert(rv1 == rv2->second);
+        return rv1;
+    } else {
         return nullptr;
+    }
 }
 
 /// \ingroup IPCacheInternal
@@ -426,6 +436,7 @@ ipcacheAddEntry(ipcache_entry * i)
         ipcacheRelease(q);
     }
 
+    ipTable[SBuf(i->name())] = i;
     hash_join(ip_table, &i->hash);
     dlinkAdd(i, &i->lru, &lru_list);
     i->lastref = squid_curtime;
