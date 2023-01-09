@@ -348,29 +348,25 @@ ipcacheExpiredEntry(ipcache_entry * i)
 void
 ipcache_purgelru(void *)
 {
-    dlink_node *m;
-    dlink_node *prev = nullptr;
-    ipcache_entry *i;
-    int removed = 0;
     eventAdd("ipcache_purgelru", ipcache_purgelru, nullptr, 10.0, 1);
 
-    for (m = lru_list.tail; m; m = prev) {
-        if (ipcacheCount() < ipcache_low)
-            break;
+    if (static_cast<decltype(ipcache_low)>(ipTable.size()) < ipcache_low)
+        return;
+    std::vector<std::pair<time_t, SBuf>> ages; //(age, key)
+    ages.reserve(ipTable.size());
+    for (const auto &e : ipTable)
+        ages.emplace_back(std::make_pair(e.second->lastref, e.first));
 
-        prev = m->prev;
-
-        i = (ipcache_entry *)m->data;
-
-        if (i->locks != 0)
-            continue;
-
-        ipcacheRelease(i);
-
-        ++removed;
+    // O(n) average complexity; partitions array on ipcache_low
+    std::nth_element(ages.begin(), ages.begin() + ipcache_low, ages.end());
+    // we are only interested in [0, ipcache_low)
+    ages.resize(ipcache_low);
+    for (auto e : ages) {
+        dlinkDelete(&ipTable[e.second]->lru, &lru_list);
+        ipTable.erase(e.second);
     }
 
-    debugs(14, 9, "ipcache_purgelru: removed " << removed << " entries");
+    // debugs(14, 9, "ipcache_purgelru: removed " << removed << " entries");
 }
 
 /**
