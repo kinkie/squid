@@ -123,9 +123,8 @@ private:
 /**
  \ingroup IPCacheAPI
  *
- * The data structure used for storing name-address mappings
- * is a small hashtable (static hash_table *ip_table),
- * where structures of type ipcache_entry whose most
+ * The data structure used for storing name-address mappings are stored
+ * in ipTable where structures of type ipcache_entry whose most
  * interesting members are:
  */
 class ipcache_entry
@@ -205,7 +204,6 @@ static const Dns::CachedIps *ipcacheCheckNumeric(const char *name);
 static void ipcache_nbgethostbyname_(const char *name, IpCacheLookupForwarder handler);
 
 /// \ingroup IPCacheInternal
-static hash_table *ip_table = nullptr;
 static std::unordered_map<SBuf, ipcache_entry *> ipTable;
 
 /// \ingroup IPCacheInternal
@@ -314,7 +312,6 @@ ipcacheRelease(ipcache_entry * i, bool dofree)
     debugs(14, 3, "ipcacheRelease: Releasing entry for '" << (const char *) i->hash.key << "'");
 
     ipTable.erase(SBuf(i->name()));
-    hash_remove_link(ip_table, (hash_link *) i);
     dlinkDelete(&i->lru, &lru_list);
     if (dofree)
         ipcacheFreeEntry(i);
@@ -324,17 +321,8 @@ ipcacheRelease(ipcache_entry * i, bool dofree)
 static ipcache_entry *
 ipcache_get(const char *name)
 {
-    if (ip_table != nullptr) {
-        auto rv1 = (ipcache_entry *) hash_lookup(ip_table, name);
-        auto rv2 = ipTable.find(SBuf(name));
-        if (rv1)
-            assert(rv1 == rv2->second);
-        else
-            assert(rv2 == ipTable.end());
-        return rv2 == ipTable.end()? nullptr: rv2->second;
-    } else {
-        return nullptr;
-    }
+    auto rv2 = ipTable.find(SBuf(name));
+    return rv2 == ipTable.end()? nullptr: rv2->second;
 }
 
 /// \ingroup IPCacheInternal
@@ -429,16 +417,11 @@ ipcache_entry::ipcache_entry(const char *aName):
 static void
 ipcacheAddEntry(ipcache_entry * i)
 {
-    hash_link *e = (hash_link *)hash_lookup(ip_table, i->hash.key);
-
-    if (nullptr != e) {
-        /* avoid collision */
-        ipcache_entry *q = (ipcache_entry *) e;
-        ipcacheRelease(q);
-    }
+    auto e = ipTable.find(SBuf(i->name()));
+    if (e != ipTable.end())
+        ipcacheRelease(e->second);
 
     ipTable[SBuf(i->name())] = i;
-    hash_join(ip_table, &i->hash);
     dlinkAdd(i, &i->lru, &lru_list);
     i->lastref = squid_curtime;
 }
@@ -697,7 +680,6 @@ ipcacheRegisterWithCacheManager(void)
 void
 ipcache_init(void)
 {
-    int n;
     debugs(14, Important(24), "Initializing IP Cache...");
     memset(&IpcacheStats, '\0', sizeof(IpcacheStats));
     lru_list = dlink_list();
@@ -706,8 +688,6 @@ ipcache_init(void)
                             (float) Config.ipcache.high) / (float) 100);
     ipcache_low = (long) (((float) Config.ipcache.size *
                            (float) Config.ipcache.low) / (float) 100);
-    n = hashPrime(ipcache_high / 4);
-    ip_table = hash_create((HASHCMP *) strcmp, n, hash4);
 
     ipcacheRegisterWithCacheManager();
 }
@@ -823,7 +803,6 @@ void
 stat_ipcache_get(StoreEntry * sentry)
 {
     dlink_node *m;
-    assert(ip_table != nullptr);
     storeAppendPrintf(sentry, "IP Cache Statistics:\n");
     storeAppendPrintf(sentry, "IPcache Entries Cached:  %d / %lu\n",
                       ipcacheCount(), ipTable.size());
