@@ -352,7 +352,8 @@ ipcache_purgelru(void *)
     std::vector<std::pair<time_t, SBuf>> ages; //(age, key)
     ages.reserve(ipTable.size());
     for (const auto &e : ipTable)
-        ages.emplace_back(std::make_pair(e.second->lastref, e.first));
+        if(!e.second->isLocked())
+            ages.emplace_back(std::make_pair(e.second->lastref, e.first));
 
     // O(n) average complexity; partitions array on ipcache_low
     std::nth_element(ages.begin(), ages.begin() + ipcache_low, ages.end());
