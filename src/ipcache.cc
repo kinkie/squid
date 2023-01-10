@@ -135,14 +135,12 @@ public:
     ipcache_entry(const char *);
     ~ipcache_entry();
 
-    hash_link hash;     /* must be first */
     time_t lastref;
     time_t expires;
     ipcache_addrs addrs;
     IpCacheLookupForwarder handler;
     char *error_message;
 
-    dlink_node lru;
     unsigned short locks;
     struct Flags {
         Flags() : negcached(false), fromhosts(false) {}
@@ -285,9 +283,6 @@ IpCacheLookupForwarder::forwardLookup(const char *error)
     }
     // else do nothing: ReceiverFun gets no individual lookup notifications
 }
-
-/// \ingroup IPCacheInternal
-inline int ipcacheCount() { return ipTable.size(); }
 
 /**
  \ingroup IPCacheInternal
@@ -775,8 +770,8 @@ void
 stat_ipcache_get(StoreEntry * sentry)
 {
     storeAppendPrintf(sentry, "IP Cache Statistics:\n");
-    storeAppendPrintf(sentry, "IPcache Entries Cached:  %d / %lu\n",
-                      ipcacheCount(), ipTable.size());
+    storeAppendPrintf(sentry, "IPcache Entries Cached:  %lu\n",
+                      ipTable.size());
     storeAppendPrintf(sentry, "IPcache Requests: %d\n",
                       IpcacheStats.requests);
     storeAppendPrintf(sentry, "IPcache Hits:            %d\n",
@@ -1126,7 +1121,7 @@ snmp_netIpFn(variable_list * Var, snint * ErrP)
 
     case IP_ENT:
         Answer = snmp_var_new_integer(Var->name, Var->name_length,
-                                      ipcacheCount(),
+                                      static_cast<int>(ipTable.size()),
                                       SMI_GAUGE32);
         break;
 
