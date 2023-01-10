@@ -135,6 +135,7 @@ public:
     ipcache_entry(const char *);
     ~ipcache_entry();
 
+    hash_link hash; /* must be first */ /* hash.key is used as a stay-behind char * */
     time_t lastref;
     time_t expires;
     ipcache_addrs addrs;
