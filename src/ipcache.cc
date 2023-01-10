@@ -154,6 +154,7 @@ public:
     bool sawCname = false;
 
     const char *name() const { return static_cast<const char*>(hash.key); }
+    bool isLocked() const { return flags.fromhosts || locks > 0; }
 
     /// milliseconds since the first lookup start or -1 if there were no lookups
     int totalResponseTime() const;
@@ -185,9 +186,6 @@ static struct _ipcache_stats {
     int cname_only;
     int invalid;
 } IpcacheStats;
-
-/// \ingroup IPCacheInternal
-static dlink_list lru_list;
 
 // forward-decls
 static void stat_ipcache_get(StoreEntry *);
@@ -312,7 +310,6 @@ ipcacheRelease(ipcache_entry * i, bool dofree)
     debugs(14, 3, "ipcacheRelease: Releasing entry for '" << (const char *) i->hash.key << "'");
 
     ipTable.erase(SBuf(i->name()));
-    dlinkDelete(&i->lru, &lru_list);
     if (dofree)
         ipcacheFreeEntry(i);
 }
@@ -361,10 +358,8 @@ ipcache_purgelru(void *)
     std::nth_element(ages.begin(), ages.begin() + ipcache_low, ages.end());
     // we are only interested in [0, ipcache_low)
     ages.resize(ipcache_low);
-    for (auto e : ages) {
-        dlinkDelete(&ipTable[e.second]->lru, &lru_list);
+    for (auto e : ages)
         ipTable.erase(e.second);
-    }
 
     // debugs(14, 9, "ipcache_purgelru: removed " << removed << " entries");
 }
@@ -377,25 +372,7 @@ ipcache_purgelru(void *)
 static void
 purge_entries_fromhosts(void)
 {
-    dlink_node *m = lru_list.head;
-    ipcache_entry *i = nullptr, *t;
-
-    while (m) {
-        if (i != nullptr) {    /* need to delay deletion */
-            ipcacheRelease(i);  /* we just override locks */
-            i = nullptr;
-        }
-
-        t = (ipcache_entry*)m->data;
-
-        if (t->flags.fromhosts)
-            i = t;
-
-        m = m->next;
-    }
-
-    if (i != nullptr)
-        ipcacheRelease(i);
+    ipTable.clear();
 }
 
 ipcache_entry::ipcache_entry(const char *aName):
@@ -418,7 +395,6 @@ ipcacheAddEntry(ipcache_entry * i)
         ipcacheRelease(e->second);
 
     ipTable[SBuf(i->name())] = i;
-    dlinkAdd(i, &i->lru, &lru_list);
     i->lastref = squid_curtime;
 }
 
@@ -678,7 +654,6 @@ ipcache_init(void)
 {
     debugs(14, Important(24), "Initializing IP Cache...");
     memset(&IpcacheStats, '\0', sizeof(IpcacheStats));
-    lru_list = dlink_list();
 
     ipcache_high = (long) (((float) Config.ipcache.size *
                             (float) Config.ipcache.high) / (float) 100);
@@ -798,7 +773,6 @@ ipcacheStatPrint(ipcache_entry * i, StoreEntry * sentry)
 void
 stat_ipcache_get(StoreEntry * sentry)
 {
-    dlink_node *m;
     storeAppendPrintf(sentry, "IP Cache Statistics:\n");
     storeAppendPrintf(sentry, "IPcache Entries Cached:  %d / %lu\n",
                       ipcacheCount(), ipTable.size());
@@ -831,10 +805,8 @@ stat_ipcache_get(StoreEntry * sentry)
                       "TTL",
                       "N(b)");
 
-    for (m = lru_list.head; m; m = m->next) {
-        assert( m->next != m );
-        ipcacheStatPrint((ipcache_entry *)m->data, sentry);
-    }
+    for (const auto &m : ipTable)
+        ipcacheStatPrint(m.second, sentry);
 }
 
 /// \ingroup IPCacheAPI
@@ -890,10 +862,7 @@ ipcacheCheckNumeric(const char *name)
 static void
 ipcacheLockEntry(ipcache_entry * i)
 {
-    if (i->locks++ == 0) {
-        dlinkDelete(&i->lru, &lru_list);
-        dlinkAdd(i, &i->lru, &lru_list);
-    }
+    i->locks++;
 }
 
 /// \ingroup IPCacheInternal
