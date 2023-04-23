@@ -13,23 +13,116 @@
 #include "auth/Config.h"
 #include "auth/Gadgets.h"
 #include "auth/UserRequest.h"
+#include "compat/cppunit.h"
 #include "ConfigParser.h"
-#include "testAuth.h"
 #include "unitTestMain.h"
 
+/*
+ * test the auth Config framework
+ */
+
+class TestAuth : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuth);
+    CPPUNIT_TEST(instantiate);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void instantiate();
+};
 CPPUNIT_TEST_SUITE_REGISTRATION( TestAuth );
+
+class TestAuthConfig : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuthConfig);
+    CPPUNIT_TEST(create);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void create();
+};
 CPPUNIT_TEST_SUITE_REGISTRATION( TestAuthConfig );
+
+class TestAuthUserRequest : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuthUserRequest);
+    CPPUNIT_TEST(scheme);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void scheme();
+    void construction();
+};
 CPPUNIT_TEST_SUITE_REGISTRATION( TestAuthUserRequest );
+
 #if HAVE_AUTH_MODULE_BASIC
-CPPUNIT_TEST_SUITE_REGISTRATION( TestAuthBasicUserRequest );
+#include "auth/basic/UserRequest.h"
+class TestAuthBasicUserRequest : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuthBasicUserRequest);
+    CPPUNIT_TEST(construction);
+    CPPUNIT_TEST(username);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void construction();
+    void username();
+};
+CPPUNIT_TEST_SUITE_REGISTRATION(TestAuthBasicUserRequest);
 #endif
+
 #if HAVE_AUTH_MODULE_DIGEST
+#include "auth/digest/UserRequest.h"
+class TestAuthDigestUserRequest : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuthDigestUserRequest);
+    CPPUNIT_TEST(construction);
+    CPPUNIT_TEST(username);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void construction();
+    void username();
+};
 CPPUNIT_TEST_SUITE_REGISTRATION( TestAuthDigestUserRequest );
 #endif
+
 #if HAVE_AUTH_MODULE_NTLM
+#include "auth/ntlm/UserRequest.h"
+class TestAuthNtlmUserRequest : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuthNtlmUserRequest);
+    CPPUNIT_TEST(construction);
+    CPPUNIT_TEST(username);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void construction();
+    void username();
+};
 CPPUNIT_TEST_SUITE_REGISTRATION( TestAuthNtlmUserRequest );
 #endif
+
 #if HAVE_AUTH_MODULE_NEGOTIATE
+#include "auth/negotiate/UserRequest.h"
+class TestAuthNegotiateUserRequest : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(TestAuthNegotiateUserRequest);
+    CPPUNIT_TEST(construction);
+    CPPUNIT_TEST(username);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+protected:
+    void construction();
+    void username();
+};
 CPPUNIT_TEST_SUITE_REGISTRATION( TestAuthNegotiateUserRequest );
 #endif
 
@@ -68,13 +161,13 @@ static
 Auth::Config *
 getConfig(char const *type_str)
 {
-    Auth::ConfigVector &config = Auth::TheConfig;
+    Auth::Config &config = Auth::TheConfig;
     /* find a configuration for the scheme */
-    Auth::Config *scheme = Auth::Config::Find(type_str);
+    Auth::SchemeConfig *scheme = Auth::SchemeConfig::Find(type_str);
 
     if (scheme == NULL) {
         /* Create a configuration */
-        Auth::Scheme::Pointer theScheme = Auth::Scheme::Find(type_str);
+        Auth::Scheme::Pointer theScheme = Auth::SchemeConfig::Find(type_str);
 
         if (theScheme == NULL) {
             return NULL;
@@ -206,8 +299,8 @@ TestAuthBasicUserRequest::construction()
 void
 TestAuthBasicUserRequest::username()
 {
-    AuthUserRequest::Pointer temp = new AuthBasicUserRequest();
-    Auth::Basic::User *basic_auth=new Auth::Basic::User(Auth::Config::Find("basic"));
+    Auth::UserRequest::Pointer temp = new Auth::Basic::UserRequest();
+    Auth::Basic::User *basic_auth=new Auth::Basic::User(Auth::SchemeConfig::Find("basic"));
     basic_auth->username("John");
     temp->user(basic_auth);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -223,15 +316,15 @@ void
 TestAuthDigestUserRequest::construction()
 {
     AuthDigestUserRequest();
-    AuthDigestUserRequest *temp=new AuthDigestUserRequest();
+    Auth::Digest::UserRequest *temp=new Auth::Digest::UserRequest();
     delete temp;
 }
 
 void
 TestAuthDigestUserRequest::username()
 {
-    AuthUserRequest::Pointer temp = new AuthDigestUserRequest();
-    Auth::Digest::User *duser=new Auth::Digest::User(Auth::Config::Find("digest"));
+    Auth::UserRequest::Pointer temp = new Auth::Digest::UserRequest();
+    Auth::Digest::User *duser=new Auth::Digest::User(Auth::SchemeConfig::Find("digest"));
     duser->username("John");
     temp->user(duser);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -255,7 +348,7 @@ void
 TestAuthNtlmUserRequest::username()
 {
     AuthUserRequest::Pointer temp = new AuthNTLMUserRequest();
-    Auth::Ntlm::User *nuser=new Auth::Ntlm::User(Auth::Config::Find("ntlm"));
+    Auth::Ntlm::User *nuser=new Auth::Ntlm::User(Auth::SchemeConfig::Find("ntlm"));
     nuser->username("John");
     temp->user(nuser);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));
@@ -279,7 +372,7 @@ void
 TestAuthNegotiateUserRequest::username()
 {
     AuthUserRequest::Pointer temp = new AuthNegotiateUserRequest();
-    Auth::Negotiate::User *nuser=new Auth::Negotiate::User(Auth::Config::Find("negotiate"));
+    Auth::Negotiate::User *nuser=new Auth::Negotiate::User(Auth::SchemeConfig::Find("negotiate"));
     nuser->username("John");
     temp->user(nuser);
     CPPUNIT_ASSERT_EQUAL(0, strcmp("John", temp->username()));

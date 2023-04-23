@@ -752,6 +752,8 @@ tests_testBoilerplate_LDFLAGS = $(LIBADD_DL)
 # dependency-based list so that simpler code is tested before more complex code
 # which uses it.
 
+
+
 ## Tests of SquidMath.h
 check_PROGRAMS += tests/testMath
 tests_testMath_SOURCES = \
@@ -1694,6 +1696,26 @@ tests_testDiskIO_LDFLAGS = $(LIBADD_DL)
 ## Tests of auth/*
 
 if ENABLE_AUTH
+
+check_PROGRAMS += tests/testAuth
+tests_testAuth_SOURCES= \
+	tests/testAuth.cc
+nodist_tests_testAuth_SOURCES= \
+	$(TESTSOURCES) \
+	auth/Config.h \
+	auth/basic/Config.h \
+	auth/ntlm/Config.h \
+	auth/digest/Config.h
+tests_testAuth_LDADD =\
+	$(LIBCPPUNIT_LIBS) \
+	$(COMPAT_LIB) \
+	$(XTRA_LIBS) \
+	auth/libauth.la \
+	lib/basic/libbasic.la \
+	lib/ntlm/libntlm.la \
+	lib/digest/libdigest.la
+tests_testAuth_LDFLAGS = $(LIBADD_DL)
+
 check_PROGRAMS += tests/testACLMaxUserIP
 tests_testACLMaxUserIP_SOURCES = \
 	tests/testACLMaxUserIP.cc \
