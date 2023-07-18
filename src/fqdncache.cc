@@ -9,6 +9,7 @@
 /* DEBUG: section 35    FQDN Cache */
 
 #include "squid.h"
+#include "base/ClpMap.h"
 #include "cbdata.h"
 #include "dns/forward.h"
 #include "dns/LookupDetails.h"
@@ -17,6 +18,7 @@
 #include "fqdncache.h"
 #include "helper.h"
 #include "mgr/Registration.h"
+#include "base/RefCount.h"
 #include "snmp_agent.h"
 #include "SquidConfig.h"
 #include "StatCounters.h"
@@ -106,6 +108,9 @@ public:
 
     int age() const; ///< time passed since request_time or -1 if unknown
 };
+
+/// @brief supporting migration from fqdncache_entry* to refcounted
+using rfqdncache_entry = RefCount<fqdncache_entry>;
 
 /// \ingroup FQDNCacheInternal
 static struct _fqdn_cache_stats {
