@@ -39,15 +39,17 @@ typedef enum {
 class headerMangler
 {
 public:
-    acl_access *access_list;
-    char *replacement;
+    acl_access *access_list = nullptr;
+    char *replacement = nullptr;
+
+    ~headerMangler();
 };
 
 /// A collection of headerMangler objects for a given message kind.
 class HeaderManglers
 {
 public:
-    HeaderManglers();
+    HeaderManglers() = default;
     ~HeaderManglers();
 
     /// returns a header mangler for field e or nil if none was specified
@@ -79,7 +81,7 @@ private:
     typedef std::map<std::string, headerMangler, NoCaseLessThan> ManglersByName;
 
     /// one mangler for each known header
-    headerMangler known[static_cast<int>(Http::HdrType::enumEnd_)];
+    headerMangler known[static_cast<int>(Http::HdrType::enumEnd_)] = {};
 
     /// one mangler for each custom header
     ManglersByName custom;

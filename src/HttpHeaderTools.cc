@@ -359,11 +359,11 @@ httpHdrMangleList(HttpHeader *l, HttpRequest *request, const AccessLogEntryPoint
     }
 }
 
-static
-void header_mangler_clean(headerMangler &m)
+headerMangler::~headerMangler()
 {
-    aclDestroyAccessList(&m.access_list);
-    safe_free(m.replacement);
+    if (access_list)
+        aclDestroyAccessList(&access_list);
+    safe_free(replacement);
 }
 
 static
@@ -384,21 +384,8 @@ void header_mangler_dump_replacement(StoreEntry * entry, const char *option,
         storeAppendPrintf(entry, "%s %s %s\n", option, name, m.replacement);
 }
 
-HeaderManglers::HeaderManglers()
-{
-    memset(known, 0, sizeof(known));
-    memset(&all, 0, sizeof(all));
-}
-
 HeaderManglers::~HeaderManglers()
 {
-    for (auto i : WholeEnum<Http::HdrType>())
-        header_mangler_clean(known[i]);
-
-    for (auto i : custom)
-        header_mangler_clean(i.second);
-
-    header_mangler_clean(all);
 }
 
 void
