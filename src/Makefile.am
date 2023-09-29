@@ -442,6 +442,9 @@ squid_SOURCES = \
 	wordlist.cc \
 	wordlist.h
 
+$(top_srcdir)/include/squid.h.gch: $(top_srcdir)/include/squid.h
+	$(CXXCOMPILE) -x c++-header -o $@ $<
+
 EXTRA_squid_SOURCES = \
 	$(DELAY_POOL_ALL_SOURCE) \
 	$(LOADABLE_MODULES_SOURCES) \
@@ -467,7 +470,8 @@ BUILT_SOURCES = \
 	icp_opcode.cc \
 	lookup_t.cc \
 	repl_modules.cc \
-	swap_log_op.cc
+	swap_log_op.cc \
+	$(top_srcdir)/include/squid.h.gch
 
 CLEANFILES += $(BUILT_SOURCES)
 
