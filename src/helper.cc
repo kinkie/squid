@@ -1040,12 +1040,14 @@ helperHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len, Comm::
 
     if (!srv->stats.pending && !srv->stats.timedout) {
         /* someone spoke without being spoken to */
-        debugs(84, DBG_IMPORTANT, "ERROR: helperHandleRead: unexpected read from " <<
+        debugs(84, DBG_IMPORTANT, "ERROR: Killing helper process after an unexpected read from " <<
                hlp->id_name << " #" << srv->index << ", " << (int)len <<
                " bytes '" << srv->rbuf << "'");
 
         srv->roffset = 0;
         srv->rbuf[0] = '\0';
+        srv->closePipesSafely(hlp->id_name);
+        return;
     }
 
     bool needsMore = false;
@@ -1154,16 +1156,17 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
 
     srv->roffset += len;
     srv->rbuf[srv->roffset] = '\0';
-    Helper::Xaction *r = srv->requests.front();
     debugs(84, DBG_DATA, Raw("accumulated", srv->rbuf, srv->roffset));
 
-    if (r == nullptr) {
+    if (srv->requests.empty()) {
         /* someone spoke without being spoken to */
-        debugs(84, DBG_IMPORTANT, "ERROR: helperStatefulHandleRead: unexpected read from " <<
+        debugs(84, DBG_IMPORTANT, "ERROR: Killing helper process after an unexpected read from " <<
                hlp->id_name << " #" << srv->index << ", " << (int)len <<
                " bytes '" << srv->rbuf << "'");
 
         srv->roffset = 0;
+        srv->closePipesSafely(hlp->id_name);
+        return;
     }
 
     if ((t = strchr(srv->rbuf, hlp->eom))) {
@@ -1178,7 +1181,9 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
         *t = '\0';
     }
 
-    if (r && !r->reply.accumulate(srv->rbuf, t ? (t - srv->rbuf) : srv->roffset)) {
+    const auto r = srv->requests.front();
+
+    if (!r->reply.accumulate(srv->rbuf, t ? (t - srv->rbuf) : srv->roffset)) {
         debugs(84, DBG_IMPORTANT, "ERROR: Disconnecting from a " <<
                "helper that overflowed " << srv->rbuf_sz << "-byte " <<
                "Squid input buffer: " << hlp->id_name << " #" << srv->index);
@@ -1198,7 +1203,7 @@ helperStatefulHandleRead(const Comm::ConnectionPointer &conn, char *, size_t len
         srv->requests.pop_front(); // we already have it in 'r'
         int called = 1;
 
-        if (r && cbdataReferenceValid(r->request.data)) {
+        if (cbdataReferenceValid(r->request.data)) {
             r->reply.finalize();
             r->reply.reservationId = srv->reservationId;
             r->request.callback(r->request.data, r->reply);
@@ -1599,8 +1604,9 @@ Helper::Session::requestTimeout(const CommTimeoutCbParams &io)
     AsyncCall::Pointer timeoutCall = commCbCall(84, 4, "Helper::Session::requestTimeout",
                                      CommTimeoutCbPtrFun(Session::requestTimeout, srv));
 
-    const int timeSpent = srv->requests.empty() ? 0 : (squid_curtime - srv->requests.front()->request.dispatch_time.tv_sec);
-    const int timeLeft = max(1, (static_cast<int>(srv->parent->timeout) - timeSpent));
+    const time_t timeSpent = srv->requests.empty() ? 0 : (squid_curtime - srv->requests.front()->request.dispatch_time.tv_sec);
+    const time_t minimumNewTimeout = 1; // second
+    const auto timeLeft = max(minimumNewTimeout, srv->parent->timeout - timeSpent);
 
     commSetConnTimeout(io.conn, timeLeft, timeoutCall);
 }
