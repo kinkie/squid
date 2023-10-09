@@ -448,8 +448,7 @@ squid_SOURCES = \
 	wordlist.cc \
 	wordlist.h
 
-$(top_srcdir)/include/squid.h.gch: $(top_srcdir)/include/squid.h
-	$(CXXCOMPILE) -x c++-header -o $@ $<
+
 
 EXTRA_squid_SOURCES = \
 	$(DELAY_POOL_ALL_SOURCE) \
@@ -468,6 +467,23 @@ noinst_HEADERS = \
 	MemBuf.h \
 	SquidString.h
 
+$(top_srcdir)/include/squid.h.gch: $(top_srcdir)/include/squid.h
+	$(CXXCOMPILE) -x c++-header -o $@ $<
+
+$(top_srcdir)/include/squid.h.pch: $(top_srcdir)/include/squid.h
+	$(CXXCOMPILE) -x c++-header -o $@ $<
+
+if ENABLE_PCH_GCC
+PCH_FILE=$(top_srcdir)/include/squid.h.gch
+else
+if ENABLE_PCH_CLANG
+PCH_FILE=$(top_srcdir)/include/squid.h.pch
+# BUILDCXXFLAGS+=" -include-pch $(PCH_FILE)"
+else
+PCH_FILE=
+endif
+endif
+
 BUILT_SOURCES = \
 	cf_gen_defines.cci \
 	cf_parser.cci \
@@ -477,7 +493,7 @@ BUILT_SOURCES = \
 	lookup_t.cc \
 	repl_modules.cc \
 	swap_log_op.cc \
-	$(top_srcdir)/include/squid.h.gch
+	$(PCH_FILE)
 
 CLEANFILES += $(BUILT_SOURCES)
 

@@ -295,6 +295,7 @@ AS_CASE([$squid_cv_cc_name],
 squid_cv_cc_simplified="$squid_cv_cc_name-$squid_cv_cc_majversion"
 AC_MSG_RESULT($squid_cv_cc_simplified)
 
+
 # warning flags
 
 # -Wall
@@ -359,6 +360,24 @@ AC_ARG_ENABLE(optimizations,
     CXXFLAGS="`echo $CXXFLAGS | sed -e 's/-O[[0-9g]]*//'`"
   ])
 ])
+
+
+AC_ARG_ENABLE(precompiled-headers,
+  AS_HELP_STRING([--enable-precompiled-headers],[Enable precompiled headers,
+                 if supported by the compiler. This can speed up
+                 compilation, but may cause problems with some
+                 compilers. The default is disabled]),
+  [SQUID_YESNO([$enableval],[--enable-precompiled-headers])]
+)
+AS_CASE(["$squid_cv_compiler"],
+  [gcc],[true],
+dnl   [clang], [true], dnl clang is tricky to manage without a wrapper
+  [AC_MSG_NOTICE([Precompiled headers not supported on $squid_cv_compiler
+        enable_precompiled_headers=no]
+)])
+AC_MSG_NOTICE([Precompiled headers enabled: ${enable_precompiled_headers:=no}])
+AM_CONDITIONAL(ENABLE_PCH_GCC, test "x${enable_precompiled_headers}" != "xno" -a "x$squid_cv_compiler" = "xgcc")
+AM_CONDITIONAL(ENABLE_PCH_CLANG, test "x${enable_precompiled_headers}" != "xno" -a "x$squid_cv_compiler" = "xclang")
 
 dnl Nasty hack to get autoconf 2.64 on Linux to run.
 dnl all other uses of RUN_IFELSE are wrapped inside CACHE_CHECK which breaks on 2.64
@@ -2953,7 +2972,7 @@ AS_IF([test "x$BUILDCXXFLAGS" = "x"],[
   # otherwise rely on the user-provided value
   AS_IF([test "x$squid_cv_check_marchnative" = "xyes"],[
     # always valid for the Build compiler.
-    BUILDCXXFLAGS="-march=native"
+    BUILDCXXFLAGS="${BUILDCXXFLAGS} -march=native"
   ])
   BUILDCXXFLAGS="$BUILDCXXFLAGS $CXXFLAGS"
 ])
