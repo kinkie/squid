@@ -134,6 +134,8 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 #include <lber.h>
 #include <ldap.h>
 
+#include <iostream>
+
 #ifndef LDAP_SECURITY_ERROR
 #define LDAP_SECURITY_ERROR(err) (0x2f <= (err) && (err) <= 0x32) // [47, 50]
 #endif
@@ -143,7 +145,7 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 #define PROGRAM_NAME "basic_ldap_auth"
 
 /* Global options */
-static const char *basedn;
+static std::string basedn;
 static const char *searchfilter = nullptr;
 static const char *binddn = nullptr;
 static const char *bindpasswd = nullptr;
@@ -408,7 +410,7 @@ main(int argc, char **argv)
             }
             break;
         case 'b':
-            basedn = value;
+            basedn = std::string(value);
             break;
         case 'f':
             searchfilter = value;
@@ -532,36 +534,40 @@ main(int argc, char **argv)
     if (!ldapServer)
         ldapServer = xstrdup("localhost");
 
-    if (!basedn) {
-        fprintf(stderr, "Usage: " PROGRAM_NAME " -b basedn [options] [ldap_server_name[:port]]...\n\n");
-        fprintf(stderr, "\t-b basedn (REQUIRED)\tbase dn under which to search\n");
-        fprintf(stderr, "\t-f filter\t\tsearch filter to locate user DN\n");
-        fprintf(stderr, "\t-u userattr\t\tusername DN attribute\n");
-        fprintf(stderr, "\t-s base|one|sub\t\tsearch scope\n");
-        fprintf(stderr, "\t-D binddn\t\tDN to bind as to perform searches\n");
-        fprintf(stderr, "\t-w bindpasswd\t\tpassword for binddn\n");
-        fprintf(stderr, "\t-W secretfile\t\tread password for binddn from file secretfile\n");
+    if (!basedn.length()) {
+        std::cerr << "Usage: " << PROGRAM_NAME << " -b basedn [options] [ldap_server_name[:port]]...\n\n"
+            "\t-b basedn (REQUIRED)\tbase dn under which to search\n"
+            "\t-f filter\t\tsearch filter to locate user DN\n"
+            "\t-u userattr\t\tusername DN attribute\n"
+            "\t-s base|one|sub\t\tsearch scope\n"
+            "\t-D binddn\t\tDN to bind as to perform searches\n"
+            "\t-w bindpasswd\t\tpassword for binddn\n"
+            "\t-W secretfile\t\tread password for binddn from file secretfile\n"
 #if HAS_URI_SUPPORT
-        fprintf(stderr, "\t-H URI\t\t\tLDAPURI (defaults to ldap://localhost)\n");
+            "\t-H URI\t\t\tLDAPURI (defaults to ldap://localhost)\n"
 #endif
-        fprintf(stderr, "\t-h server\t\tLDAP server (defaults to localhost)\n");
-        fprintf(stderr, "\t-p port\t\t\tLDAP server port\n");
-        fprintf(stderr, "\t-P\t\t\tpersistent LDAP connection\n");
+            "\t-h server\t\tLDAP server (defaults to localhost)\n"
+            "\t-p port\t\t\tLDAP server port\n"
+            "\t-P\t\t\tpersistent LDAP connection\n"
 #if defined(NETSCAPE_SSL)
-        fprintf(stderr, "\t-E sslcertpath\t\tenable LDAP over SSL\n");
+            "\t-E sslcertpath\t\tenable LDAP over SSL\n"
 #endif
-        fprintf(stderr, "\t-c timeout\t\tconnect timeout\n");
-        fprintf(stderr, "\t-t timelimit\t\tsearch time limit\n");
-        fprintf(stderr, "\t-R\t\t\tdo not follow referrals\n");
-        fprintf(stderr, "\t-a never|always|search|find\n\t\t\t\twhen to dereference aliases\n");
+            "\t-c timeout\t\tconnect timeout\n"
+            "\t-t timelimit\t\tsearch time limit\n"
+            "\t-R\t\t\tdo not follow referrals\n"
+            "\t-a never|always|search|find\n\t\t\t\twhen to dereference aliases\n"
 #ifdef LDAP_VERSION3
-        fprintf(stderr, "\t-v 2|3\t\t\tLDAP version\n");
-        fprintf(stderr, "\t-Z\t\t\tTLS encrypt the LDAP connection, requires LDAP version 3\n");
+            "\t-v 2|3\t\t\tLDAP version\n"
+            "\t-Z\t\t\tTLS encrypt the LDAP connection, requires LDAP version 3\n"
 #endif
-        fprintf(stderr, "\t-d\t\t\tenable debug mode\n");
-        fprintf(stderr, "\n");
-        fprintf(stderr, "\tIf no search filter is specified, then the dn <userattr>=user,basedn\n\twill be used (same as specifying a search filter of '<userattr>=',\n\tbut quicker as as there is no need to search for the user DN)\n\n");
-        fprintf(stderr, "\tIf you need to bind as a user to perform searches then use the\n\t-D binddn -w bindpasswd or -D binddn -W secretfile options\n\n");
+            "\t-d\t\t\tenable debug mode\n"
+            "\n"
+            "\tIf no search filter is specified, then the dn <userattr>=user,basedn\n"
+            "\twill be used (same as specifying a search filter of '<userattr>=',\n"
+            "\tbut quicker as as there is no need to search for the user DN)\n"
+            "\n"
+            "\tIf you need to bind as a user to perform searches then use the\n"
+            "\t-D binddn -w bindpasswd or -D binddn -W secretfile options\n\n";
         exit(EXIT_FAILURE);
     }
     /* On Windows ldap_start_tls_s is available starting from Windows XP,
@@ -699,8 +705,8 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
             }
         }
         snprintf(filter, sizeof(filter), searchfilter, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login);
-        debug("user filter '%s', searchbase '%s'\n", filter, basedn);
-        rc = ldap_search_s(search_ld, basedn, searchscope, filter, searchattr, 1, &res);
+        debug("user filter '%s', searchbase '%s'\n", filter, basedn.c_str());
+        rc = ldap_search_s(search_ld, basedn.c_str(), searchscope, filter, searchattr, 1, &res);
         if (rc != LDAP_SUCCESS) {
             if (noreferrals && rc == LDAP_PARTIAL_RESULTS) {
                 /* Everything is fine. This is expected when referrals
@@ -751,7 +757,7 @@ search_done:
         if (ret != 0)
             return ret;
     } else {
-        snprintf(dn, sizeof(dn), "%s=%s,%s", userattr, userid, basedn);
+        snprintf(dn, sizeof(dn), "%s=%s,%s", userattr, userid, basedn.c_str());
     }
 
     debug("attempting to authenticate user '%s'\n", dn);
