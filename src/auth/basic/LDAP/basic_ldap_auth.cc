@@ -146,7 +146,7 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 
 /* Global options */
 static std::string basedn;
-static const char *searchfilter = nullptr;
+static std::string searchfilter;
 static const char *binddn = nullptr;
 static const char *bindpasswd = nullptr;
 static const char *userattr = "uid";
@@ -410,7 +410,7 @@ main(int argc, char **argv)
             }
             break;
         case 'b':
-            basedn = std::string(value);
+            basedn = value;
             break;
         case 'f':
             searchfilter = value;
@@ -682,7 +682,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
         debug("Blank password given\n");
         return 1;
     }
-    if (searchfilter) {
+    if (searchfilter.length()) {
         char filter[16384];
         char escaped_login[1024];
         LDAPMessage *res = nullptr;
@@ -704,7 +704,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
                 goto search_done;
             }
         }
-        snprintf(filter, sizeof(filter), searchfilter, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login);
+        snprintf(filter, sizeof(filter), searchfilter.c_str(), escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login);
         debug("user filter '%s', searchbase '%s'\n", filter, basedn.c_str());
         rc = ldap_search_s(search_ld, basedn.c_str(), searchscope, filter, searchattr, 1, &res);
         if (rc != LDAP_SUCCESS) {
