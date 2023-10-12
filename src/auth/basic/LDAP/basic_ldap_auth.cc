@@ -147,8 +147,8 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 /* Global options */
 static std::string basedn;
 static std::string searchfilter;
-static const char *binddn = nullptr;
-static const char *bindpasswd = nullptr;
+static std::string binddn;
+static std::string bindpasswd;
 static const char *userattr = "uid";
 static const char *passwdattr = nullptr;
 static int searchscope = LDAP_SCOPE_SUBTREE;
@@ -696,10 +696,10 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
             search_ld = open_ldap_connection(ldapServer, port);
 
         ldap_escape_value(escaped_login, sizeof(escaped_login), userid);
-        if (binddn) {
-            rc = ldap_simple_bind_s(search_ld, binddn, bindpasswd);
+        if (binddn.length()) {
+            rc = ldap_simple_bind_s(search_ld, binddn.c_str(), bindpasswd.c_str());
             if (rc != LDAP_SUCCESS) {
-                fprintf(stderr, PROGRAM_NAME ": WARNING, could not bind to binddn '%s'\n", ldap_err2string(rc));
+                std::cerr << PROGRAM_NAME << ": WARNING, could not bind to binddn :'" << ldap_err2string(rc) << "'\n";
                 ret = 1;
                 goto search_done;
             }
@@ -740,7 +740,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
         snprintf(dn, sizeof(dn), "%s", userdn);
         squid_ldap_memfree(userdn);
 
-        if (ret == 0 && (!binddn || !bind_once || passwdattr)) {
+        if (ret == 0 && (!binddn.length() || !bind_once || passwdattr)) {
             /* Reuse the search connection for comparing the user password attribute */
             bind_ld = search_ld;
             search_ld = nullptr;
