@@ -149,8 +149,8 @@ static std::string basedn;
 static std::string searchfilter;
 static std::string binddn;
 static std::string bindpasswd;
-static const char *userattr = "uid";
-static const char *passwdattr = nullptr;
+static std::string userattr("uid");
+static std::string passwdattr;
 static int searchscope = LDAP_SCOPE_SUBTREE;
 static int persistent = 0;
 static int bind_once = 0;
@@ -740,7 +740,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
         snprintf(dn, sizeof(dn), "%s", userdn);
         squid_ldap_memfree(userdn);
 
-        if (ret == 0 && (!binddn.length() || !bind_once || passwdattr)) {
+        if (ret == 0 && (!binddn.length() || !bind_once || passwdattr.length())) {
             /* Reuse the search connection for comparing the user password attribute */
             bind_ld = search_ld;
             search_ld = nullptr;
@@ -757,7 +757,7 @@ search_done:
         if (ret != 0)
             return ret;
     } else {
-        snprintf(dn, sizeof(dn), "%s=%s,%s", userattr, userid, basedn.c_str());
+        snprintf(dn, sizeof(dn), "%s=%s,%s", userattr.c_str(), userid, basedn.c_str());
     }
 
     debug("attempting to authenticate user '%s'\n", dn);
@@ -765,8 +765,8 @@ search_done:
         bind_ld = persistent_ld;
     if (!bind_ld)
         bind_ld = open_ldap_connection(ldapServer, port);
-    if (passwdattr) {
-        if (ldap_compare_s(bind_ld, dn, passwdattr, password) != LDAP_COMPARE_TRUE) {
+    if (passwdattr.length()) {
+        if (ldap_compare_s(bind_ld, dn, passwdattr.c_str(), password) != LDAP_COMPARE_TRUE) {
             ret = 1;
         }
     } else if (ldap_simple_bind_s(bind_ld, dn, password) != LDAP_SUCCESS)
