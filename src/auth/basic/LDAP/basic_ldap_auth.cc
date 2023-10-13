@@ -157,7 +157,7 @@ static int bind_once = 0;
 static int noreferrals = 0;
 static int aliasderef = LDAP_DEREF_NEVER;
 #if defined(NETSCAPE_SSL)
-static const char *sslpath = nullptr;
+static std::string sslpath;
 static int sslinit = 0;
 #endif
 static int connect_timeout = 0;
@@ -246,7 +246,7 @@ squid_ldap_set_timelimit(LDAP * ld, int timelimit)
 static void
 squid_ldap_set_connect_timeout(LDAP * ld, int timelimit)
 {
-    fprintf(stderr, "Connect timeouts not supported in your LDAP library\n");
+    std::cerr << "Connect timeouts not supported in your LDAP library\n";
 }
 static void
 squid_ldap_memfree(char *p)
@@ -270,30 +270,29 @@ open_ldap_connection(const char *ldapServer, int port)
     if (strstr(ldapServer, "://") != nullptr) {
         int rc = ldap_initialize(&ld, ldapServer);
         if (rc != LDAP_SUCCESS) {
-            fprintf(stderr, "\nUnable to connect to LDAPURI:%s\n", ldapServer);
+            std::cerr <<  "\nUnable to connect to LDAPURI:" << ldapServer << "\n";
             exit(EXIT_FAILURE);
         }
     } else
 #endif
 #if NETSCAPE_SSL
-        if (sslpath) {
-            if (!sslinit && (ldapssl_client_init(sslpath, nullptr) != LDAP_SUCCESS)) {
-                fprintf(stderr, "\nUnable to initialise SSL with cert path %s\n",
-                        sslpath);
+        if (sslpath.length()) {
+            if (!sslinit && (ldapssl_client_init(sslpath.c_str(), nullptr) != LDAP_SUCCESS)) {
+                std::cerr << "\nUnable to initialise SSL with cert path " << sslpath << "\n";
                 exit(EXIT_FAILURE);
             } else {
                 ++sslinit;
             }
             if ((ld = ldapssl_init(ldapServer, port, 1)) == NULL) {
-                fprintf(stderr, "\nUnable to connect to SSL LDAP server: %s port:%d\n",
-                        ldapServer, port);
-                exit(EXIT_FAILURE);
+                std::cerr << "\nUnable to connect to SSL LDAP server: " <<
+                    ldapServer << " port:" << port << "\n";
+\                exit(EXIT_FAILURE);
             }
         } else
 #endif
             if ((ld = ldap_init(ldapServer, port)) == nullptr) {
-                fprintf(stderr, "\nUnable to connect to LDAP server:%s port:%d\n",
-                        ldapServer, port);
+                std::cerr << "\nUnable to connect to LDAP server:" <<
+                    ldapServer << " port:" << port << "\n";
                 exit(EXIT_FAILURE);
             }
     if (connect_timeout)
@@ -304,21 +303,21 @@ open_ldap_connection(const char *ldapServer, int port)
         version = LDAP_VERSION3;
     }
     if (ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version) != LDAP_SUCCESS) {
-        fprintf(stderr, "Could not set LDAP_OPT_PROTOCOL_VERSION %d\n",
-                version);
+        std::cerr << "\nCould not set LDAP_OPT_PROTOCOL_VERSION " <<
+            version << "\n";
         exit(EXIT_FAILURE);
     }
     if (use_tls) {
 #ifdef LDAP_OPT_X_TLS
         if (version != LDAP_VERSION3) {
-            fprintf(stderr, "TLS requires LDAP version 3\n");
+            std::cerr << "\nTLS requires LDAP version 3\n";
             exit(EXIT_FAILURE);
         } else if (ldap_start_tls_s(ld, nullptr, nullptr) != LDAP_SUCCESS) {
-            fprintf(stderr, "Could not Activate TLS connection\n");
+            std::cerr << "\nCould not Activate TLS connection\n";
             exit(EXIT_FAILURE);
         }
 #else
-        fprintf(stderr, "TLS not supported with your LDAP library\n");
+        std::cerr << "\nTLS not supported with your LDAP library\n";
         exit(EXIT_FAILURE);
 #endif
     }
@@ -394,7 +393,7 @@ main(int argc, char **argv)
         switch (option) {
         case 'H':
 #if !HAS_URI_SUPPORT
-            fprintf(stderr, "ERROR: Your LDAP library does not have URI support\n");
+            std::cerr << "ERROR: Your LDAP library does not have URI support\n";
             exit(EXIT_FAILURE);
 #endif
         /* Fall thru to -h */
@@ -429,7 +428,8 @@ main(int argc, char **argv)
             else if (strcmp(value, "sub") == 0)
                 searchscope = LDAP_SCOPE_SUBTREE;
             else {
-                fprintf(stderr, PROGRAM_NAME ": ERROR: Unknown search scope '%s'\n", value);
+                std::cerr << PROGRAM_NAME << ": ERROR: Unknown search scope '"
+                    << value << "'\n";
                 exit(EXIT_FAILURE);
             }
             break;
@@ -439,7 +439,7 @@ main(int argc, char **argv)
             if (port == LDAP_PORT)
                 port = LDAPS_PORT;
 #else
-            fprintf(stderr, PROGRAM_NAME " ERROR: -E unsupported with this LDAP library\n");
+            std::cerr << PROGRAM_NAME << ": ERROR: -E unsupported with this LDAP library\n";
             exit(EXIT_FAILURE);
 #endif
             break;
@@ -459,7 +459,9 @@ main(int argc, char **argv)
             else if (strcmp(value, "find") == 0)
                 aliasderef = LDAP_DEREF_FINDING;
             else {
-                fprintf(stderr, PROGRAM_NAME ": ERROR: Unknown alias dereference method '%s'\n", value);
+                std::cerr << PROGRAM_NAME <<
+                    ": ERROR: Unknown alias dereference method '" << value <<
+                    "'\n";
                 exit(EXIT_FAILURE);
             }
             break;
@@ -494,14 +496,14 @@ main(int argc, char **argv)
                 version = LDAP_VERSION3;
                 break;
             default:
-                fprintf(stderr, "Protocol version should be 2 or 3\n");
+                std::cerr << "Protocol version should be 2 or 3\n";
                 exit(EXIT_FAILURE);
             }
             break;
         case 'Z':
             if (version == LDAP_VERSION2) {
-                fprintf(stderr, "TLS (-Z) is incompatible with version %d\n",
-                        version);
+                std::cerr << "TLS (-Z) is incompatible with version " <<
+                    version << "\n";
                 exit(EXIT_FAILURE);
             }
             version = LDAP_VERSION3;
@@ -512,7 +514,7 @@ main(int argc, char **argv)
             debug_enabled = 1;
             break;
         default:
-            fprintf(stderr, PROGRAM_NAME ": ERROR: Unknown command line option '%c'\n", option);
+            std::cerr << PROGRAM_NAME << ": ERROR: Unknown command line option '" << option << "'\n";
             exit(EXIT_FAILURE);
         }
     }
@@ -580,7 +582,7 @@ main(int argc, char **argv)
 
         WLDAP32Handle = GetModuleHandle("wldap32");
         if ((Win32_ldap_start_tls_s = (PFldap_start_tls_s) GetProcAddress(WLDAP32Handle, LDAP_START_TLS_S)) == NULL) {
-            fprintf(stderr, PROGRAM_NAME ": ERROR: TLS (-Z) not supported on this platform.\n");
+            std::cerr << PROGRAM_NAME ": ERROR: TLS (-Z) not supported on this platform.\n";
             exit(EXIT_FAILURE);
         }
     }
@@ -714,11 +716,12 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
                  */
                 debug("noreferrals && rc == LDAP_PARTIAL_RESULTS\n");
             } else {
-                fprintf(stderr, PROGRAM_NAME ": WARNING, LDAP search error '%s'\n", ldap_err2string(rc));
+                std::cerr << PROGRAM_NAME ": WARNING, LDAP search error '" << ldap_err2string(rc)  << "'\n", ldap_err2string(rc);
 #if defined(NETSCAPE_SSL)
                 if (sslpath && ((rc == LDAP_SERVER_DOWN) || (rc == LDAP_CONNECT_ERROR))) {
                     int sslerr = PORT_GetError();
-                    fprintf(stderr, PROGRAM_NAME ": WARNING, SSL error %d (%s)\n", sslerr, ldapssl_err2string(sslerr));
+                    std::cerr << PROGRAM_NAME ": WARNING, SSL error " <<
+                        sslerr << " (" << ldapssl_err2string(sslerr) << ")\n";
                 }
 #endif
                 ret = 1;
@@ -733,7 +736,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
         }
         userdn = ldap_get_dn(search_ld, entry);
         if (!userdn) {
-            fprintf(stderr, PROGRAM_NAME ": ERROR, could not get user DN for '%s'\n", userid);
+            std::cerr << PROGRAM_NAME ": ERROR, could not get user DN for '" << userid << "'\n";
             ret = 1;
             goto search_done;
         }
@@ -787,11 +790,12 @@ readSecret(const char *filename)
     char *passwd = nullptr;
 
     if (!(f = fopen(filename, "r"))) {
-        fprintf(stderr, PROGRAM_NAME " ERROR: Can not read secret file %s\n", filename);
+        std::cerr << PROGRAM_NAME << ": ERROR: Can not read secret file " << filename << "\n";
         return 1;
     }
     if (!fgets(buf, sizeof(buf) - 1, f)) {
-        fprintf(stderr, PROGRAM_NAME " ERROR: Secret file %s is empty\n", filename);
+        std::cerr << PROGRAM_NAME << ": ERROR: Secret file '" << filename <<
+            "' is empty\n";
         fclose(f);
         return 1;
     }
@@ -803,7 +807,7 @@ readSecret(const char *filename)
 
     passwd = (char *) calloc(sizeof(char), strlen(buf) + 1);
     if (!passwd) {
-        fprintf(stderr, PROGRAM_NAME " ERROR: can not allocate memory\n");
+        std::cerr << PROGRAM_NAME << ": ERROR: can not allocate memory\n";
         exit(EXIT_FAILURE);
     }
     strcpy(passwd, buf);
