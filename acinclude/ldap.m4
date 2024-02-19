@@ -101,3 +101,36 @@ AC_DEFUN([SQUID_CHECK_LDAP_API],[
   ])
   SQUID_STATE_ROLLBACK(squid_ldap_state)
 ])
+
+AC_DEFUN([SQUID_DOES_LDAP_WORK_REALLY],[
+  SQUID_AUTO_LIB(ldap,[LDAP],[LIBLDAP])
+  SQUID_CHECK_LIB_WORKS(ldap,[
+    dnl On MinGW OpenLDAP is not available, so LDAP helpers can be linked
+    dnl only with Windows LDAP libraries using -lwldap32
+    AS_IF([test "$squid_host_os" = "mingw"],[
+      LIBLDAP_LIBS="-lwldap32"
+    ],[
+      SQUID_STATE_SAVE(squid_ldap_state)
+      LIBS="$LIBLDAP_PATH $LIBPTHREADS $LIBS"
+      PKG_CHECK_MODULES([LIBLDAP],[ldap],[],[
+        AC_CHECK_LIB(lber, ber_init, [LIBLBER="-llber"])
+        AC_CHECK_LIB(ldap, ldap_init, [LIBLDAP_LIBS="-lldap $LIBLBER"])
+        dnl if no ldap lib found check for mozilla version
+        AS_IF([test "x$ac_cv_lib_ldap_ldap_init" != "xyes"],[
+          SQUID_STATE_SAVE(squid_ldap_mozilla)
+          LIBS="$LIBLDAP_PATH $LIBPTHREADS"
+          AC_CHECK_LIB(ldap60, ldap_init, [LIBLDAP_LIBS="-lldap60 $LIBLBER"])
+          LIBS="$LIBLDAP_PATH $LIBLDAP_LIBS $LIBPTHREADS"
+          AC_CHECK_LIB(prldap60, prldap_init, [LIBLDAP_LIBS="-lprldap60 $LIBLDAP_LIBS"])
+          LIBS="$LIBLDAP_PATH $LIBLDAP_LIBS $LIBPTHREADS"
+          AC_CHECK_LIB(ssldap60, ldapssl_init, [LIBLDAP_LIBS="-lssldap60 $LIBLDAP_LIBS"])
+          SQUID_STATE_ROLLBACK(squid_ldap_mozilla)
+        ])
+      ])
+      AC_CHECK_HEADERS(ldap.h lber.h)
+      AC_CHECK_HEADERS(mozldap/ldap.h)
+      SQUID_CHECK_LDAP_API
+    ])
+  ])
+])
+  
