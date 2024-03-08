@@ -90,7 +90,6 @@ private:
     void fillChecklist(ACLFilledChecklist &) const override;
 
     clientStreamNode *getNextNode() const;
-    void makeThisHead();
     bool errorInStream(const StoreIOBuffer &result) const;
     bool matchesStreamBodyBuffer(const StoreIOBuffer &) const;
     void sendStreamError(StoreIOBuffer const &result);

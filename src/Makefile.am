@@ -208,6 +208,8 @@ squid_SOURCES = \
 	CachePeers.cc \
 	CachePeers.h \
 	ClientInfo.h \
+	ClientActiveRequests.cc \
+	ClientActiveRequests.h \
 	ClientRequestContext.h \
 	CollapsedForwarding.cc \
 	CollapsedForwarding.h \
@@ -1771,6 +1773,8 @@ tests_test_http_range_SOURCES = \
 	CachePeer.h \
 	CachePeers.cc \
 	CachePeers.h \
+	ClientActiveRequests.cc \
+	ClientActiveRequests.h \
 	ClientInfo.h \
 	tests/stub_CollapsedForwarding.cc \
 	ConfigOption.cc \
@@ -2158,6 +2162,8 @@ tests_testHttpRequest_SOURCES = \
 	CachePeer.h \
 	CachePeers.cc \
 	CachePeers.h \
+	ClientActiveRequests.cc \
+	ClientActiveRequests.h \
 	ClientInfo.h \
 	tests/stub_CollapsedForwarding.cc \
 	ConfigOption.cc \
@@ -2457,6 +2463,8 @@ tests_testCacheManager_SOURCES = \
 	CachePeer.h \
 	CachePeers.cc \
 	CachePeers.h \
+	ClientActiveRequests.cc \
+	ClientActiveRequests.h \
 	ClientInfo.h \
 	tests/stub_CollapsedForwarding.cc \
 	ConfigOption.cc \

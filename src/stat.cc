@@ -13,6 +13,7 @@
 #include "CacheDigest.h"
 #include "CachePeer.h"
 #include "CachePeers.h"
+#include "ClientActiveRequests.h"
 #include "client_side.h"
 #include "client_side_request.h"
 #include "comm/Connection.h"
@@ -1262,10 +1263,6 @@ statInit(void)
 
     eventAdd("statAvgTick", statAvgTick, nullptr, (double) COUNT_INTERVAL, 1);
 
-    ClientActiveRequests.head = nullptr;
-
-    ClientActiveRequests.tail = nullptr;
-
     statRegisterWithCacheManager();
 }
 
@@ -1774,7 +1771,7 @@ statClientRequests(StoreEntry * s)
     StoreEntry *e;
     char buf[MAX_IPSTRLEN];
 
-    for (i = ClientActiveRequests.head; i; i = i->next) {
+    for (i = ClientActiveRequests::Instance().GetActiveRequests()->head; i; i = i->next) {
         const char *p = nullptr;
         http = static_cast<ClientHttpRequest *>(i->data);
         assert(http);

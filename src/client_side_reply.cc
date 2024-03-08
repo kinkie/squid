@@ -12,6 +12,7 @@
 #include "acl/FilledChecklist.h"
 #include "acl/Gadgets.h"
 #include "anyp/PortCfg.h"
+#include "ClientActiveRequests.h"
 #include "client_side_reply.h"
 #include "errorpage.h"
 #include "ETag.h"
@@ -1689,14 +1690,6 @@ clientReplyContext::SendMoreData(void *data, StoreIOBuffer result)
     context->sendMoreData (result);
 }
 
-void
-clientReplyContext::makeThisHead()
-{
-    /* At least, I think that's what this does */
-    dlinkDelete(&http->active, &ClientActiveRequests);
-    dlinkAdd(http, &http->active, &ClientActiveRequests);
-}
-
 bool
 clientReplyContext::errorInStream(const StoreIOBuffer &result) const
 {
@@ -1996,7 +1989,8 @@ clientReplyContext::sendMoreData (StoreIOBuffer result)
     assert(http->client_stream.head->data
            && cbdataReferenceValid(http->client_stream.head->data));
 
-    makeThisHead();
+    /* update LRU active requests */
+    ClientActiveRequests::Instance().MakeHead(&http->active);
 
     if (errorInStream(result)) {
         sendStreamError(result);

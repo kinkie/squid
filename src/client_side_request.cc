@@ -24,6 +24,7 @@
 #include "client_side.h"
 #include "client_side_reply.h"
 #include "client_side_request.h"
+#include "ClientActiveRequests.h"
 #include "ClientRequestContext.h"
 #include "clientStream.h"
 #include "comm/Connection.h"
@@ -148,7 +149,7 @@ ClientHttpRequest::ClientHttpRequest(ConnStateData * aConn) :
         }
 #endif
     }
-    dlinkAdd(this, &active, &ClientActiveRequests);
+    ClientActiveRequests::Instance().Add(this, &active);
 }
 
 /*
@@ -265,7 +266,7 @@ ClientHttpRequest::~ClientHttpRequest()
     cbdataReferenceDone(conn_);
 
     /* moving to the next connection is handled by the context free */
-    dlinkDelete(&active, &ClientActiveRequests);
+    ClientActiveRequests::Instance().Delete(&active);
 }
 
 /**
