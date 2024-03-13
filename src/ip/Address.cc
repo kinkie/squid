@@ -12,6 +12,7 @@
 #include "debug/Stream.h"
 #include "ip/Address.h"
 #include "ip/tools.h"
+#include "sbuf/SBuf.h"
 #include "util.h"
 
 #include <cassert>
@@ -798,54 +799,50 @@ Ip::Address::port(unsigned short prt)
     return prt;
 }
 
-char *
-Ip::Address::toStr(char* buf, const unsigned int blen, int force) const
+SBuf
+Ip::Address::toStr(int force) const
 {
-    // Ensure we have a buffer.
-    if (buf == nullptr) {
-        return nullptr;
-    }
+    SBuf rv;
 
     /* some external code may have blindly memset a parent. */
     /* that's okay, our default is known */
     if ( isAnyAddr() ) {
         if (isIPv6())
-            memcpy(buf,"::\0", min(static_cast<unsigned int>(3),blen));
+            return SBuf("::")
         else if (isIPv4())
-            memcpy(buf,"0.0.0.0\0", min(static_cast<unsigned int>(8),blen));
-        return buf;
+            return SBuf("0.0.0.0");
+        assert("Should not reach here");
     }
-
-    memset(buf,0,blen); // clear buffer before write
 
     /* Pure-IPv6 CANNOT be displayed in IPv4 format. */
     /* However IPv4 CAN. */
     if ( force == AF_INET && !isIPv4() ) {
-        if ( isIPv6() ) {
-            memcpy(buf, "{!IPv4}\0", min(static_cast<unsigned int>(8),blen));
-        }
-        return buf;
+        if ( isIPv6() )
+            return SBuf("{!IPv4}");
     }
 
     if ( force == AF_INET6 || (force == AF_UNSPEC && isIPv6()) ) {
-
-        inet_ntop(AF_INET6, &mSocketAddr_.sin6_addr, buf, blen);
-
+        buf = rv.rawAppendStart(MAX_IPSTRLEN);
+        auto p = inet_ntop(AF_INET6, &mSocketAddr_.sin6_addr, buf, MAX_IPSTRLEN);
+        if (p)
+            rv.rawAppendFinish(p, strlen(p));
     } else  if ( force == AF_INET || (force == AF_UNSPEC && isIPv4()) ) {
-
+        buf = rv.rawAppendStart(MAX_IPSTRLEN);
         struct in_addr tmp;
         getInAddr(tmp);
-        inet_ntop(AF_INET, &tmp, buf, blen);
+        auto p = inet_ntop(AF_INET, &tmp, buf, MAX_IPSTRLEN);
+        if (p)
+            rv.rawAppendFinish(p, strlen(p));
     } else {
         debugs(14, DBG_CRITICAL, "WARNING: Corrupt IP Address details OR required to display in unknown format (" <<
                force << "). accepted={" << AF_UNSPEC << "," << AF_INET << "," << AF_INET6 << "}");
         fprintf(stderr,"WARNING: Corrupt IP Address details OR required to display in unknown format (%d). accepted={%d,%d,%d} ",
                 force, AF_UNSPEC, AF_INET, AF_INET6);
-        memcpy(buf,"dead:beef::\0", min(static_cast<unsigned int>(13),blen));
+        rv = SBuf("dead:beef::");
         assert(false);
     }
 
-    return buf;
+    return rv;
 }
 
 unsigned int

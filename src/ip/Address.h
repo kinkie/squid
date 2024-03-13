@@ -12,6 +12,7 @@
 #define SQUID_SRC_IP_ADDRESS_H
 
 #include "ip/forward.h"
+#include "sbuf/SBuf.h"
 
 #include <iosfwd>
 #include <ostream>
@@ -210,7 +211,7 @@ public:
      \param force (optional) require the IPA in a specific format.
      \return pointer to buffer received.
      */
-    char* toStr(char *buf, const unsigned int blen, int force = AF_UNSPEC) const;
+    SBuf toStr(int force = AF_UNSPEC) const;
 
     /** Return the ASCII equivalent of the address:port combination
      *  Provides a URL formatted version of the content.
