@@ -80,9 +80,12 @@ DigestAttrs[] = {
     {nullptr, DIGEST_INVALID_ATTR}
 };
 
-LookupTable<http_digest_attr_type>
-DigestFieldsLookupTable(DIGEST_INVALID_ATTR, DigestAttrs);
-
+static const auto&
+DigestFieldsLookupTable()
+{
+    static const auto *t = new LookupTable<http_digest_attr_type>(DIGEST_INVALID_ATTR, DigestAttrs);
+    return *t;
+}
 /*
  *
  * Nonce Functions
@@ -774,7 +777,7 @@ Auth::Digest::Config::decode(char const *proxy_auth, const HttpRequest *request,
         }
 
         /* find type */
-        const http_digest_attr_type t = DigestFieldsLookupTable.lookup(keyName);
+        const http_digest_attr_type t = DigestFieldsLookupTable().lookup(keyName);
 
         switch (t) {
         case DIGEST_USERNAME:
