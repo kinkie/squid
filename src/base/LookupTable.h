@@ -52,7 +52,10 @@ class LookupTable
 {
 public:
     /// element of the lookup table initialization list
-    typedef RecordType Record;
+    using Record=RecordType;
+    using lookupTable_t = std::unordered_map<const SBuf, EnumType, Hasher, CaseInsensitiveSBufEqual>;
+    using iterator = typename lookupTable_t::iterator;
+    using const_iterator = typename lookupTable_t::const_iterator;
 
     LookupTable(const EnumType theInvalid, const Record data[]) :
         invalidValue(theInvalid)
@@ -69,8 +72,19 @@ public:
         return r->second;
     }
 
+    const SBuf reverse_lookup(EnumType value) const {
+        for (auto &i : lookupTable) {
+            if (i.second == value)
+                return i.first;
+        }
+        return reverse_lookup(invalidValue);
+    }
+
+    // iterate via std::pair<SBuf, EnumType>
+    const_iterator begin() const { return lookupTable.begin(); }
+    const_iterator end() const { return lookupTable.end(); }
+
 private:
-    using lookupTable_t = std::unordered_map<const SBuf, EnumType, Hasher, CaseInsensitiveSBufEqual>;
     lookupTable_t lookupTable;
     EnumType invalidValue;
 };

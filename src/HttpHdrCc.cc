@@ -10,6 +10,7 @@
 
 #include "squid.h"
 #include "base/LookupTable.h"
+#include "base/PackableStream.h"
 #include "HttpHdrCc.h"
 #include "HttpHeader.h"
 #include "HttpHeaderFieldStat.h"
@@ -25,26 +26,41 @@
 #include <vector>
 #include <ostream>
 
-// invariant: row[j].id == j
-static LookupTable<HttpHdrCcType>::Record CcAttrs[] = {
-    {"public", HttpHdrCcType::CC_PUBLIC},
-    {"private", HttpHdrCcType::CC_PRIVATE},
-    {"no-cache", HttpHdrCcType::CC_NO_CACHE},
-    {"no-store", HttpHdrCcType::CC_NO_STORE},
-    {"no-transform", HttpHdrCcType::CC_NO_TRANSFORM},
-    {"must-revalidate", HttpHdrCcType::CC_MUST_REVALIDATE},
-    {"proxy-revalidate", HttpHdrCcType::CC_PROXY_REVALIDATE},
-    {"max-age", HttpHdrCcType::CC_MAX_AGE},
-    {"s-maxage", HttpHdrCcType::CC_S_MAXAGE},
-    {"max-stale", HttpHdrCcType::CC_MAX_STALE},
-    {"min-fresh", HttpHdrCcType::CC_MIN_FRESH},
-    {"only-if-cached", HttpHdrCcType::CC_ONLY_IF_CACHED},
-    {"stale-if-error", HttpHdrCcType::CC_STALE_IF_ERROR},
-    {"immutable", HttpHdrCcType::CC_IMMUTABLE},
-    {"Other,", HttpHdrCcType::CC_OTHER}, /* ',' will protect from matches */
-    {nullptr, HttpHdrCcType::CC_ENUM_END}
-};
-LookupTable<HttpHdrCcType> ccLookupTable(HttpHdrCcType::CC_OTHER,CcAttrs);
+using ccLookupTable_t = LookupTable<HttpHdrCcType>;
+static const auto &
+ccLookupTable()
+{
+    static ccLookupTable_t *table = nullptr;
+    if (table)
+        return *table;
+
+    // invariant: row[j].id == j
+    static ccLookupTable_t::Record CcAttrs[] = {
+        {"public", HttpHdrCcType::CC_PUBLIC},
+        {"private", HttpHdrCcType::CC_PRIVATE},
+        {"no-cache", HttpHdrCcType::CC_NO_CACHE},
+        {"no-store", HttpHdrCcType::CC_NO_STORE},
+        {"no-transform", HttpHdrCcType::CC_NO_TRANSFORM},
+        {"must-revalidate", HttpHdrCcType::CC_MUST_REVALIDATE},
+        {"proxy-revalidate", HttpHdrCcType::CC_PROXY_REVALIDATE},
+        {"max-age", HttpHdrCcType::CC_MAX_AGE},
+        {"s-maxage", HttpHdrCcType::CC_S_MAXAGE},
+        {"max-stale", HttpHdrCcType::CC_MAX_STALE},
+        {"min-fresh", HttpHdrCcType::CC_MIN_FRESH},
+        {"only-if-cached", HttpHdrCcType::CC_ONLY_IF_CACHED},
+        {"stale-if-error", HttpHdrCcType::CC_STALE_IF_ERROR},
+        {"immutable", HttpHdrCcType::CC_IMMUTABLE},
+        {"Other,", HttpHdrCcType::CC_OTHER}, /* ',' will protect from matches */
+        {nullptr, HttpHdrCcType::CC_ENUM_END}
+    };
+    // check invariant on initialization table
+    for (unsigned int j = 0; CcAttrs[j].name != nullptr; ++j) {
+        assert(static_cast<decltype(j)>(CcAttrs[j].id) == j);
+    }
+    table = new LookupTable<HttpHdrCcType>(HttpHdrCcType::CC_OTHER, CcAttrs);
+    return *table;
+}
+
 std::vector<HttpHeaderFieldStat> ccHeaderStats(HttpHdrCcType::CC_ENUM_END);
 
 /// used to walk a table of http_header_cc_type structs
@@ -60,10 +76,6 @@ operator++ (HttpHdrCcType &aHeader)
 void
 httpHdrCcInitModule(void)
 {
-    // check invariant on initialization table
-    for (unsigned int j = 0; CcAttrs[j].name != nullptr; ++j) {
-        assert(static_cast<decltype(j)>(CcAttrs[j].id) == j);
-    }
 }
 
 void
@@ -113,7 +125,7 @@ HttpHdrCc::parse(const String & str)
         }
 
         /* find type */
-        const HttpHdrCcType type = ccLookupTable.lookup(SBuf(item,nlen));
+        const HttpHdrCcType type = ccLookupTable().lookup(SBuf(item,nlen));
 
         // ignore known duplicate directives
         if (isSet(type)) {
@@ -250,15 +262,19 @@ HttpHdrCc::packInto(Packable * p) const
     if (mask==0)
         return;
 
-    HttpHdrCcType flag;
+    PackableStream ss(*p);
     int pcount = 0;
     assert(p);
 
-    for (flag = HttpHdrCcType::CC_PUBLIC; flag < HttpHdrCcType::CC_ENUM_END; ++flag) {
+    for (const auto &i: ccLookupTable()) {
+        const auto flag = i.second;
+        const auto &name = i.first;
         if (isSet(flag) && flag != HttpHdrCcType::CC_OTHER) {
 
+            if (!pcount)
+                ss << ", ";
             /* print option name for all options */
-            p->appendf((pcount ? ", %s": "%s"), CcAttrs[flag].name);
+            ss << name;
 
             /* for all options having values, "=value" after the name */
             switch (flag) {
@@ -266,12 +282,12 @@ HttpHdrCc::packInto(Packable * p) const
                 break;
             case HttpHdrCcType::CC_PRIVATE:
                 if (private_.size())
-                    p->appendf("=\"" SQUIDSTRINGPH "\"", SQUIDSTRINGPRINT(private_));
+                    ss << "=\"" << private_ << '"';
                 break;
 
             case HttpHdrCcType::CC_NO_CACHE:
                 if (no_cache.size())
-                    p->appendf("=\"" SQUIDSTRINGPH "\"", SQUIDSTRINGPRINT(no_cache));
+                    ss << "=\"" << no_cache << '"';
                 break;
             case HttpHdrCcType::CC_NO_STORE:
                 break;
@@ -282,24 +298,24 @@ HttpHdrCc::packInto(Packable * p) const
             case HttpHdrCcType::CC_PROXY_REVALIDATE:
                 break;
             case HttpHdrCcType::CC_MAX_AGE:
-                p->appendf("=%d", max_age);
+                ss << '=' << max_age;
                 break;
             case HttpHdrCcType::CC_S_MAXAGE:
-                p->appendf("=%d", s_maxage);
+                ss << '=' << s_maxage;
                 break;
             case HttpHdrCcType::CC_MAX_STALE:
                 /* max-stale's value is optional.
                   If we didn't receive it, don't send it */
                 if (max_stale != MAX_STALE_ANY)
-                    p->appendf("=%d", max_stale);
+                    ss << '=' << max_stale;
                 break;
             case HttpHdrCcType::CC_MIN_FRESH:
-                p->appendf("=%d", min_fresh);
+                ss << '=' << min_fresh;
                 break;
             case HttpHdrCcType::CC_ONLY_IF_CACHED:
                 break;
             case HttpHdrCcType::CC_STALE_IF_ERROR:
-                p->appendf("=%d", stale_if_error);
+                ss << '=' << stale_if_error;
                 break;
             case HttpHdrCcType::CC_IMMUTABLE:
                 break;
@@ -314,7 +330,7 @@ HttpHdrCc::packInto(Packable * p) const
     }
 
     if (other.size() != 0)
-        p->appendf((pcount ? ", " SQUIDSTRINGPH : SQUIDSTRINGPH), SQUIDSTRINGPRINT(other));
+        ss << (pcount ? ", " : "") << other;
 }
 
 void
@@ -333,11 +349,11 @@ httpHdrCcStatDumper(StoreEntry * sentry, int, double val, double, int count)
     extern const HttpHeaderStat *dump_stat; /* argh! */
     const int id = static_cast<int>(val);
     const bool valid_id = id >= 0 && id < static_cast<int>(HttpHdrCcType::CC_ENUM_END);
-    const char *name = valid_id ? CcAttrs[id].name : "INVALID";
+    SBuf name = valid_id ? ccLookupTable().reverse_lookup(static_cast<HttpHdrCcType>(id)) : SBuf("INVALID");
 
     if (count || valid_id)
         storeAppendPrintf(sentry, "%2d\t %-20s\t %5d\t %6.2f\n",
-                          id, name, count, xdiv(count, dump_stat->ccParsedCount));
+                          id, name.c_str(), count, xdiv(count, dump_stat->ccParsedCount));
 }
 
 std::ostream &
