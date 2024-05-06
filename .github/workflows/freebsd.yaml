@@ -1,0 +1,44 @@
+name: GitHub CI Experiments
+
+on:
+  push:
+    branches: [ "github-macos" ]
+
+env:
+  PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+  CHECKOUT_FETCH_DEPTH: 1001
+
+jobs:
+  freebsd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Squid sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+
+      - name: Test
+        id: test
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            sudo pkg install -y \
+              autoconf \
+              autoconf-archive \
+              automake \
+              bash \
+              coreutils \
+              cppunit \
+              expat \
+              gmake \
+              libltdl
+              libtool \
+              libxml2 \
+              m4 \
+              nettle
+
+          run: |
+            export pjobs="-j`gnproc`"
+            ./test-builds.sh --verbose --aggressively-use-config-cache --cleanup
