@@ -23,6 +23,8 @@ jobs:
         uses: vmactions/freebsd-vm@v1
         with:
           usesh: true
+          sync: sshfs
+          # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
           prepare: |
             sudo pkg install -y \
               autoconf \
@@ -40,5 +42,4 @@ jobs:
               nettle
 
           run: |
-            export pjobs="-j`gnproc`"
             ./test-builds.sh --verbose --aggressively-use-config-cache --cleanup
