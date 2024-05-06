@@ -30,16 +30,18 @@ jobs:
               autoconf \
               autoconf-archive \
               automake \
-              bash \
-              coreutils \
               cppunit \
-              expat \
               gmake \
               libltdl
               libtool \
               libxml2 \
               m4 \
               nettle
+            #   bash \
+            #   coreutils \
+            #   expat \
 
           run: |
+            echo "************* START **************"
+            ls -l
             ./test-builds.sh --verbose --aggressively-use-config-cache --cleanup
