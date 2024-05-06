@@ -40,6 +40,5 @@ jobs:
               nettle
 
           run: |
-            echo "************* START **************"
-            ls -l
-            ./test-builds.sh --verbose --aggressively-use-config-cache --cleanup
+            export MAKE=gmake
+            bash ./test-builds.sh --verbose --aggressively-use-config-cache --cleanup
