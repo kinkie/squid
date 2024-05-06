@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout Squid sources
         uses: actions/checkout@v4
-        with:  \\
+        with:
           fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
 
       - name: Test
