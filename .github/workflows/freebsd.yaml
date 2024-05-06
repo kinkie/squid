@@ -26,7 +26,7 @@ jobs:
           sync: sshfs
           # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
           prepare: |
-            sudo pkg install -y \
+            pkg install -y \
               autoconf \
               autoconf-archive \
               automake \
@@ -38,8 +38,6 @@ jobs:
               libxml2 \
               m4 \
               nettle
-            #   coreutils \
-            #   expat \
 
           run: |
             echo "************* START **************"
