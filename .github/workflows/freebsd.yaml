@@ -33,7 +33,7 @@ jobs:
               bash \
               cppunit \
               gmake \
-              libltdl
+              libltdl \
               libtool \
               libxml2 \
               m4 \
