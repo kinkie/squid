@@ -69,6 +69,7 @@ find_path()
 }
 
 bootstrap() {
+  echo "bootstrap: $@"
   if "$@"; then
     true # Everything OK
   else
