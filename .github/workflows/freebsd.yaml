@@ -87,6 +87,9 @@ jobs:
             export MAKE=gmake
             export AUTOMAKE_VERSION=1.15
             export AUTOCONF_VERSION=2.69
+            export acver=2.69
+            export amver=1.15
+            export ltver=1.5.26
             # export CFLAGS='-Wno-compound-token-split-by-macro'
             # export CC=clang
             # export CXX=clang++
