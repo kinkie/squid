@@ -71,8 +71,8 @@ jobs:
           # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
           prepare: |
             pkg_add \
-              autoconf \
-              automake \
+              autoconf-2.69p3 \
+              automake-1.15.1 \
               bash \
               cppunit \
               git \
@@ -84,6 +84,8 @@ jobs:
 
           run: |
             export MAKE=gmake
+            export AUTOMAKE_VERSION=1.15.1
+            export AUTOCONF_VERSION=2.69p3
             # export CFLAGS='-Wno-compound-token-split-by-macro'
             # export CC=clang
             # export CXX=clang++
