@@ -52,3 +52,45 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: btlayer-*.log
+
+  openbsd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Squid sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+
+      - name: Test
+        id: test
+        uses: vmactions/openbsd-vm@v1
+        with:
+          usesh: true
+          sync: sshfs
+          # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
+          prepare: |
+            pkg_add \
+              autoconf \
+              automake \
+              bash \
+              cppunit \
+              git \
+              gmake \
+              libxml \
+              libtool \
+              m4 \
+              metaauto
+
+          run: |
+            export MAKE=gmake
+            # export CFLAGS='-Wno-compound-token-split-by-macro'
+            # export CC=clang
+            # export CXX=clang++
+            ./test-builds.sh --cleanup
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          path: btlayer-*.log
