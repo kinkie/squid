@@ -90,6 +90,15 @@ jobs:
             export acver=2.69
             export amver=1.15
             export ltver=1.5.26
+            export LDFLAGS="-L/usr/local/lib"
+            export base="."
+            echo "********************* bin"
+            ls -l /usr/local/bin
+            echo "********************* lib"
+            ls -l /usr/local/lib
+            echo "********************* share"
+            ls -l /usr/local/share
+            echo "********************* end"
             # export CFLAGS='-Wno-compound-token-split-by-macro'
             # export CC=clang
             # export CXX=clang++
