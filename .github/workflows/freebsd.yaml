@@ -85,8 +85,8 @@ jobs:
 
           run: |
             export MAKE=gmake
-            export AUTOMAKE_VERSION=1.15.1
-            export AUTOCONF_VERSION=2.69p3
+            export AUTOMAKE_VERSION=1.15
+            export AUTOCONF_VERSION=2.69
             ls -l /usr/local/bin
             # export CFLAGS='-Wno-compound-token-split-by-macro'
             # export CC=clang
