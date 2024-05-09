@@ -91,13 +91,13 @@ buildtest() {
 	chmod -R 777 ${btlayer};
     fi
     rm -f -r ${btlayer} || ( echo "FATAL: Failed to prepare test build sandpit." ; exit 1 )
-    # mkdir ${btlayer}
-    # if test "${verbose}" = "yes" ; then
-    #     ls -la ${btlayer}
-    # fi
+    mkdir ${btlayer}
+    if test "${verbose}" = "yes" ; then
+        ls -la ${btlayer}
+    fi
     {
 	result=255
-	# cd ${btlayer}
+	cd ${btlayer}
 	if test -e $top/test-suite/buildtest.sh ; then
 	    $top/test-suite/buildtest.sh "${action}" ${opts} 2>&1
 	    result=$?
