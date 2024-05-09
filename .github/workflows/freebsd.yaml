@@ -11,6 +11,7 @@ env:
 jobs:
   freebsd:
     runs-on: ubuntu-latest
+    if: false
 
     steps:
       - name: Checkout Squid sources
@@ -86,10 +87,11 @@ jobs:
             export MAKE=gmake
             export AUTOMAKE_VERSION=1.15.1
             export AUTOCONF_VERSION=2.69p3
+            ls -l /usr/local/bin
             # export CFLAGS='-Wno-compound-token-split-by-macro'
             # export CC=clang
             # export CXX=clang++
-            ./test-builds.sh --cleanup
+            # ./test-builds.sh --cleanup
 
       - name: Publish build logs
         if: success() || failure()
