@@ -103,7 +103,7 @@ jobs:
             export CC=clang
             export CXX=clang++
             export PATH="$HOME/bin:$PATH"
-            echo ./test-builds.sh --cleanup
+            ./test-builds.sh --cleanup
 
       - name: Publish build logs
         if: success() || failure()
