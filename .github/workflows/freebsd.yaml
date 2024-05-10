@@ -72,9 +72,10 @@ jobs:
           # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
           prepare: |
             pkg_add \
-              autoconf-2.69p3 \
-              automake-1.15.1 \
+              autoconf-2.71 \
+              automake-1.16.3 \
               bash \
+              coreutils \
               cppunit \
               git \
               gmake \
@@ -85,23 +86,18 @@ jobs:
 
           run: |
             export MAKE=gmake
-            export AUTOMAKE_VERSION=1.15
-            export AUTOCONF_VERSION=2.69
-            export acver=2.69
-            export amver=1.15
+            export pjobs="-j`gnproc`"
+            export AUTOMAKE_VERSION=1.16
+            export amver=${AUTOMAKE_VERSION}
+            export ACLOCAL_AUTOMAKE_DIR="/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
+            export ACLOCAL_PATH="/usr/local/share/aclocal:/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
+            export AUTOCONF_VERSION=2.71
+            export acver=${AUTOCONF_VERSION}
             export ltver=1.5.26
+            export CFLAGS='-Wno-compound-token-split-by-macro'
             export LDFLAGS="-L/usr/local/lib"
-            export base="."
-            echo "********************* bin"
-            ls -l /usr/local/bin
-            echo "********************* lib"
-            ls -l /usr/local/lib
-            echo "********************* share"
-            ls -l /usr/local/share
-            echo "********************* end"
-            # export CFLAGS='-Wno-compound-token-split-by-macro'
-            # export CC=clang
-            # export CXX=clang++
+            export CC=clang
+            export CXX=clang++
             ./test-builds.sh --cleanup
 
       - name: Publish build logs
