@@ -86,6 +86,7 @@ jobs:
               metaauto
             mkdir $HOME/bin
             ln -s /usr/local/bin/ggrep $HOME/bin/grep
+            ls -ld /usr/local/share/aclocal*
 
           run: |
             export MAKE=gmake
@@ -102,7 +103,7 @@ jobs:
             export CC=clang
             export CXX=clang++
             export PATH="$HOME/bin:$PATH"
-            ./test-builds.sh --cleanup
+            echo ./test-builds.sh --cleanup
 
       - name: Publish build logs
         if: success() || failure()
