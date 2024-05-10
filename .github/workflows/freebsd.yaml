@@ -78,11 +78,14 @@ jobs:
               coreutils \
               cppunit \
               git \
+              ggrep \
               gmake \
               libxml \
               libtool \
               m4 \
               metaauto
+            mkdir $HOME/bin
+            ln -s /usr/local/bin/ggrep $HOME/bin/grep
 
           run: |
             export MAKE=gmake
@@ -98,6 +101,7 @@ jobs:
             export LDFLAGS="-L/usr/local/lib"
             export CC=clang
             export CXX=clang++
+            export PATH="$HOME/bin:$PATH"
             ./test-builds.sh --cleanup
 
       - name: Publish build logs
