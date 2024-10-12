@@ -31,19 +31,22 @@ jobs:
         compiler:
           - { CC: gcc, CXX: g++ }
           - { CC: clang, CXX: clang++ }
+        cpu:
+          - { x64: ubuntu-latest }
+          - { arm64: macos-latest }
         layer:
           - { name: layer-00-default, nick: default }
           - { name: layer-01-minimal, nick: minimal }
           - { name: layer-02-maximus, nick: maximus }
         # exclude:
-        #   # Non-clang testing on MacOS is too much work for very little gain
+        #  if any combinations needs to be excluded, do it here
         #   - { os: macos-14, compiler: { CC: gcc, CXX: g++ } }
     runs-on: ubuntu-latest
     container:
       image: squidcache/buildfarm-${{ matrix.os }}:stable
       options: --user 1001 # uid used by worfklow runner
 
-    name:  matrix-tests(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    name:  matrix-tests(${{ matrix.cpu }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
