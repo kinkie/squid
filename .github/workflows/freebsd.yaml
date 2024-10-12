@@ -46,7 +46,7 @@ jobs:
       image: squidcache/buildfarm-${{ matrix.os }}:stable
       options: --user 1001 # uid used by worfklow runner
 
-    name:  matrix-tests(${{ matrix.cpu.name }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    name:  matrix-tests(${{ matrix.cpu.arch }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
