@@ -33,7 +33,7 @@ jobs:
           - { CC: clang, CXX: clang++ }
         cpu:
           - { arch: x64, image: ubuntu-latest }
-          - { arch: arm64, image: macos-latest }
+          - { arch: arm64, image: ubuntu-latest-arm64 }
         layer:
           - { name: layer-00-default, nick: default }
           - { name: layer-01-minimal, nick: minimal }
