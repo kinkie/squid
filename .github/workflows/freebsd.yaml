@@ -43,7 +43,10 @@ jobs:
 
       - name: Test
         id: test
-        run: echo ./test-builds.sh ${{ matrix.layer.name }}
+        run: |
+          pwd
+          id
+          ls -l
 
       - name: Publish build logs
         if: success() || failure()
