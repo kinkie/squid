@@ -14,10 +14,22 @@ jobs:
     strategy:
       matrix:
         os:
-          - gentoo
+          - centos-stream-9
+          - debian-stable
           - debian-testing
+          - debian-unstable
+          - fedora-39
+          - fedora-40
+          - fedora-rawhide
+          - gentoo
+          - opensuse-leap
+          - opensuse-tumbleweed
+          - ubuntu-focal
+          - ubuntu-jammy
+          - ubuntu-mantic
+          - ubuntu-noble
         compiler:
-          -  { CC: gcc, CXX: g++ }
+          - { CC: gcc, CXX: g++ }
           - { CC: clang, CXX: clang++ }
         layer:
           - { name: layer-00-default, nick: default }
