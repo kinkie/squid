@@ -46,7 +46,9 @@ jobs:
         run: |
           pwd
           id
-          ls -l
+          ls -la
+          touch foo
+          ls -la
 
       # - name: Publish build logs
       #   if: success() || failure()
