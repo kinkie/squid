@@ -9,6 +9,47 @@ env:
   CHECKOUT_FETCH_DEPTH: 1001
 
 jobs:
+  full-matrix-tests:
+
+    strategy:
+      matrix:
+        os:
+          - gentoo
+          - debian-testing
+        compiler:
+          -  { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        # exclude:
+        #   # Non-clang testing on MacOS is too much work for very little gain
+        #   - { os: macos-14, compiler: { CC: gcc, CXX: g++ } }
+    runs-on: ubuntu-latest
+    container: squidcache/buildfarm-${{ matrix.os }}:stable
+
+    name:  matrix-tests(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+
+      - name: Test
+        id: test
+        run: echo ./test-builds.sh ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+
   freebsd:
     runs-on: ubuntu-latest
     if: false
@@ -56,6 +97,7 @@ jobs:
 
   openbsd:
     runs-on: ubuntu-latest
+    if: false
 
     steps:
       - name: Checkout Squid sources
