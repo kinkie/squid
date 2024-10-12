@@ -49,6 +49,8 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
 
   freebsd:
     runs-on: ubuntu-latest
