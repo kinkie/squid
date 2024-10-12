@@ -40,7 +40,7 @@ jobs:
         #   - { os: macos-14, compiler: { CC: gcc, CXX: g++ } }
     runs-on: ubuntu-latest
     container:
-      image: squidcache/buildfarm-${{ matrix.os }}:stable
+      image: squidcache/buildfarm-${{ matrix.os }}:latest
       options: --user 1001 # uid used by worfklow runner
 
     name:  matrix-tests(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
