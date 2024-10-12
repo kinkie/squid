@@ -31,9 +31,6 @@ jobs:
         compiler:
           - { CC: gcc, CXX: g++ }
           - { CC: clang, CXX: clang++ }
-        cpu:
-          - { arch: x64, image: ubuntu-latest }
-          - { arch: arm64, image: ubuntu-latest-arm64 }
         layer:
           - { name: layer-00-default, nick: default }
           - { name: layer-01-minimal, nick: minimal }
@@ -41,12 +38,12 @@ jobs:
         # exclude:
         #  if any combinations needs to be excluded, do it here
         #   - { os: macos-14, compiler: { CC: gcc, CXX: g++ } }
-    runs-on: ${{ matrix.cpu.image }}
+    runs-on: ubuntu-latest
     container:
       image: squidcache/buildfarm-${{ matrix.os }}:stable
       options: --user 1001 # uid used by worfklow runner
 
-    name:  matrix-tests(${{ matrix.cpu.arch }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    name:  matrix-tests(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
