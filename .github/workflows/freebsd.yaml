@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: squidcache/buildfarm-${{ matrix.os }}:stable
-      options: --user 1000:1000
+      options: --user 1001 # uid used by worfklow runner
 
     name:  matrix-tests(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
@@ -48,7 +48,7 @@ jobs:
         run: |
           pwd
           id
-          ls -la
+          ls -lad .
           touch foo
           ls -la
 
