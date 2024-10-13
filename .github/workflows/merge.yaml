@@ -10,6 +10,7 @@ env:
 
 jobs:
   full-matrix-tests:
+    if: false # remove when going to production
 
     strategy:
       matrix:
@@ -67,18 +68,14 @@ jobs:
 
   freebsd:
     runs-on: ubuntu-latest
-    if: false
 
     steps:
-      - name: Checkout Squid sources
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
-
-      - name: Test
-        id: test
+      - uses: actions/checkout@v4
+      - name: Test in FreeBSD
+        id: test-freebsd
         uses: vmactions/freebsd-vm@v1
         with:
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
           usesh: true
           sync: sshfs
           # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
