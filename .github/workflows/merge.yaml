@@ -70,15 +70,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+
       - name: Test in FreeBSD
         id: test-freebsd
         uses: vmactions/freebsd-vm@v1
         with:
-          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
           usesh: true
           sync: sshfs
-          # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
+          # release: "14.1" # supported: 12.4, 13.2, 13.3, 14.1
           prepare: |
             pkg install -y \
               autoconf \
@@ -99,7 +102,7 @@ jobs:
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export CC=clang
             export CXX=clang++
-            ./test-builds.sh --cleanup
+            ./test-builds.sh --cleanup --verbose
 
       - name: Publish build logs
         if: success() || failure()
