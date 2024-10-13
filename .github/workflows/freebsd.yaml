@@ -57,7 +57,6 @@ jobs:
       - name: Test
         id: test
         run: |
-          ./test-builds.sh --verbose --use-config-cache ${{ matrix.layer.name }} || \
           ./test-builds.sh --verbose --use-config-cache ${{ matrix.layer.name }}
 
       - name: Publish build logs
