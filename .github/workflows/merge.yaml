@@ -1,8 +1,8 @@
-name: GitHub CI Experiments
+name: GitHub CI merge checks
 
 on:
   push:
-    branches: [ "github-macos" ]
+    branches: [ "auto", "github-macos" ]
 
 env:
   PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
@@ -54,10 +54,9 @@ jobs:
         with:
           fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
 
-      - name: Test
+      - name: Run build test
         id: test
-        run: |
-          ./test-builds.sh --verbose --use-config-cache ${{ matrix.layer.name }}
+        run: ./test-builds.sh --verbose --use-config-cache ${{ matrix.layer.name }}
 
       - name: Publish build logs
         if: success() || failure()
