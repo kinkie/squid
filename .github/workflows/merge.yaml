@@ -68,6 +68,7 @@ jobs:
 
   freebsd:
     runs-on: ubuntu-latest
+    if: false # issues with linking
 
     steps:
       - name: Checkout Sources
@@ -102,7 +103,7 @@ jobs:
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export CC=clang
             export CXX=clang++
-            ./test-builds.sh --cleanup --verbose
+            ./test-builds.sh --verbose
 
       - name: Publish build logs
         if: success() || failure()
@@ -112,7 +113,7 @@ jobs:
 
   openbsd:
     runs-on: ubuntu-latest
-    if: false
+    # if: false
 
     steps:
       - name: Checkout Squid sources
@@ -160,7 +161,7 @@ jobs:
             export CC=clang
             export CXX=clang++
             export PATH="$HOME/bin:$PATH"
-            ./test-builds.sh --cleanup
+            ./test-builds.sh --cleanup --verbose
 
       - name: Publish build logs
         if: success() || failure()
