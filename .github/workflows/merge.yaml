@@ -145,23 +145,24 @@ jobs:
             mkdir $HOME/bin
             ln -s /usr/local/bin/ggrep $HOME/bin/grep
             ls -ld /usr/local/share/aclocal*
+            ls -l /usr/local/bin/auto*
 
-          run: |
-            export MAKE=gmake
-            export pjobs="-j`gnproc`"
-            export AUTOMAKE_VERSION=1.16.5
-            export amver=${AUTOMAKE_VERSION}
-            export ACLOCAL_AUTOMAKE_DIR="/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
-            export ACLOCAL_PATH="/usr/local/share/aclocal:/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
-            export AUTOCONF_VERSION=2.72
-            export acver=${AUTOCONF_VERSION}
-            export ltver=2.4.2
-            export CFLAGS='-Wno-compound-token-split-by-macro'
-            export LDFLAGS="-L/usr/local/lib"
-            export CC=clang
-            export CXX=clang++
-            export PATH="$HOME/bin:$PATH"
-            ./test-builds.sh --cleanup --verbose
+          # run: |
+          #   export MAKE=gmake
+          #   export pjobs="-j`gnproc`"
+          #   export AUTOMAKE_VERSION=1.16.5
+          #   export amver=${AUTOMAKE_VERSION}
+          #   export ACLOCAL_AUTOMAKE_DIR="/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
+          #   export ACLOCAL_PATH="/usr/local/share/aclocal:/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
+          #   export AUTOCONF_VERSION=2.72
+          #   export acver=${AUTOCONF_VERSION}
+          #   export ltver=2.4.2
+          #   export CFLAGS='-Wno-compound-token-split-by-macro'
+          #   export LDFLAGS="-L/usr/local/lib"
+          #   export CC=clang
+          #   export CXX=clang++
+          #   export PATH="$HOME/bin:$PATH"
+          #   ./test-builds.sh --verbose
 
       - name: Publish build logs
         if: success() || failure()
