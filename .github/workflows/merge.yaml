@@ -159,8 +159,8 @@ jobs:
             export ltver=2.4.2
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export LDFLAGS="-L/usr/local/lib"
-            export CC=clang
-            export CXX=clang++
+            # export CC=clang
+            # export CXX=clang++
             export PATH="$HOME/bin:$PATH"
             ./test-builds.sh --verbose
 
