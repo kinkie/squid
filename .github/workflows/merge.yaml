@@ -2,7 +2,7 @@ name: GitHub CI merge checks
 
 on:
   push:
-    branches: [ "auto", "github-macos" ]
+    branches: [ "auto" ]
 
 env:
   PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
@@ -10,7 +10,6 @@ env:
 
 jobs:
   full-matrix-tests:
-    if: false # remove when going to production
 
     strategy:
       matrix:
@@ -113,7 +112,7 @@ jobs:
 
   openbsd:
     runs-on: ubuntu-latest
-    # if: false
+    if: false # currently failing with permission problems in ltdl
 
     steps:
       - name: Checkout Squid sources
@@ -127,7 +126,6 @@ jobs:
         with:
           usesh: true
           sync: sshfs
-          # release: "14.0" # supported: 12.4, 13.2, 13.3, 14.0
           prepare: |
             pkg_add \
               autoconf-2.72p0 \
@@ -159,9 +157,7 @@ jobs:
             export ltver=2.4.2
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export LDFLAGS="-L/usr/local/lib"
-            # export CC=clang
-            # export CXX=clang++
-            export PATH="$HOME/bin:$PATH"
+\            export PATH="$HOME/bin:$PATH"
             ./test-builds.sh --verbose
 
       - name: Publish build logs
