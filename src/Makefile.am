@@ -17,7 +17,30 @@ LOADABLE_MODULES_SOURCES = \
 	LoadableModules.h
 
 # subdir Y that requires a file built in subdir X must appear after X
-SUBDIRS = mem time debug base anyp helper dns html ftp parser comm error eui sbuf acl format clients servers fs repl store DiskIO proxyp
+SUBDIRS = \
+	mem \
+	time \
+	debug \
+	base \
+	anyp \
+	helper \
+	dns \
+	html \
+	ftp \
+	parser \
+	comm \
+	error \
+	eui \
+	sbuf \
+	acl \
+	format \
+	clients \
+	servers \
+	fs \
+	repl \
+	store \
+	DiskIO \
+	proxyp
 
 if ENABLE_AUTH
 SUBDIRS += auth
@@ -25,7 +48,13 @@ AUTH_LIBS= auth/libauth.la
 AUTH_ACL_LIBS= auth/libacls.la
 endif
 
-SUBDIRS	+= http ip icmp log ipc mgr
+SUBDIRS += \
+	http \
+	ip \
+	icmp \
+	log \
+	ipc \
+	mgr
 
 SSL_LIBS=
 if ENABLE_SSL
@@ -54,17 +83,6 @@ endif
 
 if ENABLE_ADAPTATION
 SUBDIRS += adaptation
-endif
-
-if ENABLE_ESI
-SUBDIRS += esi
-ESI_LIBS = \
-	esi/libesi.la \
-	$(top_builddir)/lib/libTrie/libTrie.a \
-	$(LIBEXPAT_LIBS) \
-	$(LIBXML2_LIBS)
-else
-ESI_LIBS =
 endif
 
 DELAY_POOL_ALL_SOURCE = \
@@ -515,7 +533,6 @@ squid_LDADD = \
 	$(CRYPTLIB) \
 	$(REGEXLIB) \
 	$(ADAPTATION_LIBS) \
-	$(ESI_LIBS) \
 	html/libhtml.la \
 	$(SNMP_LIBS) \
 	mem/libmem.la \
@@ -1958,7 +1975,6 @@ tests_testHttpRange_LDADD = \
 	format/libformat.la \
 	$(REPL_OBJS) \
 	$(ADAPTATION_LIBS) \
-	$(ESI_LIBS) \
 	$(SSL_LIBS) \
 	ipc/libipc.la \
 	dns/libdns.la \
@@ -2356,7 +2372,6 @@ tests_testHttpRequest_LDADD = \
 	debug/libdebug.la \
 	$(REPL_OBJS) \
 	$(ADAPTATION_LIBS) \
-	$(ESI_LIBS) \
 	$(top_builddir)/lib/libmisccontainers.la \
 	$(top_builddir)/lib/libmiscencoding.la \
 	$(top_builddir)/lib/libmiscutil.la \
@@ -2643,7 +2658,6 @@ tests_testCacheManager_LDADD = \
 	format/libformat.la \
 	$(REPL_OBJS) \
 	$(ADAPTATION_LIBS) \
-	$(ESI_LIBS) \
 	$(SSL_LIBS) \
 	anyp/libanyp.la \
 	ipc/libipc.la \
