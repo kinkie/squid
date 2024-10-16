@@ -5,7 +5,7 @@ on:
     branches: [ "bsd-merge-tests" ]
 
   pull_request:
-    branches [ "master" ]
+    branches: [ "master" ]
 
   freebsd:
     runs-on: ubuntu-latest
