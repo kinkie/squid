@@ -4,6 +4,9 @@ on:
   push:
     branches: [ "bsd-merge-tests" ]
 
+  pull_request:
+    branches [ "master" ]
+
   freebsd:
     runs-on: ubuntu-latest
     # if: false
