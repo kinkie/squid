@@ -33,6 +33,7 @@ jobs:
           usesh: true
           sync: sshfs
           # release: "14.1" # supported: 12.4, 13.2, 13.3, 14.1
+          release: 13.3
           prepare: |
             pkg update
             pkg install -y \
