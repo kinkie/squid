@@ -56,7 +56,6 @@ jobs:
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export CC=clang
             export CXX=clang++
-            export LDFLAGS='-lpthread'
             ./test-builds.sh --verbose
 
       - name: Publish build logs
