@@ -59,7 +59,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          path: btlayer-*.log
+          path: btlayer-*
 
   openbsd:
     runs-on: ubuntu-latest
