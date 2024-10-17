@@ -16,9 +16,9 @@ env:
   CHECKOUT_FETCH_DEPTH: 1001
 
 jobs:
-  freebsd:
+  freebsd-test:
     runs-on: ubuntu-latest
-    # if: false
+    if: false
 
     steps:
       - name: Checkout Sources
@@ -31,7 +31,6 @@ jobs:
         uses: vmactions/freebsd-vm@v1
         with:
           usesh: true
-          # sync: sshfs hard linking doesn't work, breaks libtool
           # release: "14.1" # supported: 12.4, 13.2, 13.3, 14.1
           # release: 13.3
           prepare: |
@@ -56,17 +55,17 @@ jobs:
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export CC=clang
             export CXX=clang++
-            ./test-builds.sh --verbose
+            ./test-builds.sh --verbose --use-config-cache
 
       - name: Publish build logs
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          path: btlayer-*
+          name: freebsd-build-logs
+          path: btlayer-*.log
 
   openbsd:
     runs-on: ubuntu-latest
-    if: false # currently failing with permission problems in ltdl
 
     steps:
       - name: Checkout Squid sources
@@ -79,7 +78,6 @@ jobs:
         uses: vmactions/openbsd-vm@v1
         with:
           usesh: true
-          sync: sshfs
           prepare: |
             pkg_add \
               autoconf-2.72p0 \
@@ -94,6 +92,7 @@ jobs:
               libtool \
               m4 \
               metaauto
+
             mkdir $HOME/bin
             ln -s /usr/local/bin/ggrep $HOME/bin/grep
             ls -ld /usr/local/share/aclocal*
@@ -112,10 +111,11 @@ jobs:
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export LDFLAGS="-L/usr/local/lib"
             export PATH="$HOME/bin:$PATH"
-            ./test-builds.sh --verbose
+            ./test-builds.sh --verbose --use-config-cache
 
       - name: Publish build logs
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
+          name: openbsd-build-logs
           path: btlayer-*.log
