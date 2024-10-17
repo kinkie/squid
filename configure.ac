@@ -584,7 +584,7 @@ for module in $squid_disk_module_candidates none; do
             ],[
               SQUID_CFLAGS="$SQUID_CFLAGS -D_REENTRANT"
               SQUID_CXXFLAGS="$SQUID_CXXFLAGS -D_REENTRANT"
-              AS_IF([test "x$GCC" = "xyes" -a "x$PRESET_LDFLAGS" = "x"],[LDFLAGS="$LDFLAGS -pthread"])
+              AS_IF(["x$PRESET_LDFLAGS" = "x"],[LDFLAGS="$LDFLAGS -pthread"])
             ])
           ],
 
