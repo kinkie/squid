@@ -396,8 +396,11 @@ AS_IF([test "x$squid_opt_aufs_threads" != "x"],[
 ## TODO check if this is necessary, LT_INIT does these checks
 SQUID_AUTO_LIB(dl,[dynamic linking],[LIBDL])
 SQUID_CHECK_LIB_WORKS(dl,[
+dnl   LDFLAGS="$LIBDL_PATH $LDFLAGS"
+dnl  AC_CHECK_LIB(dl, dlopen,[LIBDL_LIBS="-ldl"])
   LDFLAGS="$LIBDL_PATH $LDFLAGS"
-  AC_CHECK_LIB(dl, dlopen,[LIBDL_LIBS="-ldl"])
+  AC_SEARCH_LIBS([dlopen], [dl])
+
 ])
 
 AC_DEFUN([LIBATOMIC_CHECKER],[
