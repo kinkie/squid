@@ -1,10 +1,10 @@
 name: GitHub CI
 
-# on:
-#   push:
-#     # test this branch and staged PRs based on this branch code
-#     branches: [ "master", "auto" ]
-# 
+on:
+  push:
+    # test this branch and staged PRs based on this branch code
+    branches: [ "master", "auto" ]
+
 #   pull_request:
 #     # test PRs targeting this branch code
 #     branches: [ "master" ]
