@@ -47,7 +47,7 @@ jobs:
               libxml2 \
               m4 \
               nettle \
-              pkgconf \
+              pkgconf &&
             true
 
           run: |
