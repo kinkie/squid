@@ -34,6 +34,7 @@ jobs:
           sync: sshfs
           # release: "14.1" # supported: 12.4, 13.2, 13.3, 14.1
           prepare: |
+            pkg update
             pkg install -y \
               autoconf \
               autoconf-archive \
@@ -45,8 +46,8 @@ jobs:
               libtool \
               libxml2 \
               m4 \
-              nettle &&
-              pkgconf &&
+              nettle \
+              pkgconf \
             true
 
           run: |
