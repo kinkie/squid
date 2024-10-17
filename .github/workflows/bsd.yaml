@@ -46,13 +46,15 @@ jobs:
               libxml2 \
               m4 \
               nettle &&
-            df .
+              pkgconf &&
+            true
 
           run: |
             export MAKE=gmake
             export CFLAGS='-Wno-compound-token-split-by-macro'
             export CC=clang
             export CXX=clang++
+            export LDFLAGS='-L/usr/local/lib'
             ./test-builds.sh --verbose
 
       - name: Publish build logs
