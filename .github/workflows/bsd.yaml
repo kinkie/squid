@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "bsd-merge-tests" ]
 
-  pull_request:
-    branches: [ "master" ]
-
 env:
   # empty except for pull_request events
   PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
