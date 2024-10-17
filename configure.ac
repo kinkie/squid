@@ -396,8 +396,11 @@ AS_IF([test "x$squid_opt_aufs_threads" != "x"],[
 ## TODO check if this is necessary, LT_INIT does these checks
 SQUID_AUTO_LIB(dl,[dynamic linking],[LIBDL])
 SQUID_CHECK_LIB_WORKS(dl,[
+dnl   LDFLAGS="$LIBDL_PATH $LDFLAGS"
+dnl  AC_CHECK_LIB(dl, dlopen,[LIBDL_LIBS="-ldl"])
   LDFLAGS="$LIBDL_PATH $LDFLAGS"
-  AC_CHECK_LIB(dl, dlopen,[LIBDL_LIBS="-ldl"])
+  AC_SEARCH_LIBS([dlopen], [dl])
+
 ])
 
 AC_DEFUN([LIBATOMIC_CHECKER],[
@@ -578,14 +581,11 @@ for module in $squid_disk_module_candidates none; do
           ],
 
           [freebsd],[
-            AS_IF([test `echo "$squid_host_os_version" | tr -d .` -lt 70],[
-              AC_MSG_NOTICE(pthread library requires FreeBSD 7 or later)
-              squid_opt_use_diskthreads="no"
-            ],[
-              SQUID_CFLAGS="$SQUID_CFLAGS -D_REENTRANT"
-              SQUID_CXXFLAGS="$SQUID_CXXFLAGS -D_REENTRANT"
-              AS_IF([test "x$GCC" = "xyes" -a "x$PRESET_LDFLAGS" = "x"],[LDFLAGS="$LDFLAGS -pthread"])
-            ])
+            SQUID_CFLAGS="$SQUID_CFLAGS -D_REENTRANT"
+            SQUID_CXXFLAGS="$SQUID_CXXFLAGS -D_REENTRANT"
+              AC_SEARCH_LIBS([pthread_create],[pthread],[
+                LIBPTHREADS="" #in LIBS
+              ])
           ],
 
           [openbsd],[
