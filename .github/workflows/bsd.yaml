@@ -31,9 +31,9 @@ jobs:
         uses: vmactions/freebsd-vm@v1
         with:
           usesh: true
-          sync: sshfs
+          # sync: sshfs hard linking doesn't work, breaks libtool
           # release: "14.1" # supported: 12.4, 13.2, 13.3, 14.1
-          release: 13.3
+          # release: 13.3
           prepare: |
             pkg update
             pkg install -y \
