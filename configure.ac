@@ -578,14 +578,11 @@ for module in $squid_disk_module_candidates none; do
           ],
 
           [freebsd],[
-            AS_IF([test `echo "$squid_host_os_version" | tr -d .` -lt 70],[
-              AC_MSG_NOTICE(pthread library requires FreeBSD 7 or later)
-              squid_opt_use_diskthreads="no"
-            ],[
-              SQUID_CFLAGS="$SQUID_CFLAGS -D_REENTRANT"
-              SQUID_CXXFLAGS="$SQUID_CXXFLAGS -D_REENTRANT"
-              AS_IF(["x$PRESET_LDFLAGS" = "x"],[LDFLAGS="$LDFLAGS -pthread"])
-            ])
+            SQUID_CFLAGS="$SQUID_CFLAGS -D_REENTRANT"
+            SQUID_CXXFLAGS="$SQUID_CXXFLAGS -D_REENTRANT"
+              AC_SEARCH_LIBS([pthread_create],[pthread],[
+                LIBPTHREADS="" #in LIBS
+              ])
           ],
 
           [openbsd],[
