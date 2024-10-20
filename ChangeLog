@@ -1,3 +1,6 @@
+Changes in squid-6.13 (20 Oct 2024)
+	- ext_time_quota_acl: remove -l option 
+
 Changes in squid-6.12 (12 Oct 2024)
 	- Fix validation of Digest auth header parameters
 	- Fix build with libtool v2.4 + automake v1.17
