@@ -8,13 +8,6 @@ env:
   # empty except for pull_request events
   PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
-  # Full clones of Squid repository branches (depth=19000+) waste resources,
-  # while excessively shallow clones break tests that check for past commits
-  # (e.g., to skip a particular test until a known bug is fixed) or generate
-  # diffs against them (e.g., for `git diff --check`). This arbitrary limit
-  # tries to balance the two concerns.
-  CHECKOUT_FETCH_DEPTH: 1001
-
 jobs:
   freebsd-test:
     runs-on: ubuntu-latest
@@ -23,8 +16,6 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v4
-        with:
-          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
 
       - name: Test in FreeBSD
         id: test-freebsd
@@ -70,8 +61,6 @@ jobs:
     steps:
       - name: Checkout Squid sources
         uses: actions/checkout@v4
-        with:
-          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
 
       - name: Test
         id: test
