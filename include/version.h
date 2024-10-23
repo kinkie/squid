@@ -10,7 +10,7 @@
 #define SQUID_INCLUDE_VERSION_H
 
 #ifndef SQUID_RELEASE_TIME
-#define SQUID_RELEASE_TIME squid_curtime
+#define SQUID_RELEASE_TIME 1729661384
 #endif
 
 /*
