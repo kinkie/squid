@@ -1,3 +1,11 @@
+Changes in squid-6.13 (06 Nov 2024):
+
+	- Display Linux variant at ./configure time 
+	- CI: Replace Fedora 39 with 41 
+	- CI: Sync GitHub Actions config with master as of commit 240efcb 
+	- add missing ChangeLog.txt separators 
+	- ext_time_quota_acl: remove -l option 
+
 Changes in squid-6.12 (12 Oct 2024):
 
 	- Fix validation of Digest auth header parameters
