@@ -19,20 +19,23 @@ jobs:
 
     strategy:
       matrix:
+        arch:
+          - x86_64
+          - aarch64
         os:
-          - centos-stream-9
-          - debian-stable
-          - debian-testing
-          - debian-unstable
-          - fedora-40
-          - fedora-41
-          - fedora-rawhide
-          - gentoo
-          - opensuse-leap
-          - opensuse-tumbleweed
-          - ubuntu-focal
-          - ubuntu-jammy
-          - ubuntu-noble # EOL 2036-04
+#          - centos-stream-9
+#          - debian-stable
+#          - debian-testing
+#          - debian-unstable
+#          - fedora-40
+#          - fedora-41
+#          - fedora-rawhide
+#          - gentoo
+#          - opensuse-leap
+#          - opensuse-tumbleweed
+#          - ubuntu-focal
+#          - ubuntu-jammy
+#          - ubuntu-noble # EOL 2036-04
           - ubuntu-oracular # EOL 2025-07
         compiler:
           - { CC: gcc, CXX: g++ }
@@ -45,7 +48,7 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: squidcache/buildfarm-${{ matrix.os }}:stable
-      options: --user 1001 # uid used by worfklow runner
+      options: --user 1001 --platform linux/${{ matrix.arch }}# uid used by worfklow runner
 
     name: linux-distros(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
