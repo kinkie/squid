@@ -29,9 +29,6 @@ jobs:
         platform:
           - amd64
           - arm64
-          - riscv64
-          - 386
-          - arm/v7
         os:
           - centos-stream-9
           - debian-stable
