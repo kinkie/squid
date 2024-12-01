@@ -28,15 +28,15 @@ jobs:
       matrix:
         platform:
           - arm64
-          # - arm/v7
-          # - riscv64
+          - arm/v7
+          - riscv64
           # - mips64
           # - mips64le
           # - ppc64le
-          # - 386
+          - i386
           # - amd64 # native, do not use
         os:
-          - centos-stream-9
+          - centos-stream-9 # EOL 2027-05-31
           - debian-stable
           - debian-testing
           - debian-unstable
@@ -51,17 +51,44 @@ jobs:
           - ubuntu-noble # EOL 2036-04
           - ubuntu-oracular # EOL 2025-07
         compiler:
+          # - { CC: gcc, CXX: g++ }
           - { CC: clang, CXX: clang++ }
+        exclude:
+          - { platform: arm/v7, os: centos-stream-9 }
+          - { platform: i386, os: centos-stream-9 }
+          - { platform: riscv64, os: centos-stream-9 }
+          - { platform: riscv64, os: debian-stable }
+          - { platform: arm/v7, os: fedora-40 }
+          - { platform: i386, os: fedora-40 }
+          - { platform: riscv64, os: fedora-40 }
+          - { platform: arm/v7, os: fedora-41 }
+          - { platform: i386, os: fedora-41 }
+          - { platform: riscv64, os: fedora-41 }
+          - { platform: arm/v7, os: fedora-rawhide }
+          - { platform: i386, os: fedora-rawhide }
+          - { platform: riscv64, os: fedora-rawhide }
+          - { platform: arm/v7, os: gentoo }
+          - { platform: arm/v7, os: opensuse-leap }
+          - { platform: i386, os: opensuse-leap }
+          - { platform: riscv64, os: opensuse-leap }
+          - { platform: arm/v7, os: opensuse-tumbleweed }
+          - { platform: i386, os: opensuse-tumbleweed }
+          - { platform: riscv64, os: opensuse-tumbleweed }
+          - { platform: i386, os: ubuntu-focal }
+          - { platform: i386, os: ubuntu-jammy }
+          - { platform: arm/v7, os: ubuntu-noble }
+          - { platform: i386, os: ubuntu-noble }
+          - { platform: i386, os: ubuntu-oracular }
 
     runs-on: ubuntu-22.04
 
     name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }})
     env:
-      CC: ${{ matrix.compiler.CC }}
-      CXX: ${{ matrix.compiler.CXX }}
+      CC: ccache ${{ matrix.compiler.CC }}
+      CXX: ccache ${{ matrix.compiler.CXX }}
 
     steps:
-      - name: Install QEMu
+      - name: Install QEMU
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static
 
       - name: Checkout Sources
