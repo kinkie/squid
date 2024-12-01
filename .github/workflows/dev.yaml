@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Install QEMu
-        run: apt update && apt install -y qemu-user-static
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -75,6 +75,7 @@ jobs:
             --platform ${{ matrix.platform }} \
             squidcache/buildfarm-${{ matrix.os }}:stable \
             ./test-builds.sh layer-01-minimal
+        # TODO: test all layers
 
       - name: Publish build logs
         if: success() || failure()
