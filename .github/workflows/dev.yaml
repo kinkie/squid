@@ -1,0 +1,88 @@
+# Tests in this workflow file are slower or more expensive than build
+# tests in quick.yaml. These tests improve build environment coverage, but
+# most are unlikely to fail after quick.yaml tests succeed. Limiting these
+# tests execution to staged commits optimizes CI responsiveness and
+# costs while preserving decent quick.yaml problem detection probability.
+#
+# Anubis configuration must be kept in sync with the total number of
+# tests executed for "auto" branch commits, including tests in other
+# GitHub workflow file(s).
+#
+# move to slow.yaml after successful development
+
+name: Development
+
+on:
+  push:
+    branches: [ "github-actions-multiplatform" ]
+
+concurrency:
+  # Cancel ongoing tests in case of push to staging branch.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-distros:
+
+    strategy:
+      matrix:
+        platform:
+          - amd64
+          - arm64
+          - riscv64
+          - 386
+          - arm/v7
+        os:
+          - centos-stream-9
+          - debian-stable
+          - debian-testing
+          - debian-unstable
+          - fedora-40
+          - fedora-41
+          - fedora-rawhide
+          - gentoo
+          - opensuse-leap
+          - opensuse-tumbleweed
+          - ubuntu-focal
+          - ubuntu-jammy
+          - ubuntu-noble # EOL 2036-04
+          - ubuntu-oracular # EOL 2025-07
+        compiler:
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-01-minimal, nick: minimal }
+
+    runs-on: ubuntu-22.04
+    container:
+      image: squidcache/buildfarm-${{ matrix.os }}:stable
+      options: --user 1001 # uid used by worfklow runner
+
+    name: linux-distros(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: /usr/bin/ccache ${{ matrix.compiler.CC }}
+      CXX: /usr/bin/ccache ${{ matrix.compiler.CXX }}
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.14
+        with:
+          verbose: 2 # default 0
+          key: ${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          ./test-builds.sh ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
