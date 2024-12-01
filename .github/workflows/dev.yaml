@@ -46,18 +46,13 @@ jobs:
           - ubuntu-oracular # EOL 2025-07
         compiler:
           - { CC: clang, CXX: clang++ }
-        layer:
-          - { name: layer-01-minimal, nick: minimal }
 
     runs-on: ubuntu-22.04
-    container:
-      image: squidcache/buildfarm-${{ matrix.os }}:stable
-      options: --user 1001 --platform ${{ matrix.platform }} # uid used by worfklow runner
 
-    name: linux-distros(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }})
     env:
-      CC: /usr/bin/ccache ${{ matrix.compiler.CC }}
-      CXX: /usr/bin/ccache ${{ matrix.compiler.CXX }}
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMu
@@ -70,16 +65,20 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2.14
         with:
           verbose: 2 # default 0
-          key: ${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          key: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          create-symlink: true
 
       - name: Run test-builds
         id: test-builds
         run: |
-          ./test-builds.sh ${{ matrix.layer.name }}
+          docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            --platform ${{ matrix.platform }} \
+            squidcache/buildfarm-${{ matrix.os }}:stable \
+            ./test-builds.sh layer-01-minimal
 
       - name: Publish build logs
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          name: build-logs-${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}
           path: btlayer-*.log
