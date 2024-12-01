@@ -28,7 +28,7 @@ jobs:
       matrix:
         platform:
           - arm64
-          - arm
+          - arm/v7
           - riscv64
           # - mips64
           # - mips64le
@@ -54,29 +54,29 @@ jobs:
           # - { CC: gcc, CXX: g++ }
           - { CC: clang, CXX: clang++ }
         exclude:
-          - { platform: arm, os: centos-stream-9 }
+          - { platform: arm/v7, os: centos-stream-9 }
           - { platform: i386, os: centos-stream-9 }
           - { platform: riscv64, os: centos-stream-9 }
           - { platform: riscv64, os: debian-stable }
-          - { platform: arm, os: fedora-40 }
+          - { platform: arm/v7, os: fedora-40 }
           - { platform: i386, os: fedora-40 }
           - { platform: riscv64, os: fedora-40 }
-          - { platform: arm, os: fedora-41 }
+          - { platform: arm/v7, os: fedora-41 }
           - { platform: i386, os: fedora-41 }
           - { platform: riscv64, os: fedora-41 }
-          - { platform: arm, os: fedora-rawhide }
+          - { platform: arm/v7, os: fedora-rawhide }
           - { platform: i386, os: fedora-rawhide }
           - { platform: riscv64, os: fedora-rawhide }
-          - { platform: arm, os: gentoo }
-          - { platform: arm, os: opensuse-leap }
+          - { platform: arm/v7, os: gentoo }
+          - { platform: arm/v7, os: opensuse-leap }
           - { platform: i386, os: opensuse-leap }
           - { platform: riscv64, os: opensuse-leap }
-          - { platform: arm, os: opensuse-tumbleweed }
+          - { platform: arm/v7, os: opensuse-tumbleweed }
           - { platform: i386, os: opensuse-tumbleweed }
           - { platform: riscv64, os: opensuse-tumbleweed }
           - { platform: i386, os: ubuntu-focal }
           - { platform: i386, os: ubuntu-jammy }
-          - { platform: arm, os: ubuntu-noble }
+          - { platform: arm/v7, os: ubuntu-noble }
           - { platform: i386, os: ubuntu-noble }
           - { platform: i386, os: ubuntu-oracular }
 
@@ -106,7 +106,7 @@ jobs:
         run: |
           docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_SECONDARY_STORAGE \
-            --platform ${{ matrix.platform }} \
+            --platform linux/${{ matrix.platform }} \
             squidcache/buildfarm-${{ matrix.os }}:stable \
             ./test-builds.sh --aggressively-use-config-cache --verbose layer-01-minimal
         # TODO: test all layers
