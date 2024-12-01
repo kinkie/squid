@@ -78,6 +78,7 @@ jobs:
         id: test-builds
         run: |
           docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX \
             --platform ${{ matrix.platform }} \
             squidcache/buildfarm-${{ matrix.os }}:stable \
             ./test-builds.sh --aggressively-use-config-cache --verbose layer-01-minimal
