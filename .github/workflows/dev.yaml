@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Install QEMu
-        run: apt-get install -y qemu-user-static
+        run: apt update && apt install -y qemu-user-static
 
       - name: Checkout Sources
         uses: actions/checkout@v4
