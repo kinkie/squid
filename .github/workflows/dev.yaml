@@ -99,7 +99,6 @@ jobs:
         with:
           verbose: 2 # default 0
           key: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}
-          create-symlink: true
 
       - name: Run test-builds
         id: test-builds
