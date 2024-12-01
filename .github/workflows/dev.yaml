@@ -27,8 +27,14 @@ jobs:
     strategy:
       matrix:
         platform:
-          - amd64
           - arm64
+          # - arm/v7
+          # - riscv64
+          # - mips64
+          # - mips64le
+          # - ppc64le
+          # - 386
+          # - amd64 # native, do not use
         os:
           - centos-stream-9
           - debian-stable
