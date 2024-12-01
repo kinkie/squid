@@ -23,10 +23,6 @@ concurrency:
 
 jobs:
   linux-distros:
-    steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
 
     strategy:
       matrix:
@@ -59,7 +55,7 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: squidcache/buildfarm-${{ matrix.os }}:stable
-      options: --user 1001 # uid used by worfklow runner
+      options: --user 1001 --platform ${{ matrix.platform }} # uid used by worfklow runner
 
     name: linux-distros(${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
@@ -67,6 +63,9 @@ jobs:
       CXX: /usr/bin/ccache ${{ matrix.compiler.CXX }}
 
     steps:
+      - name: Install QEMu
+        run: apt-get install -y qemu-user-static
+
       - name: Checkout Sources
         uses: actions/checkout@v4
 
