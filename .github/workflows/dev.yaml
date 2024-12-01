@@ -84,8 +84,8 @@ jobs:
 
     name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }})
     env:
-      CC: ccache ${{ matrix.compiler.CC }}
-      CXX: ccache ${{ matrix.compiler.CXX }}
+      CC: /usr/bin/ccache ${{ matrix.compiler.CC }}
+      CXX: /usr/bin/ccache ${{ matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU
