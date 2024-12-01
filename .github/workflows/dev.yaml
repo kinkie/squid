@@ -74,8 +74,9 @@ jobs:
           docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             --platform ${{ matrix.platform }} \
             squidcache/buildfarm-${{ matrix.os }}:stable \
-            ./test-builds.sh layer-01-minimal
+            ./test-builds.sh --aggressively-use-config-cache --verbose layer-01-minimal
         # TODO: test all layers
+        # TODO: remove verbose
 
       - name: Publish build logs
         if: success() || failure()
