@@ -109,9 +109,8 @@ jobs:
           docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
-            squidcache/buildfarm-${{ matrix.os }}:stable \
-            ./test-builds.sh --aggressively-use-config-cache --verbose layer-01-minimal \
-            2>/dev/null
+            squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose layer-01-minimal
         # TODO: test all layers
         # TODO: remove verbose
 
