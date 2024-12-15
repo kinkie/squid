@@ -20,8 +20,8 @@ jobs:
     continue-on-error: true # TODO: before landing in production
 
     strategy:
+      max-parallel: 20 # TODO: lower to 2 when landing
       matrix:
-        max-parallel: 2 # TODO: lower to 2 when landing
         platform:
           # - amd64 # is tested in native workflows, do not enable here
           - arm
