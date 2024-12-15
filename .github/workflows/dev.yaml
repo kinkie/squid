@@ -20,7 +20,7 @@ jobs:
     continue-on-error: true # TODO: before landing in production
 
     strategy:
-      max-parallel: 20 # TODO: lower to 2 when landing
+      max-parallel: 4 # TODO: lower to 2 when landing
       matrix:
         platform:
           # - amd64 # is tested in native workflows, do not enable here
@@ -49,6 +49,10 @@ jobs:
         compiler:
           - { CC: gcc, CXX: g++ }
           - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
         exclude: # obtained by running "make exclude-list" in https://github.com/kinkie/dockerfiles
           - { platform: i386, os: centos-stream-9 }
           - { platform: i386, os: fedora-40 }
@@ -90,7 +94,7 @@ jobs:
 
     runs-on: ubuntu-22.04
 
-    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }})
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
@@ -110,7 +114,7 @@ jobs:
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             squidcache/buildfarm-${{ matrix.os }}:latest \
-            ./test-builds.sh --aggressively-use-config-cache --verbose layer-01-minimal
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
         # TODO: test all layers
         # TODO: remove verbose
 
@@ -118,5 +122,5 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
           path: btlayer-*.log
