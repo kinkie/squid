@@ -23,7 +23,7 @@ jobs:
 
     env:
       BUILDCXX: g++
-      # BUILDCXXFLAGS: -DFOO
+      BUILDCXXFLAGS: -DFOO
 
     steps:
       - name: Checkout Squid sources
