@@ -41,7 +41,7 @@ jobs:
         #  support overrinding test layer configure arguemnts
         run: |
           ./bootstrap.sh
-          ./configure --host=x86_64-w64-mingw32 --disable-ssl --without-openssl
+          ./configure --host=x86_64-w64-mingw32 --disable-ssl --without-openssl --without-gnutls
           make all check
         #  ./test-suite/test-functionality.sh
 
