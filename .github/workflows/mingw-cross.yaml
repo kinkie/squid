@@ -18,7 +18,7 @@ jobs:
   mingw-cross:
     runs-on: ubuntu-22.04
     container:
-      image: squidcache/buildfarm-ubuntu-noble:stable
+      image: squidcache/buildfarm-ubuntu-mingw:stable
       options: --user 1001 # uid used by worfklow runner
 
     env:
@@ -26,11 +26,6 @@ jobs:
       # BUILDCXXFLAGS: -DFOO
 
     steps:
-      - name: Install prerequisite packages
-        run: |
-          sudo apt-get --quiet=2 update
-          sudo apt-get --quiet=2 install mingw-w64 wine-binfmt
-
       - name: Checkout Squid sources
         uses: actions/checkout@v4
 
