@@ -42,7 +42,7 @@ jobs:
         run: |
           ./bootstrap.sh
           ./configure --host=x86_64-w64-mingw32 --disable-ssl --without-openssl
-          make -j`nproc` all check
+          make all check
         #  ./test-suite/test-functionality.sh
 
       - name: Publish build logs
