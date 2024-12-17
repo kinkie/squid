@@ -16,7 +16,11 @@ concurrency:
 jobs:
 
   mingw-cross:
-    runs-on: squidcache/buildfarm-ubuntu-noble:stable
+    runs-on: ubuntu-22.04
+    container:
+      image: squidcache/buildfarm-ubuntu-noble:stable
+      options: --user 1001 # uid used by worfklow runner
+
     env:
       BUILDCXX: g++
       # BUILDCXXFLAGS: -DFOO
