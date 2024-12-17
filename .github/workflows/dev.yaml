@@ -20,8 +20,15 @@ jobs:
     continue-on-error: true # TODO: before landing in production
 
     strategy:
-      max-parallel: 4 # TODO: lower to 2 when landing
+      max-parallel: 12 # TODO: lower to 2 when landing
       matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
         platform:
           # - amd64 # is tested in native workflows, do not enable here
           - arm
@@ -46,13 +53,6 @@ jobs:
           - ubuntu-jammy
           - ubuntu-noble # EOL 2036-04
           - ubuntu-oracular # EOL 2025-07
-        compiler:
-          - { CC: gcc, CXX: g++ }
-          - { CC: clang, CXX: clang++ }
-        layer:
-          - { name: layer-00-default, nick: default }
-          - { name: layer-01-minimal, nick: minimal }
-          - { name: layer-02-maximus, nick: maximus }
         exclude: # obtained by running "make exclude-list" in https://github.com/kinkie/dockerfiles
           - { platform: i386, os: centos-stream-9 }
           - { platform: i386, os: fedora-40 }
