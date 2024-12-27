@@ -1,0 +1,129 @@
+# Test building Squid on several Linux distro / CPU platforms, 32- and 64- bit
+# It does not use ccache, as is would be too big to fit in the persistent
+#  storage allowed by Github
+
+name: Multi-platform testing
+
+on:
+  # requires worfklow to be defined to be in the main branch for a repo
+  workflow_dispatch:
+  schedule:
+    - cron: "24 4 12 * *" # monthly, at 4.24am on 12th day
+  push:
+    branches: [ "github-actions-multiplatform" ]
+
+concurrency:
+  # Cancel ongoing tests in case of push to  branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-distros:
+
+    strategy:
+      max-parallel: 14
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
+          # - amd64 # is tested in native workflows, do not enable here
+          - arm
+          - arm64
+          - i386
+          - mips64le
+          - ppc64le
+          - riscv64
+        os: # obtained by running "make targets" in https://github.com/kinkie/dockerfiles
+          - centos-stream-10
+          - centos-stream-9 # EOL 2027-05-31
+          - debian-stable
+          - debian-testing
+          - debian-unstable
+          - fedora-40
+          - fedora-41
+          - fedora-rawhide
+          - gentoo
+          - opensuse-leap
+          - opensuse-tumbleweed
+          - ubuntu-focal
+          - ubuntu-jammy
+          - ubuntu-noble # EOL 2036-04
+          - ubuntu-oracular # EOL 2025-07
+        exclude: # obtained by running "make exclude-list" in https://github.com/kinkie/dockerfiles
+          - { platform: i386, os: centos-stream-10 }
+          - { platform: i386, os: centos-stream-9 }
+          - { platform: i386, os: fedora-40 }
+          - { platform: i386, os: fedora-41 }
+          - { platform: i386, os: fedora-rawhide }
+          - { platform: i386, os: gentoo }
+          - { platform: i386, os: opensuse-leap }
+          - { platform: i386, os: opensuse-tumbleweed }
+          - { platform: i386, os: ubuntu-focal }
+          - { platform: i386, os: ubuntu-jammy }
+          - { platform: i386, os: ubuntu-noble }
+          - { platform: i386, os: ubuntu-oracular }
+          - { platform: arm, os: centos-stream-10 }
+          - { platform: arm, os: centos-stream-9 }
+          - { platform: arm, os: fedora-40 }
+          - { platform: arm, os: fedora-41 }
+          - { platform: arm, os: fedora-rawhide }
+          - { platform: arm, os: opensuse-leap }
+          - { platform: arm, os: opensuse-tumbleweed }
+          - { platform: riscv64, os: centos-stream-10 }
+          - { platform: riscv64, os: centos-stream-9 }
+          - { platform: riscv64, os: debian-stable }
+          - { platform: riscv64, os: fedora-40 }
+          - { platform: riscv64, os: fedora-41 }
+          - { platform: riscv64, os: fedora-rawhide }
+          - { platform: riscv64, os: opensuse-leap }
+          - { platform: riscv64, os: opensuse-tumbleweed }
+          - { platform: mips64le, os: centos-stream-10 }
+          - { platform: mips64le, os: centos-stream-9 }
+          - { platform: mips64le, os: fedora-40 }
+          - { platform: mips64le, os: fedora-41 }
+          - { platform: mips64le, os: fedora-rawhide }
+          - { platform: mips64le, os: gentoo }
+          - { platform: mips64le, os: opensuse-leap }
+          - { platform: mips64le, os: opensuse-tumbleweed }
+          - { platform: mips64le, os: ubuntu-focal }
+          - { platform: mips64le, os: ubuntu-jammy }
+          - { platform: mips64le, os: ubuntu-noble }
+          - { platform: mips64le, os: ubuntu-oracular }
+          - { platform: ppc64le, os: centos-stream-10 }
+          - { platform: ppc64le, os: centos-stream-9 }
+          - { platform: ppc64le, os: gentoo }
+    runs-on: ubuntu-22.04
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+      CCACHE_DISABLE: 1
+
+    steps:
+      - name: Install QEMU
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
