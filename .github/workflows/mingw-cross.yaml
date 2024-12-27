@@ -41,9 +41,9 @@ jobs:
         #  support overrinding test layer configure arguemnts
         run: |
           ./bootstrap.sh
-          ./configure --host=x86_64-w64-mingw32 --disable-ssl --without-openssl --without-gnutls
-          make all check
-        #  ./test-suite/test-functionality.sh
+          ./configure --host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu  --disable-ssl --without-openssl --without-gnutls
+          make -j`nproc` -l`nproc` all
+          make -j`nproc` -l`nproc` check
 
       - name: Publish build logs
         if: success() || failure()
@@ -51,3 +51,4 @@ jobs:
         with:
           name: build-logs-mingw
           path: btlayer-*.log
+
