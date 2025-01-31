@@ -1,3 +1,25 @@
+Changes in squid-6.13 (31 Jan 2025):
+
+	- Bug 5352: Do not get stuck when RESPMOD is slower than read(2) 
+	- Bug 5405: Large uploads fill request buffer and die 
+	- Bug 5093: List http_port params that https_port/ftp_port lack 
+	- Bug 5311: clarify configuration byte units 
+	- Bug 5091: document that changes to workers require restart 
+	- Bug 5481: Fix GCC v14 build [-Wmaybe-uninitialized] 
+	- Nil request dereference in ACLExtUser and SourceDomainCheck ACLs 
+	- Refactor peerRefreshDNS() to clarify its (void*)1 logic 
+	- Fix GCC v14 [-Wanalyzer-null-dereference] warnings in Kerberos 
+	- Fix systemd startup sequence to require active Local Filesystem 
+	- ext_time_quota_acl: remove -l option 
+	- Portability: remove explicit check for libdl 
+	- Clarify --enable-ecap failure on missing shared library support 
+	- Fix syntax error in configure.ac
+	- Remove GNU'ism in release notes Makefile 
+	- Annotate PoolMalloc memory in valgrind builds 
+	- Display Linux variant at ./configure time 
+	- ... and some documentation updates
+	- ... and some CI improvements
+
 Changes in squid-6.12 (12 Oct 2024):
 
 	- Fix validation of Digest auth header parameters
