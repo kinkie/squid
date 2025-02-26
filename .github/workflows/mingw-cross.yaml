@@ -1,5 +1,6 @@
 # development workflow; to be eventually moved to quick.yaml
 # Test a mingw cross-compile build on a Linux host
+# relies on the docker image containing libgnurx in /usr/x86_64-w64-mingw32/{include,lib}
 
 name: MinGW
 
@@ -24,6 +25,9 @@ jobs:
     env:
       BUILDCXX: g++
       BUILDCXXFLAGS: -DFOO
+      CFLAGS: -I/usr/x86_64-w64-mingw32/include
+      CXXFLAGS: -I/usr/x86_64-w64-mingw32/include
+      LDFLAGS: -L/usr/x86_64-w64-mingw32/lib
 
     steps:
       - name: Checkout Squid sources
