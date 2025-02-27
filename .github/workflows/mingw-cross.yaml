@@ -1,0 +1,58 @@
+# development workflow; to be eventually moved to quick.yaml
+# Test a mingw cross-compile build on a Linux host
+# relies on the docker image containing libgnurx in /usr/x86_64-w64-mingw32/{include,lib}
+
+name: MinGW
+
+on:
+  push:
+    branches: [ 'mingw-*' ]
+
+concurrency:
+  # Cancel ongoing tests in case of push to the same PR or staging branch,
+  # but let previous master commit tests complete.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+
+  mingw-cross:
+    runs-on: ubuntu-22.04
+    container:
+      image: squidcache/buildfarm-fedora-mingw:stable
+      options: --user 1001 # uid used by worfklow runner
+
+    env:
+      BUILDCXX: g++
+      BUILDCXXFLAGS: -DFOO
+      CFLAGS: -I/usr/x86_64-w64-mingw32/include
+      CXXFLAGS: -I/usr/x86_64-w64-mingw32/include
+      LDFLAGS: -L/usr/x86_64-w64-mingw32/lib
+
+    steps:
+      - name: Checkout Squid sources
+        uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.14
+        with:
+          verbose: 2 # default 0
+          key: mingw-cross
+
+      - name: Run build on MinGW
+        id: test-builds
+        # we cannot rely on test-builds.sh because it doesn't
+        #  support overrinding test layer configure arguemnts
+        run: |
+          ./bootstrap.sh
+          ./configure --host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu  --disable-ssl --without-openssl --without-gnutls
+          make -j`nproc` all
+          make -j`nproc` check
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-mingw
+          path: btlayer-*.log
+
