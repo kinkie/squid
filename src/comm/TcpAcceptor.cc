@@ -348,7 +348,7 @@ Comm::TcpAcceptor::acceptInto(Comm::ConnectionPointer &details)
     errcode = 0; // reset local errno copy.
     struct sockaddr_storage remoteAddress = {};
     socklen_t remoteAddressSize = sizeof(remoteAddress);
-    const auto rawSock = accept(conn->fd, reinterpret_cast<struct sockaddr *>(&remoteAddress), &remoteAddressSize);
+    const int rawSock = accept(conn->fd, reinterpret_cast<struct sockaddr *>(&remoteAddress), &remoteAddressSize);
     if (rawSock < 0) {
         errcode = errno; // store last accept errno locally.
         if (ignoreErrno(errcode) || errcode == ECONNABORTED) {
