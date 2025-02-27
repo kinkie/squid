@@ -1,0 +1,22 @@
+{
+    "name": "Squid MinGW"
+    , "image": "squidcache/buildfarm-fedora-mingw:latest"
+    , "remoteUser": "${localEnv:USER}"
+    , "containerUser": "${localEnv:USER}"
+    , "updateRemoteUserUID": false
+    , "mounts": [
+        {
+            "source": "${localEnv:HOME}/src",
+            "target": "${localEnv:HOME}/src",
+            "type": "bind"
+        },
+        {
+            "source": "${localWorkspaceFolder}",
+            "target": "/workspaces/${localWorkspaceFolderBasename}",
+            "type": "bind"
+        }
+    ]
+    , "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=${localWorkspaceFolder}"
+    , "workspaceFolder": "${localWorkspaceFolder}"
+    }
+}
