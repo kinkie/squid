@@ -58,13 +58,16 @@
 #define snprintf _snprintf
 #include <windows.h>
 #include <winldap.h>
-#ifndef LDAPAPI
-#define LDAPAPI __cdecl
-#endif
 #ifdef LDAP_VERSION3
 #ifndef LDAP_OPT_X_TLS
 #define LDAP_OPT_X_TLS 0x6000
 #endif
+
+#if _SQUID_MINGW_ && defined(WINLDAPAPI)
+#undef WINLDAPAPI
+#define WINLDAPAPI
+#endif
+
 /* Some tricks to allow dynamic bind with ldap_start_tls_s entry point at
  * run time.
  */
