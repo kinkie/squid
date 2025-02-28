@@ -168,6 +168,9 @@ squid_ldap_set_connect_timeout(LDAP * ld, int aTimeLimit)
 #elif defined(LDAP_X_OPT_CONNECT_TIMEOUT)
     aTimeLimit *= 1000;
     ldap_set_option(ld, LDAP_X_OPT_CONNECT_TIMEOUT, &aTimeLimit);
+#elif defined(LDAP_OPT_SEND_TIMEOUT)
+    // see https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ldap/session-options
+    ldap_set_option(ld, LDAP_OPT_SEND_TIMEOUT, &aTimeLimit);
 #endif
 }
 static void
