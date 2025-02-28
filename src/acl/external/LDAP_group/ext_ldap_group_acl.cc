@@ -53,7 +53,7 @@
 #include <memory>
 #include <sstream>
 
-#if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
 
 #define snprintf _snprintf
 #include <windows.h>
