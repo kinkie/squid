@@ -53,26 +53,28 @@
 #include <memory>
 #include <sstream>
 
-#if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
+#if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
 
 #define snprintf _snprintf
 #include <windows.h>
 #include <winldap.h>
+#ifndef LDAPAPI
+#define LDAPAPI __cdecl
+#endif
 #ifdef LDAP_VERSION3
 #ifndef LDAP_OPT_X_TLS
 #define LDAP_OPT_X_TLS 0x6000
 #endif
-
 /* Some tricks to allow dynamic bind with ldap_start_tls_s entry point at
  * run time.
  */
 #undef ldap_start_tls_s
 #if LDAP_UNICODE
 #define LDAP_START_TLS_S "ldap_start_tls_sW"
-typedef ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
+typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
 #else
 #define LDAP_START_TLS_S "ldap_start_tls_sA"
-typedef ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
+typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
 #endif /* LDAP_UNICODE */
 PFldap_start_tls_s Win32_ldap_start_tls_s;
 #define ldap_start_tls_s(l,s,c) Win32_ldap_start_tls_s(l, nullptr, nullptr,s,c)
@@ -163,9 +165,6 @@ squid_ldap_set_connect_timeout(LDAP * ld, int aTimeLimit)
 #elif defined(LDAP_X_OPT_CONNECT_TIMEOUT)
     aTimeLimit *= 1000;
     ldap_set_option(ld, LDAP_X_OPT_CONNECT_TIMEOUT, &aTimeLimit);
-#elif defined(LDAP_OPT_SEND_TIMEOUT)
-    // see https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ldap/session-options
-    ldap_set_option(ld, LDAP_OPT_SEND_TIMEOUT, &aTimeLimit);
 #endif
 }
 static void
