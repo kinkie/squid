@@ -149,6 +149,7 @@ GetLPBYTEtoOctetString(VARIANT * pVar, LPBYTE * ppByte)
     if ((!pVar) || (!ppByte))
         return E_INVALIDARG;
     if ((pVar->vt) != (VT_UI1 | VT_ARRAY))
+    if ((pVar->vt) != (VT_UI1 | VT_ARRAY))
         return E_INVALIDARG;
 
     hr = SafeArrayGetLBound(V_ARRAY(pVar), 1, &lLBound);
@@ -438,13 +439,14 @@ Recursive_Memberof(IADs * pObj)
                 IADs *pGrp;
 
                 Group_Path = GetLDAPPath(var.bstrVal, GC_MODE);
-                hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
+                hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
                 if (SUCCEEDED(hr)) {
                     hr = Recursive_Memberof(pGrp);
                     pGrp->Release();
+                    pGrp->Release();
                     safe_free(Group_Path);
                     Group_Path = GetLDAPPath(var.bstrVal, LDAP_MODE);
-                    hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
+                    hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
                     if (SUCCEEDED(hr)) {
                         hr = Recursive_Memberof(pGrp);
                         pGrp->Release();
@@ -466,13 +468,13 @@ Recursive_Memberof(IADs * pObj)
                             IADs *pGrp;
 
                             Group_Path = GetLDAPPath(elem.bstrVal, GC_MODE);
-                            hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
+                            hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
                             if (SUCCEEDED(hr)) {
                                 hr = Recursive_Memberof(pGrp);
                                 pGrp->Release();
                                 safe_free(Group_Path);
                                 Group_Path = GetLDAPPath(elem.bstrVal, LDAP_MODE);
-                                hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
+                                hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
                                 if (SUCCEEDED(hr)) {
                                     hr = Recursive_Memberof(pGrp);
                                     pGrp->Release();
