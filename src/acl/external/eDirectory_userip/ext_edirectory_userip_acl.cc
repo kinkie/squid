@@ -66,6 +66,12 @@
 #ifdef HAVE_LDAP_H
 #include <ldap.h>
 #endif
+#if HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#if HAVE_WINLDAP_H
+#include <winldap.h>
+#endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
