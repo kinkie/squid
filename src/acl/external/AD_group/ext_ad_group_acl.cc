@@ -634,11 +634,11 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     char User[DNLEN + UNLEN + 2];
     size_t j;
 
-    wchar_t *User_DN, *User_LDAP_path, *User_PrimaryGroup;
+    wchar_t *User_DN, *User_LDAP_path;
     IADs *pUser;
     HRESULT hr;
 
-    strncpy(NTDomain, UserName, sizeof(NTDomain));
+    strncpy(NTDomain, UserName, sizeof(NTDomain)-1);
 
     for (j = 0; j < strlen(NTV_VALID_DOMAIN_SEPARATOR); ++j) {
         if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[j])) != NULL)
@@ -674,15 +674,14 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
     hr = ADsGetObject(User_LDAP_path, IID_IADs, (void **) &pUser);
     if (SUCCEEDED(hr)) {
-        wchar_t *User_PrimaryGroup_Path;
         IADs *pGrp;
 
-        User_PrimaryGroup = Get_primaryGroup(pUser);
-        if (User_PrimaryGroup == NULL)
+        auto User_PrimaryGroup = Get_primaryGroup(pUser);
+        if (User_PrimaryGroup == nullptr) {
             debug("Valid_Global_Groups: cannot get Primary Group for '%s'.\n", User);
-        else {
+        } else {
             add_User_Group(User_PrimaryGroup);
-            User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, GC_MODE);
+            auto User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, GC_MODE);
             hr = ADsGetObject(User_PrimaryGroup_Path, IID_IADs, (void **) &pGrp);
             if (SUCCEEDED(hr)) {
                 hr = Recursive_Memberof(pGrp);
@@ -698,6 +697,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
             } else
                 debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_PrimaryGroup_Path, Get_WIN32_ErrorMessage(hr));
             safe_free(User_PrimaryGroup_Path);
+            safe_free(User_PrimaryGroup);
         }
         hr = Recursive_Memberof(pUser);
         pUser->Release();
@@ -724,7 +724,6 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
     safe_free(User_DN);
     safe_free(User_LDAP_path);
-    safe_free(User_PrimaryGroup);
     auto tmp = wszGroups;
     while (*tmp) {
         safe_free(*tmp);
