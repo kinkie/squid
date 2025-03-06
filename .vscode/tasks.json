@@ -1,0 +1,17 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mingw full build",
+            "type": "shell",
+            "command": "./bootstrap.sh ; test -d btbuild && rm -rf .btbuild; mkdir btbuild; cd btbuild; export BUILDCXX=g++ BUILDCXXFLAGS=-DFOO ; ../configure --disable-ssl --without-openssl --host=x86_64-w64-mingw32 -C --cache-file=~/config.cache ; make -j`nproc` -l`nproc` all check"
+        },
+        {
+            "label": "mingw fast build",
+            "type": "shell",
+            "command": "make -C btbuild all check"
+        }
+    ]
+}
