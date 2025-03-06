@@ -11,6 +11,24 @@
             "type": "bind"
         },
         {
+            "source": "${localEnv:HOME}/.gitconfig",
+            "target": "${localEnv:HOME}/.gitconfig",
+            "type": "bind",
+            "readonly": true
+        },
+        {
+            "source": "${localEnv:HOME}/.gitignore",
+            "target": "${localEnv:HOME}/.gitignore",
+            "type": "bind",
+            "readonly": true
+        },
+        {
+            "source": "${localEnv:HOME}/bin",
+            "target": "${localEnv:HOME}/bin",
+            "type": "bind",
+            "readonly": true
+        },
+        {
             "source": "${localWorkspaceFolder}",
             "target": "/workspaces/${localWorkspaceFolderBasename}",
             "type": "bind"
