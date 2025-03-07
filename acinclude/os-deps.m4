@@ -676,31 +676,17 @@ AC_CACHE_CHECK(for _res.nsaddr_list, ac_cv_have_res_nsaddr_list,
   ])
 ])
 
-
 dnl checks whether to use the ws2_32 library
 dnl may set ac_cv_func_select as a side effect
 AC_DEFUN([SQUID_CHECK_WINSOCK_LIB],[
   AC_CHECK_HEADERS(winsock2.h)
   SQUID_STATE_SAVE(winsock)
-  SQUID_SEARCH_LIBS([squid_getprotobynumber],[ws2_32],,,,[
-#if HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
-/* ugly hack. */
-void squid_getprotobynumber(void) {
-    getprotobynumber(1);
-}
+  AC_SEARCH_LIBS([getprotobynumber],[wsock32 ws2_32 wsock],[
+    AS_CASE([$ac_cv_search_function],
+      [no*], [:],
+      [*],[XTRA_LIBS="$XTRA_LIBS $ac_cv_search_getprotobynumber"]
+    )
   ])
-  AC_MSG_CHECKING([for winsock library])
-  AS_CASE(["$ac_cv_search_squid_getprotobynumber"],
-    ["no"],[AC_MSG_RESULT([winsock library not found])],
-    ["none required"],[AC_MSG_RESULT([winsock library already in LIBS])],
-    ["-lws2_32"],[
-      AC_MSG_RESULT([winsock2])
-      XTRA_LIBS="-lws2_32 $XTRA_LIBS"
-      ac_cv_func_select="yes"
-    ]
-  )
   SQUID_STATE_ROLLBACK(winsock)
 ])
 

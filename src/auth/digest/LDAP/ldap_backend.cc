@@ -17,7 +17,7 @@
 
 #include "auth/digest/LDAP/ldap_backend.h"
 
-#if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
 
 #define snprintf _snprintf
 #include <windows.h>
@@ -33,16 +33,17 @@
  * run time.
  */
 #undef ldap_start_tls_s
-#if LDAP_UNICODE
-#define LDAP_START_TLS_S "ldap_start_tls_sW"
-typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlW *, IN PLDAPControlW *);
-#else
+
 #define LDAP_START_TLS_S "ldap_start_tls_sA"
-typedef WINLDAPAPI ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
-#endif /* LDAP_UNICODE */
+typedef ULONG(LDAPAPI * PFldap_start_tls_s) (IN PLDAP, OUT PULONG, OUT LDAPMessage **, IN PLDAPControlA *, IN PLDAPControlA *);
+
 PFldap_start_tls_s Win32_ldap_start_tls_s;
 #define ldap_start_tls_s(l,s,c) Win32_ldap_start_tls_s(l, nullptr, nullptr,s,c)
 #endif /* LDAP_VERSION3 */
+
+#if !defined(LDAP_OPT_NETWORK_TIMEOUT) && defined(LDAP_OPT_SEND_TIMEOUT)
+#define LDAP_OPT_NETWORK_TIMEOUT LDAP_OPT_SEND_TIMEOUT
+#endif
 
 #else
 
@@ -59,13 +60,13 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 /* Globals */
 
 static LDAP *ld = nullptr;
-static const char *passattr = nullptr;
+static char *passattr = nullptr;
 static char *ldapServer = nullptr;
-static const char *userbasedn = nullptr;
-static const char *userdnattr = nullptr;
-static const char *usersearchfilter = nullptr;
-static const char *binddn = nullptr;
-static const char *bindpasswd = nullptr;
+static char *userbasedn = nullptr;
+static char *userdnattr = nullptr;
+static char *usersearchfilter = nullptr;
+static char *binddn = nullptr;
+static char *bindpasswd = nullptr;
 static const char *delimiter = ":";
 static const char *frealm = "";
 static int encrpass = 0;
@@ -405,7 +406,8 @@ LDAPArguments(int argc, char **argv)
     setbuf(stdout, nullptr);
 
     while (argc > 1 && argv[1][0] == '-') {
-        const char *value = "";
+        static char defaultValue[] = "";
+        char *value = defaultValue;
         char option = argv[1][1];
         switch (option) {
         case 'P':
@@ -424,7 +426,7 @@ LDAPArguments(int argc, char **argv)
                 ++argv;
                 --argc;
             } else
-                value = "";
+                value = defaultValue;
             break;
         }
         ++argv;
