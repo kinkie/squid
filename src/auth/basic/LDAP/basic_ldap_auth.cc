@@ -102,11 +102,22 @@
 
 #include <cctype>
 #include <cstring>
-
-#if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
-#define snprintf _snprintf
+#if HAVE_LBER_H
+#include <lber.h>
+#endif
+#if HAVE_LDAP_H
+#include <ldap.h>
+#endif
+#if HAVE_WINDOWS_H
 #include <windows.h>
+#endif
+#if HAVE_WINLDAP_H
 #include <winldap.h>
+#endif
+
+
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
+#define snprintf _snprintf
 #ifndef LDAPAPI
 #define LDAPAPI __cdecl
 #endif
@@ -129,15 +140,17 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 #define ldap_start_tls_s(l,s,c) Win32_ldap_start_tls_s(l, nullptr, nullptr,s,c)
 #endif /* LDAP_VERSION3 */
 
+#if !defined(LDAP_OPT_NETWORK_TIMEOUT) && defined(LDAP_OPT_SEND_TIMEOUT)
+#define LDAP_OPT_NETWORK_TIMEOUT LDAP_OPT_SEND_TIMEOUT
+#endif
+
 #else
 
-#include <lber.h>
-#include <ldap.h>
+
+#endif
 
 #ifndef LDAP_SECURITY_ERROR
 #define LDAP_SECURITY_ERROR(err) (0x2f <= (err) && (err) <= 0x32) // [47, 50]
-#endif
-
 #endif
 
 #define PROGRAM_NAME "basic_ldap_auth"
