@@ -34,7 +34,7 @@
 #include "auth/digest/eDirectory/digest_common.h"
 #include "mem/Sensitive.h"
 
-#if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
 
 #define snprintf _snprintf
 #include <windows.h>
@@ -52,8 +52,12 @@
 
 #else
 
+#if HAVE_LBER_H
 #include <lber.h>
+#endif
+#if HAVE_LDAP_H
 #include <ldap.h>
+#endif
 
 #endif
 

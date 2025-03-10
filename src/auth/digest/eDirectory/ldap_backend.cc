@@ -17,7 +17,7 @@
 
 #include "auth/digest/eDirectory/ldap_backend.h"
 
-#if _SQUID_WINDOWS_ && !_SQUID_CYGWIN_
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
 
 #include <windows.h>
 #include <winldap.h>
@@ -45,8 +45,12 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 
 #else
 
+#if HAVE_LBER_H
 #include <lber.h>
+#endif
+#if HAVE_LDAP_H
 #include <ldap.h>
+#endif
 
 #endif
 #include "auth/digest/eDirectory/edir_ldapext.h"
