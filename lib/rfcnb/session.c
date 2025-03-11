@@ -36,6 +36,7 @@ int RFCNB_errno = 0;
 int RFCNB_saved_errno = 0;
 #define RFCNB_ERRNO
 
+#include "compat/setsockopt.h"
 #include "rfcnb/std-includes.h"
 #include <netinet/tcp.h>
 #include "rfcnb/rfcnb-io.h"
@@ -296,7 +297,7 @@ int
 RFCNB_Set_Sock_NoDelay(struct RFCNB_Con *con_Handle, BOOL yn)
 {
 
-    return (setsockopt(con_Handle->fd, IPPROTO_TCP, TCP_NODELAY,
+    return (xsetsockopt(con_Handle->fd, IPPROTO_TCP, TCP_NODELAY,
                        (char *) &yn, sizeof(yn)));
 }
 

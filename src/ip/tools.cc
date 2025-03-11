@@ -9,6 +9,7 @@
 /* DEBUG: section 21    Misc Functions */
 
 #include "squid.h"
+#include "compat/xsetsockopt.h"
 #include "debug/Messages.h"
 #include "ip/Address.h"
 #include "ip/tools.h"
@@ -43,7 +44,7 @@ Ip::ProbeTransport()
     // (AKA. the operating system supports RFC 3493 section 5.3)
 #if defined(IPV6_V6ONLY)
     int tos = 0;
-    if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &tos, sizeof(int)) == 0) {
+    if (xsetsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &tos, sizeof(int)) == 0) {
         debugs(3, 2, "Detected IPv6 hybrid or v4-mapping stack...");
         EnableIpv6 |= IPV6_SPECIAL_V4MAPPING;
     } else {

@@ -52,5 +52,9 @@ fsync(int fd)
 
 void WIN32_maperror(unsigned long WIN32_oserrno);
 
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "NUL"
+#endif
+
 #endif /* _SQUID_MINGW_*/
 #endif /* SQUID_COMPAT_OS_MINGW_H */

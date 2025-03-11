@@ -19,6 +19,7 @@
 #include "comm/TcpAcceptor.h"
 #include "CommCalls.h"
 #include "compat/strtoll.h"
+#include "compat/xsetsockopt.h"
 #include "errorpage.h"
 #include "fd.h"
 #include "fde.h"
@@ -1777,11 +1778,11 @@ ftpOpenListenSocket(Ftp::Gateway * ftpState, int fallback)
     if (fallback) {
         int on = 1;
         errno = 0;
-        if (setsockopt(ftpState->ctrl.conn->fd, SOL_SOCKET, SO_REUSEADDR,
+        if (xsetsockopt(ftpState->ctrl.conn->fd, SOL_SOCKET, SO_REUSEADDR,
                        (char *) &on, sizeof(on)) == -1) {
             int xerrno = errno;
             // SO_REUSEADDR is only an optimization, no need to be verbose about error
-            debugs(9, 4, "setsockopt failed: " << xstrerr(xerrno));
+            debugs(9, 4, "xsetsockopt failed: " << xstrerr(xerrno));
         }
         ftpState->ctrl.conn->flags |= COMM_REUSEADDR;
         temp->flags |= COMM_REUSEADDR;

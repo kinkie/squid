@@ -76,6 +76,8 @@ libcompatsquid_la_SOURCES = \
 	xalloc.cc \
 	xalloc.h \
 	xis.h \
+	xsetsockopt.cc \
+	xsetsockopt.h \
 	xstrerror.cc \
 	xstrerror.h \
 	xstring.cc \

@@ -12,6 +12,7 @@
 #include "cache_cf.h"
 #include "comm.h"
 #include "comm/Connection.h"
+#include "compat/xsetsockopt.h"
 #include "fd.h"
 #include "fde.h"
 #include "globals.h"
@@ -123,11 +124,13 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
     if (hIpc)
         *hIpc = nullptr;
 
+#if 0 /* mingw portab work Kinkie 2025-03 */
     if (WIN32_OS_version != _WIN_OS_WINNT) {
         getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, &optlen);
         opt = opt & ~(SO_SYNCHRONOUS_NONALERT | SO_SYNCHRONOUS_ALERT);
-        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, sizeof(opt));
+        xsetsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, sizeof(opt));
     }
+#endifs
 
     if (type == IPC_TCP_SOCKET) {
         crfd = cwfd = comm_open_listener(SOCK_STREAM,
@@ -166,7 +169,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
     if (WIN32_OS_version != _WIN_OS_WINNT) {
         getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, &optlen);
         opt = opt | SO_SYNCHRONOUS_NONALERT;
-        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen);
+        xsetsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen);
     }
 
     if (crfd < 0) {

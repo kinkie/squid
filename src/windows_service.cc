@@ -9,6 +9,7 @@
 /* Inspired by previous work by Romeo Anghelache & Eric Stern. */
 
 #include "squid.h"
+#include "compat/xsetsockopt.h"
 #include "debug/Stream.h"
 #include "globals.h"
 #include "protos.h"
@@ -965,7 +966,7 @@ static int Win32SockInit(void)
         } else {
             opt = opt | SO_SYNCHRONOUS_NONALERT;
 
-            if (::setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen)) {
+            if (xsetsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen)) {
                 s_iInitCount = -3;
                 WSACleanup();
                 return (s_iInitCount);
