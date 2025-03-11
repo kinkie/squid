@@ -810,7 +810,6 @@ struct rusage {
 #undef ACL
 
 SQUIDCEXTERN int chroot(const char *dirname);
-SQUIDCEXTERN int kill(pid_t, int);
 SQUIDCEXTERN struct passwd * getpwnam(char *unused);
 SQUIDCEXTERN struct group * getgrnam(char *unused);
 

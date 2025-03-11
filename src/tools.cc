@@ -12,6 +12,7 @@
 #include "anyp/PortCfg.h"
 #include "base/Subscription.h"
 #include "client_side.h"
+#include "compat/kill.h"
 #include "fatal.h"
 #include "fde.h"
 #include "fqdncache.h"

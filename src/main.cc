@@ -25,6 +25,7 @@
 #include "client_db.h"
 #include "client_side.h"
 #include "comm.h"
+#include "compat/kill.h"
 #include "CommandLine.h"
 #include "ConfigParser.h"
 #include "CpuAffinity.h"

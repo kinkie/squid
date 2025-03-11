@@ -33,8 +33,6 @@
 THREADLOCAL int ws32_result;
 LPCRITICAL_SECTION dbg_mutex = nullptr;
 
-void GetProcessName(pid_t, char *);
-
 #if HAVE_GETPAGESIZE > 1
 size_t
 getpagesize()
@@ -56,52 +54,6 @@ chroot(const char *dirname)
         return 0;
     else
         return GetLastError();
-}
-
-void
-GetProcessName(pid_t pid, char *ProcessName)
-{
-    strcpy(ProcessName, "unknown");
-#if defined(PSAPI_VERSION)
-    /* Get a handle to the process. */
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-    /* Get the process name. */
-    if (hProcess) {
-        HMODULE hMod;
-        DWORD cbNeeded;
-
-        if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
-            GetModuleBaseName(hProcess, hMod, ProcessName, sizeof(ProcessName));
-        else {
-            CloseHandle(hProcess);
-            return;
-        }
-    } else
-        return;
-    CloseHandle(hProcess);
-#endif
-}
-
-int
-kill(pid_t pid, int sig)
-{
-    HANDLE hProcess;
-    char MyProcessName[MAX_PATH];
-    char ProcessNameToCheck[MAX_PATH];
-
-    if (sig == 0) {
-        if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid)))
-            return -1;
-        else {
-            CloseHandle(hProcess);
-            GetProcessName(getpid(), MyProcessName);
-            GetProcessName(pid, ProcessNameToCheck);
-            if (strcmp(MyProcessName, ProcessNameToCheck) == 0)
-                return 0;
-            return -1;
-        }
-    } else
-        return 0;
 }
 
 #if !HAVE_GETTIMEOFDAY

@@ -8,6 +8,7 @@
 
 #include "squid.h"
 #include "base/File.h"
+#include "compat/kill.h"
 #include "debug/Messages.h"
 #include "fs_io.h"
 #include "Instance.h"
