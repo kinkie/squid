@@ -23,6 +23,7 @@
  ****************************************************************************/
 
 #include "compat/initgroups.h"
+#include "compat/wait.h"
 
 #if HAVE_DIRECT_H
 #include <direct.h>
