@@ -9,6 +9,7 @@
 /* DEBUG: section 54    Interprocess Communication */
 
 #include "squid.h"
+#include "compat/syslog.h"
 #include "globals.h"
 #include "ipc/Kid.h"
 #include "SquidConfig.h"

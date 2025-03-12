@@ -26,6 +26,7 @@
 #include "client_side.h"
 #include "comm.h"
 #include "compat/kill.h"
+#include "compat/syslog.h"
 #include "CommandLine.h"
 #include "ConfigParser.h"
 #include "CpuAffinity.h"

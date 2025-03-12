@@ -2125,6 +2125,7 @@ AS_IF([test "x$ac_cv_func_poll" = "x"],[
 dnl Check for library functions
 AC_CHECK_FUNCS(\
   OpenProcess \
+  ReportEventA \
 	backtrace_symbols_fd \
 	bcopy \
 	eui64_aton \
