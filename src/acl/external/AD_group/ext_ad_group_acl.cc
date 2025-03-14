@@ -149,7 +149,6 @@ GetLPBYTEtoOctetString(VARIANT * pVar, LPBYTE * ppByte)
     if ((!pVar) || (!ppByte))
         return E_INVALIDARG;
     if ((pVar->vt) != (VT_UI1 | VT_ARRAY))
-    if ((pVar->vt) != (VT_UI1 | VT_ARRAY))
         return E_INVALIDARG;
 
     hr = SafeArrayGetLBound(V_ARRAY(pVar), 1, &lLBound);
@@ -183,8 +182,8 @@ Get_primaryGroup(IADs * pUser)
     VariantInit(&var);
 
     /* Get the primaryGroupID property */
-    static const auto primaryGroupIDStr = SysAllocString(L"primaryGroupID");
-    hr = pUser->Get(primaryGroupIDStr, &var);
+    static const auto primaryGroupIdStr = SysAllocString(L"primaryGroupID");
+    hr = pUser->Get(primaryGroupIdStr, &var);
     if (SUCCEEDED(hr)) {
         User_primaryGroupID = var.uintVal;
     } else {
@@ -220,12 +219,13 @@ Get_primaryGroup(IADs * pUser)
         result = My_NameTranslate(wc, ADS_NAME_TYPE_SID_OR_SID_HISTORY_NAME, ADS_NAME_TYPE_1779);
         safe_free(wc);
 
-        if (result == NULL)
+        if (!result)
             debug("Get_primaryGroup: cannot get DN for %s.\n", tmpSID);
         else
             debug("Get_primaryGroup: Primary group DN: %S.\n", result);
-    } else
+    } else {
         debug("Get_primaryGroup: cannot get objectSid, ERROR: %s\n", Get_WIN32_ErrorMessage(hr));
+    }
     VariantClear(&var);
     return result;
 }
@@ -252,7 +252,7 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
     wchar_t *wc;
 
     if (WIN32_COM_initialized == 0) {
-        hr = CoInitialize(NULL);
+        hr = CoInitialize(nullptr);
         if (FAILED(hr)) {
             debug("My_NameTranslate: cannot initialize COM interface, ERROR: %s\n", Get_WIN32_ErrorMessage(hr));
             /* This is a fatal error */
@@ -270,8 +270,8 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
         /* This is a fatal error */
         exit(EXIT_FAILURE);
     }
-    static const auto emtpyStr = SysAllocString(L"");
-    hr = pNto->Init(ADS_NAME_INITTYPE_GC, emtpyStr);
+    static const auto emptyStr = SysAllocString(L"");
+    hr = pNto->Init(ADS_NAME_INITTYPE_GC, emptyStr);
     if (FAILED(hr)) {
         debug("My_NameTranslate: cannot initialise NameTranslate API, ERROR: %s\n", Get_WIN32_ErrorMessage(hr));
         pNto->Release();
@@ -354,13 +354,14 @@ GetDomainName(void)
         } else {
             debug("Not a Domain member\n");
         }
-    } else
+    } else {
         debug("GetDomainName: ERROR DsRoleGetPrimaryDomainInformation returned: %s\n", Get_WIN32_ErrorMessage(netret));
+    }
 
     /*
      * Free the allocated memory.
      */
-    if (pDSRoleInfo != NULL)
+    if (pDSRoleInfo)
         DsRoleFreeMemory(pDSRoleInfo);
 
     return DomainName;
@@ -394,8 +395,10 @@ add_User_Group(wchar_t * Group)
 /* returns true on match, false if no match */
 /* TODO: convert to std::containers */
 static bool
-wccmparray(const wchar_t * str, wchar_t ** array)
+wStrIsInArray(const wchar_t * str, wchar_t ** array)
 {
+    if (!array)
+        return false;
     while (*array) {
         debug("Windows group: %S, Squid group: %S\n", str, *array);
         if (wcscmp(str, *array) == 0)
@@ -439,21 +442,22 @@ Recursive_Memberof(IADs * pObj)
                 IADs *pGrp;
 
                 Group_Path = GetLDAPPath(var.bstrVal, GC_MODE);
-                hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
                 if (SUCCEEDED(hr)) {
                     hr = Recursive_Memberof(pGrp);
                     pGrp->Release();
-                    pGrp->Release();
                     safe_free(Group_Path);
                     Group_Path = GetLDAPPath(var.bstrVal, LDAP_MODE);
-                    hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                    hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
                     if (SUCCEEDED(hr)) {
                         hr = Recursive_Memberof(pGrp);
                         pGrp->Release();
-                    } else
+                    } else {
                         debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
-                } else
+                    }
+                } else {
                     debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
+                }
                 safe_free(Group_Path);
             }
         } else {
@@ -468,21 +472,24 @@ Recursive_Memberof(IADs * pObj)
                             IADs *pGrp;
 
                             Group_Path = GetLDAPPath(elem.bstrVal, GC_MODE);
-                            hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                            hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
                             if (SUCCEEDED(hr)) {
                                 hr = Recursive_Memberof(pGrp);
                                 pGrp->Release();
+                                pGrp->Release();
                                 safe_free(Group_Path);
                                 Group_Path = GetLDAPPath(elem.bstrVal, LDAP_MODE);
-                                hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+                                hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
                                 if (SUCCEEDED(hr)) {
                                     hr = Recursive_Memberof(pGrp);
                                     pGrp->Release();
                                     safe_free(Group_Path);
-                                } else
+                                } else {
                                     debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
-                            } else
+                                }
+                            } else {
                                 debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
+                            }
                             safe_free(Group_Path);
                         }
                         VariantClear(&elem);
@@ -492,8 +499,9 @@ Recursive_Memberof(IADs * pObj)
                     }
                     ++lBound;
                 }
-            } else
+            } else {
                 debug("Recursive_Memberof: ERROR SafeArrayGetxBound failed: %s\n", Get_WIN32_ErrorMessage(hr));
+            }
         }
         VariantClear(&var);
     } else {
@@ -517,17 +525,17 @@ build_groups_DN_array(const char **array, char *userdomain)
     entry = wc_array = (wchar_t **) xmalloc((numberofgroups + 1) * sizeof(wchar_t *));
 
     while (*array) {
-        if (strchr(*array, '/') != NULL) {
-            strncpy(Group, *array, GNLEN);
+        if (strchr(*array, '/')) {
+            xstrncpy(Group, *array, GNLEN);
             source_group_format = ADS_NAME_TYPE_CANONICAL;
         } else {
             source_group_format = ADS_NAME_TYPE_NT4;
-            if (strchr(*array, '\\') == NULL) {
+            if (!strchr(*array, '\\')) {
                 strcpy(Group, userdomain);
                 strcat(Group, "\\");
                 strncat(Group, *array, GNLEN - sizeof(userdomain) - 1);
             } else
-                strncpy(Group, *array, GNLEN);
+                xstrncpy(Group, *array, GNLEN);
         }
 
         wcsize = MultiByteToWideChar(CP_ACP, 0, Group, -1, wc, 0);
@@ -536,7 +544,7 @@ build_groups_DN_array(const char **array, char *userdomain)
         *entry = My_NameTranslate(wc, source_group_format, ADS_NAME_TYPE_1779);
         safe_free(wc);
         ++array;
-        if (*entry == NULL) {
+        if (!*entry) {
             debug("build_groups_DN_array: cannot get DN for '%s'.\n", Group);
             continue;
         }
@@ -566,7 +574,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
     DWORD dwTotalCount = 0;
     LPBYTE pBufTmp = nullptr;
 
-    if ((Domain_Separator = strchr(UserName, '/')) != NULL)
+    if ((Domain_Separator = strchr(UserName, '/')))
         *Domain_Separator = '\\';
 
     debug("Valid_Local_Groups: checking group membership of '%s'.\n", UserName);
@@ -597,10 +605,9 @@ Valid_Local_Groups(char *UserName, const char **Groups)
      * If the call succeeds,
      */
     if (nStatus == NERR_Success) {
-        if ((pTmpBuf = pBuf) != NULL) {
+        if ((pTmpBuf = pBuf)) {
             for (i = 0; i < dwEntriesRead; ++i) {
-                assert(pTmpBuf != NULL);
-                if (pTmpBuf == NULL) {
+                if (!pTmpBuf) {
                     result = 0;
                     break;
                 }
@@ -619,7 +626,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
     /*
      * Free the allocated memory.
      */
-    if (pBuf != NULL)
+    if (pBuf)
         NetApiBufferFree(pBuf);
     return result;
 }
@@ -636,24 +643,25 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     char User[DNLEN + UNLEN + 2];
     size_t j;
 
-    wchar_t *User_DN, *User_LDAP_path;
+    wchar_t *User_DN = nullptr, *User_LDAP_path = nullptr;
+    wchar_t *User_PrimaryGroup = nullptr;
     IADs *pUser;
     HRESULT hr;
 
-    strncpy(NTDomain, UserName, sizeof(NTDomain)-1);
+    xstrncpy(NTDomain, UserName, sizeof(NTDomain));
 
     for (j = 0; j < strlen(NTV_VALID_DOMAIN_SEPARATOR); ++j) {
-        if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[j])) != NULL)
+        if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[j])))
             break;
     }
-    if (domain_qualify == NULL) {
-        strncpy(User, DefaultDomain, DNLEN);
+    if (!domain_qualify) {
+        xstrncpy(User, DefaultDomain, DNLEN);
         strcat(User, "\\");
         strncat(User, UserName, UNLEN);
-        strncpy(NTDomain, DefaultDomain, DNLEN);
+        xstrncpy(NTDomain, DefaultDomain, DNLEN);
     } else {
         domain_qualify[0] = '\\';
-        strncpy(User, NTDomain, DNLEN + UNLEN + 2);
+        xstrncpy(User, NTDomain, DNLEN + UNLEN + 2);
         domain_qualify[0] = '\0';
     }
 
@@ -666,7 +674,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
                         sizeof(wszUser) / sizeof(wszUser[0]));
 
     /* Get CN of User */
-    if ((User_DN = My_NameTranslate(wszUser, ADS_NAME_TYPE_NT4, ADS_NAME_TYPE_1779)) == NULL) {
+    if (!(User_DN = My_NameTranslate(wszUser, ADS_NAME_TYPE_NT4, ADS_NAME_TYPE_1779))) {
         debug("Valid_Global_Groups: cannot get DN for '%s'.\n", User);
         return result;
     }
@@ -678,12 +686,12 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     if (SUCCEEDED(hr)) {
         IADs *pGrp;
 
-        auto User_PrimaryGroup = Get_primaryGroup(pUser);
-        if (User_PrimaryGroup == nullptr) {
+        User_PrimaryGroup = Get_primaryGroup(pUser);
+        if (!User_PrimaryGroup) {
             debug("Valid_Global_Groups: cannot get Primary Group for '%s'.\n", User);
         } else {
             add_User_Group(User_PrimaryGroup);
-            auto User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, GC_MODE);
+            User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, GC_MODE);
             hr = ADsGetObject(User_PrimaryGroup_Path, IID_IADs, (void **) &pGrp);
             if (SUCCEEDED(hr)) {
                 hr = Recursive_Memberof(pGrp);
@@ -694,10 +702,12 @@ Valid_Global_Groups(char *UserName, const char **Groups)
                 if (SUCCEEDED(hr)) {
                     hr = Recursive_Memberof(pGrp);
                     pGrp->Release();
-                } else
+                } else {
                     debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_PrimaryGroup_Path, Get_WIN32_ErrorMessage(hr));
-            } else
+                }
+            } else {
                 debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_PrimaryGroup_Path, Get_WIN32_ErrorMessage(hr));
+            }
             safe_free(User_PrimaryGroup_Path);
             safe_free(User_PrimaryGroup);
         }
@@ -709,12 +719,13 @@ Valid_Global_Groups(char *UserName, const char **Groups)
         if (SUCCEEDED(hr)) {
             hr = Recursive_Memberof(pUser);
             pUser->Release();
-        } else
+        } else {
             debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_LDAP_path, Get_WIN32_ErrorMessage(hr));
+        }
 
         auto tmp = User_Groups;
         while (*tmp) {
-            if (wccmparray(*tmp, wszGroups)) {
+            if (wStrIsInArray(*tmp, wszGroups)) {
                 result = 1;
                 break;
             }
@@ -726,6 +737,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
     safe_free(User_DN);
     safe_free(User_LDAP_path);
+    safe_free(User_PrimaryGroup);
     auto tmp = wszGroups;
     while (*tmp) {
         safe_free(*tmp);
@@ -804,7 +816,7 @@ main(int argc, char *argv[])
 
     assert(argc > 0);
     program_name = strrchr(argv[0], '/');
-    if (program_name == NULL)
+    if (!program_name)
         program_name = argv[0];
     mypid = getpid();
 
@@ -815,7 +827,7 @@ main(int argc, char *argv[])
     process_options(argc, argv);
 
     if (use_global) {
-        if ((machinedomain = GetDomainName()) == NULL) {
+        if (!(machinedomain = GetDomainName())) {
             fprintf(stderr, "%s: FATAL: Can't read machine domain\n", program_name);
             exit(EXIT_FAILURE);
         }
@@ -835,37 +847,37 @@ main(int argc, char *argv[])
 
     /* Main Loop */
     while (fgets(buf, HELPER_INPUT_BUFFER, stdin)) {
-        if (NULL == strchr(buf, '\n')) {
+        if (!strchr(buf, '\n')) {
             /* too large message received.. skip and deny */
             fprintf(stderr, "%s: ERROR: Too large: %s\n", argv[0], buf);
             while (fgets(buf, HELPER_INPUT_BUFFER, stdin)) {
                 fprintf(stderr, "%s: ERROR: Too large..: %s\n", argv[0], buf);
-                if (strchr(buf, '\n') != NULL)
+                if (strchr(buf, '\n'))
                     break;
             }
             SEND_BH(HLP_MSG("Invalid Request. Too Long."));
             continue;
         }
-        if ((p = strchr(buf, '\n')) != NULL)
+        if ((p = strchr(buf, '\n')))
             *p = '\0';      /* strip \n */
-        if ((p = strchr(buf, '\r')) != NULL)
+        if ((p = strchr(buf, '\r')))
             *p = '\0';      /* strip \r */
 
-        debug("Got '%s' from Squid (length: %d).\n", buf, static_cast<int>(strlen(buf)));
+        debug("Got '%s' from Squid (length: %zu).\n", buf, strlen(buf));
 
         if (buf[0] == '\0') {
             SEND_BH(HLP_MSG("Invalid Request. No Input."));
             continue;
         }
         username = strtok(buf, " ");
-        for (n = 0; (group = strtok(nullptr, " ")) != NULL; ++n) {
+        for (n = 0; (group = strtok(nullptr, " ")); ++n) {
             rfc1738_unescape(group);
             groups[n] = group;
         }
         groups[n] = nullptr;
         numberofgroups = n;
 
-        if (NULL == username) {
+        if (!username) {
             SEND_BH(HLP_MSG("Invalid Request. No Username."));
             continue;
         }
