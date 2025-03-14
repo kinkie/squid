@@ -58,5 +58,7 @@ void WIN32_maperror(unsigned long WIN32_oserrno);
 #define _PATH_DEVNULL "NUL"
 #endif
 
+#define mkdir(p,F) mkdir((p))
+
 #endif /* _SQUID_MINGW_*/
 #endif /* SQUID_COMPAT_OS_MINGW_H */
