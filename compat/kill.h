@@ -11,9 +11,7 @@
 
 #if !HAVE_KILL && HAVE_OPENPROCESS
 
-#if HAVE_SIGNAL_H
-#include <signal.h>
-#endif
+#include "compat/signal.h"
 
 /* portable wrapper for kill(2) */
 SQUIDCEXTERN int
