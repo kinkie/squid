@@ -4,27 +4,33 @@
     , "remoteUser": "${localEnv:USER}"
     , "containerUser": "${localEnv:USER}"
     , "updateRemoteUserUID": false
+    , "runArgs": [ "--platform", "linux/amd64" ]
     , "mounts": [
         {
-            "source": "${localEnv:HOME}/src",
-            "target": "${localEnv:HOME}/src",
+            "source": "mingw-kinkie",
+            "target": "/home/${localEnv:USER}",
+            "type": "volume"
+        },
+        {
+            "source": "${localEnv:HOME}/src/squid",
+            "target": "/home/${localEnv:USER}/src/squid",
             "type": "bind"
         },
         {
             "source": "${localEnv:HOME}/.gitconfig",
-            "target": "${localEnv:HOME}/.gitconfig",
+            "target": "/home/${localEnv:USER}/.gitconfig",
             "type": "bind",
             "readonly": true
         },
         {
             "source": "${localEnv:HOME}/.gitignore",
-            "target": "${localEnv:HOME}/.gitignore",
+            "target": "/home/${localEnv:USER}/.gitignore",
             "type": "bind",
             "readonly": true
         },
         {
             "source": "${localEnv:HOME}/bin",
-            "target": "${localEnv:HOME}/bin",
+            "target": "/home/${localEnv:USER}/bin",
             "type": "bind",
             "readonly": true
         },
