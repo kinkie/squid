@@ -20,6 +20,7 @@
 #include "comm/Loops.h"
 #include "comm/TcpAcceptor.h"
 #include "CommCalls.h"
+#include "compat/xaccept.h"
 #include "compat/xsetsockopt.h"
 #include "eui/Config.h"
 #include "fd.h"
@@ -349,7 +350,7 @@ Comm::TcpAcceptor::acceptInto(Comm::ConnectionPointer &details)
     errcode = 0; // reset local errno copy.
     struct sockaddr_storage remoteAddress = {};
     socklen_t remoteAddressSize = sizeof(remoteAddress);
-    const int rawSock = accept(conn->fd, reinterpret_cast<struct sockaddr *>(&remoteAddress), &remoteAddressSize);
+    const int rawSock = xaccept(conn->fd, reinterpret_cast<struct sockaddr *>(&remoteAddress), &remoteAddressSize);
     if (rawSock < 0) {
         errcode = errno; // store last accept errno locally.
         if (ignoreErrno(errcode) || errcode == ECONNABORTED) {
