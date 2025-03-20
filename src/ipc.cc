@@ -11,6 +11,7 @@
 #include "squid.h"
 #include "comm/Connection.h"
 #include "compat/xaccept.h"
+#include "compat/xgetsockname.h"
 #include "fd.h"
 #include "fde.h"
 #include "globals.h"
@@ -218,7 +219,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
     if (type == IPC_TCP_SOCKET || type == IPC_UDP_SOCKET) {
         Ip::Address::InitAddr(AI);
 
-        if (getsockname(pwfd, AI->ai_addr, &AI->ai_addrlen) < 0) {
+        if (xgetsockname(pwfd, AI->ai_addr, &AI->ai_addrlen) < 0) {
             xerrno = errno;
             Ip::Address::FreeAddr(AI);
             debugs(54, DBG_CRITICAL, "ipcCreate: getsockname: " << xstrerr(xerrno));
@@ -233,7 +234,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 
         Ip::Address::InitAddr(AI);
 
-        if (getsockname(crfd, AI->ai_addr, &AI->ai_addrlen) < 0) {
+        if (xgetsockname(crfd, AI->ai_addr, &AI->ai_addrlen) < 0) {
             xerrno = errno;
             Ip::Address::FreeAddr(AI);
             debugs(54, DBG_CRITICAL, "ipcCreate: getsockname: " << xstrerr(xerrno));

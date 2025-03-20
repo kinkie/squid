@@ -13,6 +13,7 @@
 #include "comm.h"
 #include "comm/Connection.h"
 #include "comm/Write.h"
+#include "compat/xgetsockname.h"
 #include "CommCalls.h"
 #include "ipc/UdsOp.h"
 
@@ -195,7 +196,7 @@ Ipc::ImportFdIntoComm(const Comm::ConnectionPointer &conn, int socktype, int pro
 {
     struct sockaddr_storage addr;
     socklen_t len = sizeof(addr);
-    if (getsockname(conn->fd, reinterpret_cast<sockaddr*>(&addr), &len) == 0) {
+    if (xgetsockname(conn->fd, reinterpret_cast<sockaddr*>(&addr), &len) == 0) {
         conn->remote = addr;
         struct addrinfo* addr_info = nullptr;
         conn->remote.getAddrInfo(addr_info);

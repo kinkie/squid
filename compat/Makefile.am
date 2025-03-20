@@ -80,6 +80,8 @@ libcompatsquid_la_SOURCES = \
 	kill.h \
 	xaccept.cc \
 	xaccept.h \
+	xgetsockname.cc \
+	xgetsockname.h \
 	xsetsockopt.cc \
 	xsetsockopt.h \
 	xstrerror.cc \
