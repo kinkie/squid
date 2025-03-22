@@ -9,6 +9,7 @@
 /* Inspired by previous work by Romeo Anghelache & Eric Stern. */
 
 #include "squid.h"
+#include "compat/signal.h"
 #include "compat/xsetsockopt.h"
 #include "debug/Stream.h"
 #include "globals.h"
@@ -17,11 +18,19 @@
 #include "tools.h"
 #include "windows_service.h"
 
-#if _SQUID_WINDOWS_
-#if !defined(_MSWSOCK_)
+#define KINKIE_CHECKMARK_HERE_1
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_
+
+#if HAVE_MSWSOCK_H
 #include <mswsock.h>
 #endif
+#if HAVE_PROCESS_H
 #include <process.h>
+#endif
+#define KINKIE_CHECKMARK_HERE_2
+#if HAVE_IPHLPAPI_H
+#include <iphlpapi.h>
+#endif
 #if defined(_MSC_VER) /* Microsoft C Compiler ONLY */
 #include <crtdbg.h>
 #endif
@@ -42,7 +51,7 @@ static void WIN32_build_argv (char *);
 #endif
 
 #if defined(_MSC_VER) /* Microsoft C Compiler ONLY */
-void Squid_Win32InvalidParameterHandler(const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t);
+static void Squid_Win32InvalidParameterHandler(const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t) {}
 #endif
 static int Win32SockInit(void);
 static void Win32SockCleanup(void);
@@ -50,10 +59,6 @@ SQUIDCEXTERN LPCRITICAL_SECTION dbg_mutex;
 void WIN32_ExceptionHandlerCleanup(void);
 static int s_iInitCount = 0;
 static HANDLE NotifyAddrChange_thread = INVALID_HANDLE_VALUE;
-
-#undef NotifyAddrChange
-typedef DWORD(WINAPI * PFNotifyAddrChange) (OUT PHANDLE, IN LPOVERLAPPED);
-#define NOTIFYADDRCHANGE "NotifyAddrChange"
 
 #if USE_WIN32_SERVICE
 static SERVICE_STATUS svcStatus;
@@ -382,7 +387,7 @@ WIN32_Abort(int sig)
 }
 #endif
 
-void
+static void
 WIN32_IpAddrChangeMonitorExit()
 {
     DWORD status = ERROR_SUCCESS;
@@ -416,15 +421,9 @@ WIN32_Exit()
 }
 
 static DWORD WINAPI
-WIN32_IpAddrChangeMonitor(LPVOID lpParam)
+WIN32_IpAddrChangeMonitor(LPVOID)
 {
     DWORD Result;
-    HMODULE IPHLPAPIHandle;
-    PFNotifyAddrChange NotifyAddrChange;
-
-    if ((IPHLPAPIHandle = GetModuleHandle("IPHLPAPI")) == NULL)
-        IPHLPAPIHandle = LoadLibrary("IPHLPAPI");
-    NotifyAddrChange = (PFNotifyAddrChange) GetProcAddress(IPHLPAPIHandle, NOTIFYADDRCHANGE);
 
     while (1) {
         Result = NotifyAddrChange(nullptr, nullptr);
@@ -459,9 +458,6 @@ WIN32_IpAddrChangeMonitorInit()
 
 int WIN32_Subsystem_Init(int * argc, char *** argv)
 {
-#if defined(_MSC_VER) /* Microsoft C Compiler ONLY */
-    _invalid_parameter_handler oldHandler, newHandler;
-#endif
 
     WIN32_OS_version = GetOSVersion();
 
@@ -473,9 +469,7 @@ int WIN32_Subsystem_Init(int * argc, char *** argv)
 
 #if defined(_MSC_VER) /* Microsoft C Compiler ONLY */
 
-    newHandler = Squid_Win32InvalidParameterHandler;
-
-    oldHandler = _set_invalid_parameter_handler(newHandler);
+    _set_invalid_parameter_handler(Squid_Win32InvalidParameterHandler);
 
     _CrtSetReportMode(_CRT_ASSERT, 0);
 
@@ -555,7 +549,9 @@ int WIN32_Subsystem_Init(int * argc, char *** argv)
         _setmaxstdio(Squid_MaxFD);
 
     }
-
+#else /* USE_WIN32_SERVICE */
+    (void) argc;
+    (void) argv;
 #endif /* USE_WIN32_SERVICE */
     if (Win32SockInit() < 0)
         return 1;
@@ -959,14 +955,15 @@ static int Win32SockInit(void)
     }
 
     if (WIN32_OS_version !=_WIN_OS_WINNT) {
+        // not a squid-managed FD. we really want to use the Windows native API
         if (::getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&opt, &optlen)) {
             s_iInitCount = -3;
             WSACleanup();
             return (s_iInitCount);
         } else {
             opt = opt | SO_SYNCHRONOUS_NONALERT;
-
-            if (xsetsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen)) {
+            // not a squid-managed FD. we really want to use the Windows native API
+            if (::setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen)) {
                 s_iInitCount = -3;
                 WSACleanup();
                 return (s_iInitCount);
@@ -986,9 +983,3 @@ static void Win32SockCleanup(void)
 
     return;
 }
-
-void Squid_Win32InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, unsigned int line, uintptr_t pReserved)
-{
-    return;
-}
-

@@ -833,7 +833,6 @@ size_t getpagesize();
 
 SQUIDCEXTERN void WIN32_ExceptionHandlerInit(void);
 SQUIDCEXTERN int Win32__WSAFDIsSet(int fd, fd_set* set);
-SQUIDCEXTERN DWORD WIN32_IpAddrChangeMonitorInit();
 
 /* XXX: the logic around this is a bit warped:
  *   we #define ACL unconditionally at the top of this file,

@@ -79,15 +79,13 @@ extern int store_swap_high; /* 0 */
 extern size_t store_pages_max;  /* 0 */
 extern int64_t store_maxobjsize;    /* 0 */
 extern int incoming_sockets_accepted;
-#if _SQUID_WINDOWS_
-extern unsigned int WIN32_Socks_initialized;    /* 0 */
-#endif
-#if _SQUID_WINDOWS_
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_
 extern unsigned int WIN32_OS_version;   /* 0 */
 extern char *WIN32_OS_string;           /* NULL */
 extern char *WIN32_Command_Line;        /* NULL */
 extern char *WIN32_Service_Command_Line; /* NULL */
 extern unsigned int WIN32_run_mode;     /* _WIN_SQUID_RUN_MODE_INTERACTIVE */
+extern unsigned int WIN32_Socks_initialized; /* 0 */
 #endif
 
 extern int ssl_ex_index_server; /* -1 */

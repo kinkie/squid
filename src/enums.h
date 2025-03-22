@@ -202,7 +202,7 @@ typedef enum {
 } digest_read_state_t;
 
 /* CygWin & Windows NT Port */
-#if _SQUID_WINDOWS_
+#if _SQUID_WINDOWS_ || _SQUID_MINGW_
 /*
  * Supported Windows OS types codes
  */
