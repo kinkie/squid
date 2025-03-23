@@ -206,7 +206,9 @@ typedef enum {
 /*
  * Supported Windows OS types codes
  */
-enum {
+enum
+{
+    _WIN_OS_UNSUPPORTED,
     _WIN_OS_UNKNOWN,
     _WIN_OS_WIN32S,
     _WIN_OS_WIN95,
@@ -217,7 +219,11 @@ enum {
     _WIN_OS_WINXP,
     _WIN_OS_WINNET,
     _WIN_OS_WINLON,
-    _WIN_OS_WIN7
+    _WIN_OS_WIN7,
+    _WIN_OS_WIN8,
+    _WIN_OS_WIN8_1,
+    _WIN_OS_WIN10,
+    _WIN_OS_WIN11
 };
 #endif /* _SQUID_WINDOWS_ */
 

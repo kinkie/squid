@@ -18,7 +18,10 @@
 #include "tools.h"
 #include "windows_service.h"
 
-#define KINKIE_CHECKMARK_HERE_1
+#include <array>
+#include <tuple>
+#include <map>
+
 #if _SQUID_WINDOWS_ || _SQUID_MINGW_
 
 #if HAVE_MSWSOCK_H
@@ -27,7 +30,6 @@
 #if HAVE_PROCESS_H
 #include <process.h>
 #endif
-#define KINKIE_CHECKMARK_HERE_2
 #if HAVE_IPHLPAPI_H
 #include <iphlpapi.h>
 #endif
@@ -290,86 +292,56 @@ static void WIN32_build_argv(char *cmd)
 static unsigned int
 GetOSVersion()
 {
-    OSVERSIONINFOEX osvi;
-    BOOL bOsVersionInfoEx;
+    OSVERSIONINFOEXA osvi;
 
     safe_free(WIN32_OS_string);
-    memset(&osvi, '\0', sizeof(OSVERSIONINFOEX));
-    /* Try calling GetVersionEx using the OSVERSIONINFOEX structure.
-     * If that fails, try using the OSVERSIONINFO structure.
-     */
+    memset(&osvi, '\0', sizeof(OSVERSIONINFOEXA));
 
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXA);
+    auto success = GetVersionExA((OSVERSIONINFOA *)(&osvi));
 
-    if (!(bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) & osvi))) {
-        osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        if (!GetVersionEx((OSVERSIONINFO *) & osvi))
-            goto GetVerError;
+    if (!success) {
+        WIN32_OS_string = xstrdup("Unknown Windows version");
+        return _WIN_OS_UNKNOWN;
     }
-    switch (osvi.dwPlatformId) {
-    case VER_PLATFORM_WIN32_NT:
-        if (osvi.dwMajorVersion <= 4) {
-            WIN32_OS_string = xstrdup("Windows NT");
-            return _WIN_OS_WINNT;
-        }
-        if ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 0)) {
-            WIN32_OS_string = xstrdup("Windows 2000");
-            return _WIN_OS_WIN2K;
-        }
-        if ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 1)) {
-            WIN32_OS_string = xstrdup("Windows XP");
-            return _WIN_OS_WINXP;
-        }
-        if ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 2)) {
-            WIN32_OS_string = xstrdup("Windows Server 2003");
-            return _WIN_OS_WINNET;
-        }
-        if ((osvi.dwMajorVersion == 6) && (osvi.dwMinorVersion == 0)) {
-            if (osvi.wProductType == VER_NT_WORKSTATION)
-                WIN32_OS_string = xstrdup("Windows Vista");
-            else
-                WIN32_OS_string = xstrdup("Windows Server 2008");
-            return _WIN_OS_WINLON;
-        }
-        if ((osvi.dwMajorVersion == 6) && (osvi.dwMinorVersion == 1)) {
-            if (osvi.wProductType == VER_NT_WORKSTATION)
-                WIN32_OS_string = xstrdup("Windows 7");
-            else
-                WIN32_OS_string = xstrdup("Windows Server 2008 R2");
-            return _WIN_OS_WIN7;
-        }
-        if (((osvi.dwMajorVersion > 6)) || ((osvi.dwMajorVersion == 6) && (osvi.dwMinorVersion > 1))) {
-            if (osvi.wProductType == VER_NT_WORKSTATION)
-                WIN32_OS_string = xstrdup("Unknown Windows version, assuming Windows 7 capabilities");
-            else
-                WIN32_OS_string = xstrdup("Unknown Windows version, assuming Windows Server 2008 R2 capabilities");
-            return _WIN_OS_WIN7;
-        }
-        break;
-    case VER_PLATFORM_WIN32_WINDOWS:
-        if ((osvi.dwMajorVersion == 4) && (osvi.dwMinorVersion == 0)) {
-            WIN32_OS_string = xstrdup("Windows 95");
-            return _WIN_OS_WIN95;
-        }
-        if ((osvi.dwMajorVersion == 4) && (osvi.dwMinorVersion == 10)) {
-            WIN32_OS_string = xstrdup("Windows 98");
-            return _WIN_OS_WIN98;
-        }
-        if ((osvi.dwMajorVersion == 4) && (osvi.dwMinorVersion == 90)) {
-            WIN32_OS_string = xstrdup("Windows Me");
-            return _WIN_OS_WINME;
-        }
-        break;
-    case VER_PLATFORM_WIN32s:
-        WIN32_OS_string = xstrdup("Windows 3.1 with WIN32S");
-        return _WIN_OS_WIN32S;
-        break;
-    default:
-        break;
+    if (osvi.dwPlatformId != VER_PLATFORM_WIN32_NT) {
+        // Microsoft does not support any non-NT derived OS
+        WIN32_OS_string = xstrdup("Unsupported Windows version");
+        return _WIN_OS_UNSUPPORTED;
     }
-GetVerError:
-    WIN32_OS_string = xstrdup("Unknown Windows system");
-    return _WIN_OS_UNKNOWN;
+
+    static const std::map<std::tuple<DWORD, DWORD, bool>, std::pair<int, const char *>>
+    windows_versions{
+        {{5, 0, true}, {_WIN_OS_WIN2K, "Windows 2000}"}},
+        {{5, 1, true}, {_WIN_OS_WINXP, "Windows XP"}},
+        {{5, 2, false}, {_WIN_OS_WINNET, "Windows Server 2003"}},
+        {{6, 0, true}, {_WIN_OS_WINLON, "Windows Vista"}},
+        {{6, 0, false}, {_WIN_OS_WINLON, "Windows Server 2008"}},
+        {{6, 1, true}, {_WIN_OS_WIN7, "Windows 7"}},
+        {{6, 1, false}, {_WIN_OS_WIN7, "Windows Server 2008 R2"}},
+        {{6, 2, true}, {_WIN_OS_WIN8, "Windows 8"}},
+        {{6, 2, false}, {_WIN_OS_WIN8, "Windows Server 2012"}},
+        {{6, 3, true}, {_WIN_OS_WIN8_1, "Windows 8.1"}},
+        {{6, 3, false}, {_WIN_OS_WIN8_1, "Windows Server 2012 R2"}},
+        {{10, 0, true}, {_WIN_OS_WIN10, "Windows 10"}},
+        {{10, 0, false}, {_WIN_OS_WIN10, "Windows Server 2016"}},
+    };
+
+    const auto version = windows_versions.find(std::make_tuple(osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.wProductType == VER_NT_WORKSTATION));
+    if (version == windows_versions.end()) {
+        WIN32_OS_string = xstrdup("Unknown Windows version");
+        return _WIN_OS_UNKNOWN;
+    }
+
+    if (version->second.first == _WIN_OS_WIN10 && osvi.dwBuildNumber >= 22000)
+    {
+        // TODO: is there a server version?
+        WIN32_OS_string = xstrdup("Windows 11");
+        return _WIN_OS_WIN11;
+    }
+
+    WIN32_OS_string = xstrdup(version->second.second);
+    return version->second.first;
 }
 
 /* ====================================================================== */
