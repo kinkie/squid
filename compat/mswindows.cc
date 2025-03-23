@@ -212,7 +212,6 @@ WIN32_maperror(unsigned long WIN32_oserrno)
         errno = EINVAL;
 }
 
-
 /* note: this is all MSWindows-specific code; all of it should be conditional */
 #endif /* _SQUID_WINDOWS_ */
 

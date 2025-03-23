@@ -13,8 +13,8 @@
 #include "comm.h"
 #include "comm/Connection.h"
 #include "comm/Write.h"
-#include "compat/xgetsockname.h"
 #include "CommCalls.h"
+#include "compat/xgetsockname.h"
 #include "ipc/UdsOp.h"
 
 Ipc::UdsOp::UdsOp(const String& pathAddr):

@@ -208,7 +208,6 @@ SQUIDCEXTERN int WIN32_truncate(const char *pathname, off_t length);
 #define S_ISDIR(m) (((m) & _S_IFDIR) == _S_IFDIR)
 #endif
 
-
 #if defined(_MSC_VER)
 typedef int uid_t;
 typedef int gid_t;
@@ -469,7 +468,6 @@ namespace Squid
  * - record errors in POSIX errno variable, and
  * - map the FD value used by Squid to the socket handes used by Windows.
  */
-
 
 inline int
 bind(int s, const struct sockaddr * n, socklen_t l)
@@ -849,7 +847,6 @@ SQUIDCEXTERN int Win32__WSAFDIsSet(int fd, fd_set* set);
 #undef ACL
 #undef _MSWIN_ACL_WAS_NOT_DEFINED
 #endif
-
 
 /* prototypes */
 void WIN32_maperror(unsigned long WIN32_oserrno);

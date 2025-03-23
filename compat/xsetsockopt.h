@@ -10,8 +10,8 @@
  * AUTHOR: Francesco Chemolli <kinkie@squid-cache.org>
  */
 
-#ifndef SQUID_COMPAT_OS_XSETSOCKOPT_H
-#define SQUID_COMPAT_OS_XSETSOCKOPT_H
+#ifndef SQUID_COMPAT_XSETSOCKOPT_H
+#define SQUID_COMPAT_XSETSOCKOPT_H
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -21,4 +21,4 @@
 SQUIDCEXTERN int
 xsetsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len);
 
-#endif /* SQUID_COMPAT_OS_XSETSOCKOPT_H */
+#endif /* SQUID_COMPAT_XSETSOCKOPT_H */

@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef SQUID_COMPAT_OS_XKILL_H
-#define SQUID_COMPAT_OS_XKILL_H
+#ifndef SQUID_COMPAT_KILL_H
+#define SQUID_COMPAT_KILL_H
 
 #if !HAVE_KILL && HAVE_OPENPROCESS
 
@@ -19,4 +19,4 @@ kill(pid_t pid, int sig);
 
 #endif /* !HAVE_KILL */
 
-#endif /* SQUID_COMPAT_OS_XKILL_H */
+#endif /* SQUID_COMPAT_KILL_H */

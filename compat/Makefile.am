@@ -41,6 +41,8 @@ libcompatsquid_la_SOURCES = \
 	eui64_aton.h \
 	fdsetsize.h \
 	initgroups.h \
+	kill.cc \
+	kill.h \
 	krb5.h \
 	memrchr.cc \
 	memrchr.h \
@@ -73,15 +75,13 @@ libcompatsquid_la_SOURCES = \
 	tempnam.h \
 	types.h \
 	valgrind.h \
-	xalloc.cc \
-	xalloc.h \
-	xis.h \
-	kill.cc \
-	kill.h \
 	xaccept.cc \
 	xaccept.h \
+	xalloc.cc \
+	xalloc.h \
 	xgetsockname.cc \
 	xgetsockname.h \
+	xis.h \
 	xsetsockopt.cc \
 	xsetsockopt.h \
 	xstrerror.cc \

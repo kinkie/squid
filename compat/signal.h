@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef SQUID_COMPAT_OS_SIGNAL_H
-#define SQUID_COMPAT_OS_SIGNAL_H
+#ifndef SQUID_COMPAT_SIGNAL_H
+#define SQUID_COMPAT_SIGNAL_H
 
 #if HAVE_SIGNAL_H
 #include <signal.h>
@@ -35,4 +35,4 @@
 #define SIGUSR2 31 /* user defined signal 2 */
 #endif
 
-#endif
+#endif /* SQUID_COMPAT_SIGNAL_H */

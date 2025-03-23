@@ -115,7 +115,6 @@
 #include <winldap.h>
 #endif
 
-
 #if _SQUID_WINDOWS_ || _SQUID_MINGW_ && !_SQUID_CYGWIN_
 #define snprintf _snprintf
 #ifndef LDAPAPI
@@ -145,7 +144,6 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 #endif
 
 #else
-
 
 #endif
 

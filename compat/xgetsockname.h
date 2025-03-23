@@ -6,8 +6,8 @@
  * Please see the COPYING and CONTRIBUTORS files for details.
  */
 
-#ifndef SQUID_COMPAT_GETSOCKNAME_H
-#define SQUID_COMPAT_GETSOCKNAME_H
+#ifndef SQUID_COMPAT_XGETSOCKNAME_H
+#define SQUID_COMPAT_XGETSOCKNAME_H
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -27,4 +27,4 @@ xgetsockname(int s, struct sockaddr *n, socklen_t *l)
 }
 #endif /* _SQUID_WINDOWS_ || _SQUID_MINGW_ */
 
-#endif /* SQUID_COMPAT_GETSOCKNAME_H */
+#endif /* SQUID_COMPAT_XGETSOCKNAME_H */
