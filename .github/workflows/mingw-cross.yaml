@@ -46,9 +46,8 @@ jobs:
         #  support overrinding test layer configure arguemnts
         run: |
           ./bootstrap.sh
-          ./configure --host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu  --disable-ssl --without-openssl --without-gnutls
-          make -j`nproc` all
-          make -j`nproc` check
+          ./configure --host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu --disable-ssl --without-openssl --without-gnutls
+          make -j`nproc` -k all check
 
       - name: Publish build logs
         if: success() || failure()
