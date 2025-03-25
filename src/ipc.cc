@@ -10,6 +10,7 @@
 
 #include "squid.h"
 #include "comm/Connection.h"
+#include "compat/pipe.h"
 #include "compat/xaccept.h"
 #include "compat/xgetsockname.h"
 #include "fd.h"
