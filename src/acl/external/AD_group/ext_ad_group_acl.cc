@@ -476,7 +476,6 @@ Recursive_Memberof(IADs * pObj)
                             if (SUCCEEDED(hr)) {
                                 hr = Recursive_Memberof(pGrp);
                                 pGrp->Release();
-                                pGrp->Release();
                                 safe_free(Group_Path);
                                 Group_Path = GetLDAPPath(elem.bstrVal, LDAP_MODE);
                                 hr = ADsGetObject(Group_Path, IID_IADs, (void **) &pGrp);
@@ -505,9 +504,8 @@ Recursive_Memberof(IADs * pObj)
         }
         VariantClear(&var);
     } else {
-        if (hr != E_ADS_PROPERTY_NOT_FOUND) {
+        if (hr != E_ADS_PROPERTY_NOT_FOUND)
             debug("Recursive_Memberof: ERROR getting memberof attribute: %s\n", Get_WIN32_ErrorMessage(hr));
-        }
     }
     return hr;
 }
@@ -684,6 +682,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
     hr = ADsGetObject(User_LDAP_path, IID_IADs, (void **) &pUser);
     if (SUCCEEDED(hr)) {
+        wchar_t *User_PrimaryGroup_Path;
         IADs *pGrp;
 
         User_PrimaryGroup = Get_primaryGroup(pUser);
@@ -709,7 +708,6 @@ Valid_Global_Groups(char *UserName, const char **Groups)
                 debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_PrimaryGroup_Path, Get_WIN32_ErrorMessage(hr));
             }
             safe_free(User_PrimaryGroup_Path);
-            safe_free(User_PrimaryGroup);
         }
         hr = Recursive_Memberof(pUser);
         pUser->Release();
@@ -836,12 +834,10 @@ main(int argc, char *argv[])
             DefaultDomain = xstrdup(machinedomain);
     }
     debug("%s " VERSION " " SQUID_BUILD_INFO " starting up...\n", argv[0]);
-    if (use_global) {
+    if (use_global)
         debug("Domain Global group mode enabled using '%s' as default domain.\n", DefaultDomain);
-    }
-    if (use_case_insensitive_compare) {
+    if (use_case_insensitive_compare)
         debug("Warning: running in case insensitive mode !!!\n");
-    }
 
     atexit(CloseCOM);
 

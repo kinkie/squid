@@ -48,12 +48,6 @@ fsync(int fd)
 }
 #endif
 
-/* importaed from mswindows.h */
-#define mkdir(p, F) ::mkdir((p))
-#define pipe(pipefd) ::_pipe((pipefd), 4096, _O_BINARY)
-
-void WIN32_maperror(unsigned long WIN32_oserrno);
-
 #ifndef _PATH_DEVNULL
 #define _PATH_DEVNULL "NUL"
 #endif

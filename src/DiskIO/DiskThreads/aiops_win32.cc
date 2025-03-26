@@ -9,7 +9,7 @@
 /* DEBUG: section 43    Windows AIOPS */
 
 #include "squid.h"
-#include "base/PackableStream.h"
+#include "compat/win32_maperror.h"
 #include "DiskIO/DiskThreads/CommIO.h"
 #include "DiskThreads.h"
 #include "fd.h"
@@ -1098,20 +1098,19 @@ squidaio_debug(squidaio_request_t * request)
 void
 squidaio_stats(StoreEntry * sentry)
 {
+    squidaio_thread_t *threadp;
 
     if (!squidaio_initialised)
         return;
 
-    PackableStream os(*sentry);
+    storeAppendPrintf(sentry, "\n\nThreads Status:\n");
 
-    os << "\n\nThreads Status:\n" <<
-       "#\tID\t# Requests\n";
+    storeAppendPrintf(sentry, "#\tID\t# Requests\n");
 
-    auto threadp = threads;
+    threadp = threads;
 
     for (size_t i = 0; i < NUMTHREADS; ++i) {
-        os << i+1 << '\t' << threadp->dwThreadId <<
-           '\t' << threadp->requests << '\n';
+        storeAppendPrintf(sentry, "%zu\t0x%lx\t%ld\n", i + 1, threadp->dwThreadId, threadp->requests);
         threadp = threadp->next;
     }
 }
