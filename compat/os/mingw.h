@@ -48,10 +48,6 @@ fsync(int fd)
 }
 #endif
 
-#ifndef _PATH_DEVNULL
-#define _PATH_DEVNULL "NUL"
-#endif
-
 #define mkdir(p,F) mkdir((p))
 
 #endif /* _SQUID_MINGW_*/

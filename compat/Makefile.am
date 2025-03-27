@@ -77,6 +77,8 @@ libcompatsquid_la_SOURCES = \
 	valgrind.h \
 	xaccept.cc \
 	xaccept.h \
+	win32_maperror.cc \
+	win32_maperror.h \
 	xalloc.cc \
 	xalloc.h \
 	xgetsockname.cc \
