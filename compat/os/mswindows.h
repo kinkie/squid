@@ -841,8 +841,6 @@ SQUIDCEXTERN int Win32__WSAFDIsSet(int fd, fd_set* set);
 #undef _MSWIN_ACL_WAS_NOT_DEFINED
 #endif
 
-#endif
-
 #endif /* _SQUID_WINDOWS_ */
 #endif /* SQUID_COMPAT_OS_MSWINDOWS_H */
 
