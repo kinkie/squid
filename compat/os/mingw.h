@@ -39,6 +39,10 @@
 #include <io.h>
 #endif
 
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "NUL"
+#endif
+
 #if !HAVE_FSYNC
 // _commit(fd) is API-compatible with fsync(fd) and has equivalent behaviour
 inline int
