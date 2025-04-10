@@ -1,0 +1,42 @@
+name: Source maintenance
+
+on: 
+  pull_request:
+    # test PRs targeting this branch code
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  source-maintenance:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Install prerequisite packages
+        run: |
+          sudo apt-get --quiet=2 update
+          sudo apt-get --quiet=2 install astyle
+          sudo apt-get --quiet=2 install gperf
+          pip install \
+              --user \
+              --no-cache-dir \
+              --disable-pip-version-check \
+              --quiet \
+              --progress-bar off \
+              codespell==1.16 # TODO: Upgrade to codespell v2
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+
+      - run: ./test-suite/test-sources.sh
+
+      - uses: parkerbxyz/suggest-changes@v1
+        with:
+          comment: 'Please assess and commit source lint changes'
+          event: 'REQUEST_CHANGES'
+
+
