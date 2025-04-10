@@ -9,8 +9,10 @@
 #include "squid.h"
 
 #include <iostream>
+/* useless comment to trigger review */
 
-class CallCounter
+class
+CallCounter
 {
 public:
     CallCounter();

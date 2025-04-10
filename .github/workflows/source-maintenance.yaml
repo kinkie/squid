@@ -9,11 +9,14 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  # empty except for pull_request events
+  PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+  CHECKOUT_FETCH_DEPTH: 1001
+
 jobs:
   source-maintenance:
-
     runs-on: ubuntu-22.04
-
     steps:
       - name: Install prerequisite packages
         run: |
@@ -27,16 +30,15 @@ jobs:
               --quiet \
               --progress-bar off \
               codespell==1.16 # TODO: Upgrade to codespell v2
-
-      - uses: actions/checkout@v4
+      - name: Checkout sources
+        uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
-
-      - run: ./test-suite/test-sources.sh
-
-      - uses: parkerbxyz/suggest-changes@v1
+      - name: Fix sources
+        run: |
+          git fetch --force --quiet origin refs/pull/${PULL_REQUEST_NUMBER}/merge:refs/pull/${PULL_REQUEST_NUMBER}/merge refs/pull/${PULL_REQUEST_NUMBER}/head:refs/pull/${PULL_REQUEST_NUMBER}/head
+          ./scripts/source-maintenance.sh --check-and-update-copyright yes --only-changed-since refs/pull/${PULL_REQUEST_NUMBER}/merge^1 --update-contributors-since never
+      - name: Suggest changes
+        uses: parkerbxyz/suggest-changes@v2
         with:
           comment: 'Please assess and commit source lint changes'
-          event: 'REQUEST_CHANGES'
-
-
