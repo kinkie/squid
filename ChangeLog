@@ -1,3 +1,10 @@
+Changes in squid-7.0.3 (02 Jul 2025):
+
+	- Remove basic_smb_lm_auth helper
+	- Bug 5497: Fix detection of duped IPs returned by getaddrinfo()
+	- Docs: Describe cf.data.depend purpose
+	- Maintenance: remove some duplicate auth code
+
 Changes in squid-7.0.2 (19 Jun 2025):
 
 	- Bug 5352: Do not get stuck in RESPMOD after pausing peer read(2)
