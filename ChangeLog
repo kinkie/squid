@@ -11,6 +11,7 @@ Changes in squid-7.0.1 (2 Feb 2025):
 	- Remove broken and disabled icpPktDump()
 	- Remove deprecated string memory pools API
 	- Remove dead "binary HTTP header logging" code (-DHEADERS_LOG)
+	- Remove SCO OpenServer support
 	- Rename --with-gnugss to --with-gss
 	- Remove krb5_get_max_time_skew portability hack
 	- Remove PRIuSIZE macro
