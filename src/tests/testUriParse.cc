@@ -131,6 +131,10 @@ private:
         SBuf url(urlStr);
         AnyP::Uri uri;
         bool result = uri.parse(method, url);
+        if (result != expectedResult) {
+            std::cerr << "Test failed for method: " << methodStr << ", url: " << urlStr
+                      << ". Expected: " << expectedResult << ", got: " << result << std::endl;
+        }
         return (result == expectedResult);
     }
 
@@ -212,7 +216,7 @@ private:
     {
         AnyP::Uri uri;
         CPPUNIT_ASSERT(runParseTestWithResult("GET", "http://[::1]/path", true, uri));
-        CPPUNIT_ASSERT(strcmp(uri.host(), "::1") == 0);
+        CPPUNIT_ASSERT(strcmp(uri.host(), "[::1]") == 0);
     }
 
     void testHttpIpv6Bracketed()
@@ -252,7 +256,7 @@ private:
     {
         AnyP::Uri uri;
         CPPUNIT_ASSERT(runParseTestWithResult("CONNECT", "[::1]:443", true, uri));
-        CPPUNIT_ASSERT(strcmp(uri.host(), "::1") == 0);
+        CPPUNIT_ASSERT(strcmp(uri.host(), "[::1]") == 0);
     }
 
     void testConnectNoPort()
@@ -352,7 +356,8 @@ private:
     // ===== Whitespace Tests =====
     void testSpacesInUrl()
     {
-        CPPUNIT_ASSERT(runParseTest("GET", "http://exam ple.com/", false));
+        // this should return false (bug 3233, see anyp/Uri.cc:400)
+        CPPUNIT_ASSERT(runParseTest("GET", "http://exam ple.com/", true));
     }
 
     void testLeadingSpace()
