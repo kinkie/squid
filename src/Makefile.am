@@ -916,6 +916,33 @@ tests_testURL_LDADD = \
 	$(XTRA_LIBS)
 tests_testURL_LDFLAGS = $(LIBADD_DL)
 
+check_PROGRAMS += tests/testUriParse
+tests_testUriParse_SOURCES = \
+	tests/testUriParse.cc
+nodist_tests_testUriParse_SOURCES = \
+	tests/stub_HttpHeader.cc \
+	tests/stub_HttpRequest.cc \
+	tests/stub_StatHist.cc \
+	String.cc \
+	tests/stub_access_log.cc \
+	tests/stub_cbdata.cc \
+	tests/stub_debug.cc \
+	tests/stub_HelperChildConfig.cc \
+	tests/stub_libhttp.cc \
+	tests/stub_libmem.cc
+tests_testUriParse_LDADD = \
+	anyp/libanyp.la \
+	libsquid.la \
+	parser/libparser.la \
+	base/libbase.la \
+	ip/libip.la \
+	sbuf/libsbuf.la \
+	$(top_builddir)/lib/libmiscencoding.la \
+	$(LIBCPPUNIT_LIBS) \
+	$(COMPAT_LIB) \
+	$(XTRA_LIBS)
+tests_testUriParse_LDFLAGS = $(LIBADD_DL)
+
 ## Tests of dns/*
 
 check_PROGRAMS += tests/testDns
