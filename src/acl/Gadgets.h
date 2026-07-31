@@ -61,7 +61,7 @@ wordlist *aclDumpGeneric(const Acl::Node *);
 /// \ingroup ACLAPI
 void aclCacheMatchFlush(dlink_list * cache);
 /// \ingroup ACLAPI
-void dump_acl_access(StoreEntry * entry, const char *name, acl_access * head);
+void dump_acl_access(StoreEntry * entry, const SBuf &name, acl_access * head);
 /// \ingroup ACLAPI
 void dump_acl_list(StoreEntry * entry, ACLList * head);
 

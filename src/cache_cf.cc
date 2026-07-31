@@ -1496,10 +1496,10 @@ dump_acl_list(StoreEntry * entry, ACLList * head)
 }
 
 void
-dump_acl_access(StoreEntry * entry, const char *name, acl_access * head)
+dump_acl_access(StoreEntry * entry, const SBuf &name, acl_access * head)
 {
     if (head)
-        dump_SBufList(entry, ToTree(head).treeDump(SBuf(name), &Acl::AllowOrDeny));
+        dump_SBufList(entry, ToTree(head).treeDump(name, &Acl::AllowOrDeny));
 }
 
 static void
@@ -2074,7 +2074,7 @@ dump_peer(StoreEntry * entry, const char *name, const CachePeers *peers)
 
         if (p->access) {
             snprintf(xname, 128, "cache_peer_access %s", p->name);
-            dump_acl_access(entry, xname, p->access);
+            dump_acl_access(entry, SBuf(xname), p->access);
         }
 
         for (t = p->typelist; t; t = t->next) {

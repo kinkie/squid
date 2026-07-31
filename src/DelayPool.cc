@@ -13,6 +13,7 @@
 #if USE_DELAY_POOLS
 #include "acl/Acl.h"
 #include "acl/Gadgets.h"
+#include "sbuf/SBuf.h"
 #include "CommonPool.h"
 #include "DelayPool.h"
 #include "Store.h"
@@ -50,7 +51,7 @@ DelayPool::dump(StoreEntry *entry, unsigned int i) const
 
     snprintf(nom, 32, "delay_access %d", i + 1);
 
-    dump_acl_access(entry, nom, access);
+    dump_acl_access(entry, SBuf(nom), access);
 
     storeAppendPrintf(entry, "delay_parameters %d", i + 1);
 

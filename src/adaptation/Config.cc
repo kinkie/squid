@@ -9,6 +9,7 @@
 #include "squid.h"
 #include "acl/FilledChecklist.h"
 #include "acl/Gadgets.h"
+#include "sbuf/SBuf.h"
 #include "adaptation/AccessRule.h"
 #include "adaptation/Config.h"
 #include "adaptation/History.h"
@@ -309,7 +310,7 @@ Adaptation::Config::DumpAccess(StoreEntry *entry, const char *name)
     typedef AccessRules::iterator CI;
     for (CI i = AllRules().begin(); i != AllRules().end(); ++i) {
         snprintf(nom, 64, "%s " SQUIDSTRINGPH, name, SQUIDSTRINGPRINT((*i)->groupId));
-        dump_acl_access(entry, nom, (*i)->acl);
+        dump_acl_access(entry, SBuf(nom), (*i)->acl);
     }
 }
 

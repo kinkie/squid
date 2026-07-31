@@ -32,6 +32,6 @@ void parse_time_t(time_t *) STUB
 void ConfigParser::ParseUShort(unsigned short *) STUB
 void ConfigParser::ParseWordList(wordlist **) STUB
 void parseBytesOptionValue(size_t *, const char *, char const *) STUB
-void dump_acl_access(StoreEntry *, const char *, acl_access *) STUB
+void dump_acl_access(StoreEntry *, const SBuf &, acl_access *) STUB
 void dump_acl_list(StoreEntry*, ACLList*) STUB
 
