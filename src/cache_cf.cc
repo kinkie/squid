@@ -226,7 +226,7 @@ static void parse_sslproxy_cert_adapt(sslproxy_cert_adapt **cert_adapt);
 static void dump_sslproxy_cert_adapt(StoreEntry *entry, const char *name, sslproxy_cert_adapt *cert_adapt);
 static void free_sslproxy_cert_adapt(sslproxy_cert_adapt **cert_adapt);
 static void parse_sslproxy_ssl_bump(acl_access **ssl_bump);
-static void dump_sslproxy_ssl_bump(StoreEntry *entry, const char *name, acl_access *ssl_bump);
+static void dump_sslproxy_ssl_bump(StoreEntry *entry, const SBuf &name, acl_access *ssl_bump);
 static void free_sslproxy_ssl_bump(acl_access **ssl_bump);
 #endif /* USE_OPENSSL */
 
@@ -4468,10 +4468,10 @@ static void parse_sslproxy_ssl_bump(acl_access **ssl_bump)
     ParseAclWithAction(ssl_bump, action, "ssl_bump");
 }
 
-static void dump_sslproxy_ssl_bump(StoreEntry *entry, const char *name, acl_access *ssl_bump)
+static void dump_sslproxy_ssl_bump(StoreEntry *entry, const SBuf &name, acl_access *ssl_bump)
 {
     if (ssl_bump)
-        dump_SBufList(entry, ToTree(ssl_bump).treeDump(SBuf(name), [](const Acl::Answer &action) {
+        dump_SBufList(entry, ToTree(ssl_bump).treeDump(name, [](const Acl::Answer &action) {
         return Ssl::BumpModeStr.at(action.kind);
     }));
 }
