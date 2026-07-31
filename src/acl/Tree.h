@@ -27,7 +27,7 @@ public:
     /// dumps <name, action, rule, new line> tuples
     /// the supplied converter maps action.kind to a string
     template <class ActionToStringConverter>
-    SBufList treeDump(const char *name, ActionToStringConverter converter) const;
+    SBufList treeDump(const SBuf &name, ActionToStringConverter converter) const;
 
     /// Returns the corresponding action after a successful tree match.
     Answer winningAction() const;
@@ -57,14 +57,14 @@ AllowOrDeny(const Answer &action)
 
 template <class ActionToStringConverter>
 inline SBufList
-Tree::treeDump(const char *prefix, ActionToStringConverter converter) const
+Tree::treeDump(const SBuf &prefix, ActionToStringConverter converter) const
 {
     SBufList text;
     Actions::const_iterator action = actions.begin();
     typedef Nodes::const_iterator NCI;
     for (NCI node = nodes.begin(); node != nodes.end(); ++node) {
 
-        text.push_back(SBuf(prefix));
+        text.push_back(prefix);
 
         if (action != actions.end()) {
             static const SBuf DefaultActString("???");

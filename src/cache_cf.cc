@@ -1499,7 +1499,7 @@ void
 dump_acl_access(StoreEntry * entry, const char *name, acl_access * head)
 {
     if (head)
-        dump_SBufList(entry, ToTree(head).treeDump(name, &Acl::AllowOrDeny));
+        dump_SBufList(entry, ToTree(head).treeDump(SBuf(name), &Acl::AllowOrDeny));
 }
 
 static void
@@ -1990,7 +1990,7 @@ static void
 dump_AuthSchemes(StoreEntry *entry, const char *name, acl_access *authSchemes)
 {
     if (authSchemes)
-        dump_SBufList(entry, ToTree(authSchemes).treeDump(name, [](const Acl::Answer &action) {
+        dump_SBufList(entry, ToTree(authSchemes).treeDump(SBuf(name), [](const Acl::Answer &action) {
         return Auth::TheConfig.schemeLists.at(action.kind).rawSchemes;
     }));
 }
@@ -4471,7 +4471,7 @@ static void parse_sslproxy_ssl_bump(acl_access **ssl_bump)
 static void dump_sslproxy_ssl_bump(StoreEntry *entry, const char *name, acl_access *ssl_bump)
 {
     if (ssl_bump)
-        dump_SBufList(entry, ToTree(ssl_bump).treeDump(name, [](const Acl::Answer &action) {
+        dump_SBufList(entry, ToTree(ssl_bump).treeDump(SBuf(name), [](const Acl::Answer &action) {
         return Ssl::BumpModeStr.at(action.kind);
     }));
 }
@@ -4715,7 +4715,7 @@ static void parse_ftp_epsv(acl_access **ftp_epsv)
 static void dump_ftp_epsv(StoreEntry *entry, const char *name, acl_access *ftp_epsv)
 {
     if (ftp_epsv)
-        dump_SBufList(entry, ToTree(ftp_epsv).treeDump(name, Acl::AllowOrDeny));
+        dump_SBufList(entry, ToTree(ftp_epsv).treeDump(SBuf(name), Acl::AllowOrDeny));
 }
 
 static void free_ftp_epsv(acl_access **ftp_epsv)
@@ -4886,7 +4886,7 @@ dump_on_unsupported_protocol(StoreEntry *entry, const char *name, acl_access *ac
         "respond"
     };
     if (access) {
-        const auto lines = ToTree(access).treeDump(name, [](const Acl::Answer &action) {
+        const auto lines = ToTree(access).treeDump(SBuf(name), [](const Acl::Answer &action) {
             return onErrorTunnelMode.at(action.kind);
         });
         dump_SBufList(entry, lines);
@@ -4920,7 +4920,7 @@ dump_http_upgrade_request_protocols(StoreEntry *entry, const char *rawName, Http
         SBufList line;
         line.push_back(name);
         line.push_back(proto);
-        const auto acld = ToTree(acls).treeDump("", &Acl::AllowOrDeny);
+        const auto acld = ToTree(acls).treeDump(SBuf(""), &Acl::AllowOrDeny);
         line.insert(line.end(), acld.begin(), acld.end());
         dump_SBufList(entry, line);
     });
