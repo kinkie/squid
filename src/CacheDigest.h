@@ -14,6 +14,8 @@
 #include "mem/forward.h"
 #include "store_key_md5.h"
 
+#include <optional>
+
 class CacheDigestGuessStats;
 class StoreEntry;
 
@@ -45,8 +47,8 @@ public:
 
     /// calculate the size of mask required to digest up to
     /// a specified capacity and bitsize.
-    /// \returns 0 when inputs would overflow (invalid).
-    static uint32_t CalcMaskSize(uint64_t cap, uint8_t bpe);
+    /// \returns nil on overflows (i.e. when our mask_size would not be able to safely store the computed mask size)
+    static std::optional<uint32_t> CalcMaskSize(uint64_t cap, uint8_t bpe);
 
 private:
     void init(uint64_t newCapacity);

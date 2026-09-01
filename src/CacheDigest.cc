@@ -39,11 +39,15 @@ static uint32_t hashed_keys[4];
 void
 CacheDigest::init(uint64_t newCapacity)
 {
-    const auto newMaskSz = CacheDigest::CalcMaskSize(newCapacity, bits_per_entry);
-    assert(newCapacity > 0 && bits_per_entry > 0);
-    assert(newMaskSz != 0);
+    assert(newCapacity > 0);
     capacity = newCapacity;
-    mask_size = newMaskSz;
+
+    assert(bits_per_entry > 0);
+    const auto newMaskSz = CacheDigest::CalcMaskSize(newCapacity, bits_per_entry);
+    assert(newMaskSz); // assume that newCapacity and bits_per_entry have been validated w.r.t. mask size overflows (XXX?)
+    mask_size = *newMaskSz;
+    assert(mask_size > 0);
+
     mask = static_cast<char *>(xcalloc(mask_size,1));
     debugs(70, 2, "capacity: " << capacity << " entries, bpe: " << bits_per_entry << "; size: "
            << mask_size << " bytes");
@@ -269,12 +273,12 @@ cacheDigestReport(CacheDigest * cd, const SBuf &label, StoreEntry * e)
                      );
 }
 
-uint32_t
+std::optional<uint32_t>
 CacheDigest::CalcMaskSize(uint64_t cap, uint8_t bpe)
 {
-    const uint64_t bitCount = (cap * bpe) + 7;
+    const uint64_t bitCount = (cap * bpe) + 7; // XXX: Overflows!  
     if (bitCount >= std::numeric_limits<int>::max())
-        return 0; // overflow; caller must treat 0 as invalid
+        return std::nullopt; // overflow
     return static_cast<uint32_t>(bitCount / 8);
 }
 

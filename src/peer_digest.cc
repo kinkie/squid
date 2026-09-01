@@ -29,6 +29,8 @@
 #include "tools.h"
 #include "util.h"
 
+#include <limits>
+
 /* local types */
 
 /* local prototypes */
@@ -779,11 +781,20 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
         return 0;
     }
 
-    /* check consistency further */
-    if ((size_t)cblock.mask_size != CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry)) {
+    const auto maskSize = CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry);
+    if (!maskSize) {
+        // if we cannot compute maskSize, then received cblock.mask_size cannot hold that value either
+        using ComputedMaskSizeType = std::remove_cv_t<std::remove_reference_t<decltype(*maskSize)> >;
+        static_assert(std::numeric_limits<ComputedMaskSizeType>::max() >= std::numeric_limits<decltype(cblock.mask_size)>::max());
         debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted " <<
-               "(mask size mismatch: " << cblock.mask_size << " ? " <<
-               CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry)
+               "(mask size too small: " << cblock.mask_size << " bytes for " <<
+               cblock.capacity << " entries with " << cblock.bits_per_entry << " bpe).");
+        return 0;
+    }
+
+    if ((size_t)cblock.mask_size != *maskSize) {
+        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted " <<
+               "(mask size mismatch: " << cblock.mask_size << " ? " << *maskSize
                << ").");
         return 0;
     }
