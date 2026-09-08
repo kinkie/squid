@@ -29,8 +29,6 @@
 #include "tools.h"
 #include "util.h"
 
-#include <limits>
-
 /* local types */
 
 /* local prototypes */
@@ -781,21 +779,12 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
         return 0;
     }
 
-    const auto maskSize = CacheDigest::CalcMaskSize(cblock.capacity, cblock.bits_per_entry);
-    if (!maskSize) {
-        // if we cannot compute maskSize, then received cblock.mask_size cannot hold that value either
-        using ComputedMaskSizeType = std::remove_cv_t<std::remove_reference_t<decltype(*maskSize)> >;
-        static_assert(std::numeric_limits<ComputedMaskSizeType>::max() >= std::numeric_limits<decltype(cblock.mask_size)>::max());
-        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted " <<
-               "(mask size too small: " << cblock.mask_size << " bytes for " <<
-               cblock.capacity << " entries with " << cblock.bits_per_entry << " bpe).");
-        return 0;
-    }
-
-    if ((size_t)cblock.mask_size != *maskSize) {
-        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted " <<
-               "(mask size mismatch: " << cblock.mask_size << " ? " << *maskSize
-               << ").");
+    /* check consistency further */
+    const auto calculatedMaskSize = CacheDigest::MaskSize(cblock.capacity, cblock.bits_per_entry);
+    if (size_t(cblock.mask_size) != calculatedMaskSize) {
+        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted or unsupported " <<
+               "(unexpected mask size: " << cblock.mask_size << " for " << cblock.capacity << '*' << cblock.bits_per_entry <<
+               "; expected: " << calculatedMaskSize << ")");
         return 0;
     }
 
@@ -810,7 +799,7 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
      * no cblock bugs below this point
      */
     /* check size changes */
-    if (pd->cd && cblock.mask_size != (ssize_t)pd->cd->mask_size) {
+    if (pd->cd && size_t(cblock.mask_size) != pd->cd->mask_size) {
         debugs(72, 2, host << " digest changed size: " << cblock.mask_size <<
                " -> " << pd->cd->mask_size);
         freed_size = pd->cd->mask_size;

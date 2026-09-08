@@ -14,8 +14,6 @@
 #include "Store.h"
 #include "store_key_md5.h"
 
-#include <limits>
-
 #if USE_CACHE_DIGESTS
 
 #include "CacheDigest.h"
@@ -39,14 +37,13 @@ static uint32_t hashed_keys[4];
 void
 CacheDigest::init(uint64_t newCapacity)
 {
-    assert(newCapacity > 0);
+    Assure(newCapacity > 0);
     capacity = newCapacity;
 
-    assert(bits_per_entry > 0);
-    const auto newMaskSz = CacheDigest::CalcMaskSize(newCapacity, bits_per_entry);
-    assert(newMaskSz); // assume that newCapacity and bits_per_entry have been validated w.r.t. mask size overflows (XXX?)
-    mask_size = *newMaskSz;
-    assert(mask_size > 0);
+    Assure(bits_per_entry > 0);
+    const auto newMaskSz = CacheDigest::MaskSize(newCapacity, bits_per_entry);
+    Assure(newMaskSz > 0);
+    mask_size = newMaskSz;
 
     mask = static_cast<char *>(xcalloc(mask_size,1));
     debugs(70, 2, "capacity: " << capacity << " entries, bpe: " << bits_per_entry << "; size: "
@@ -273,13 +270,53 @@ cacheDigestReport(CacheDigest * cd, const SBuf &label, StoreEntry * e)
                      );
 }
 
-std::optional<uint32_t>
-CacheDigest::CalcMaskSize(uint64_t cap, uint8_t bpe)
+static uint64_t
+UnsafeMaskSize(const uint64_t cap, const uint8_t bpe)
 {
-    const uint64_t bitCount = (cap * bpe) + 7; // XXX: Overflows!  
-    if (bitCount >= std::numeric_limits<int>::max())
-        return std::nullopt; // overflow
-    return static_cast<uint32_t>(bitCount / 8);
+    Assure(bpe);
+
+    // This limit is paranoid because no instance can store enough objects to
+    // exceed this maximum.
+    const auto maxMaskSize = std::numeric_limits<uint64_t>::max() / 8;
+
+    // Same as ((cap*bpe + 7)/8 > maxMaskSize) but without overflowing multiplication or sum
+    if (cap > (maxMaskSize*8 - 7)/bpe)
+        return maxMaskSize;
+
+    return (cap*bpe + 7)/8;
+}
+
+uint32_t
+CacheDigest::MaskSize(const uint64_t cap, const uint8_t bpe)
+{
+    // Not zero (for now) to avoid CacheDigest::init() assertions.
+    const auto minMaskSize = uint32_t(1);
+
+    // Our mask_size data member is uint32_t. That type is hard-coded in several
+    // places. TODO: Use a unique type name while revising related types. We
+    // cannot simply cap calculations at the maximum uint32_t value because we
+    // must also satisfy the following requirements to protect mask_size users:
+    //
+    // R1. Avoid overflows in code that does `mask_size * 8` (e.g., to compute bit positions).
+    // R2. Avoid overflows in legacy callers that store `mask_size * 8` as `int`.
+    // R3. Avoid unreasonably large memory allocations for mask storage.
+    //     Bug 4534 fix defined 256MB allocations as "reasonable".
+    // R4. Ensure that the digest capacity derived from this mask size can be
+    //     sent to legacy installations that assert that the corresponding mask
+    //     bit count is less than INT_MAX.
+    //
+    // Some of the current limits below are mathematically redundant (e.g., R4
+    // satisfies R2), but are explicitly listed to assist with safe refactoring.
+    //
+    // For a typical 32-bit `int`, this maxMaskSize is 268'435'455 bytes.
+    const auto maxMaskSize = std::min({
+        static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) / 8, // R1
+        static_cast<uint64_t>(std::numeric_limits<int>::max()) / 8, // R2
+        static_cast<uint64_t>(256)*1024*1024, // R3
+        static_cast<uint64_t>(INT_MAX - 8) / 8}); // R4
+
+    const auto rawMaskSize = ::UnsafeMaskSize(cap, bpe);
+    return std::max(minMaskSize, static_cast<uint32_t>(std::min(rawMaskSize, maxMaskSize)));
 }
 
 static void

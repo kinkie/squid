@@ -80,6 +80,23 @@ static EVH storeDigestSwapOutStep;
 static void storeDigestCBlockSwapOut(StoreEntry * e);
 static void storeDigestAdd(const StoreEntry *);
 
+// XXX: Remove! 
+static uint64_t
+UnsafeMaskSize(const uint64_t cap, const uint8_t bpe)
+{
+    Assure(bpe);
+
+    // This limit is paranoid because no instance can store enough objects to
+    // exceed this maximum.
+    const auto maxMaskSize = std::numeric_limits<uint64_t>::max() / 8;
+
+    // Same as ((cap*bpe + 7)/8 > maxMaskSize) but without overflowing multiplication or sum
+    if (cap > (maxMaskSize*8 - 7)/bpe)
+        return maxMaskSize;
+
+    return (cap*bpe + 7)/8;
+}
+
 /// calculates digest capacity
 static uint64_t
 storeDigestCalcCap()
@@ -104,10 +121,17 @@ storeDigestCalcCap()
      *  cap = hi_cap;
      */
 
-    // Bug 4534: we still have to set an upper-limit at some reasonable value though.
-    // this matches cacheDigestCalcMaskSize doing (cap*bpe)+7 < INT_MAX
-    const uint64_t absolute_max = (INT_MAX -8) / Config.digest.bits_per_entry;
-    if (cap > absolute_max) {
+
+    const auto bpe = Config.digest.bits_per_entry;
+    Assure(bpe);
+
+    // Digest recipients recalculate mask size using received capacity and bpe
+    // values. Limit sent capacity value to keep legacy digest recipients safe.
+    const auto safeMaskSizeMax = CacheDigest::MaskSize(UINT64_MAX, bpe); // absolute maximum
+    const auto safeCapMax = uint64_t(safeMaskSizeMax) * 8 / bpe;
+    const auto safeCap = std::min(cap, safeCapMax);
+    if (cap > safeCap) {
+        const auto absolute_max = safeCap; // diff reducer
         static time_t last_loud = 0;
         if (last_loud < squid_curtime - 86400) {
             debugs(71, DBG_IMPORTANT, "WARNING: Cache Digest cannot store " << cap << " entries. Limiting to " << absolute_max);
@@ -115,10 +139,10 @@ storeDigestCalcCap()
         } else {
             debugs(71, 3, "WARNING: Cache Digest cannot store " << cap << " entries. Limiting to " << absolute_max);
         }
-        cap = absolute_max;
     }
 
-    return cap;
+    Assure(UnsafeMaskSize(safeCap, bpe) == CacheDigest::MaskSize(safeCap, bpe));
+    return safeCap;
 }
 #endif /* USE_CACHE_DIGESTS */
 
