@@ -104,7 +104,6 @@ storeDigestCalcCap()
      *  cap = hi_cap;
      */
 
-
     const auto bpe = Config.digest.bits_per_entry;
     Assure(bpe);
 
