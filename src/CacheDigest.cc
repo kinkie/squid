@@ -270,6 +270,9 @@ cacheDigestReport(CacheDigest * cd, const SBuf &label, StoreEntry * e)
                      );
 }
 
+/// CacheDigest::MaskSize() helper to compute digest mask size without
+/// accounting for any limits or restrictions other than those imposed by
+/// uint64_t type/math itself.
 static uint64_t
 UnsafeMaskSize(const uint64_t cap, const uint8_t bpe)
 {
