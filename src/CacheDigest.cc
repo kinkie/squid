@@ -302,21 +302,23 @@ CacheDigest::MaskSize(const uint64_t cap, const uint8_t bpe)
     //
     // R1. Avoid overflows in code that does `mask_size * 8` (e.g., to compute bit positions).
     // R2. Avoid overflows in legacy callers that store `mask_size * 8` as `int`.
-    // R3. Avoid unreasonably large memory allocations for mask storage.
+    // R3. Avoid overflows in legacy callers that cast `mask_size` to `ssize_t`.
+    // R4. Avoid unreasonably large memory allocations for mask storage.
     //     Bug 4534 fix defined 256MB allocations as "reasonable".
-    // R4. Ensure that the digest capacity derived from this mask size can be
+    // R5. Ensure that the digest capacity derived from this mask size can be
     //     sent to legacy installations that assert that the corresponding mask
     //     bit count is less than INT_MAX.
     //
-    // Some of the current limits below are mathematically redundant (e.g., R4
+    // Some of the current limits below are mathematically redundant (e.g., R5
     // satisfies R2), but are explicitly listed to assist with safe refactoring.
     //
     // For a typical 32-bit `int`, this maxMaskSize is 268'435'455 bytes.
     const auto maxMaskSize = std::min({
         static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) / 8, // R1
         static_cast<uint64_t>(std::numeric_limits<int>::max()) / 8, // R2
-        static_cast<uint64_t>(256)*1024*1024, // R3
-        static_cast<uint64_t>(INT_MAX - 8) / 8}); // R4
+        static_cast<uint64_t>(std::numeric_limits<ssize_t>::max()), // R3
+        static_cast<uint64_t>(256)*1024*1024, // R4
+        static_cast<uint64_t>(INT_MAX - 8) / 8}); // R5
 
     const auto rawMaskSize = ::UnsafeMaskSize(cap, bpe);
     return std::max(minMaskSize, static_cast<uint32_t>(std::min(rawMaskSize, maxMaskSize)));
