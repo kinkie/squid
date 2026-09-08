@@ -292,9 +292,6 @@ UnsafeMaskSize(const uint64_t cap, const uint8_t bpe)
 uint32_t
 CacheDigest::MaskSize(const uint64_t cap, const uint8_t bpe)
 {
-    // Not zero (for now) to avoid CacheDigest::init() assertions.
-    const auto minMaskSize = uint32_t(1);
-
     // Our mask_size data member is uint32_t. That type is hard-coded in several
     // places. TODO: Use a unique type name while revising related types. We
     // cannot simply cap calculations at the maximum uint32_t value because we
@@ -321,7 +318,7 @@ CacheDigest::MaskSize(const uint64_t cap, const uint8_t bpe)
         static_cast<uint64_t>(INT_MAX - 8) / 8}); // R5
 
     const auto rawMaskSize = ::UnsafeMaskSize(cap, bpe);
-    return std::max(minMaskSize, static_cast<uint32_t>(std::min(rawMaskSize, maxMaskSize)));
+    return static_cast<uint32_t>(std::min(rawMaskSize, maxMaskSize));
 }
 
 static void
