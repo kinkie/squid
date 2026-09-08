@@ -782,7 +782,7 @@ peerDigestSetCBlock(PeerDigest * pd, const char *buf)
     /* check consistency further */
     const auto calculatedMaskSize = CacheDigest::MaskSize(cblock.capacity, cblock.bits_per_entry);
     if (size_t(cblock.mask_size) != calculatedMaskSize) {
-        debugs(72, DBG_CRITICAL, host << " digest cblock is corrupted or unsupported " <<
+        debugs(72, DBG_CRITICAL, "ERROR: " << host << " digest cblock is corrupted or unsupported " <<
                "(unexpected mask size: " << cblock.mask_size << " for " << cblock.capacity << '*' << cblock.bits_per_entry <<
                "; expected: " << calculatedMaskSize << ")");
         return 0;
