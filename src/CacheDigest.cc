@@ -37,14 +37,11 @@ static uint32_t hashed_keys[4];
 void
 CacheDigest::init(uint64_t newCapacity)
 {
-    Assure(newCapacity > 0);
-    capacity = newCapacity;
-
-    Assure(bits_per_entry > 0);
     const auto newMaskSz = CacheDigest::CalcMaskSize(newCapacity, bits_per_entry);
-    Assure(newMaskSz > 0);
+    assert(newCapacity > 0 && bits_per_entry > 0);
+    assert(newMaskSz != 0);
+    capacity = newCapacity;
     mask_size = newMaskSz;
-
     mask = static_cast<char *>(xcalloc(mask_size,1));
     debugs(70, 2, "capacity: " << capacity << " entries, bpe: " << bits_per_entry << "; size: "
            << mask_size << " bytes");
