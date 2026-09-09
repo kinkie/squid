@@ -295,7 +295,7 @@ CacheDigest::CalcMaskSize(uint64_t cap, uint8_t bpe)
     // must also satisfy the following requirements to protect mask_size users:
     //
     // R1. Avoid overflows in code that does `mask_size * 8` (e.g., to compute bit positions).
-    // R2. Avoid overflows in legacy callers that store `mask_size * 8` as `int`.
+    // R2. Avoid overflows in code that stores `mask_size * 8` as `int`.
     // R3. Avoid overflows in legacy callers that cast `mask_size` to `ssize_t`.
     // R4. Avoid unreasonably large memory allocations for mask storage.
     //     Bug 4534 fix defined 256MB allocations as "reasonable".
