@@ -287,7 +287,7 @@ UnsafeMaskSize(const uint64_t cap, const uint8_t bpe)
 }
 
 uint32_t
-CacheDigest::CalcMaskSize(const uint64_t cap, const uint8_t bpe)
+CacheDigest::CalcMaskSize(uint64_t cap, uint8_t bpe)
 {
     // Our mask_size data member is uint32_t. That type is hard-coded in several
     // places. TODO: Use a unique type name while revising related types. We
