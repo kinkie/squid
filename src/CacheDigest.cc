@@ -306,7 +306,7 @@ CacheDigest::CalcMaskSize(uint64_t cap, uint8_t bpe)
     // Some of the current limits below are mathematically redundant (e.g., R5
     // satisfies R2), but are explicitly listed to assist with safe refactoring.
     //
-    // For a typical 32-bit `int`, this maxMaskSize is 268'435'455 bytes.
+    // For a typical 32-bit `int`, this maxMaskSize is 268'435'454 bytes.
     const auto maxMaskSize = std::min({
         static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) / 8, // R1
         static_cast<uint64_t>(std::numeric_limits<int>::max()) / 8, // R2
