@@ -45,7 +45,7 @@ public:
 
     /// calculate the size of mask required to digest up to
     /// a specified capacity and bitsize.
-    static uint32_t MaskSize(uint64_t cap, uint8_t bpe);
+    static uint32_t CalcMaskSize(uint64_t cap, uint8_t bpe);
 
 private:
     void init(uint64_t newCapacity);

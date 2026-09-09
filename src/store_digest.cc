@@ -109,7 +109,7 @@ storeDigestCalcCap()
 
     // Digest recipients recalculate mask size using received capacity and bpe
     // values. Limit sent capacity value to keep legacy digest recipients safe.
-    const auto safeMaskSizeMax = CacheDigest::MaskSize(UINT64_MAX, bpe); // absolute maximum
+    const auto safeMaskSizeMax = CacheDigest::CalcMaskSize(UINT64_MAX, bpe); // absolute maximum
     const auto safeCapMax = uint64_t(safeMaskSizeMax) * 8 / bpe;
     const auto safeCap = std::min(cap, safeCapMax);
     if (cap > safeCap) {

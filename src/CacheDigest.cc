@@ -41,7 +41,7 @@ CacheDigest::init(uint64_t newCapacity)
     capacity = newCapacity;
 
     Assure(bits_per_entry > 0);
-    const auto newMaskSz = CacheDigest::MaskSize(newCapacity, bits_per_entry);
+    const auto newMaskSz = CacheDigest::CalcMaskSize(newCapacity, bits_per_entry);
     Assure(newMaskSz > 0);
     mask_size = newMaskSz;
 
@@ -270,7 +270,7 @@ cacheDigestReport(CacheDigest * cd, const SBuf &label, StoreEntry * e)
                      );
 }
 
-/// CacheDigest::MaskSize() helper to compute digest mask size without
+/// CacheDigest::CalcMaskSize() helper to compute digest mask size without
 /// accounting for any limits or restrictions other than those imposed by
 /// uint64_t type/math itself.
 static uint64_t
@@ -290,7 +290,7 @@ UnsafeMaskSize(const uint64_t cap, const uint8_t bpe)
 }
 
 uint32_t
-CacheDigest::MaskSize(const uint64_t cap, const uint8_t bpe)
+CacheDigest::CalcMaskSize(const uint64_t cap, const uint8_t bpe)
 {
     // Our mask_size data member is uint32_t. That type is hard-coded in several
     // places. TODO: Use a unique type name while revising related types. We
